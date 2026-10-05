@@ -1,0 +1,2874 @@
+@import "tailwindcss";
+
+/* ==============================================================================
+   GROOVE — Design tokens (single source of truth)
+
+   ONE place defines every color: this file. Nothing else declares a hex value.
+
+   THEMING
+     :root  -> DARK. This is the DEFAULT palette, applied when <html> has no
+               theme class at all. Dark-first means the base declaration is dark,
+               so a page rendered before JS hydrates is already correct.
+     .light -> the opt-in LIGHT palette.
+
+   A single ThemeProvider (components/theme/ThemeProvider.tsx) owns which class is
+   on <html>; an inline script in app/layout.tsx sets it before first paint.
+   Nothing else in the app may read, write, or duplicate theme state — swap the
+   class here and every page follows.
+
+   ACCENT
+     Groove gold #E8A93B — one hue, everything else neutral. It is the only brand
+     color; status colors (success/warning/danger/info) are desaturated so they
+     never outshine it.
+   ============================================================================== */
+
+@theme {
+  /* Semantic tokens -> utility classes. This block is a stable API: components
+     consume `bg-background`, `text-muted-foreground`, `border-border`, etc. and
+     never a literal color. Adding a token here makes it available everywhere. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-divider: var(--divider);
+  --color-input: var(--input);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+
+  /* Status */
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+
+  /* `primary` is a legacy alias for `accent`. Mapping it here rather than
+     editing 28 call sites keeps every older usage on one visual identity.
+     Prefer `accent` in new code. */
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-text: var(--accent-text);
+  --color-primary-soft: var(--accent-soft);
+  --color-primary-border: var(--accent-border);
+
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --color-glass-border-hover: var(--glass-border-hover);
+
+  --radius: 16px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ------------------------------------------------------------------------------
+   DARK — the default palette (`:root`).
+   Near-black layered surfaces rather than flat grey, so elevation reads clearly
+   in both themes. Foreground/muted pairs are tuned for WCAG AA on their own
+   surface; --accent-text is a lighter gold than light mode's, because gold on
+   near-black needs more luminance to clear 4.5:1.
+   ------------------------------------------------------------------------------ */
+:root {
+  color-scheme: dark;
+
+  --background: #0b0d10;
+  --surface: #0f1216;
+  --elevated: #14181d;
+  --card: #111519;
+  --card-foreground: #f2f4f7;
+
+  --foreground: #edeff3;
+  --muted: #171b21;
+  --muted-foreground: #9ba3ae; /* 7.1:1 on --card */
+  --subtle-foreground: #7c8593; /* 4.9:1 on --card */
+
+  --border: #232830;
+  --border-strong: #363d47;
+  --divider: #1b1f26;
+  --input: #2a3038;
+
+  --accent: #e8a93b;
+  --accent-hover: #f2b858;
+  --accent-foreground: #120802;
+  --accent-text: #f0b95a;
+  --accent-soft: rgba(232, 169, 59, 0.12);
+  --accent-border: rgba(232, 169, 59, 0.28);
+
+  --ring: rgba(232, 169, 59, 0.4);
+  --overlay: rgba(3, 5, 8, 0.72);
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.12);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --info: #60a5fa;
+  --info-soft: rgba(96, 165, 250, 0.12);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+  --shadow-accent: 0 8px 24px -8px rgba(232, 169, 59, 0.35);
+
+  /* Glass tokens — Dark default */
+  --glass-bg: rgba(17, 21, 25, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(232, 169, 59, 0.35);
+  --glass-blur: 16px;
+  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.65);
+  --glass-highlight: rgba(255, 255, 255, 0.05);
+  --vignette-color: rgba(0, 0, 0, 0.6);
+
+  /* Legacy aliases. Older inline-styled surfaces still read these; mapping them
+     onto current tokens means one edit here fixes all of them. */
+  --fg: var(--foreground);
+  --fg-2: var(--muted-foreground);
+  --fg-3: var(--subtle-foreground);
+  --layer: var(--muted);
+  --brand-soft: var(--accent-soft);
+  --shadow: var(--shadow-sm);
+}
+
+/* ------------------------------------------------------------------------------
+   LIGHT — opt-in, applied by adding `light` to <html>.
+   ------------------------------------------------------------------------------ */
+.light {
+  color-scheme: light;
+
+  --background: #ffffff;
+  --surface: #ffffff;
+  --elevated: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b; /* 4.8:1 on white */
+  --subtle-foreground: #94a3b8;
+
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --divider: #f1f5f9;
+  --input: #e2e8f0;
+
+  --accent: #e8a93b;
+  --accent-hover: #d4a017;
+  --accent-foreground: #120802;
+  --accent-text: #b45309; /* darkened for AA text contrast on white (5.4:1) */
+  --accent-soft: #fffbeb;
+  --accent-border: #fde68a;
+
+  --ring: rgba(180, 83, 9, 0.35);
+  --overlay: rgba(9, 9, 11, 0.45);
+
+  --success: #15803d;
+  --success-soft: #f0fdf4;
+  --warning: #b45309;
+  --warning-soft: #fffbeb;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --info: #1d4ed8;
+  --info-soft: #eff6ff;
+
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 40px -12px rgba(15, 23, 42, 0.16);
+  --shadow-accent: 0 8px 24px -8px rgba(232, 169, 59, 0.4);
+
+  /* Glass tokens — Light override */
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-border-hover: rgba(180, 83, 9, 0.3);
+  --glass-blur: 16px;
+  --glass-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+  --vignette-color: rgba(15, 23, 42, 0.06);
+}
+
+/* ------------------------------------------------------------------------------
+   ACCENT PALETTES — admin-selectable brand color.
+
+   The previous "theme switcher" set a `data-theme` attribute that nothing read.
+   This is the real thing: an accent slug on <html> as `data-accent`, backed by
+   these blocks that override only the accent token family. Every other token is
+   untouched, so a palette change recolors the entire app — admin, coach, and
+   client alike — without touching one component.
+
+   Two blocks per palette: the dark default and the light override. Specificity
+   matters and is deliberate:
+     `:root[data-accent='x']`  (0,2,0) beats `:root`      (0,1,0)
+     `.light[data-accent='x']` (0,2,0) beats `.light`     (0,1,0)
+   The two accent families tie at (0,2,0), so DARK blocks must be written first
+   for the light pair to win when `light` is also present. Keep that order.
+
+   Each `--accent-text` is chosen for AA contrast (>= 4.5:1) against its own
+   theme's surface; the soft/border values are the same hue at low alpha.
+   ------------------------------------------------------------------------------ */
+
+:root[data-accent='gold'] {
+  --accent: #e8a93b;
+  --accent-hover: #f2b858;
+  --accent-foreground: #120802;
+  --accent-text: #f0b95a;
+  --accent-soft: rgba(232, 169, 59, 0.12);
+  --accent-border: rgba(232, 169, 59, 0.28);
+  --ring: rgba(232, 169, 59, 0.4);
+  --shadow-accent: 0 8px 24px -8px rgba(232, 169, 59, 0.35);
+}
+
+:root[data-accent='ember'] {
+  --accent: #e8703a;
+  --accent-hover: #f2834f;
+  --accent-foreground: #160702;
+  --accent-text: #f0855a;
+  --accent-soft: rgba(232, 112, 58, 0.13);
+  --accent-border: rgba(232, 112, 58, 0.3);
+  --ring: rgba(232, 112, 58, 0.4);
+  --shadow-accent: 0 8px 24px -8px rgba(232, 112, 58, 0.35);
+}
+
+:root[data-accent='ocean'] {
+  --accent: #38a8d8;
+  --accent-hover: #55bce7;
+  --accent-foreground: #04141c;
+  --accent-text: #5cc0e8;
+  --accent-soft: rgba(56, 168, 216, 0.13);
+  --accent-border: rgba(56, 168, 216, 0.3);
+  --ring: rgba(56, 168, 216, 0.4);
+  --shadow-accent: 0 8px 24px -8px rgba(56, 168, 216, 0.35);
+}
+
+:root[data-accent='orchid'] {
+  --accent: #a855f7;
+  --accent-hover: #b979f9;
+  --accent-foreground: #14061c;
+  --accent-text: #c08afb;
+  --accent-soft: rgba(168, 85, 247, 0.14);
+  --accent-border: rgba(168, 85, 247, 0.32);
+  --ring: rgba(168, 85, 247, 0.42);
+  --shadow-accent: 0 8px 24px -8px rgba(168, 85, 247, 0.38);
+}
+
+:root[data-accent='jade'] {
+  --accent: #2fb98a;
+  --accent-hover: #43c99b;
+  --accent-foreground: #02140d;
+  --accent-text: #4ecfa4;
+  --accent-soft: rgba(47, 185, 138, 0.13);
+  --accent-border: rgba(47, 185, 138, 0.3);
+  --ring: rgba(47, 185, 138, 0.4);
+  --shadow-accent: 0 8px 24px -8px rgba(47, 185, 138, 0.35);
+}
+
+:root[data-accent='rose'] {
+  --accent: #e0557f;
+  --accent-hover: #ea6b90;
+  --accent-foreground: #1c0410;
+  --accent-text: #ef7ba1;
+  --accent-soft: rgba(224, 85, 127, 0.13);
+  --accent-border: rgba(224, 85, 127, 0.3);
+  --ring: rgba(224, 85, 127, 0.4);
+  --shadow-accent: 0 8px 24px -8px rgba(224, 85, 127, 0.35);
+}
+
+/* Light-mode pairs — written after every dark block so they win the tie. */
+.light[data-accent='gold'] {
+  --accent: #e8a93b;
+  --accent-hover: #d4a017;
+  --accent-text: #b45309;
+  --accent-soft: #fffbeb;
+  --accent-border: #fde68a;
+  --ring: rgba(180, 83, 9, 0.35);
+}
+
+.light[data-accent='ember'] {
+  --accent: #e8703a;
+  --accent-hover: #d2541f;
+  --accent-text: #b23c14;
+  --accent-soft: #fff4ed;
+  --accent-border: #fdd0b8;
+  --ring: rgba(178, 60, 20, 0.35);
+}
+
+.light[data-accent='ocean'] {
+  --accent: #38a8d8;
+  --accent-hover: #1c86b4;
+  --accent-text: #0b6a92;
+  --accent-soft: #eff9ff;
+  --accent-border: #bae6fd;
+  --ring: rgba(11, 106, 146, 0.35);
+}
+
+.light[data-accent='orchid'] {
+  --accent: #a855f7;
+  --accent-hover: #8b3fe0;
+  --accent-text: #7127a8;
+  --accent-soft: #faf5ff;
+  --accent-border: #e9d5ff;
+  --ring: rgba(113, 39, 168, 0.35);
+}
+
+.light[data-accent='jade'] {
+  --accent: #2fb98a;
+  --accent-hover: #1f9b72;
+  --accent-text: #0f7355;
+  --accent-soft: #effdf7;
+  --accent-border: #b6f0da;
+  --ring: rgba(15, 115, 85, 0.35);
+}
+
+.light[data-accent='rose'] {
+  --accent: #e0557f;
+  --accent-hover: #c93a65;
+  --accent-text: #a81f4d;
+  --accent-soft: #fff1f5;
+  --accent-border: #fbcfe0;
+  --ring: rgba(168, 31, 77, 0.35);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 200ms var(--ease-out-expo), color 200ms var(--ease-out-expo);
+  position: relative;
+}
+
+/* Fixed subtle grain/noise + soft vignette film across the page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  background-image:
+    radial-gradient(ellipse at 50% 30%, transparent 40%, var(--vignette-color) 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, repeat;
+  background-size: cover, 160px 160px;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 150ms;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* ------------------------------------------------------------------------------
+   Focus ring - WCAG AA visible focus everywhere
+   ------------------------------------------------------------------------------ */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ------------------------------------------------------------------------------
+   Layout primitives
+   ------------------------------------------------------------------------------ */
+.g-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+@media (min-width: 768px) {
+  .g-container {
+    padding-inline: 2rem;
+  }
+}
+
+.g-section {
+  padding-block: 4.5rem;
+}
+@media (min-width: 768px) {
+  .g-section {
+    padding-block: 6rem;
+  }
+}
+
+/* Alternating band - one step off the page surface, in either theme. */
+.g-section-alt {
+  background-color: var(--surface);
+  border-block: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------------------------------
+   Motion - subtle fade-up only
+   ------------------------------------------------------------------------------ */
+@keyframes g-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.g-fade-up {
+  animation: g-fade-up 0.6s var(--ease-out-expo) both;
+}
+.g-fade-up-1 { animation-delay: 60ms; }
+.g-fade-up-2 { animation-delay: 140ms; }
+.g-fade-up-3 { animation-delay: 220ms; }
+.g-fade-up-4 { animation-delay: 300ms; }
+.g-fade-up-5 { animation-delay: 380ms; }
+.g-fade-up-6 { animation-delay: 460ms; }
+
+/* ── Scroll-triggered reveal (components/shared/Reveal.tsx) ──────────────
+   Deliberately opacity + transform only. The hidden state must never remove
+   the element from the layout or the accessibility tree, or content could stay
+   invisible forever if the IntersectionObserver callback were dropped. */
+.g-reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 0.7s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+  will-change: opacity, transform;
+}
+.g-reveal[data-reveal='shown'] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Per-child stagger for grids: the Nth card trails the first slightly, which
+   reads as considered rather than as a single block appearing at once. */
+.g-reveal-stagger > * {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 0.7s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+.g-reveal-stagger[data-reveal='shown'] > * { opacity: 1; transform: none; }
+.g-reveal-stagger[data-reveal='shown'] > *:nth-child(1) { transition-delay: 0ms; }
+.g-reveal-stagger[data-reveal='shown'] > *:nth-child(2) { transition-delay: 70ms; }
+.g-reveal-stagger[data-reveal='shown'] > *:nth-child(3) { transition-delay: 140ms; }
+.g-reveal-stagger[data-reveal='shown'] > *:nth-child(4) { transition-delay: 210ms; }
+.g-reveal-stagger[data-reveal='shown'] > *:nth-child(5) { transition-delay: 280ms; }
+.g-reveal-stagger[data-reveal='shown'] > *:nth-child(6) { transition-delay: 350ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .g-reveal,
+  .g-reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SHARED HEADER — notifications + inline search
+   One surface for all three roles. AppTopNav renders this for admin, coach and
+   client, so anything defined here reaches every dashboard at once.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* --- Notifications ---------------------------------------------------------
+   `.g-menu` was applied to the notification panel but never had a rule, so the
+   panel shipped with no background, border, shadow or radius at all — which is
+   why the dropdown read as a loose unstyled box. `.g-notif-panel` is the real
+   surface. It is deliberately NOT glassmorphic: an opaque card reads as a menu,
+   whereas a translucent panel behind 10 rows of text is harder to scan and
+   fights the page background. */
+
+.g-notif-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 60;
+  display: flex;
+  width: min(21rem, calc(100vw - 1.5rem));
+  max-height: min(26rem, calc(100vh - 6rem));
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  box-shadow: var(--shadow-panel);
+  transform-origin: top right;
+}
+
+/* Enter and exit are separate keyframes because `animation-fill-mode: both`
+   pins the final keyframe. A shared set ending at `scale(1)` would briefly hold
+   the panel at full size after the exit animation finished, so the close would
+   visibly stall. */
+.g-notif-panel[data-state='open'] {
+  animation: g-notif-in 150ms var(--nav-ease) both;
+}
+.g-notif-panel[data-state='closed'] {
+  animation: g-notif-out 120ms var(--nav-ease) both;
+}
+
+@keyframes g-notif-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes g-notif-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.g-notif-head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--divider);
+  padding: 0.625rem 0.75rem 0.625rem 0.875rem;
+}
+
+.g-notif-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+
+/* One row. Compact: the unread state is a left rail + dot rather than a tinted
+   card, so ten of them still fit a 26rem panel without a wall of colour. */
+.g-notif-item {
+  position: relative;
+  display: block;
+  width: 100%;
+  border-radius: 0.625rem;
+  padding: 0.5rem 0.625rem 0.5rem 0.75rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 130ms ease;
+}
+.g-notif-item:hover {
+  background-color: var(--muted);
+}
+.g-notif-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.g-notif-item::before {
+  content: '';
+  position: absolute;
+  left: 0.25rem;
+  top: 0.625rem;
+  bottom: 0.625rem;
+  width: 2px;
+  border-radius: 9999px;
+  background-color: transparent;
+  transition: background-color 130ms ease;
+}
+.g-notif-item[data-unread='true']::before {
+  background-color: var(--accent);
+}
+
+.g-notif-dot {
+  display: block;
+  flex-shrink: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--accent);
+}
+
+.g-notif-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--accent-text);
+  text-decoration: none;
+}
+.g-notif-cta:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* --- Inline search ---------------------------------------------------------
+   Collapsed it is a 2.25rem icon button identical in size to the bell and theme
+   toggle, so the action cluster stays visually even. Clicking expands the SAME
+   element into a field — there is no separate button and no separate panel
+   trigger, which is what stops the two from drifting apart. */
+
+.g-hsearch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 2.25rem;
+  flex-shrink: 0;
+  gap: 0.5rem;
+  padding-inline: 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  /* Width is the animation. `min-width: 0` is required or the flex item refuses
+     to shrink below its content and the collapse snaps instead of animating. */
+  width: 2.25rem;
+  min-width: 0;
+  overflow: hidden;
+  transition:
+    width 200ms var(--nav-ease),
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.g-hsearch:hover {
+  background-color: var(--muted);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.g-hsearch[data-open='true'] {
+  width: min(16rem, calc(100vw - 9rem));
+  border-color: var(--border-strong);
+  background-color: var(--card);
+  color: var(--foreground);
+}
+.g-hsearch:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.g-hsearch-icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+.g-hsearch-input {
+  width: 0;
+  min-width: 0;
+  flex: 1;
+  opacity: 0;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  transition: opacity 130ms ease 40ms;
+}
+.g-hsearch-input::placeholder {
+  color: var(--subtle-foreground);
+}
+.g-hsearch[data-open='true'] .g-hsearch-input {
+  width: auto;
+  opacity: 1;
+}
+
+/* Collapsed: the input must not be reachable by keyboard or it becomes an
+   invisible focus target sitting in the tab order. */
+.g-hsearch[data-open='false'] .g-hsearch-input {
+  pointer-events: none;
+  position: absolute;
+}
+
+.g-hsearch-clear {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  color: var(--subtle-foreground);
+  cursor: pointer;
+  transition: background-color 130ms ease, color 130ms ease;
+}
+.g-hsearch-clear:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.g-hsearch-results {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 60;
+  width: min(19rem, calc(100vw - 1.5rem));
+  max-height: 19rem;
+  overflow-y: auto;
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  box-shadow: var(--shadow-panel);
+  transform-origin: top right;
+  animation: g-notif-in 150ms var(--nav-ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-notif-panel,
+  .g-hsearch-results {
+    animation: none;
+  }
+  .g-hsearch,
+  .g-hsearch-input {
+    transition: none;
+  }
+}
+
+@keyframes g-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.g-spin {
+  animation: g-spin 0.7s linear infinite;
+}
+
+/* ------------------------------------------------------------------------------
+   Enter/exit transitions.
+   `animate-in fade-in zoom-in-95` historically came from a plugin that is not
+   installed, so those classes were silent no-ops in 9 files. Defining them here
+   makes every existing usage work without editing those call sites.
+   ------------------------------------------------------------------------------ */
+@keyframes g-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes g-enter-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-in {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-out-expo);
+  animation-fill-mode: both;
+}
+.fade-in {
+  animation-name: g-enter;
+}
+.zoom-in-95 {
+  animation-name: g-enter-scale;
+}
+
+/* ------------------------------------------------------------------------------
+   Glassmorphism primitives
+   ------------------------------------------------------------------------------ */
+.glass {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-hover {
+  transition: border-color 220ms var(--ease-out-expo),
+    box-shadow 220ms var(--ease-out-expo),
+    transform 220ms var(--ease-out-expo),
+    background-color 220ms ease;
+}
+.glass-hover:hover {
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--shadow-lg), 0 0 24px -4px var(--accent-soft);
+  transform: translateY(-2px);
+}
+
+.btn-glass {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+  transition: all 200ms var(--ease-out-expo);
+}
+.btn-glass:hover {
+  border-color: var(--glass-border-hover);
+  background-color: var(--glass-highlight);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Reduced transparency support */
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  .light {
+    --glass-bg: var(--card);
+    --glass-blur: 0px;
+    --glass-shadow: var(--shadow-md);
+  }
+  .glass,
+  .btn-glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  body::before {
+    background-image: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+   Card - rounded 20px, 1px soft border, no heavy shadow, hover lift
+   ------------------------------------------------------------------------------ */
+.g-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.g-card-hover {
+  transition: box-shadow 200ms var(--ease-out-expo), transform 200ms var(--ease-out-expo),
+    border-color 200ms ease;
+}
+.g-card-hover:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+}
+
+/* ------------------------------------------------------------------------------
+   ImageCard - the ONE photo card in the app.
+   Shared by coach, studio, discipline and registration-role cards so they are
+   pixel-identical everywhere. Geometry (radius, border, zoom timing) lives here
+   rather than in the component so the contract is auditable in one file.
+
+   Mobile/touch: there is no hover, so the reveal panel is pinned open by the
+   `hover: none` media query below. The card is never content-gated on desktop
+   either — the panel only adds detail on top of an always-visible name.
+   ------------------------------------------------------------------------------ */
+.g-imagecard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 20px; /* within the 16–24px card-radius contract */
+  background-color: var(--card);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 220ms var(--ease-out-expo), transform 220ms var(--ease-out-expo),
+    border-color 200ms ease;
+}
+.g-imagecard:hover,
+.g-imagecard:focus-within,
+.g-imagecard:focus-visible {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+.g-imagecard:hover {
+  transform: translateY(-2px);
+}
+
+.g-imagecard-media {
+  transition: transform 220ms var(--ease-out-expo);
+}
+.g-imagecard:hover .g-imagecard-media,
+.g-imagecard:focus-within .g-imagecard-media,
+.g-imagecard:focus-visible .g-imagecard-media {
+  transform: scale(1.06);
+}
+
+/* Scrim that keeps text legible over any photo in either theme.
+   Bottom-weighted like the overlay scrim: strong at the very bottom where the
+   name sits, clear by ~62% so the photo above keeps its range. The values are
+   deliberately near-black rather than token-driven — this sits on top of
+   unpredictable imagery, so it must not change hue with the theme. */
+.g-imagecard-scrim {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.45) 18%,
+    rgba(0, 0, 0, 0.12) 42%,
+    rgba(0, 0, 0, 0) 62%
+  );
+}
+
+.g-imagecard-panel {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 220ms var(--ease-out-expo), transform 220ms var(--ease-out-expo);
+}
+.g-imagecard:hover .g-imagecard-panel,
+.g-imagecard:focus-within .g-imagecard-panel,
+.g-imagecard:focus-visible .g-imagecard-panel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Touch devices never hover: reveal the panel permanently so nothing is
+   unreachable without a pointer. */
+@media (hover: none) {
+  .g-imagecard-panel {
+    opacity: 1;
+    transform: none;
+  }
+  .g-imagecard:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-imagecard,
+  .g-imagecard-media,
+  .g-imagecard-panel {
+    transition-duration: 1ms;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+   ImageCard OVERLAY mode (coach directory).
+
+   The card element IS the aspect box; the photo fills it via
+   `absolute inset-0 h-full w-full object-cover`, so it is always 100% x 100% of
+   the card and can never leave blank space underneath.
+
+   LAYERS (bottom -> top)
+     1. photo — no blur, no opacity reduction. The coach's actual face is the point.
+     2. ONE bottom-only scrim, transparent at the top of the card and reaching
+        ~70% black at the very bottom edge. Nothing covers the upper two thirds,
+        so the photo is never muddied.
+     3. badges + rating
+     4. identity (name + category) — always visible, pinned to the bottom edge
+     5. reveal panel — description, location/rate, actions. Collapsed by default
+        and slides UP on hover or keyboard focus.
+
+   Previously this mode stacked TWO glass layers (a near-black gradient plus a
+   white film, each with `backdrop-filter: blur(8px)`) AND a full-card scrim.
+   Three overlapping washes blurred the photo into an unreadable smear. There is
+   now exactly one scrim and it is bottom-only.
+
+   The scrim value is fixed light-on-dark rather than token-driven, by necessity:
+   it sits on top of unpredictable photography, so it must not shift hue or lose
+   contrast when the app theme flips. Everything else in the card is tokens.
+   ------------------------------------------------------------------------------ */
+
+.g-imagecard-overlay {
+  transition: box-shadow 240ms var(--ease-out-expo), transform 240ms var(--ease-out-expo),
+    border-color 240ms ease;
+}
+/* Present, not flashy: a small lift, the gentle photo zoom, and an accent border
+   so the interactive edge is unmistakable without a glow. */
+.g-imagecard-overlay:hover,
+.g-imagecard-overlay:focus-within {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+/* `focus-within` (not `:focus-visible`) so tabbing to the Book button reveals
+   the panel that button lives in. */
+.g-imagecard-overlay:hover .g-imagecard-media,
+.g-imagecard-overlay:focus-within .g-imagecard-media {
+  transform: scale(1.05);
+}
+
+/* The scrim. Bottom-only and transparent across the upper two thirds of the
+   card, reaching ~70% black at the very bottom edge — just enough to hold white
+   text for the name and, on hover, the reveal panel. Nothing above that is
+   touched, so the photo keeps its full range.
+
+   Fixed light-on-dark by necessity: this sits over unpredictable photography, so
+   it must not change hue or lose contrast when the theme flips. */
+.g-imagecard-overlay-scrim {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.45) 18%,
+    rgba(0, 0, 0, 0.12) 42%,
+    rgba(0, 0, 0, 0) 62%
+  );
+}
+
+/* The reveal panel. Bottom-anchored container, so expanding the panel grows the
+   content UPWARD from the bottom edge — the name stays pinned to the bottom the
+   whole time and is never covered. `max-height` is what actually animates;
+   opacity alone would leave the buttons half-visible on their way in. */
+.g-imagecard-reveal {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    max-height 240ms var(--ease-out-expo),
+    opacity 200ms var(--ease-out-expo),
+    transform 240ms var(--ease-out-expo);
+}
+.g-imagecard-overlay:hover .g-imagecard-reveal,
+.g-imagecard-overlay:focus-within .g-imagecard-reveal {
+  max-height: 22rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Touch devices never hover. Leaving the panel collapsed would put the Book
+   button out of reach entirely, so it is pinned open and the card simply behaves
+   like a static photo card. This is the one case where content is NOT gated. */
+@media (hover: none) {
+  .g-imagecard-overlay:hover,
+  .g-imagecard-overlay:focus-within {
+    transform: none;
+  }
+  .g-imagecard-reveal {
+    max-height: 22rem;
+    opacity: 1;
+    transform: none;
+  }
+  .g-imagecard-overlay .g-imagecard-media {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-imagecard-overlay,
+  .g-imagecard-overlay .g-imagecard-media,
+  .g-imagecard-reveal {
+    transition-duration: 1ms;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+   Inputs - 48px, token-driven. Shared by every form on every page, so field
+   geometry is defined once rather than per page.
+   ------------------------------------------------------------------------------ */
+.g-input {
+  width: 100%;
+  height: 48px;
+  padding-inline: 0.875rem;
+  background-color: var(--card);
+  border: 1px solid var(--input);
+  border-radius: 12px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.g-input::placeholder {
+  color: var(--subtle-foreground);
+}
+.g-input:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+.g-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+.g-input:disabled {
+  background-color: var(--muted);
+  color: var(--subtle-foreground);
+  cursor: not-allowed;
+}
+.g-input[aria-invalid='true'],
+.g-input.border-danger {
+  border-color: var(--danger);
+}
+.g-input[aria-invalid='true']:focus,
+.g-input.border-danger:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px var(--danger-soft);
+}
+
+/* Icon inset for fields with a leading glyph (mail, lock, phone). */
+.g-input-has-icon {
+  padding-left: 2.75rem;
+}
+
+/* Autofill must not repaint the canvas with the OS's opposite color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0 1000px var(--card) inset;
+  caret-color: var(--foreground);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+textarea.g-input {
+  height: auto;
+  min-height: 104px;
+  padding-block: 0.75rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+select.g-input {
+  appearance: none;
+  /* The chevron cannot inherit a token through a data URI, so it is a neutral
+     grey that reads acceptably on both the dark card and the white one. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+/* Read-only / locked field, e.g. the fixed region and province on signup. */
+.g-input-static {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding-inline: 0.875rem;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.g-label {
+  display: block;
+  margin-bottom: 0.4375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+
+.g-field-error {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.4375rem;
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
+.g-field-hint {
+  margin-top: 0.4375rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Inline "this passes" affordance next to a label. */
+.g-field-valid {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+/* ------------------------------------------------------------------------------
+   Checkbox - themed via accent-color so it follows the palette
+   ------------------------------------------------------------------------------ */
+.g-checkbox {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.1875rem;
+  flex-shrink: 0;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-strong);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.g-checkbox:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ------------------------------------------------------------------------------
+   Eyebrow pill - the section-header signature
+   ------------------------------------------------------------------------------ */
+.g-eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  background-color: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+}
+
+/* ------------------------------------------------------------------------------
+   Pills / chips
+   ------------------------------------------------------------------------------ */
+.g-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.3125rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+}
+.g-pill-accent {
+  color: var(--accent-text);
+  background-color: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+/* ------------------------------------------------------------------------------
+   Form section heading (registration step blocks)
+   ------------------------------------------------------------------------------ */
+.g-form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* ------------------------------------------------------------------------------
+   Tables
+   ------------------------------------------------------------------------------ */
+.g-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+.g-table thead th {
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.g-table tbody td {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--divider);
+  color: var(--foreground);
+  vertical-align: middle;
+}
+.g-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.g-table tbody tr {
+  transition: background-color 120ms ease;
+}
+.g-table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.g-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ------------------------------------------------------------------------------
+   Skeletons
+   ------------------------------------------------------------------------------ */
+.g-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+  border-radius: 8px;
+}
+.g-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0,
+    var(--border-strong) 50%,
+    transparent 100%
+  );
+  animation: g-shimmer 1.6s infinite;
+}
+@keyframes g-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ------------------------------------------------------------------------------
+   Verified badge
+
+   One slow opacity breathe on the check icon. Deliberately restrained: a
+   verification mark is a trust signal, and a badge that pulses hard reads as an
+   alert. The pill itself never animates, so text beside it stays stable.
+
+   `prefers-reduced-motion` disables it below — animation that ignores the
+   setting is motion the user cannot turn off.
+   ------------------------------------------------------------------------------ */
+@keyframes g-verified-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(0.94);
+  }
+}
+
+.g-verified-icon {
+  animation: g-verified-breathe 2.4s var(--ease-out-expo) infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-verified-icon {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+   Scrollbars
+   ------------------------------------------------------------------------------ */
+.g-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.g-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.g-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 9999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.g-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--subtle-foreground);
+}
+
+/* ------------------------------------------------------------------------------
+   APP CHROME — the top header.
+
+   One style contract for the client, coach, and admin shells. All three roles
+   render the same <AppTopNav>, so putting the geometry here rather than in
+   utility strings is what actually guarantees they look identical: a change to
+   this block restyles every role at once, and there is no per-role copy to drift.
+
+   Roles still differ in CONTENT — nav items, group labels, and wordmarks all
+   live in the components' data, not here. This block only describes how a link,
+   a dropdown, a panel, and the header row itself are drawn.
+
+   Everything is token-driven, so an accent palette change or a light/dark switch
+   recolors the chrome with no extra work.
+   ------------------------------------------------------------------------------ */
+
+:root {
+  --nav-header-h: 4.25rem;
+  --nav-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --nav-dur: 260ms;
+  /* Panels sit on one soft two-layer shadow rather than a hard border — the
+     reference site's signature: a tight contact shadow plus a wide ambient one.
+     It reads as depth without drawing a hard outline around every menu. The
+     ambient layer is theme-aware because a white panel over a white header needs
+     it far more than a dark panel over a dark one. */
+  --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.06), 0 12px 32px -8px rgba(15, 23, 42, 0.14);
+    /* The header's own shadow, and much lighter than the panel's. A scrolled
+       header separates the bar from the page passing under it; a panel separates
+       itself from the bar. Same idea, different depth, so the two shadows are not
+       the same shadow. */
+    --shadow-header: 0 1px 0 0 var(--border), 0 8px 24px -12px rgba(15, 23, 42, 0.22);
+  }
+
+  :root:not(.light) {
+    --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+    --shadow-header: 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+  }
+
+/* ------------------------------------------------------------------------------
+   THE HEADER ROW
+
+   A three-column grid rather than a flex row: the brand is fixed, the nav takes
+   the space it needs and is allowed to shrink, and the action cluster is pinned
+   right. Flex let the middle zone win and squeeze the account menu, which is the
+   one part of a header a user must never lose.
+   ------------------------------------------------------------------------------ */
+
+.g-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  /* No rule at rest. The hairline and the shadow are added by `[data-scrolled]`
+     below, so the bar reads as controls floating on the page until content
+     actually passes underneath it. Both transition together, which is what makes
+     the change feel like one movement rather than a border and a shadow
+     appearing independently. */
+  border-bottom: 1px solid transparent;
+  background-color: transparent;
+  transition:
+    background-color var(--nav-dur) var(--nav-ease),
+    border-color var(--nav-dur) var(--nav-ease),
+    box-shadow var(--nav-dur) var(--nav-ease),
+    backdrop-filter var(--nav-dur) var(--nav-ease);
+}
+
+/* The only scroll-dependent chrome in the app. `--nav-header-h` is not touched:
+   the bar keeps its height and its content does not shift when the rule
+   appears, so scrolling produces no layout jitter. */
+.g-header[data-scrolled] {
+  border-bottom-color: var(--border);
+  background-color: color-mix(in srgb, var(--background) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: var(--shadow-header);
+}
+
+.g-header-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  height: var(--nav-header-h);
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 768px) {
+  .g-header-inner {
+    gap: 1.5rem;
+    padding-inline: 1.5rem;
+  }
+}
+@media (min-width: 1280px) {
+  .g-header-inner {
+    padding-inline: 2rem;
+  }
+}
+
+/* --- Brand ---------------------------------------------------------------- */
+
+.g-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.g-header-logo {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.g-header-mark {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+}
+
+/* The wordmark stacks the product name over the portal label. Both lines
+   truncate rather than wrap, so a long portal name narrows the block instead of
+   growing the header. */
+.g-header-wordmark {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+}
+.g-header-name {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.g-header-role {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--subtle-foreground);
+  white-space: nowrap;
+}
+
+/* The portal label is the first thing to go when space is tight — the product
+   name alone identifies the app. */
+@media (max-width: 639px) {
+  .g-header-role {
+    display: none;
+  }
+}
+@media (max-width: 400px) {
+  .g-header-wordmark {
+    display: none;
+  }
+}
+
+/* --- Primary links -------------------------------------------------------- */
+
+/* One treatment for inline links and dropdown triggers, so the nav row has a
+   single rhythm instead of two competing shapes.
+
+   The active state is a filled pill rather than an underline: an underline
+   collides with the header's own scroll hairline and with the text baseline of
+   a 2.25rem row, and it is the weaker of the two signals at a glance on a small
+   target. The fill reads at every width, in both themes, and matches the active
+   fill used inside dropdown panels — so a destination looks the same however it
+   is reached. */
+.g-header-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  height: 2.25rem;
+  padding-inline: 0.6875rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms var(--nav-ease);
+}
+.g-header-link:hover,
+.g-header-link:focus-visible {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+/* A 1px lift on hover only. Enough to feel responsive under the pointer,
+   imperceptible enough that it does not read as a gimmick in a bar a user
+   stares at all day. */
+.g-header-link:hover {
+  transform: translateY(-1px);
+}
+.g-header-link[data-active='true'] {
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.g-header-link[data-active='true']:hover {
+  transform: none;
+}
+
+.g-header-trigger {
+  cursor: pointer;
+}
+.g-header-trigger-icon {
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.75;
+}
+
+/* The caret flips on open. `aria-expanded` is on the trigger, so this stays
+   correct for keyboard and mouse alike. */
+.g-header-caret {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: transform 200ms var(--nav-ease);
+}
+[aria-expanded='true'] > .g-header-caret {
+  transform: rotate(180deg);
+}
+
+/* The nav row itself. Centred on desktop like the reference so the menu sits
+   under the middle of the viewport rather than crowding the brand; left-aligned
+   once the row runs out of room, because a clipped centred row is unusable.
+
+   `overflow: hidden` must NOT be set here. Each dropdown panel is absolutely
+   positioned and hangs BELOW this row, which is only as tall as the triggers —
+   so `overflow: hidden` clipped every panel to that height and made the menus
+   invisible while leaving them present in the DOM (they appeared to do nothing
+   on click). Crowding is handled by `min-width: 0` on the flex children and by
+   the `lg` breakpoint, which folds the whole row into the mobile sheet below
+   it; the row itself never needs to clip. */
+.g-header-nav {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-width: 0;
+  overflow: visible;
+}
+@media (min-width: 1024px) {
+  .g-header-nav {
+    display: flex;
+  }
+}
+
+/* --- Action cluster ------------------------------------------------------- */
+
+.g-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Icon buttons — the theme toggle and the notification bell both use
+   `g-topbar-action`, so they share one hit target with the burger. */
+.g-topbar-action {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.g-topbar-action:hover {
+  background-color: var(--muted);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+
+.g-header-burger {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.g-header-burger:hover {
+  background-color: var(--muted);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+/* Above `lg` every destination is already inline, so the burger would open a
+   menu that repeats the bar. */
+@media (min-width: 1024px) {
+  .g-header-burger {
+    display: none;
+  }
+}
+
+/* Search. A labelled field at `xl`, an icon button below it — the same control,
+   progressively disclosed, so the header never overflows on a laptop. */
+.g-header-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding-inline: 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.g-header-search-btn:hover {
+  background-color: var(--muted);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.g-header-search-text,
+.g-header-kbd {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .g-header-search-btn {
+    padding-inline: 0.75rem;
+  }
+  .g-header-search-text {
+    display: inline;
+    font-size: 0.8125rem;
+  }
+  .g-header-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding-inline: 0.25rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--border);
+    background-color: var(--muted);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--subtle-foreground);
+  }
+}
+
+/* Account trigger: avatar, name, role, caret. */
+.g-header-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.75rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.g-header-account:hover {
+  background-color: var(--muted);
+  border-color: var(--border-strong);
+  /* The trigger lifts to the same depth as the panel it opens, so hovering it
+     reads as "there is something behind this" rather than as a flat button. */
+  box-shadow: var(--shadow-panel);
+}
+
+.g-header-avatar,
+.g-header-avatar-img {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+/* A photo avatar must not inherit the initials chip's background — it is
+   covered by the image anyway, but the tint shows through the antialiased edge
+   of a scaled JPEG as a faint coloured ring. */
+.g-header-avatar-img {
+  object-fit: cover;
+  background-color: var(--muted);
+}
+
+/* The name/role pair is the first thing to go: the avatar plus the caret still
+   identify the control after this collapses to zero width. */
+.g-header-account-meta {
+  display: none;
+  min-width: 0;
+  text-align: left;
+  line-height: 1.2;
+}
+@media (min-width: 768px) {
+  .g-header-account-meta {
+    display: block;
+    max-width: 8.5rem;
+  }
+}
+.g-header-account-name {
+  display: block;
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-header-account-sub {
+  display: block;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--subtle-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------------------
+   PANELS — dropdowns, the account menu, and search share one surface.
+
+   One `.g-panel` class rather than three near-identical ones: a dropdown that
+   is a few pixels off from the account menu reads as two different products.
+   ------------------------------------------------------------------------------ */
+
+.g-panel {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 1.125rem);
+  z-index: 50;
+  width: max-content;
+  min-width: 13rem;
+  max-width: min(20rem, calc(100vw - 2rem));
+  transform: translateX(-50%);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  box-shadow: var(--shadow-panel);
+  /* Each anchor position needs its OWN keyframes. `animation-fill-mode: both`
+     pins the final keyframe's transform, which silently overwrites the static
+     `transform: translateX(-50%)` below — a shared keyframe ending at
+     `transform: none` would leave every centred panel sitting half its width to
+     the right of its trigger. */
+  animation: g-panel-in-centered 180ms var(--nav-ease) both;
+}
+
+/* Right-aligned variants: the account menu and search hang off the right edge of
+   the header rather than centring under their trigger, which would push them off
+   screen. */
+.g-header-actions > .relative:last-child > .g-panel {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.g-header-actions > .relative:first-child > .g-panel {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* The search panel is wide enough for full route strings. */
+.g-panel-wide {
+  width: 21rem;
+  max-width: min(21rem, calc(100vw - 2rem));
+}
+
+@keyframes g-panel-in-centered {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* The right-anchored panels are not translated on X, so their own keyframes
+   must not reintroduce a centred transform. */
+.g-header-actions .g-panel {
+  animation-name: g-panel-in-right;
+}
+@keyframes g-panel-in-right {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- Panel sections -------------------------------------------------------- */
+
+.g-panel-head {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--divider);
+  background-color: var(--muted);
+}
+.g-panel-head-name {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-panel-head-sub {
+  margin-top: 0.125rem;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-panel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--accent-border);
+  background-color: var(--accent-soft);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.g-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.375rem;
+}
+.g-panel-foot {
+  padding: 0.375rem;
+  border-top: 1px solid var(--divider);
+}
+
+/* --- Panel items ----------------------------------------------------------- */
+
+/* A dropdown row carries an icon, a label, and optionally a sub-line. The hover
+   and active states are the same fill the rail used, so a destination looks the
+   same whichever way it is reached. */
+.g-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.625rem;
+  color: var(--muted-foreground);
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.g-panel-item:hover,
+.g-panel-item:focus-visible {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+.g-panel-item[data-active='true'] {
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.g-panel-item-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: inherit;
+}
+.g-panel-item[data-active='true'] .g-panel-item-icon {
+  border-color: var(--accent-border);
+  background-color: var(--card);
+}
+
+.g-panel-item-text {
+  display: block;
+  min-width: 0;
+}
+.g-panel-item-label {
+  display: block;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-panel-item[data-active='true'] .g-panel-item-label {
+  font-weight: 600;
+}
+.g-panel-item-desc {
+  display: block;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  color: var(--subtle-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Search ---------------------------------------------------------------- */
+
+.g-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--divider);
+}
+.g-search-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--subtle-foreground);
+}
+.g-search-input {
+  width: 100%;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+.g-search-input::placeholder {
+  color: var(--subtle-foreground);
+}
+.g-search-results {
+  max-height: 19rem;
+  overflow-y: auto;
+}
+.g-search-empty {
+  padding: 1.25rem 0.75rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+/* --- Menu items (account menu) --------------------------------------------- */
+
+/* Wider than the nav dropdowns: this panel now carries a full identity block
+   and a three-option chooser, and it must not be the same width as a nav panel
+   that holds three lines of text — a shared `.g-panel` width would make the
+   account menu look truncated rather than roomier. */
+.g-panel-account {
+  width: 19rem;
+  max-width: min(19rem, calc(100vw - 1.5rem));
+}
+
+/* Identity block: avatar beside the name, email, and role badge. The avatar
+   leads rather than sitting above the text because a vertical stack in a 19rem
+   panel wastes the height this popover is competing for. */
+.g-account-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.g-account-identity {
+  min-width: 0;
+  flex: 1;
+}
+.g-account-avatar {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.g-account-avatar-img {
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  object-fit: cover;
+  background-color: var(--muted);
+}
+
+/* The appearance group. A labelled section inside the panel, separated by the
+   same hairline the panel foot uses, so the panel reads as three bands —
+   identity, actions, preferences — rather than one undifferentiated list. */
+.g-account-section {
+  padding: 0.75rem 0.75rem 0.875rem;
+  border-top: 1px solid var(--divider);
+}
+.g-account-section-label {
+  margin-bottom: 0.5rem;
+  padding-inline: 0.25rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--subtle-foreground);
+}
+.g-account-section-body {
+  padding-inline: 0.25rem;
+}
+
+.g-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.g-menu-item:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+/* Menu icons are boxed rather than free-floating, so the label column is
+   optically aligned and the icon does not drift as items are added or removed
+   between roles. */
+.g-menu-item-icon {
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+  opacity: 0.85;
+  transition: transform 160ms var(--nav-ease);
+}
+.g-menu-item:hover .g-menu-item-icon {
+  transform: translateX(1px);
+}
+.g-menu-item-danger {
+  color: var(--danger);
+}
+.g-menu-item-danger .g-menu-item-icon {
+  opacity: 1;
+}
+.g-menu-item-danger:hover {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* --- Theme chooser --------------------------------------------------------- */
+
+/* Three equal segments on one track, so the control reads as one object with
+   three positions rather than three buttons. The active segment lifts off the
+   track — the same "there is something behind this" cue the panels use. */
+.g-theme-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.g-theme-option {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    background-color 180ms var(--nav-ease),
+    border-color 180ms var(--nav-ease),
+    box-shadow 180ms var(--nav-ease),
+    color 180ms var(--nav-ease);
+}
+.g-theme-option:hover {
+  color: var(--foreground);
+  background-color: color-mix(in srgb, var(--card) 70%, transparent);
+}
+.g-theme-option[data-active='true'] {
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-panel);
+  color: var(--accent-text);
+}
+.g-theme-option-icon {
+  height: 1rem;
+  width: 1rem;
+}
+.g-theme-option-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* In the mobile sheet the segments go horizontal with the icon beside the label
+   — a full-width row has no vertical space budget to spare for three stacked
+   mini-cards, and edge-to-edge touch targets are the point of the sheet. */
+.g-sheet-section .g-theme-picker {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  padding: 0.25rem;
+}
+.g-sheet-section .g-theme-option {
+  flex-direction: row;
+  gap: 0.375rem;
+  padding: 0.625rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* --- Presence --------------------------------------------------------------- */
+
+/* One row, collapsed. The control shows only the CURRENT status until it is
+   activated, so the account panel does not permanently carry four rows for a
+   value that rarely changes. */
+.g-presence {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.g-presence-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.g-presence-trigger:hover {
+  background-color: var(--muted);
+}
+.g-presence-trigger-label {
+  flex: 1;
+  min-width: 0;
+}
+/* The caret rotates rather than swapping icons, so the open/closed state is a
+   movement the eye tracks instead of a change it has to re-read. */
+.g-presence-caret {
+  height: 0.875rem;
+  width: 0.875rem;
+  flex-shrink: 0;
+  color: var(--subtle-foreground);
+  transition: transform 160ms var(--nav-ease);
+}
+.g-presence-caret-open {
+  transform: rotate(180deg);
+}
+
+/* The submenu. A raised panel rather than more rows in the track, so it reads as
+   a temporary layer over the account panel and not as part of its list. */
+.g-presence-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: 0.125rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: var(--card);
+  box-shadow: var(--shadow-panel);
+  animation: g-presence-in 140ms var(--nav-ease);
+}
+@keyframes g-presence-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-presence-menu {
+    animation: none;
+  }
+  .g-presence-caret {
+    transition: none;
+  }
+}
+
+.g-presence-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.5rem;
+  padding: 0.4375rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.g-presence-option:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+/* The active row is marked by colour and the tick rather than by a lifted
+   shadow: inside the submenu a shadow would compete with the panel's own. */
+.g-presence-option[data-active] {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+.g-presence-option[data-active] .g-presence-dot {
+  box-shadow: 0 0 0 3px var(--card);
+}
+.g-presence-label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* One dot definition, reused at three sizes: the option row, the badge on an
+   avatar, and the inline chip on a card. */
+.g-presence-dot {
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+/* The avatar badge is smaller than the option dot, so it needs its own scale
+   rather than inheriting it. */
+.g-presence-dot-sm {
+  height: 0.625rem;
+  width: 0.625rem;
+  box-shadow:
+    0 0 0 2px var(--background),
+    inset 0 0 0 2px var(--background);
+}
+/* Offline is a hollow ring, not a grey dot: "not present" is the absence of
+   presence, and a filled dot in the same shape as the others reads as a fifth
+   colour choice rather than as absence. */
+.g-presence-dot--offline {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--subtle-foreground);
+}
+.g-presence-dot--online {
+  background-color: var(--success);
+}
+.g-presence-dot--away {
+  background-color: var(--warning);
+}
+.g-presence-dot--busy {
+  background-color: var(--danger);
+}
+
+/* Text tint for the same four states, for surfaces that show a *written*
+   status (the /messages thread header) rather than a dot. Deliberately built
+   from the same tokens as .g-presence-dot--* so the dot and the wording can
+   never drift apart in colour. Offline uses the muted foreground, since the
+   hollow ring carries no fill to echo. */
+.g-presence-text--online {
+  color: var(--success);
+}
+.g-presence-text--away {
+  color: var(--warning);
+}
+.g-presence-text--busy {
+  color: var(--danger);
+}
+.g-presence-text--offline {
+  color: var(--subtle-foreground);
+}
+
+/* The badge that rides an avatar — the header trigger and the messages contact
+   list. A ring cuts a hole in the avatar edge so the face stays readable. */
+.g-header-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.g-presence-badge {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  height: 0.625rem;
+  width: 0.625rem;
+  border-radius: 9999px;
+  box-shadow:
+    0 0 0 2px var(--background),
+    inset 0 0 0 2px var(--background);
+}
+
+.g-presence-error {
+  margin-top: 0.5rem;
+  padding-inline: 0.25rem;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--danger);
+}
+
+/* In the mobile sheet the trigger and rows go edge to edge — a phone is a touch
+   target first, and the sheet's vertical budget is cheaper than the panel's. */
+.g-sheet-section .g-presence-trigger,
+.g-sheet-section .g-presence-option {
+  padding: 0.75rem 0.5rem;
+}
+
+/* --- Studio Locator (Leaflet) -------------------------------------------- */
+
+/* Leaflet ships light-mode-only chrome: a pale grey tile background, near-black
+   control text, and a white attribution bar. In the dark palette that reads as
+   a bright rectangle punched into the page, so the handful of Leaflet's own
+ * surfaces are re-pointed at the app's tokens. Only the frame is themed — the
+ * raster tiles themselves stay as OpenStreetMap renders them. */
+.leaflet-container {
+  background-color: var(--muted);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+.leaflet-tile-pane {
+  /* Tiles are photographic; a slight desaturation stops them competing with the
+     gold accent that marks the radius and the centre pin. */
+  filter: saturate(0.85);
+}
+.light .leaflet-tile-pane {
+  filter: none;
+}
+
+.leaflet-control-zoom a,
+.leaflet-control-layers {
+  background-color: var(--card);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.leaflet-control-zoom a:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+.leaflet-control-attribution {
+  background-color: color-mix(in srgb, var(--card) 88%, transparent);
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: var(--accent-text);
+}
+
+/* Leaflet injects `leaflet-popup-content-wrapper` / `-tip` with hard-coded white
+   and grey; repainting them keeps the marker popup inside the theme. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background-color: var(--card);
+  color: var(--foreground);
+  box-shadow: var(--shadow-panel);
+}
+.leaflet-popup-content {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  margin: 0.75rem 0.875rem;
+}
+.leaflet-popup-content span {
+  color: var(--muted-foreground);
+}
+
+/* Leaflet sets `.leaflet-div-icon { background: none; border: none }` itself;
+   this keeps our inline-SVG pins from inheriting any stray sizing. */
+.g-studio-pin {
+  background: none;
+  border: none;
+}
+
+/* Keep keyboard focus visible on the map surface and on marker buttons. */
+.leaflet-container:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------------------
+   MOBILE SHEET — below `lg`, where the inline nav is gone.
+
+   The rail's off-canvas drawer, re-skinned: the tree is the role's whole menu
+   rather than a second navigation concept, so a phone user sees the same
+   destinations a desktop user does, in the same groups.
+   ------------------------------------------------------------------------------ */
+
+.g-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  background-color: var(--overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.g-sheet {
+  display: flex;
+  width: min(21rem, 88vw);
+  height: 100%;
+  flex-shrink: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background-color: var(--card);
+  animation: g-drawer-in var(--nav-dur) var(--nav-ease) both;
+}
+@keyframes g-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.g-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: var(--nav-header-h);
+  padding-inline: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.g-sheet-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.g-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.75rem 0.75rem 1rem;
+}
+/* Identity block, mirroring the account panel's so a phone and a laptop open the
+   same identity card. The sheet has vertical room to spare but no width, so the
+   avatar stays at 2.5rem rather than growing. */
+.g-sheet-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.g-sheet-greeting {
+  padding: 0.5rem 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+.g-sheet-greeting strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.g-sheet-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-block: 0.5rem;
+}
+.g-sheet-section + .g-sheet-section {
+  border-top: 1px solid var(--divider);
+  margin-top: 0.25rem;
+}
+.g-sheet-label {
+  padding: 0.375rem 0.625rem 0.25rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--subtle-foreground);
+}
+
+.g-sheet-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6875rem 0.625rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    padding-left 180ms var(--nav-ease);
+}
+/* A 0.25rem indent on hover, not a nudge: on a touch-sized row a translate reads
+   as the row shifting under the finger, while padding-left moves only the
+   content and keeps the hit target still. */
+.g-sheet-link:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+  padding-left: 0.875rem;
+}
+.g-sheet-link[data-active='true'] {
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.g-sheet-link-icon {
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+.g-sheet-link--danger {
+  color: var(--danger);
+}
+.g-sheet-link--danger .g-sheet-link-icon {
+  opacity: 1;
+}
+.g-sheet-link--danger:hover {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+}
+
+.g-sheet-foot {
+  flex-shrink: 0;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------------------------------
+   Motion preferences
+
+   A menu opening is a convenience, not information. Honour the OS setting so
+   reduced-motion users get an instant, correct result instead of an animation
+   they did not ask for.
+   ------------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .g-header,
+  .g-topbar-action,
+  .g-header-burger,
+  .g-header-account,
+    .g-menu-item,
+    .g-header-search-btn,
+  .g-header-link,
+  .g-header-caret,
+  .g-panel,
+  .g-sheet,
+  .g-sheet-link,
+  .g-theme-picker,
+  .g-theme-option {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+   Print - a legal document should print on white regardless of theme
+   ------------------------------------------------------------------------------ */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* =============================================================================
+ * Session Agreement — print
+ * ===========================================================================
+ * "Download PDF" calls window.print(), so the on-screen agreement IS the PDF:
+ * no second renderer, no dependency, and no round trip that could leak the
+ * private-bucket signature images to a server.
+ *
+ * The chrome (topbar, contact list, composer) is hidden and the agreement is
+ * given a print-only white surface, so the exported document does not inherit
+ * the app's dark background or card borders. Screen rendering is untouched.
+ */
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /* Hide everything that is not the agreement. The agreement card carries its
+     own aria-label, so it is selected structurally rather than by class. */
+  body * {
+    visibility: hidden !important;
+  }
+
+  [aria-label='Session agreement'],
+  [aria-label='Session agreement'] * {
+    visibility: visible !important;
+  }
+
+  [aria-label='Session agreement'] {
+    position: absolute !important;
+    inset-inline-start: 0 !important;
+    inset-block-start: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  /* The action row is UI, not part of the document. */
+  [aria-label='Session agreement'] button,
+  [aria-label='Session agreement'] header + div button {
+    display: none !important;
+  }
+
+  /* Force the document onto white even in dark mode, otherwise the exported
+     PDF is a black page. */
+  [aria-label='Session agreement'] h2,
+  [aria-label='Session agreement'] h3,
+  [aria-label='Session agreement'] p,
+  [aria-label='Session agreement'] dt,
+  [aria-label='Session agreement'] dd,
+  [aria-label='Session Agreement'] p,
+  [aria-label='Session Agreement'] h2,
+  [aria-label='Session Agreement'] h3,
+  [aria-label='Session Agreement'] dt,
+  [aria-label='Session Agreement'] dd {
+    color: #111 !important;
+  }
+
+  [aria-label='Session agreement'] [data-muted],
+  [aria-label='Session agreement'] dt,
+  [aria-label='Session agreement'] .text-muted-foreground {
+    color: #555 !important;
+  }
+
+  /* Avoid splitting a section or a signature block across pages. */
+  [aria-label='Session agreement'] section,
+  [aria-label='Session agreement'] img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* =============================================================================
+ * Session Agreement paper — theme-aware contract surface
+ * ===========================================================================
+ * The agreement must be readable in BOTH modes, so it re-points the *Tailwind
+ * colour* variables (--color-*) at the values they resolve to on this element.
+ *
+ * WHY THIS IS NECESSARY — a real CSS Variables trap, measured not assumed:
+ * `@theme` declares `--color-foreground: var(--foreground)` on :root. A var()
+ * inside a custom property is substituted where the custom property is
+ * DECLARED, so `--color-foreground` is already computed to the dark palette by
+ * the time any descendant inherits it. Setting `--foreground` on a wrapper
+ * therefore has NO effect on `text-foreground` inside that wrapper — verified in
+ * the browser: the paper had `--foreground: #0f172a` while its text still
+ * resolved to #edeff3 (the dark foreground), i.e. light text on white paper.
+ *
+ * Re-declaring `--color-foreground: var(--foreground)` HERE moves the
+ * substitution onto this element, where --foreground is inherited from the
+ * active theme. Dark mode -> light text on a dark paper; light mode -> dark
+ * text on a light paper. No palette is duplicated: every value still comes from
+ * :root or .light.
+ *
+ * The values are the app's own, so the document keeps its gold accent
+ * (--accent-text) and the rest of the system stays untouched.
+ *
+ * Signature boxes are deliberately NOT themed — see .g-agreement-signature.
+ */
+.g-agreement-paper {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-divider: var(--divider);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  background-color: var(--card);
+  color: var(--foreground);
+}
+
+/* Signature box: ALWAYS white, in both modes.
+   The captured PNG is near-black ink (#0F172A, the SignaturePadModal pen
+   colour), so a themed or transparent ground made it unreadable. An explicit
+   white background plus a solid border guarantees contrast regardless of theme,
+   and the labels beneath it stay themed so they remain readable. */
+.g-agreement-signature {
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  color: #0f172a;
+}
+
+.g-agreement-signature img {
+  /* Guard against any inherited filter inverting black ink into white. */
+  filter: none;
+  opacity: 1;
+}
