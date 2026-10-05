@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ACCENTS, setAccent, setThemeMode, type Accent } from './ThemeProvider';
+import { isDarkOnlyRoute } from './RouteThemeEnforcer';
 
 /**
  * Applies the platform appearance chosen in the admin console to every
@@ -74,12 +75,11 @@ export function PlatformThemeSync() {
 
         if (locked || !hasStoredPreference) {
           const platformTheme = settings.theme === 'light' ? 'light' : 'dark';
-          // setThemeMode, not setTheme: when the admin has NOT locked the theme
-          // and the user has no stored preference, recording the platform default
-          // as an explicit mode is what stops this component re-deriving it on
-          // every subsequent mount. setTheme also writes the attribute directly,
-          // so the two paths agree.
-          setThemeMode(platformTheme);
+          const isDarkOnly = typeof window !== 'undefined' && isDarkOnlyRoute(window.location.pathname);
+          // Never force light theme onto dark-only routes
+          if (!isDarkOnly || platformTheme === 'dark') {
+            setThemeMode(platformTheme);
+          }
         }
       } catch {
         // Appearance is cosmetic; a failure here must never surface as an error.

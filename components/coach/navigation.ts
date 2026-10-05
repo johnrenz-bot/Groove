@@ -38,7 +38,6 @@ export const COACH_NAV: RoleNav = {
       label: 'About',
       icon: Info,
       items: [
-        { href: '/dance-events', label: 'Dance Events & News', icon: CalendarDays },
         { href: '/coach/about', label: 'About Groove', icon: Info },
       ],
     },

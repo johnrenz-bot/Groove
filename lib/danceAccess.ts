@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import { parseGenres } from '@/lib/utils';
 
 /**
@@ -44,7 +44,7 @@ export type DanceAccess =
 const DANCE = /^dance$/i;
 
 export async function checkDanceAccess(): Promise<DanceAccess> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { PlatformThemeSync } from '@/components/theme/PlatformThemeSync';
+import { RouteThemeEnforcer } from '@/components/theme/RouteThemeEnforcer';
+import { AppLoadingSplash } from '@/components/shared/AppLoadingSplash';
 import { PresenceBridge } from '@/components/shared/PresenceBridge';
 
 const inter = Inter({
@@ -43,6 +45,13 @@ const THEME_INIT_SCRIPT = `
     var MODES = ['dark', 'light', 'system'];
     var root = document.documentElement;
 
+    var path = window.location.pathname;
+    var isDarkOnly =
+      path === '/' ||
+      path === '/login' ||
+      path === '/register/coach' ||
+      path === '/register/client';
+
     // The user's preference, which may be 'system'. Falls back to the legacy
     // single key so an existing dark/light choice survives the upgrade.
     var storedMode = localStorage.getItem('groove-theme-mode');
@@ -51,7 +60,9 @@ const THEME_INIT_SCRIPT = `
     }
 
     var theme;
-    if (storedMode === 'system') {
+    if (isDarkOnly) {
+      theme = 'dark';
+    } else if (storedMode === 'system') {
       theme =
         typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -89,6 +100,8 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <ThemeProvider>
           <PlatformThemeSync />
+          <RouteThemeEnforcer />
+          <AppLoadingSplash />
           {/* One presence subscription for the whole app, so /messages, coach
               cards and the header all read the same live value. */}
           <PresenceBridge />

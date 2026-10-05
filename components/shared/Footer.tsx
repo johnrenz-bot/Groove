@@ -5,8 +5,15 @@ import { Mail } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { cn } from './cn';
 
-/** Minimal public footer shared by every marketing/legal page. */
-export function Footer({ className = '', children }: { className?: string; children?: React.ReactNode }) {
+export function Footer({
+  className = '',
+  children,
+  showThemeToggle = true,
+}: {
+  className?: string;
+  children?: React.ReactNode;
+  showThemeToggle?: boolean;
+}) {
   const year = new Date().getFullYear();
 
   const links = [
@@ -56,7 +63,7 @@ export function Footer({ className = '', children }: { className?: string; child
             >
               <Mail className="h-4 w-4" />
             </a>
-            <ThemeToggle />
+            {showThemeToggle && <ThemeToggle />}
           </div>
         </div>
 

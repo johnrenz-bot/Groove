@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { cn } from './cn';
 
 /**
@@ -63,7 +62,6 @@ export function AuthLayout({
           SJDM Hub
         </span>
       </div>
-      <ThemeToggle />
     </div>
   );
 
@@ -89,7 +87,7 @@ export function AuthLayout({
 
   if (centered) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-background">
+      <div className="dark-only-page relative flex min-h-screen flex-col bg-background">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[380px] w-[600px] rounded-full bg-accent/8 blur-[100px]"
@@ -115,7 +113,7 @@ export function AuthLayout({
      card is capped so line lengths stay readable. */
   if (wide) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-background">
+      <div className="dark-only-page relative flex min-h-screen flex-col bg-background">
         {/* Ambient atmospheric backdrop glow */}
         <div
           aria-hidden="true"
@@ -138,7 +136,7 @@ export function AuthLayout({
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background lg:grid lg:grid-cols-2">
+    <div className="dark-only-page relative flex min-h-screen flex-col bg-background lg:grid lg:grid-cols-2">
       {/* Form column */}
       <div className="relative flex flex-col justify-between px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
         {/* Subtle ambient radial gold glow */}

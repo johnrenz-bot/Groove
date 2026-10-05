@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Footer } from '@/components/shared/Footer';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { cn } from './cn';
 
 export interface PublicNavLink {
@@ -155,7 +154,6 @@ export function PublicNavbar({
 
           {/* Right Action Cluster */}
           <div className="hidden items-center gap-2.5 md:flex">
-            <ThemeToggle />
             <Link href="/login">
               <Button variant="secondary" size="sm">
                 Sign In
@@ -168,7 +166,6 @@ export function PublicNavbar({
 
           {/* Mobile Menu Trigger */}
           <div className="flex items-center gap-2 md:hidden pointer-events-auto">
-            <ThemeToggle />
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
@@ -250,10 +247,6 @@ export function PublicNavbar({
             </div>
 
             <div className="flex flex-col gap-3 border-t border-divider pt-6">
-              <div className="flex items-center justify-between px-2 text-xs font-semibold text-muted-foreground">
-                <span>Theme</span>
-                <ThemeToggle variant="pill" />
-              </div>
               <Link href="/login" className="w-full" onClick={() => setMobileOpen(false)}>
                 <Button variant="secondary" className="w-full">
                   Sign In
@@ -297,10 +290,14 @@ export function PublicLayout({
   footerExtra?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+    <div className="dark-only-page flex min-h-screen flex-col bg-background font-sans text-foreground">
       <PublicNavbar links={links} transparent={transparentNav} onCtaClick={onCtaClick} />
       <main className="flex-1">{children}</main>
-      {showFooter && <Footer className="mt-auto">{footerExtra}</Footer>}
+      {showFooter && (
+        <Footer className="mt-auto" showThemeToggle={false}>
+          {footerExtra}
+        </Footer>
+      )}
     </div>
   );
 }

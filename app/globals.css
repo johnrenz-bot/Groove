@@ -1156,6 +1156,71 @@ select.g-input {
   cursor: pointer;
 }
 
+select.g-input option {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+
+/* ------------------------------------------------------------------------------
+   Dark Mode Enforcement for Auth / Landing
+   ------------------------------------------------------------------------------ */
+.dark-only-page {
+  color-scheme: dark !important;
+  --background: #0b0d10 !important;
+  --surface: #0f1216 !important;
+  --elevated: #14181d !important;
+  --card: #111519 !important;
+  --card-foreground: #f2f4f7 !important;
+  --foreground: #edeff3 !important;
+  --muted: #171b21 !important;
+  --muted-foreground: #9ba3ae !important;
+  --subtle-foreground: #7c8593 !important;
+  --border: #232830 !important;
+  --border-strong: #363d47 !important;
+  --divider: #1b1f26 !important;
+  --input: #2a3038 !important;
+  --glass-bg: rgba(17, 21, 25, 0.72) !important;
+  --glass-border: rgba(255, 255, 255, 0.08) !important;
+  --glass-border-hover: rgba(232, 169, 59, 0.35) !important;
+  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.65) !important;
+  --glass-highlight: rgba(255, 255, 255, 0.05) !important;
+  --vignette-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* ------------------------------------------------------------------------------
+   Loading Screen animations
+   ------------------------------------------------------------------------------ */
+@keyframes g-loading-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.g-loading-bar-indicator {
+  animation: g-loading-slide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes g-loading-breathe {
+  0%, 100% {
+    opacity: 0.94;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.025);
+  }
+}
+
+.g-loading-logo {
+  animation: g-loading-breathe 2.4s ease-in-out infinite;
+}
+
 /* Read-only / locked field, e.g. the fixed region and province on signup. */
 .g-input-static {
   display: flex;
