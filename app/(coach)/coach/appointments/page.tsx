@@ -386,22 +386,37 @@ export default function CoachAppointmentsPage() {
         </div>
       )}
 
-        {/* Status Filter Pills */}
+        {/* Status Filter Pills with live counts */}
       <div className="g-scroll -mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1">
-        {['All', 'Pending', 'Accepted', 'Agreement Required', 'Confirmed', 'Completed', 'Declined', 'Cancelled'].map((status) => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(status)}
-            aria-pressed={statusFilter === status}
-            className={`min-h-[36px] shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
-              statusFilter === status
-                ? 'border-accent-border bg-accent-soft text-accent-text'
-                : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
-            }`}
-          >
-            {status}
-          </button>
-        ))}
+        {['All', 'Pending', 'Accepted', 'Agreement Required', 'Confirmed', 'Completed', 'Declined', 'Cancelled'].map((status) => {
+          const isActive = statusFilter === status;
+          const count =
+            status === 'All'
+              ? appointments.length
+              : appointments.filter((a) => normalise(a.status) === normalise(status)).length;
+
+          return (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              aria-pressed={isActive}
+              className={`min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
+                isActive
+                  ? 'border-accent-border bg-accent-soft text-accent-text'
+                  : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
+              }`}
+            >
+              <span>{status}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                  isActive ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* List */}
@@ -537,10 +552,10 @@ export default function CoachAppointmentsPage() {
                 {/* Action Buttons */}
                 <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-divider pt-4">
                   <Link
-                    href="/messages"
+                    href={`/messages?user=${appt.client_id}`}
                     className="inline-flex h-9 min-h-[36px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
                   >
-                    <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+                    <MessageSquare className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
                     Message Student
                   </Link>
 

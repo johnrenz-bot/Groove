@@ -109,7 +109,7 @@ export default function ClientAppointmentsPage() {
         }
       />
 
-      {/* Status filter pills */}
+      {/* Status filter pills with live counts */}
       <div
         role="group"
         aria-label="Filter appointments by status"
@@ -117,19 +117,31 @@ export default function ClientAppointmentsPage() {
       >
         {STATUS_FILTERS.map((status) => {
           const isActive = statusFilter === status;
+          const count =
+            status === 'All'
+              ? appointments.length
+              : appointments.filter((a) => a.status.toLowerCase() === status.toLowerCase()).length;
+
           return (
             <button
               key={status}
               type="button"
               aria-pressed={isActive}
               onClick={() => setStatusFilter(status)}
-              className={`inline-flex min-h-[36px] shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
+              className={`inline-flex min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
                 isActive
                   ? 'border-accent-border bg-accent-soft text-accent-text'
                   : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
               }`}
             >
-              {status}
+              <span>{status}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                  isActive ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {count}
+              </span>
             </button>
           );
         })}
@@ -166,7 +178,7 @@ export default function ClientAppointmentsPage() {
                 <CardContent className="space-y-4">
                   <div className="flex flex-col items-start justify-between gap-3 border-b border-divider pb-4 sm:flex-row sm:items-center">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted text-sm font-bold text-accent-text">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted text-sm font-bold text-accent-text shadow-sm">
                         {appt.coach?.photo_url ? (
                           <img
                             src={appt.coach.photo_url}
@@ -181,10 +193,12 @@ export default function ClientAppointmentsPage() {
                         )}
                       </span>
                       <div className="min-w-0">
-                        <h3 className="truncate text-sm font-bold text-foreground">
+                        <h3 className="truncate text-sm font-bold text-foreground sm:text-base">
                           Session with Coach {appt.coach?.firstname} {appt.coach?.lastname}
                         </h3>
-                        <p className="truncate text-xs text-muted-foreground">{appt.session_type}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {appt.session_type} · <span className="font-semibold text-accent-text">{appt.talent || 'Dance'}</span>
+                        </p>
                       </div>
                     </div>
 
@@ -201,14 +215,14 @@ export default function ClientAppointmentsPage() {
                     <div className="flex items-center gap-2">
                       <dt className="sr-only">Date</dt>
                       <Calendar className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                      <dd className="tabular-nums">
+                      <dd className="tabular-nums font-medium text-foreground">
                         {new Date(appt.date).toLocaleDateString(undefined, { dateStyle: 'medium' })}
                       </dd>
                     </div>
                     <div className="flex items-center gap-2">
                       <dt className="sr-only">Time</dt>
                       <Clock className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                      <dd className="tabular-nums">
+                      <dd className="tabular-nums font-medium text-foreground">
                         {appt.start_time} - {appt.end_time}
                       </dd>
                     </div>
@@ -220,8 +234,8 @@ export default function ClientAppointmentsPage() {
                   </dl>
 
                   {appt.purpose && (
-                    <div className="rounded-2xl border border-border bg-muted p-3.5 text-xs leading-relaxed">
-                      <span className="font-semibold text-muted-foreground">Goal / Purpose: </span>
+                    <div className="rounded-2xl border border-border bg-muted/60 p-3.5 text-xs leading-relaxed">
+                      <span className="font-semibold text-muted-foreground">Rehearsal Goal: </span>
                       <span className="text-foreground">{appt.purpose}</span>
                     </div>
                   )}
@@ -230,19 +244,19 @@ export default function ClientAppointmentsPage() {
                     <div className="space-y-1.5 rounded-2xl border border-warning/30 bg-warning-soft p-3.5 text-xs">
                       <div className="flex items-center gap-1.5 font-bold text-warning">
                         <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-                        <span className="tabular-nums">Rating: {appt.rating} / 5</span>
+                        <span className="tabular-nums">Your Review: {appt.rating} / 5 Stars</span>
                       </div>
-                      <p className="leading-relaxed text-foreground/80">{appt.feedback}</p>
+                      <p className="leading-relaxed text-foreground/80">&ldquo;{appt.feedback}&rdquo;</p>
                     </div>
                   )}
 
                   {/* Actions */}
                   <div className="flex flex-wrap items-center justify-end gap-2 border-t border-divider pt-4">
                     <Link
-                      href="/messages"
+                      href={`/messages?user=${appt.coach_id}`}
                       className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
                     >
-                      <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" /> Message Coach
+                      <MessageSquare className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" /> Message Coach
                     </Link>
 
                     {appt.status === 'pending' && (

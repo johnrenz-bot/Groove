@@ -110,28 +110,28 @@ export function WelcomeModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-[#0F172A]/40 p-4 backdrop-blur-sm select-none"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md select-none animate-in fade-in"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className="relative w-full max-w-md space-y-6 overflow-hidden rounded-[24px] border border-border bg-card p-7 text-center shadow-[0_24px_64px_-16px_rgba(15,23,42,0.24)] sm:p-8"
+        className="relative w-full max-w-md space-y-6 overflow-hidden rounded-3xl border border-border bg-card p-7 text-center shadow-2xl animate-in zoom-in-95 duration-200 sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative mx-auto flex items-center justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full border border-accent-border bg-accent-soft">
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft shadow-inner">
             <Image
               src="/image/wc/logo.png"
               alt="Groove"
-              width={40}
-              height={40}
-              className="h-10 w-auto object-contain"
+              width={44}
+              height={44}
+              className="h-11 w-auto object-contain"
               priority
             />
           </div>
-          <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white">
-            <Sparkles className="h-3 w-3" />
+          <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" />
           </div>
         </div>
 
@@ -140,12 +140,12 @@ export function WelcomeModal({
             Welcome back,{' '}
             <span className="text-accent-text">{resolvedName}</span>
           </h2>
-          <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">{subtext}</p>
+          <p className="mx-auto max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">{subtext}</p>
         </div>
 
         {quote && (
           <div className="pt-1">
-            <div className="mx-auto mb-3 h-px w-16 bg-[#E2E8F0]" />
+            <div className="mx-auto mb-3 h-px w-16 bg-divider" />
             <p className="px-4 text-xs italic text-accent-text">{quote}</p>
           </div>
         )}
@@ -161,7 +161,7 @@ export function WelcomeModal({
               type="checkbox"
               checked={dontShowToday}
               onChange={(e) => setDontShowToday(e.target.checked)}
-              className="h-3.5 w-3.5 cursor-pointer rounded border-border-strong text-accent-text accent-[#B45309]"
+              className="h-3.5 w-3.5 cursor-pointer rounded border-border-strong text-accent-text accent-[var(--accent)]"
             />
             <span>Don&apos;t show again today</span>
           </label>

@@ -34,14 +34,17 @@ export function StatCard({
             {icon}
           </span>
         )}
-        <span
+        <div
           className={cn(
-            'text-3xl font-bold tabular-nums tracking-[-0.03em] sm:text-4xl',
+            'min-w-0 font-bold tabular-nums tracking-[-0.03em]',
+            typeof value === 'string' && value.length > 8
+              ? 'text-lg sm:text-xl truncate'
+              : 'text-2xl sm:text-3xl xl:text-4xl',
             accent ? 'text-accent-text' : 'text-foreground'
           )}
         >
           {value}
-        </span>
+        </div>
       </div>
       <div>
         <p className="text-sm font-semibold text-foreground">{label}</p>

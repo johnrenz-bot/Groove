@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search } from 'lucide-react';
+import { Search, X, RotateCcw, Filter, Users, Sparkles } from 'lucide-react';
 import CommunityFeed from '@/components/community/CommunityFeed';
 import { communityOf } from '@/lib/community';
 import BookingModal from '@/components/appointments/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
 import { CoachCard } from '@/components/shared/CoachCard';
-import { TalentCoachAssistant } from '@/components/client/TalentCoachAssistant';
 import { FullCoach, Profile } from '@/lib/types';
 import { bookingGate } from '@/lib/verification';
 import { VerificationRequiredNotice } from '@/components/verification/VerificationRequiredNotice';
@@ -20,6 +19,14 @@ import { cn } from '@/components/shared/cn';
 const TABS = [
   { id: 'coaches', label: 'Coach Directory', emoji: '🎭' },
   { id: 'community', label: 'Community Showcase', emoji: '🌟' },
+] as const;
+
+const DISCIPLINE_PRESETS = [
+  { id: 'All', label: 'All Coaches' },
+  { id: 'Dance', label: 'Dance & Choreography' },
+  { id: 'Singing', label: 'Singing & Vocal' },
+  { id: 'Acting', label: 'Acting & Theater' },
+  { id: 'Theater', label: 'Musical Theater' },
 ] as const;
 
 export default function ClientTalentPage() {
@@ -39,8 +46,6 @@ export default function ClientTalentPage() {
   // Modals
   const [selectedCoachForBooking, setSelectedCoachForBooking] = useState<FullCoach | null>(null);
   const [selectedCoachForAI, setSelectedCoachForAI] = useState<FullCoach | null>(null);
-  // Shown above the grid when this client's own account blocks booking, so the
-  // reason is visible without having to click a card and fail.
   const [gateNotice, setGateNotice] = useState(false);
 
   const fetchCoachesAndProfile = useCallback(async () => {
@@ -53,8 +58,6 @@ export default function ClientTalentPage() {
       } = await supabase.auth.getUser();
 
       if (user) {
-        // The community lives in client_profiles.talent, not on profiles, so the
-        // detail row is joined here rather than fetched separately.
         const { data } = await supabase
           .from('profiles')
           .select('*, client_profile:client_profiles(talent)')
@@ -65,13 +68,11 @@ export default function ClientTalentPage() {
             client_profile?: { talent?: string | null } | null;
           };
           setCurrentUser(detail);
-          // Derived once here rather than re-fetched by the feed: the feed needs
-          // it to scope every query, and it is already in hand.
           setMyTalent(detail.client_profile?.talent ?? null);
         }
       }
 
-      // Fetch all verified coaches
+      // Fetch all coaches
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -112,28 +113,26 @@ export default function ClientTalentPage() {
     return matchesSearch && matchesTalent && matchesCity && matchesPrice;
   });
 
-  /**
-   * The coach whose assistant is featured on this page.
-   *
-   * Ordered by `created_at` ascending so it is stable across renders, and it
-   * matches the server's own default in `/api/ai/coach-assistant` — so the card
-   * and the facts sent to the model always refer to the same person, even before
-   * an id is sent. `coach_profile` is already joined by the query above.
-   */
-  const featuredCoach: FullCoach | null =
-    [...coaches].sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))[0] ??
-    null;
+  const isFiltered =
+    searchQuery.trim() !== '' || selectedTalent !== 'All' || selectedCity !== 'All' || maxPrice < 5000;
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedTalent('All');
+    setSelectedCity('All');
+    setMaxPrice(5000);
+  };
 
   return (
     <>
       <PageHeader
-        eyebrow="Talents & Community Directory"
+        eyebrow="Talents & Community Directory · San Jose del Monte"
         title={
           <>
             Discover &amp; Connect With Top <span className="text-accent-text">Coaches</span>
           </>
         }
-        description="Find verified coaches for dance choreography, vocal training, stage acting, and musical theater in San Jose del Monte, Bulacan."
+        description="Find verified performing arts instructors for dance choreography, vocal training, stage acting, and theater in Bulacan."
         action={
           <div
             role="tablist"
@@ -167,29 +166,41 @@ export default function ClientTalentPage() {
 
       {activeTab === 'coaches' ? (
         <div className="space-y-6">
-          {/* Filter bar */}
-          <Card padding="md">
+          {/* Filter Bar & Controls */}
+          <Card padding="md" className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
               {/* Search */}
               <div className="relative">
                 <label htmlFor="coach-search" className="g-label">
-                  Search
+                  Search Coach
                 </label>
-                <Search
-                  className="pointer-events-none absolute bottom-3.5 left-3 h-4 w-4 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <input
-                  id="coach-search"
-                  type="text"
-                  placeholder="Search coach by name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="g-input g-input-has-icon"
-                />
+                <div className="relative">
+                  <Search
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id="coach-search"
+                    type="text"
+                    placeholder="Search coach by name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="g-input pl-10 pr-9"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      aria-label="Clear search"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Talent category */}
+              {/* Talent Category Select */}
               <div>
                 <label htmlFor="talent-category" className="g-label">
                   Discipline
@@ -200,7 +211,7 @@ export default function ClientTalentPage() {
                   onChange={(e) => setSelectedTalent(e.target.value)}
                   className="g-input"
                 >
-                  <option value="All">All Talents (Dance, Vocal, Acting...)</option>
+                  <option value="All">All Disciplines</option>
                   <option value="Dance">Dance &amp; Choreography</option>
                   <option value="Singing">Singing &amp; Vocal</option>
                   <option value="Acting">Acting &amp; Theater</option>
@@ -208,7 +219,7 @@ export default function ClientTalentPage() {
                 </select>
               </div>
 
-              {/* Location (San Jose del Monte) */}
+              {/* Location Select */}
               <div>
                 <label htmlFor="location-filter" className="g-label">
                   Location
@@ -230,17 +241,19 @@ export default function ClientTalentPage() {
 
               {/* Price range */}
               <div>
-                <label htmlFor="price-filter" className="g-label">
-                  Maximum session fee
-                </label>
-                <div className="flex h-12 items-center gap-3 rounded-xl border border-input bg-card px-3.5">
-                  <span className="shrink-0 text-xs font-bold tabular-nums text-accent-text">
-                    ₱{maxPrice}
+                <div className="flex items-center justify-between">
+                  <label htmlFor="price-filter" className="g-label mb-0">
+                    Max Session Fee
+                  </label>
+                  <span className="text-xs font-bold tabular-nums text-accent-text">
+                    ₱{maxPrice.toLocaleString()}
                   </span>
+                </div>
+                <div className="mt-2 flex h-10 items-center rounded-xl border border-input bg-card px-3">
                   <input
                     id="price-filter"
                     type="range"
-                    min="200"
+                    min="300"
                     max="5000"
                     step="100"
                     value={maxPrice}
@@ -250,41 +263,103 @@ export default function ClientTalentPage() {
                 </div>
               </div>
             </div>
+
+            {/* Quick Discipline Pills & Result Counter */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-divider pt-3.5">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Quick Filter:
+                </span>
+                {DISCIPLINE_PRESETS.map((preset) => {
+                  const isSelected = selectedTalent === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => setSelectedTalent(preset.id)}
+                      className={cn(
+                        'rounded-full px-3 py-1 text-xs font-semibold transition cursor-pointer',
+                        isSelected
+                          ? 'border border-accent-border bg-accent text-accent-foreground shadow-sm'
+                          : 'border border-border bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                      )}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent-text hover:underline cursor-pointer"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span>Reset Filters</span>
+                </button>
+              )}
+            </div>
           </Card>
 
-          {/* Coach assistant — a section within the talent page, above the
-              directory. The directory remains the page's primary purpose; this
-              sits under the filters and above the grid rather than replacing
-              or modal-blocking anything. */}
-          {!loading && filteredCoaches.length > 0 && featuredCoach && (
-            <TalentCoachAssistant coach={featuredCoach} />
-          )}
+          {/* Directory Count Header */}
+          <div className="flex items-center justify-between px-1">
+            <p className="text-xs text-muted-foreground">
+              Showing <strong className="font-semibold text-foreground">{filteredCoaches.length}</strong> verified {filteredCoaches.length === 1 ? 'coach' : 'coaches'} in Bulacan
+            </p>
+          </div>
 
-          {/* Why booking is unavailable, if it is */}
+          {/* Verification Notice if client account is blocked from booking */}
           {gateNotice && !loading && (
             <VerificationRequiredNotice gate={bookingGate(currentUser)} />
           )}
 
-          {/* Coach grid */}
+          {/* Coach Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="g-skeleton aspect-[3/4] rounded-[20px]" />
+                <div
+                  key={i}
+                  className="relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border bg-card p-5 aspect-[3/4] sm:aspect-[4/5] min-h-[480px]"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="g-skeleton h-6 w-24 rounded-full" />
+                    <div className="g-skeleton h-6 w-16 rounded-full" />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="g-skeleton h-6 w-28 rounded-full" />
+                    <div className="g-skeleton h-7 w-3/4 rounded-md" />
+                    <div className="g-skeleton h-4 w-1/2 rounded-md" />
+                    <div className="g-skeleton h-10 w-full rounded-xl" />
+                  </div>
+                </div>
               ))}
             </div>
           ) : filteredCoaches.length === 0 ? (
             <EmptyState
-              icon={<Search className="h-5 w-5" />}
-              title="No coaches match your filters"
-              description="Try adjusting the talent category, location, or price range."
+              icon={<Search className="h-6 w-6" />}
+              title="No coaches found matching your criteria"
+              description="Try broadening your discipline selection, adjusting price thresholds, or resetting filters."
+              action={
+                isFiltered ? (
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-accent px-4 text-xs font-semibold text-accent-foreground shadow-sm transition hover:bg-accent-hover"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Clear All Filters</span>
+                  </button>
+                ) : undefined
+              }
             />
           ) : (
-            <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
               {filteredCoaches.map((coach) => (
                 <CoachCard
                   key={coach.id}
                   coach={coach}
-                  className="w-full max-w-[340px] justify-self-center"
                   onBook={(c) => setSelectedCoachForBooking(c)}
                   onBlockedBook={() => setGateNotice(true)}
                   onAskAI={(c) => setSelectedCoachForAI(c)}

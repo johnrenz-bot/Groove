@@ -24,6 +24,7 @@ import {
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { StatCard } from '@/components/shared/StatCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHeader } from '@/components/shared/SectionHeader';
@@ -95,26 +96,13 @@ function MiniCalendar() {
 function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => void }) {
   if (!user) return null;
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-sm animate-in fade-in duration-150"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        className="animate-in zoom-in-95 relative max-h-[90vh] w-full max-w-md space-y-5 overflow-auto rounded-[20px] border border-border bg-card p-6 text-foreground shadow-[var(--shadow-lg)] duration-150 sm:p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-4 top-4 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
-
-        <div className="flex items-center gap-3.5 pr-9">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-base font-bold text-foreground">
+    <Modal
+      open={!!user}
+      onClose={onClose}
+      size="md"
+      title={
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-bold text-foreground">
             {user.photo_url ? (
               <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
             ) : (
@@ -126,21 +114,12 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
               <span className="truncate">{user.firstname} {user.lastname}</span>
               <VerifiedIcon verified={user.account_verified} className="h-3.5 w-3.5" />
             </h2>
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-text">{user.role}</p>
+            <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-text">{user.role}</p>
           </div>
         </div>
-
-        <div className="space-y-2 rounded-2xl border border-border bg-muted/60 p-4">
-          <p className="flex items-start gap-2 text-xs text-muted-foreground">
-            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
-            <span>{user.city_name || user.address_summary || 'San Jose del Monte, Bulacan'}</span>
-          </p>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {user.bio || 'Performer actively collaborating on Groove.'}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      }
+      footer={
+        <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
           <Link
             href={`/messages?user=${user.id}`}
             className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
@@ -154,8 +133,20 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
             View Profile
           </Link>
         </div>
+      }
+    >
+      <div className="space-y-3 py-1">
+        <div className="space-y-2 rounded-2xl border border-border bg-muted/60 p-4">
+          <p className="flex items-start gap-2 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
+            <span>{user.city_name || user.address_summary || 'San Jose del Monte, Bulacan'}</span>
+          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {user.bio || 'Performer actively collaborating on Groove.'}
+          </p>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -196,90 +187,83 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-sm animate-in fade-in duration-150"
-      onClick={onClose}
-    >
-      <div
-        className="animate-in zoom-in-95 w-full max-w-md space-y-5 rounded-[20px] border border-border bg-card p-6 text-foreground shadow-[var(--shadow-lg)] duration-150 sm:p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-divider pb-4">
-          <div className="flex items-center gap-2.5">
-            <TicketIcon className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-            <h3 className="text-sm font-bold uppercase tracking-[0.08em]">Submit Support Ticket</h3>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
+    <Modal
+      open={true}
+      onClose={onClose}
+      size="md"
+      title={
+        <div className="flex items-center gap-2.5">
+          <TicketIcon className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
+          <span>Submit Support Ticket</span>
         </div>
+      }
+      description="Our administration team is here to assist with studio listings and coach operations."
+    >
+      {success ? (
+        <div className="space-y-2 py-8 text-center">
+          <CheckCircle2 className="mx-auto h-8 w-8 text-success" aria-hidden="true" />
+          <p className="text-base font-bold text-foreground">Ticket Submitted</p>
+          <p className="text-xs text-muted-foreground">Our administration will follow up promptly.</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          {error && (
+            <div className="rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+              {error}
+            </div>
+          )}
 
-        {success ? (
-          <div className="space-y-2 py-6 text-center">
-            <CheckCircle2 className="mx-auto h-8 w-8 text-success" aria-hidden="true" />
-            <p className="text-sm font-bold text-foreground">Ticket Submitted</p>
-            <p className="text-xs text-muted-foreground">Our administration will follow up promptly.</p>
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-foreground" htmlFor="ticket-subject">
+              Subject *
+            </label>
+            <input
+              id="ticket-subject"
+              type="text"
+              required
+              value={form.subject}
+              onChange={(e) => setForm({ ...form, subject: e.target.value })}
+              placeholder="Brief summary of inquiry"
+              className="g-input h-10 w-full text-xs"
+            />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
-                {error}
-              </div>
-            )}
 
-            <div>
-              <label className="g-label" htmlFor="ticket-subject">Subject</label>
-              <input
-                id="ticket-subject"
-                type="text"
-                required
-                value={form.subject}
-                onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                placeholder="Brief summary of inquiry"
-                className="g-input"
-              />
-            </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-foreground" htmlFor="ticket-message">
+              Message Details *
+            </label>
+            <textarea
+              id="ticket-message"
+              rows={4}
+              required
+              value={form.message}
+              onChange={(e) => setForm({ ...form, message: e.target.value })}
+              placeholder="Describe your inquiry, studio issue, or schedule question..."
+              className="g-input w-full p-3 resize-none text-xs leading-relaxed"
+            />
+          </div>
 
-            <div>
-              <label className="g-label" htmlFor="ticket-message">Message Details</label>
-              <textarea
-                id="ticket-message"
-                rows={4}
-                required
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                placeholder="Describe your inquiry, studio issue, or schedule question..."
-                className="g-input"
-              />
-            </div>
-
-            <div className="flex flex-col-reverse gap-2.5 pt-1 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                size="md"
-                onClick={onClose}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                loading={loading}
-              >
-                Send Ticket
-              </Button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-divider">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              loading={loading}
+            >
+              Send Ticket
+            </Button>
+          </div>
+        </form>
+      )}
+    </Modal>
   );
 }
 

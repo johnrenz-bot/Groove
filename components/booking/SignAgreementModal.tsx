@@ -77,35 +77,43 @@ export function SignAgreementModal({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:p-6"
+        className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-3 backdrop-blur-md transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
         role="dialog"
         aria-modal="true"
         aria-label="Review and sign session agreement"
+        onClick={(e) => {
+          if (e.target === e.currentTarget && !saving) onClose();
+        }}
       >
-        <div className="my-auto w-full max-w-3xl rounded-2xl border border-border bg-card shadow-2xl">
-          <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
-              <FileSignature className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <h2 className="truncate text-sm font-bold text-foreground">
-                Review &amp; Sign Agreement
-              </h2>
-              <p className="text-[11px] text-muted-foreground">
-                Signing as {role === 'client' ? 'Client' : 'Coach'}
-              </p>
+        <div className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:rounded-3xl">
+          {/* Fixed Header */}
+          <header className="flex shrink-0 items-center justify-between border-b border-divider bg-card px-5 py-4 sm:px-7 sm:py-5">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text shadow-sm">
+                <FileSignature className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-bold text-foreground sm:text-lg">
+                  Review &amp; Sign Agreement
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Signing as {role === 'client' ? 'Client' : 'Coach'} · Legally Binding Document
+                </p>
+              </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="ml-auto cursor-pointer rounded-lg px-2 py-1 text-lg leading-none text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              disabled={saving}
+              className="cursor-pointer rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
               aria-label="Close"
             >
               ×
             </button>
-          </div>
+          </header>
 
-          <div className="max-h-[52vh] overflow-y-auto px-5 py-6">
+          {/* Scrollable Document */}
+          <div className="g-scroll flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-7 sm:py-6">
             <SessionAgreementDocument
               agreement={agreement}
               clientSignatureUrl={clientSignatureUrl}
@@ -113,71 +121,81 @@ export function SignAgreementModal({
             />
           </div>
 
-          <div className="space-y-4 border-t border-border px-5 py-5">
+          {/* Sticky Signing & Consent Section */}
+          <div className="shrink-0 space-y-3.5 border-t border-divider bg-muted/40 px-5 py-4 backdrop-blur-sm sm:px-7 sm:py-5">
             {alreadySigned ? (
-              <p className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-4 py-3 text-[13px] font-semibold text-success">
-                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                You have already signed this agreement. Signatures cannot be changed once
-                recorded.
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="flex items-center gap-2 rounded-xl border border-success/30 bg-success-soft px-4 py-2.5 text-xs font-semibold text-success">
+                  <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  You have already signed this agreement. Signatures cannot be modified once recorded.
+                </p>
+                <Button variant="outline" size="sm" onClick={onClose}>
+                  Close
+                </Button>
+              </div>
             ) : (
               <>
-                <div>
-                  <label
-                    htmlFor="agreement-legal-name"
-                    className="text-[12px] font-semibold text-foreground"
-                  >
-                    Type your full legal name
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
+                  <div>
+                    <label
+                      htmlFor="agreement-legal-name"
+                      className="block text-xs font-semibold text-foreground"
+                    >
+                      Type your full legal name *
+                    </label>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
+                      {expectedName
+                        ? `Profile: ${expectedName}`
+                        : 'Must match your government name'}
+                    </p>
+                    <input
+                      id="agreement-legal-name"
+                      type="text"
+                      value={legalName}
+                      onChange={(e) => setLegalName(e.target.value)}
+                      placeholder="e.g. John Doe"
+                      autoComplete="name"
+                      className="g-input mt-1.5 h-10 w-full text-xs"
+                    />
+                  </div>
+
+                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-card/60 p-3 hover:bg-card">
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={(e) => setConsent(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[var(--accent)]"
+                    />
+                    <span className="text-xs leading-relaxed text-foreground">
+                      I have read, understood, and accept this Session Agreement and cancellation terms.
+                    </span>
                   </label>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {expectedName
-                      ? `Your profile name is ${expectedName}. Type it exactly as it should appear on the agreement.`
-                      : 'Type your name exactly as it should appear on the agreement.'}
-                  </p>
-                  <input
-                    id="agreement-legal-name"
-                    type="text"
-                    value={legalName}
-                    onChange={(e) => setLegalName(e.target.value)}
-                    placeholder="Full legal name"
-                    autoComplete="name"
-                    className="mt-2 w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-[13px] text-foreground outline-none transition focus:border-accent-border"
-                  />
                 </div>
 
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={consent}
-                    onChange={(e) => setConsent(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[var(--accent)]"
-                  />
-                  <span className="text-[13px] leading-relaxed text-foreground">
-                    I have read, understood, and agree to this Session Agreement.
-                  </span>
-                </label>
-
                 {error && (
-                  <p role="alert" className="rounded-lg border border-danger/40 bg-danger-soft px-3 py-2 text-[12px] font-medium text-danger">
+                  <p role="alert" className="rounded-xl border border-danger/40 bg-danger-soft px-3.5 py-2 text-xs font-medium text-danger">
                     {error}
                   </p>
                 )}
 
-                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <Button variant="outline" onClick={onClose} disabled={saving}>
+                <div className="flex flex-wrap items-center justify-end gap-2.5 pt-1">
+                  <Button variant="outline" size="sm" onClick={onClose} disabled={saving}>
                     Cancel
                   </Button>
                   <Button
                     variant="primary"
+                    size="sm"
                     onClick={() => setPadOpen(true)}
                     disabled={!canOpenPad}
+                    loading={saving}
+                    icon={<FileSignature className="h-3.5 w-3.5" aria-hidden="true" />}
                     title={
                       canOpenPad
                         ? undefined
-                        : 'Enter your legal name and tick the consent box first'
+                        : 'Enter your legal name and accept terms first'
                     }
                   >
-                    {saving ? 'Saving…' : 'Sign Agreement'}
+                    {saving ? 'Saving Signature…' : 'Sign Agreement'}
                   </Button>
                 </div>
               </>

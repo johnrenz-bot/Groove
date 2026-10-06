@@ -109,113 +109,136 @@ export default function FeedbackModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl text-foreground"
-      >
-        <div className="flex items-center justify-between border-b border-border pb-4 mb-5">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-warning" />
-            <h3 className="text-lg font-bold text-foreground">Leave Session Feedback</h3>
+    <div
+      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/65 p-3 backdrop-blur-md transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !loading) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Leave Session Feedback"
+    >
+      <div className="relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl animate-in zoom-in-95 duration-200 sm:rounded-3xl">
+        {/* Fixed Header */}
+        <header className="flex shrink-0 items-center justify-between border-b border-divider bg-card px-5 py-4 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-warning/30 bg-warning-soft text-warning shadow-sm">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-bold text-foreground">
+                Leave Session Review
+              </h3>
+              <p className="text-[11px] text-muted-foreground">
+                {appointment.session_type || 'Coaching Session'}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+            disabled={loading}
+            className="cursor-pointer rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
             aria-label="Close modal"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
-        </div>
+        </header>
 
-        {error && (
-          <div
-            role="alert"
-            className="mb-4 p-3.5 rounded-2xl border border-danger/30/30 bg-danger/10 text-danger dark:text-danger text-xs flex items-center gap-2"
-          >
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success ? (
-          <div className="py-8 text-center space-y-3">
-            <div className="h-12 w-12 rounded-2xl bg-success/15 border border-success/30/25 flex items-center justify-center mx-auto text-success dark:text-success animate-bounce">
-              <CheckCircle2 className="h-7 w-7" />
+        {/* Scrollable Body */}
+        <div className="g-scroll flex-1 min-h-0 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+          {error && (
+            <div
+              role="alert"
+              className="mb-4 flex items-center gap-2 rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger"
+            >
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
-            <h4 className="text-lg font-bold text-success dark:text-success">Review Submitted!</h4>
-            <p className="text-xs text-muted-foreground">
-              Thank you for supporting our performing arts coaches on Groove.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="text-center space-y-2">
-              <label className="block text-xs font-semibold text-foreground/80 uppercase tracking-wide">
-                Rate your coaching experience
-              </label>
-              <div className="flex items-center justify-center gap-2 py-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    className="p-1 transition-transform hover:scale-125 focus:outline-none cursor-pointer"
-                    aria-label={`Rate ${star} star`}
-                  >
-                    <Star
-                      className={`h-8 w-8 transition-colors ${
-                        (hoverRating || rating) >= star
-                          ? 'fill-amber-400 text-warning'
-                          : 'text-border'
-                      }`}
-                    />
-                  </button>
-                ))}
+          )}
+
+          {success ? (
+            <div className="py-8 text-center space-y-3">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-success/30 bg-success-soft text-success shadow-sm">
+                <CheckCircle2 className="h-8 w-8" />
               </div>
-              <p className="text-xs font-semibold text-warning dark:text-warning">
-                {rating === 5 && 'Outstanding! ⭐⭐⭐⭐⭐'}
-                {rating === 4 && 'Great Experience! ⭐⭐⭐⭐'}
-                {rating === 3 && 'Average / Good ⭐⭐⭐'}
-                {rating === 2 && 'Needs Improvement ⭐⭐'}
-                {rating === 1 && 'Poor ⭐'}
+              <h4 className="text-lg font-bold text-foreground">Review Submitted!</h4>
+              <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                Thank you for supporting our performing arts coaches on the Groove Platform.
               </p>
             </div>
+          ) : (
+            <form id="feedback-form" onSubmit={handleSubmit} className="space-y-4">
+              <div className="rounded-2xl border border-border bg-muted/40 p-4 text-center space-y-2">
+                <label className="block text-xs font-semibold text-foreground/80 uppercase tracking-wide">
+                  Rate your experience
+                </label>
+                <div className="flex items-center justify-center gap-2 py-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="p-1 transition-transform hover:scale-125 focus:outline-none cursor-pointer"
+                      aria-label={`Rate ${star} star`}
+                    >
+                      <Star
+                        className={`h-7 w-7 transition-colors ${
+                          (hoverRating || rating) >= star
+                            ? 'fill-amber-400 text-warning'
+                            : 'text-border'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs font-bold text-accent-text">
+                  {rating === 5 && 'Outstanding! ⭐⭐⭐⭐⭐'}
+                  {rating === 4 && 'Great Experience! ⭐⭐⭐⭐'}
+                  {rating === 3 && 'Good Session ⭐⭐⭐'}
+                  {rating === 2 && 'Needs Improvement ⭐⭐'}
+                  {rating === 1 && 'Poor ⭐'}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground/80 mb-1.5 uppercase tracking-wide">
-                Your Testimonial &amp; Constructive Feedback *
-              </label>
-              <textarea
-                rows={4}
-                required
-                placeholder="Share how the coach helped you improve your performance, communication, technique..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="w-full p-3 rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:border-primary outline-none resize-none text-sm transition"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-semibold text-foreground/80 mb-1.5 uppercase tracking-wide">
+                  Your Testimonial &amp; Feedback *
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Share how the coach helped you improve your technique, choreography, vocal range..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="g-input w-full p-3 resize-none text-xs leading-relaxed"
+                />
+              </div>
+            </form>
+          )}
+        </div>
 
-            <div className="pt-3 flex items-center justify-end gap-3 border-t border-border">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2.5 rounded-xl border border-border bg-muted hover:bg-muted text-xs font-semibold text-foreground transition cursor-pointer min-h-[40px]"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 rounded-xl bg-warning text-black font-bold text-xs hover:bg-warning disabled:opacity-50 transition cursor-pointer min-h-[40px] shadow-sm"
-              >
-                {loading ? 'Submitting...' : 'Post Review'}
-              </button>
-            </div>
-          </form>
+        {/* Sticky Footer */}
+        {!success && (
+          <footer className="flex shrink-0 items-center justify-end gap-2.5 border-t border-divider bg-muted/40 px-5 py-3.5 sm:px-6">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition cursor-pointer min-h-[38px]"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="feedback-form"
+              disabled={loading}
+              className="px-5 py-2 rounded-xl bg-accent text-accent-foreground font-bold text-xs hover:bg-accent-hover disabled:opacity-50 transition cursor-pointer min-h-[38px] shadow-sm flex items-center gap-1.5"
+            >
+              {loading ? 'Submitting...' : 'Post Review'}
+            </button>
+          </footer>
         )}
       </div>
     </div>

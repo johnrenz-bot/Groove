@@ -13,9 +13,12 @@ import {
   Send,
   Sparkles,
   Loader2,
+  Clock,
 } from 'lucide-react';
 import { CommunityPost, Comment, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
+import { getInitials } from '@/lib/utils';
+import { cn } from '@/components/shared/cn';
 import { type Community } from '@/lib/community';
 import {
   isVideoPath,
@@ -436,32 +439,40 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
 
   return (
     <div className="space-y-6">
-      {/* Community header. This replaces the old cross-community talent pills:
-          RLS only exposes a member's own community, so the pills could not have
-          worked any more, and leaving them would have implied browsing that the
-          database forbids. */}
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-            Community Showcase
-          </p>
-          <p className="truncate text-sm font-semibold text-foreground">
+      {/* Community Showcase Banner */}
+      <div className="flex flex-col gap-3 rounded-[22px] border border-border bg-card p-5 shadow-[var(--shadow-sm)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-accent-text" aria-hidden="true" />
+            <h3 className="text-xs font-bold uppercase tracking-[0.1em] text-accent-text">
+              Community Showcase
+            </h3>
+          </div>
+          <p className="text-base font-bold text-foreground">
             {community ? (
               <>
-                You are viewing the <span className="text-accent-text">{community}</span>{' '}
-                community
+                <span className="text-foreground">{community}</span> Performing Arts Circle
               </>
             ) : currentUser ? (
-              'No community set on your profile'
+              'Set your discipline in profile to join'
             ) : (
-              'Sign in to join your community'
+              'Sign in to explore your creative community'
             )}
           </p>
+          <p className="text-xs text-muted-foreground">
+            {community
+              ? `Rehearsal highlights, choreography routines, and updates from ${community} artists in Bulacan.`
+              : 'Connect with dancers, vocalists, actors, and directors across Region III.'}
+          </p>
         </div>
+
         {community && (
-          <span className="shrink-0 rounded-full border border-accent-border bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-text">
-            {community}
-          </span>
+          <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-border bg-accent-soft px-3.5 py-1.5 text-xs font-bold text-accent-text shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+              {community} Circle
+            </span>
+          </div>
         )}
       </div>
 
@@ -469,10 +480,10 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
       {currentUser && (
         <form
           onSubmit={handleCreatePost}
-          className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-lg"
+          className="rounded-[22px] border border-border bg-card p-5 shadow-[var(--shadow-sm)] space-y-4"
         >
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10 border border-border flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-bold text-foreground">
               {currentUser.photo_url ? (
                 <img
                   src={currentUser.photo_url}
@@ -480,45 +491,42 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="font-bold text-xs text-primary">
-                  {currentUser.firstname?.[0]}
-                  {currentUser.lastname?.[0]}
-                </span>
+                <span>{getInitials(currentUser.firstname, currentUser.lastname)}</span>
               )}
             </div>
-            <div className="flex-1 space-y-2">
+
+            <div className="flex-1 space-y-3">
               <textarea
                 rows={2}
-                placeholder={`Share your choreography, vocal session, or thoughts, ${currentUser.firstname}...`}
+                placeholder={`Share a choreography video, vocal snippet, or rehearsal thought, ${currentUser.firstname}...`}
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                className="w-full bg-transparent border-0 focus:ring-0 text-sm outline-none resize-none text-foreground placeholder:text-foreground/40"
+                className="w-full resize-none rounded-xl border border-border bg-muted/30 p-3 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-accent-border focus:bg-card focus:outline-none transition"
               />
 
-              {/* Preview of the selected file, before it is uploaded. Rendered from a local
-                  object URL, so it is instant and costs no network. */}
+              {/* Preview of selected media */}
               {mediaPreview && mediaFile && (
-                <div className="relative overflow-hidden rounded-2xl border border-border bg-muted/60">
+                <div className="relative overflow-hidden rounded-2xl border border-border bg-black/40">
                   {mediaFile.type.startsWith('video') ? (
                     <video
                       src={mediaPreview}
                       controls
                       playsInline
-                      className="mx-auto max-h-60 w-full bg-black object-contain"
+                      className="mx-auto max-h-64 w-full bg-black object-contain"
                     />
                   ) : (
                     <img
                       src={mediaPreview}
                       alt="Selected media preview"
-                      className="mx-auto max-h-60 w-full object-contain"
+                      className="mx-auto max-h-64 w-full object-contain"
                     />
                   )}
 
-                  {/* Filename and size, so a member can confirm they picked the
-                      right file before committing to an upload. */}
-                  <div className="flex items-center gap-2 border-t border-border bg-card/80 px-3 py-2 text-[11px] text-muted-foreground backdrop-blur-sm">
-                    <ImageIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                    <span className="min-w-0 flex-1 truncate">{mediaFile.name}</span>
+                  <div className="flex items-center justify-between border-t border-border bg-card/90 px-3.5 py-2 text-[11px] text-muted-foreground backdrop-blur-sm">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <ImageIcon className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
+                      <span className="truncate">{mediaFile.name}</span>
+                    </span>
                     <span className="shrink-0 tabular-nums">
                       {(mediaFile.size / 1024 / 1024).toFixed(1)} MB
                     </span>
@@ -529,7 +537,7 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                     onClick={clearMedia}
                     disabled={uploading}
                     aria-label="Remove selected media"
-                    className="absolute right-2 top-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-black/70 text-xs text-white backdrop-blur transition hover:bg-black disabled:opacity-50"
+                    className="absolute right-2.5 top-2.5 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-black/75 text-xs text-white backdrop-blur transition hover:bg-black disabled:opacity-50"
                   >
                     ✕
                   </button>
@@ -540,9 +548,9 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
 
           <div className="flex items-center justify-between border-t border-divider pt-3 text-xs">
             <div className="flex items-center gap-2">
-              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-muted hover:bg-muted cursor-pointer text-foreground/80">
-                <ImageIcon className="h-4 w-4 text-success" />
-                <span>Media</span>
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted">
+                <ImageIcon className="h-4 w-4 text-accent-text" />
+                <span>Add Media</span>
                 <input
                   type="file"
                   accept="image/*,video/*"
@@ -551,11 +559,9 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                 />
               </label>
 
-              {/* Community is shown, not chosen. A picker here would offer
-                  options RLS refuses, so it was removed rather than disabled. */}
               {community && (
-                <span className="px-3 py-1.5 rounded-xl border border-border bg-muted text-xs font-semibold text-muted-foreground">
-                  {community}
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-xl border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                  Posting to: <strong className="text-foreground">{community}</strong>
                 </span>
               )}
             </div>
@@ -563,16 +569,14 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
             <button
               type="submit"
               disabled={submitting || (!caption.trim() && !mediaFile) || !community}
-              className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-4 py-1.5 font-semibold text-primary-foreground shadow-md transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-accent px-4 py-1.5 text-xs font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover hover:shadow-[var(--shadow-accent)] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
             >
               {submitting ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
               ) : (
                 <Send className="h-3.5 w-3.5" aria-hidden="true" />
               )}
-              {/* Says "Uploading…" only while bytes are actually moving, which
-                  for a large file is most of the wait. */}
-              <span>{uploading ? 'Uploading…' : submitting ? 'Posting…' : 'Post'}</span>
+              <span>{uploading ? 'Uploading…' : submitting ? 'Posting…' : 'Share Post'}</span>
             </button>
           </div>
 
@@ -586,39 +590,62 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
 
       {/* Feed List */}
       {loading ? (
-        <div className="py-12 text-center text-foreground/60 space-y-2">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="text-xs">Loading community showcase...</p>
+        <div className="space-y-5">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="rounded-[22px] border border-border bg-card p-5 sm:p-6 space-y-4 shadow-[var(--shadow-sm)]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="g-skeleton h-10 w-10 rounded-full" />
+                <div className="space-y-1.5 flex-1">
+                  <div className="g-skeleton h-4 w-36" />
+                  <div className="g-skeleton h-3 w-24" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="g-skeleton h-3.5 w-full" />
+                <div className="g-skeleton h-3.5 w-4/5" />
+              </div>
+              <div className="g-skeleton aspect-[16/9] w-full rounded-2xl" />
+              <div className="pt-3 border-t border-divider flex gap-3">
+                <div className="g-skeleton h-8 w-20 rounded-full" />
+                <div className="g-skeleton h-8 w-28 rounded-full" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : posts.length === 0 ? (
-              <div className="py-16 text-center rounded-2xl border border-dashed border-divider bg-card p-8 space-y-3">
-                <Sparkles className="h-10 w-10 text-primary mx-auto opacity-50" />
-                <h4 className="text-base font-semibold">
-                  {!currentUser
-                    ? 'Sign in to see your community'
-                    : !community
-                      ? 'No community set on your profile'
-                      : `No posts in ${community} yet`}
-                </h4>
-                <p className="text-xs text-foreground/60">
-                  {!currentUser
-                    ? 'Your community showcase is only visible to signed-in members.'
-                    : !community
-                      ? 'Add your discipline in your profile settings to join a community and start sharing.'
-                      : 'Be the first to share your performance video or showcase your craft!'}
-                </p>
-              </div>
-            ) : (
-        <div className="space-y-4">
+        <div className="py-16 text-center rounded-[22px] border border-dashed border-border bg-card p-8 space-y-3.5">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <h4 className="text-base font-bold text-foreground">
+            {!currentUser
+              ? 'Sign in to see your community'
+              : !community
+                ? 'No community set on your profile'
+                : `No showcase posts in ${community} yet`}
+          </h4>
+          <p className="mx-auto max-w-sm text-xs leading-relaxed text-muted-foreground">
+            {!currentUser
+              ? 'Your community showcase is only visible to signed-in members.'
+              : !community
+                ? 'Add your discipline in your profile settings to join a community and start sharing.'
+                : 'Be the first to share a choreography routine, vocal performance, or rehearsal clip with the circle!'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-5">
           {posts.map((post) => (
             <article
               key={post.id}
-              className="rounded-2xl border border-border bg-card p-5 space-y-3.5 shadow-lg"
+              className="rounded-[22px] border border-border bg-card p-5 sm:p-6 space-y-4 shadow-[var(--shadow-sm)] transition-all hover:border-border-strong"
             >
               {/* Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10 border border-border flex items-center justify-center font-bold text-xs text-primary">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted font-bold text-xs text-foreground">
                     {post.author?.photo_url ? (
                       <img
                         src={post.author.photo_url}
@@ -626,29 +653,30 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span>
-                        {post.author?.firstname?.[0]}
-                        {post.author?.lastname?.[0]}
-                      </span>
+                      <span>{getInitials(post.author?.firstname ?? 'A', post.author?.lastname ?? '')}</span>
                     )}
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <h4 className="flex items-center gap-2 text-sm font-bold text-foreground">
                       <span>
                         {post.author?.firstname} {post.author?.lastname}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-card/10 text-foreground/70">
+                      <span className="rounded-full border border-accent-border/50 bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-text">
                         {post.author?.role || 'Performer'}
                       </span>
                     </h4>
-                    <p className="text-[11px] text-foreground/50">
-                      {new Date(post.created_at).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}{' '}
-                      · <span className="text-primary font-medium">{post.talent}</span>
+                    <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        {new Date(post.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      <span>·</span>
+                      <span className="font-semibold text-accent-text">{post.talent}</span>
                     </p>
                   </div>
                 </div>
@@ -658,33 +686,33 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                     {editingId !== post.id && (
                       <button
                         onClick={() => startEdit(post)}
-                        className="p-1.5 rounded-lg text-foreground/50 hover:text-foreground hover:bg-muted transition cursor-pointer"
+                        className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
                         title="Edit post"
                         aria-label={`Edit your post: ${post.caption.slice(0, 40)}`}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
                     )}
                     <button
                       onClick={() => handleDeletePost(post.id)}
-                      className="p-1.5 rounded-lg text-foreground/50 hover:text-danger hover:bg-danger/10 transition cursor-pointer"
+                      className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-danger-soft hover:text-danger"
                       title="Delete post"
                       aria-label={`Delete your post: ${post.caption.slice(0, 40)}`}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Caption — inline editor while this post is being edited. */}
+              {/* Caption */}
               {editingId === post.id ? (
                 <div className="space-y-2">
                   <textarea
                     value={editDraft}
                     onChange={(e) => setEditDraft(e.target.value)}
                     rows={3}
-                    className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent-border"
+                    className="w-full rounded-xl border border-border bg-muted/40 p-3 text-xs leading-relaxed text-foreground outline-none focus:border-accent-border"
                     aria-label="Edit post text"
                   />
                   <div className="flex items-center justify-end gap-2">
@@ -692,23 +720,23 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                       type="button"
                       onClick={cancelEdit}
                       disabled={savingEdit}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted/70 transition cursor-pointer"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted/70"
                     >
                       <CancelIcon className="h-3.5 w-3.5" />
-                      Cancel
+                      <span>Cancel</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => void saveEdit(post.id)}
                       disabled={savingEdit || !editDraft.trim()}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition cursor-pointer"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground transition hover:bg-accent-hover disabled:opacity-50"
                     >
                       {savingEdit ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
                         <Check className="h-3.5 w-3.5" />
                       )}
-                      Save
+                      <span>Save</span>
                     </button>
                   </div>
                   {editError && (
@@ -719,53 +747,46 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                 </div>
               ) : (
                 post.caption && (
-                  <p className="text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
                     {post.caption}
                   </p>
                 )
               )}
 
-              {/* Media. `media_path` is a storage path in a private bucket, so the src is
-                  the SIGNED url resolved above — using the raw path is what made
-                  images invisible. Three explicit states, because a silently
-                  broken image reads as "the upload never worked" with no way to
-                  tell that apart from a network failure. */}
+              {/* Media */}
               {post.media_path &&
                 (mediaUrls[post.media_path] ? (
-                  <div className="overflow-hidden rounded-2xl border border-border bg-muted">
+                  <div className="overflow-hidden rounded-2xl border border-border bg-black/40 shadow-inner">
                     {isVideoPath(post.media_path) ? (
                       <video
                         src={mediaUrls[post.media_path]}
                         controls
                         playsInline
                         preload="metadata"
-                        className="max-h-[520px] w-full bg-black object-contain"
+                        className="max-h-[520px] w-full bg-black object-contain mx-auto"
                       />
                     ) : (
                       <img
                         src={mediaUrls[post.media_path]}
                         alt={`Shared by ${post.author?.firstname ?? 'a member'}: ${post.caption?.slice(0, 80) || 'post media'}`}
-                        className="max-h-[520px] w-full object-cover"
+                        className="max-h-[520px] w-full object-contain mx-auto bg-black/20"
                         loading="lazy"
                       />
                     )}
                   </div>
                 ) : mediaBroken[post.media_path] ? (
-                  <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed border-border bg-muted/50 px-4 py-8 text-center">
+                  <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-8 text-center">
                     <ImageOff className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                     <p className="text-xs font-semibold text-muted-foreground">
                       Media unavailable
                     </p>
-                    <p className="max-w-xs text-[11px] text-subtle-foreground">
-                      This file could not be loaded. It may belong to a different
-                      community, or the media bucket may not be configured yet.
+                    <p className="max-w-xs text-[11px] text-muted-foreground">
+                      This file could not be loaded or belongs to a different community.
                     </p>
                   </div>
                 ) : (
-                  // Still signing. A placeholder rather than a spinner so the
-                  // card does not reflow when the image lands.
                   <div
-                    className="flex h-40 items-center justify-center rounded-2xl border border-border bg-muted/50"
+                    className="flex h-44 items-center justify-center rounded-2xl border border-border bg-muted/40"
                     role="status"
                     aria-label="Loading media"
                   >
@@ -773,52 +794,54 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                   </div>
                 ))}
 
-              {/* Actions */}
-              <div className="flex items-center justify-between border-t border-divider pt-3 text-xs text-foreground/70">
-                <div className="flex items-center gap-4">
+              {/* Interaction Bar */}
+              <div className="flex items-center justify-between border-t border-divider pt-3 text-xs">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleReact(post)}
-                    className={`flex items-center gap-1.5 py-1 transition cursor-pointer ${
+                    className={cn(
+                      'inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition',
                       post.user_has_reacted
-                        ? 'text-pink-500 font-semibold'
-                        : 'hover:text-foreground'
-                    }`}
+                        ? 'border border-accent-border/60 bg-accent-soft text-accent-text font-bold'
+                        : 'border border-border bg-card text-muted-foreground hover:border-border-strong hover:bg-muted hover:text-foreground'
+                    )}
                   >
                     <Heart
-                      className={`h-4 w-4 ${
-                        post.user_has_reacted ? 'fill-pink-500 text-pink-500' : ''
-                      }`}
+                      className={cn(
+                        'h-3.5 w-3.5 transition-transform active:scale-125',
+                        post.user_has_reacted ? 'fill-accent text-accent' : ''
+                      )}
                     />
                     <span>{post.reacts_count || 0}</span>
                   </button>
 
                   <button
                     onClick={() => toggleComments(post.id)}
-                    className="flex items-center gap-1.5 py-1 hover:text-foreground transition cursor-pointer"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
                   >
-                    <MessageCircle className="h-4 w-4" />
+                    <MessageCircle className="h-3.5 w-3.5" />
                     <span>{post.comments_count || 0} Comments</span>
                   </button>
                 </div>
               </div>
 
-              {/* Expanded Comments */}
+              {/* Expanded Comments Drawer */}
               {activeCommentsPostId === post.id && (
-                <div className="border-t border-divider pt-3 space-y-3 text-xs">
+                <div className="space-y-3 rounded-2xl border border-border bg-muted/40 p-4 text-xs">
                   {loadingComments ? (
-                    <div className="py-2 text-center text-foreground/50">Loading comments...</div>
+                    <div className="py-3 text-center text-muted-foreground">Loading comments...</div>
                   ) : commentsMap[post.id]?.length === 0 ? (
-                    <p className="text-foreground/50 py-1">
+                    <p className="py-2 text-center text-muted-foreground">
                       No comments yet. Start the conversation!
                     </p>
                   ) : (
-                    <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                    <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1 g-scroll">
                       {commentsMap[post.id]?.map((cmt) => (
                         <div
                           key={cmt.id}
-                          className="flex items-start gap-2.5 p-2 rounded-xl bg-muted border border-border"
+                          className="flex items-start gap-2.5 rounded-xl border border-border bg-card p-3 shadow-xs"
                         >
-                          <div className="h-6 w-6 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center shrink-0 font-bold text-[10px]">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-[10px] font-bold text-foreground">
                             {cmt.user?.photo_url ? (
                               <img
                                 src={cmt.user.photo_url}
@@ -826,14 +849,14 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                                 className="h-full w-full object-cover"
                               />
                             ) : (
-                              <span>{cmt.user?.firstname?.[0]}</span>
+                              <span>{getInitials(cmt.user?.firstname ?? 'A', cmt.user?.lastname ?? '')}</span>
                             )}
                           </div>
-                          <div className="flex-1">
-                            <span className="font-semibold text-foreground/90">
-                              {cmt.user?.firstname} {cmt.user?.lastname}:{' '}
-                            </span>
-                            <span className="text-foreground/80">{cmt.body}</span>
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <p className="font-bold text-foreground">
+                              {cmt.user?.firstname} {cmt.user?.lastname}
+                            </p>
+                            <p className="text-xs leading-relaxed text-muted-foreground">{cmt.body}</p>
                           </div>
                         </div>
                       ))}
@@ -844,7 +867,7 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                     <div className="flex items-center gap-2 pt-1">
                       <input
                         type="text"
-                        placeholder="Write a comment..."
+                        placeholder="Write a supportive comment..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         onKeyDown={(e) => {
@@ -853,13 +876,14 @@ export default function CommunityFeed({ currentUser, community }: CommunityFeedP
                             handleAddComment(post.id);
                           }
                         }}
-                        className="flex-1 px-3 py-2 rounded-xl bg-muted border border-border focus:border-primary outline-none text-xs text-foreground placeholder:text-muted-foreground"
+                        className="flex-1 rounded-xl border border-border bg-card px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-accent-border focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => handleAddComment(post.id)}
                         disabled={!newComment.trim()}
-                        className="p-2 rounded-xl bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                        aria-label="Send comment"
+                        className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-accent text-accent-foreground transition hover:bg-accent-hover disabled:opacity-50"
                       >
                         <Send className="h-3.5 w-3.5" />
                       </button>

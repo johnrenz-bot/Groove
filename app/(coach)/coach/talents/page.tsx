@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sparkles } from 'lucide-react';
 import CommunityFeed from '@/components/community/CommunityFeed';
 import { communityOf } from '@/lib/community';
 import { Profile } from '@/lib/types';
@@ -51,31 +50,19 @@ export default function CoachTalentsPage() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
-        eyebrow="Community Feed"
-        title="Performing Arts Showcase &amp; Updates"
-        description="Share choreography routines, rehearsal highlights, studio announcements, and engage with verified students and coaches in Bulacan."
+        eyebrow="Coach Showcase & Community Hub · Bulacan"
+        title={
+          <>
+            Performing Arts Showcase &amp; <span className="text-accent-text">Community</span>
+          </>
+        }
+        description="Share choreography routines, rehearsal highlights, masterclass announcements, and engage with verified students and mentors in San Jose del Monte."
       />
 
       {loading ? (
-        <div
-          className="space-y-5 rounded-[20px] border border-border bg-card p-6"
-          role="status"
-          aria-live="polite"
-        >
-          <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
-            Loading community feed...
-          </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="space-y-3 rounded-[20px] border border-border p-5">
-                <div className="g-skeleton h-9 w-9 rounded-full" />
-                <div className="g-skeleton h-4 w-3/4" />
-                <div className="g-skeleton h-3 w-full" />
-                <div className="g-skeleton h-3 w-5/6" />
-              </div>
-            ))}
-          </div>
+        <div className="space-y-5">
+          <div className="g-skeleton h-28 w-full rounded-[22px]" />
+          <div className="g-skeleton h-36 w-full rounded-[22px]" />
         </div>
       ) : (
         <CommunityFeed

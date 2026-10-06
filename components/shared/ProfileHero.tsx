@@ -204,9 +204,10 @@ export function ProfileHero({
               <span
                 title="Philippines"
                 aria-label="Philippines"
-                className="inline-flex h-5 items-center rounded border border-border bg-surface px-1.5 text-[10px] font-bold tracking-wide text-muted-foreground"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
               >
-                PH
+                <span className="text-sm leading-none" role="img" aria-label="Philippine flag">🇵🇭</span>
+                <span>Philippines</span>
               </span>
             </div>
 

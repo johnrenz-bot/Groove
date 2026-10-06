@@ -96,14 +96,14 @@ export function SignaturePadModal({
           </div>
         )}
 
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-inner">
           <SignatureCanvas
             ref={sigPadRef}
             penColor="#0F172A"
             canvasProps={{
-              width: 440,
-              height: 180,
-              className: 'sigCanvas cursor-crosshair w-full h-[180px]',
+              width: 500,
+              height: 200,
+              className: 'sigCanvas cursor-crosshair w-full h-[180px] bg-white touch-none',
             }}
           />
         </div>

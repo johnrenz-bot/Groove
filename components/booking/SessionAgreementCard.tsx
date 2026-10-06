@@ -21,11 +21,15 @@ import {
   AgreementPaper,
   SessionAgreementDocument,
 } from '@/components/booking/SessionAgreementDocument';
+import { ViewAgreementModal } from '@/components/booking/ViewAgreementModal';
 import { SignAgreementModal } from '@/components/booking/SignAgreementModal';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import {
+  agreementReference,
   fetchBookingAgreement,
+  formatDate,
+  formatMoney,
   roleFor,
   signSignature,
   type BookingAgreement,
@@ -46,7 +50,7 @@ export function SessionAgreementCard({
 }) {
   const [agreement, setAgreement] = useState<BookingAgreement | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [signOpen, setSignOpen] = useState(false);
   const [clientSigUrl, setClientSigUrl] = useState<string | null>(null);
   const [coachSigUrl, setCoachSigUrl] = useState<string | null>(null);
@@ -57,11 +61,6 @@ export function SessionAgreementCard({
   /**
    * Everything the card shows, gathered in one pass. PURE with respect to React
    * state: it reads and returns, it never calls setState.
-   *
-   * Split out from `load` so the mount effect can await it and apply the result
-   * itself. Folding the setState calls back into this function is what made the
-   * linter see `load()` as a state-setting call being invoked synchronously
-   * inside an effect.
    */
   const readAgreement = useCallback(async () => {
     try {
@@ -91,8 +90,6 @@ export function SessionAgreementCard({
 
       return { agreement: found, clientSigUrl: c, coachSigUrl: k, confirmed };
     } catch {
-      // A failed read must not take the conversation down; the card simply
-      // stays absent, which is correct when there is nothing to show.
       return { agreement: null, clientSigUrl: null, coachSigUrl: null, confirmed: false };
     }
   }, [supabase, currentUserId, partnerId]);
@@ -122,8 +119,6 @@ export function SessionAgreementCard({
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      // setState happens only after this await, so the effect body never calls
-      // it synchronously. Same fetch, same result as before.
       const next = await readAgreement();
       if (cancelled) return;
       apply(next);
@@ -185,19 +180,16 @@ export function SessionAgreementCard({
   const role: SigningRole | null = agreement ? roleFor(agreement, currentUserId) : null;
   const mySigned = role === 'client' ? agreement?.client_signed_at : agreement?.coach_signed_at;
   const bothSigned = Boolean(agreement?.client_signed_at && agreement?.coach_signed_at);
+  const ref = agreement ? agreementReference(agreement) : '';
 
   const printPdf = () => {
-    // Print-to-PDF: the document is already laid out as a document, and the
-    // print stylesheet in globals.css drops the app chrome. This produces a real
-    // PDF of exactly what the parties signed, with no extra dependency and no
-    // round trip that could leak the signed images.
     window.print();
   };
 
   if (loading) {
     return (
-      <div className="mx-auto my-4 flex w-full max-w-3xl items-center justify-center gap-2 rounded-2xl border border-border bg-card px-5 py-6 text-xs text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+      <div className="mx-auto my-4 flex w-full max-w-2xl items-center justify-center gap-2.5 rounded-2xl border border-border bg-card px-5 py-6 text-xs text-muted-foreground shadow-sm">
+        <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />
         Loading session agreement…
       </div>
     );
@@ -208,35 +200,41 @@ export function SessionAgreementCard({
   return (
     <>
       <section
-        aria-label="Session agreement"
-        className="mx-auto my-5 w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+        aria-label="Session agreement summary"
+        className="mx-auto my-4 w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:border-border-strong"
       >
-        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/30 px-5 py-3.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-accent-border bg-accent-soft text-accent-text">
-            <FileSignature className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-accent-text">
-              Groove System
-            </p>
-            <p className="text-sm font-bold text-foreground">Session Agreement</p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider bg-muted/30 px-5 py-3.5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
+              <FileSignature className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold text-foreground">Session Agreement</p>
+                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                  {ref}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Groove Digital Performing Arts Contract</p>
+            </div>
           </div>
 
-          <div className="ml-auto flex items-center gap-2 text-[11px] font-semibold">
+          <div className="flex items-center gap-2 text-[11px] font-semibold">
             <span
-              className={
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 ${
                 agreement.client_signed_at
-                  ? 'text-success'
-                  : 'text-muted-foreground'
-              }
+                  ? 'bg-success-soft text-success'
+                  : 'bg-muted text-muted-foreground'
+              }`}
             >
               {agreement.client_signed_at ? '✓' : '⏳'} Client
             </span>
-            <span aria-hidden="true" className="text-muted-foreground">·</span>
             <span
-              className={
-                agreement.coach_signed_at ? 'text-success' : 'text-muted-foreground'
-              }
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 ${
+                agreement.coach_signed_at
+                  ? 'bg-success-soft text-success'
+                  : 'bg-muted text-muted-foreground'
+              }`}
             >
               {agreement.coach_signed_at ? '✓' : '⏳'} Coach
             </span>
@@ -244,67 +242,79 @@ export function SessionAgreementCard({
         </div>
 
         {bookingConfirmed && (
-          <div className="flex items-center gap-2 border-b border-border bg-success/10 px-5 py-3 text-[12px] font-bold text-success">
+          <div className="flex items-center gap-2 border-b border-divider bg-success-soft px-5 py-2.5 text-xs font-bold text-success">
             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
             Agreement fully signed — booking confirmed
           </div>
         )}
         {bothSigned && !bookingConfirmed && (
-          <div className="flex items-center gap-2 border-b border-border bg-accent-soft px-5 py-3 text-[12px] font-semibold text-accent-text">
+          <div className="flex items-center gap-2 border-b border-divider bg-accent-soft px-5 py-2.5 text-xs font-semibold text-accent-text">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Both parties have signed. Confirming the booking…
+            Both parties have signed. Confirming booking status…
           </div>
         )}
 
-        <div className="px-5 py-6">
-          {expanded ? (
-            <SessionAgreementDocument
-              agreement={agreement}
-              clientSignatureUrl={clientSigUrl}
-              coachSignatureUrl={coachSigUrl}
-              sessionTime={sessionTime}
-              sessionGoal={sessionGoal}
-            />
-          ) : (
-            /* Also on paper, so the collapsed preview matches the expanded
-               document instead of flipping to dark when it is opened. */
-            <AgreementPaper className="p-5 sm:p-6">
-              <p className="text-[13px] leading-relaxed text-foreground/90">
-                This Session Agreement is made between the Client and the Coach for the
-                purpose of confirming the details, responsibilities, and terms of the agreed
-                performing arts session. Both parties acknowledge and agree to the session
-                details, applicable fees, responsibilities, cancellation terms, and other
-                conditions stated in the full agreement.
+        {/* Compact summary view */}
+        <div className="space-y-3 px-5 py-4 text-xs">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-2.5">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Session Date</p>
+              <p className="mt-1 font-medium text-foreground">
+                {formatDate(agreement.agreement_date) || 'Scheduled'}
               </p>
-            </AgreementPaper>
-          )}
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-2.5">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Rate / Fee</p>
+              <p className="mt-1 font-medium text-accent-text">
+                {formatMoney(agreement.rate || agreement.appointment_price) || 'Agreed Rate'}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-2.5">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Type</p>
+              <p className="mt-1 truncate font-medium text-foreground">
+                {agreement.session_type || 'Rehearsal'}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-2.5">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Location</p>
+              <p className="mt-1 truncate font-medium text-foreground">
+                {agreement.location || 'SJDM Studio'}
+              </p>
+            </div>
+          </div>
+
+          <p className="text-[12px] leading-relaxed text-muted-foreground">
+            This digital agreement outlines the rehearsal session scope, mutual responsibilities, and cancellation notice. Open the full document to review complete terms and signatures.
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-border bg-muted/20 px-5 py-4">
-          {!mySigned ? (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setSignOpen(true)}
-              icon={<FileSignature className="h-3.5 w-3.5" aria-hidden="true" />}
-            >
-              Review &amp; Sign Agreement
-            </Button>
-          ) : (
-            <span className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-success">
-              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              You have signed
-            </span>
-          )}
+        {/* Action bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-divider bg-muted/20 px-5 py-3">
+          <div className="flex items-center gap-2">
+            {!mySigned ? (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setSignOpen(true)}
+                icon={<FileSignature className="h-3.5 w-3.5" aria-hidden="true" />}
+              >
+                Review &amp; Sign
+              </Button>
+            ) : (
+              <span className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-success">
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                Signed by you
+              </span>
+            )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setExpanded((v) => !v)}
-            aria-expanded={expanded}
-          >
-            {expanded ? 'Collapse Agreement' : 'View Full Agreement'}
-          </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setViewModalOpen(true)}
+            >
+              View Full Agreement
+            </Button>
+          </div>
 
           <Button
             variant="ghost"
@@ -312,11 +322,27 @@ export function SessionAgreementCard({
             onClick={printPdf}
             icon={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
           >
-            Download PDF
+            PDF
           </Button>
         </div>
       </section>
 
+      {/* Full Agreement Modal */}
+      <ViewAgreementModal
+        open={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        agreement={agreement}
+        clientSignatureUrl={clientSigUrl}
+        coachSignatureUrl={coachSigUrl}
+        sessionTime={sessionTime}
+        sessionGoal={sessionGoal}
+        canSign={!mySigned}
+        isSigned={Boolean(mySigned)}
+        bookingConfirmed={bookingConfirmed}
+        onOpenSign={() => setSignOpen(true)}
+      />
+
+      {/* Review & Sign Modal */}
       <SignAgreementModal
         open={signOpen}
         onClose={() => setSignOpen(false)}

@@ -23,6 +23,7 @@ import {
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { StatCard } from '@/components/shared/StatCard';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -465,23 +466,12 @@ export default function ClientHomePage() {
 
       {/* Quick Coach Modal */}
       {selectedCoach && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-sm animate-in fade-in duration-150">
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="relative w-full max-w-md animate-in zoom-in-95 space-y-5 rounded-[20px] border border-border bg-card p-6 shadow-[var(--shadow-lg)] duration-150 sm:p-7"
-          >
-            <button
-              type="button"
-              onClick={() => setSelectedCoach(null)}
-              aria-label="Close coach details"
-              className="absolute right-4 top-4 cursor-pointer rounded-full p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted text-lg font-bold text-foreground">
+        <Modal
+          open={!!selectedCoach}
+          onClose={() => setSelectedCoach(null)}
+          title={
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted text-sm font-bold text-accent-text">
                 {selectedCoach.photo_url ? (
                   <img src={selectedCoach.photo_url} alt="" className="h-full w-full object-cover" />
                 ) : (
@@ -489,137 +479,127 @@ export default function ClientHomePage() {
                 )}
               </span>
               <div className="min-w-0">
-                <h3 className="truncate text-sm font-bold text-foreground">
+                <h3 className="truncate text-base font-bold text-foreground">
                   {selectedCoach.firstname} {selectedCoach.lastname}
                 </h3>
-                <p className="truncate text-xs text-muted-foreground">
-                  {selectedCoach.coach_profile?.talents || 'Coach'}
-                </p>
-                <p className="truncate text-[11px] text-subtle-foreground">
-                  {selectedCoach.city_name || 'San Jose del Monte, Bulacan'}
+                <p className="truncate text-xs text-accent-text font-semibold">
+                  {selectedCoach.coach_profile?.talents || 'Coach'} · San Jose del Monte
                 </p>
               </div>
             </div>
-
-            <p className="rounded-2xl border border-border bg-muted p-3.5 text-xs leading-relaxed text-muted-foreground">
+          }
+          size="md"
+          footer={
+            <div className="flex w-full items-center justify-between gap-3">
+              <Link
+                href={`/userprofile/${selectedCoach.id}`}
+                className="inline-flex h-9 items-center justify-center rounded-xl border border-border bg-card px-4 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
+              >
+                Full Profile
+              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/messages?user=${selectedCoach.id}`}
+                  className="inline-flex h-9 items-center justify-center rounded-xl bg-accent px-4 text-xs font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover"
+                >
+                  Message Coach
+                </Link>
+              </div>
+            </div>
+          }
+        >
+          <div className="space-y-4 text-xs">
+            <div className="rounded-2xl border border-border bg-muted/40 p-4 leading-relaxed text-muted-foreground">
               {selectedCoach.bio ||
                 'Professional performing arts instructor dedicated to mentoring talents.'}
-            </p>
+            </div>
 
-            <dl className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-muted p-3.5 text-xs">
+            <dl className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-3.5">
               <div>
-                <dt className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  Service Fee
+                <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Session Rate
                 </dt>
-                <dd className="mt-0.5 block font-bold tabular-nums text-accent-text">
+                <dd className="mt-0.5 text-sm font-bold tabular-nums text-accent-text">
                   {formatCurrency(selectedCoach.coach_profile?.service_fee)}
                 </dd>
               </div>
               <div>
-                <dt className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  Duration
+                <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Standard Duration
                 </dt>
-                <dd className="mt-0.5 block font-bold tabular-nums text-foreground">
+                <dd className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
                   {selectedCoach.coach_profile?.duration || '1 hour'}
                 </dd>
               </div>
             </dl>
-
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <Link
-                href={`/userprofile/${selectedCoach.id}`}
-                className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-transparent px-5 text-sm font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
-              >
-                View Profile
-              </Link>
-              <Link
-                href={`/messages?user=${selectedCoach.id}`}
-                className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-sm)] transition hover:bg-accent-hover"
-              >
-                Message Coach
-              </Link>
-            </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Support Ticket Modal */}
-      {showTicketModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-sm animate-in fade-in duration-150">
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="relative w-full max-w-md animate-in zoom-in-95 space-y-5 rounded-[20px] border border-border bg-card p-6 shadow-[var(--shadow-lg)] duration-150 sm:p-7"
-          >
-            <button
-              type="button"
-              onClick={() => setShowTicketModal(false)}
-              aria-label="Close support ticket form"
-              className="absolute right-4 top-4 cursor-pointer rounded-full p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <div className="flex items-center gap-2.5 border-b border-divider pb-4">
-              <HelpCircle className="h-4 w-4 text-accent-text" aria-hidden="true" />
-              <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-foreground">
-                Submit Support Ticket
-              </h3>
+      <Modal
+        open={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        title={
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-4 w-4 text-accent-text" aria-hidden="true" />
+            <span>Submit Support Ticket</span>
+          </div>
+        }
+        description="Our administration team is here to assist with bookings, coaches, or questions."
+        size="md"
+      >
+        {ticketSent ? (
+          <div className="space-y-2 py-8 text-center">
+            <CheckCircle className="mx-auto h-10 w-10 text-success" aria-hidden="true" />
+            <p className="text-base font-bold text-foreground">Ticket Submitted Successfully</p>
+            <p className="text-xs text-muted-foreground">
+              Our administration will review and follow up with you promptly.
+            </p>
+          </div>
+        ) : (
+          <form id="support-ticket-form" onSubmit={handleTicketSubmit} className="space-y-4 text-xs">
+            <div>
+              <label htmlFor="ticket-subject" className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
+                Subject *
+              </label>
+              <input
+                id="ticket-subject"
+                type="text"
+                value={ticketSubject}
+                onChange={(e) => setTicketSubject(e.target.value)}
+                required
+                placeholder="Brief summary of inquiry"
+                className="g-input h-10 w-full text-xs"
+              />
             </div>
 
-            {ticketSent ? (
-              <div className="space-y-2 py-6 text-center">
-                <CheckCircle className="mx-auto h-8 w-8 text-success" aria-hidden="true" />
-                <p className="text-sm font-semibold text-foreground">Ticket Submitted</p>
-                <p className="text-xs text-muted-foreground">
-                  Our administration will follow up promptly.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleTicketSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="ticket-subject" className="g-label">
-                    Subject
-                  </label>
-                  <input
-                    id="ticket-subject"
-                    type="text"
-                    value={ticketSubject}
-                    onChange={(e) => setTicketSubject(e.target.value)}
-                    required
-                    placeholder="Brief summary of inquiry"
-                    className="g-input"
-                  />
-                </div>
+            <div>
+              <label htmlFor="ticket-message" className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
+                Message Details *
+              </label>
+              <textarea
+                id="ticket-message"
+                value={ticketMessage}
+                onChange={(e) => setTicketMessage(e.target.value)}
+                required
+                rows={4}
+                placeholder="Describe your inquiry, concern, or feedback..."
+                className="g-input w-full p-3 resize-none text-xs leading-relaxed"
+              />
+            </div>
 
-                <div>
-                  <label htmlFor="ticket-message" className="g-label">
-                    Message Details
-                  </label>
-                  <textarea
-                    id="ticket-message"
-                    value={ticketMessage}
-                    onChange={(e) => setTicketMessage(e.target.value)}
-                    required
-                    rows={4}
-                    placeholder="Describe your inquiry or concern..."
-                    className="g-input resize-none"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2.5 pt-1">
-                  <Button type="button" variant="outline" onClick={() => setShowTicketModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" loading={ticketLoading}>
-                    <span>{ticketLoading ? 'Submitting...' : 'Send Ticket'}</span>
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-divider">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowTicketModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" loading={ticketLoading}>
+                <span>{ticketLoading ? 'Submitting...' : 'Send Ticket'}</span>
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </>
   );
 }

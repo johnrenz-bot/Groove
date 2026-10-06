@@ -137,16 +137,27 @@ export default function CoachCalendarPage() {
               </h2>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    setCurrentMonth(now);
+                    setSelectedDate(now.toISOString().split('T')[0]);
+                  }}
+                  className="rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground cursor-pointer"
+                >
+                  Today
+                </button>
+                <button
                   onClick={prevMonth}
                   aria-label="Previous month"
-                  className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
                 >
                   <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <button
                   onClick={nextMonth}
                   aria-label="Next month"
-                  className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
                 >
                   <ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -172,8 +183,10 @@ export default function CoachCalendarPage() {
                     return <div key={`empty-${index}`} className="h-14 sm:h-20 rounded-xl" />;
                   }
 
-                  const hasAppt = appointments.some((a) => a.date === item.dateStr);
+                  const dayAppts = appointments.filter((a) => a.date === item.dateStr);
+                  const hasAppt = dayAppts.length > 0;
                   const isSelected = selectedDate === item.dateStr;
+                  const isToday = item.dateStr === new Date().toISOString().split('T')[0];
 
                   return (
                     <button
@@ -182,18 +195,42 @@ export default function CoachCalendarPage() {
                       aria-pressed={isSelected}
                       className={`flex h-14 cursor-pointer flex-col justify-between rounded-xl border p-2 text-left transition sm:h-20 ${
                         isSelected
-                          ? 'border-accent-border bg-accent-soft text-accent-text'
-                          : 'border-border bg-card text-foreground hover:border-border-strong hover:bg-muted'
+                          ? 'border-accent bg-accent-soft text-accent-text shadow-[var(--shadow-sm)]'
+                          : isToday
+                            ? 'border-border-strong bg-muted/70 text-foreground'
+                            : 'border-border bg-card text-foreground hover:border-border-strong hover:bg-muted'
                       }`}
                     >
-                      <span className={`text-xs font-semibold tabular-nums ${isSelected ? 'text-accent-text' : 'text-foreground'}`}>
-                        {item.day}
-                      </span>
-                      {hasAppt && (
+                      <div className="flex items-center justify-between w-full">
                         <span
-                          aria-hidden="true"
-                          className="h-2 w-2 self-end rounded-full bg-success"
-                        />
+                          className={`text-xs font-semibold tabular-nums ${
+                            isSelected ? 'text-accent-text' : isToday ? 'text-accent font-extrabold' : 'text-foreground'
+                          }`}
+                        >
+                          {item.day}
+                        </span>
+                        {isToday && (
+                          <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider font-bold text-accent">
+                            Today
+                          </span>
+                        )}
+                      </div>
+                      {hasAppt && (
+                        <div className="flex items-center gap-1 self-end">
+                          <span
+                            aria-hidden="true"
+                            className={`h-2 w-2 rounded-full ${
+                              dayAppts.some((a) => a.status === 'confirmed')
+                                ? 'bg-success'
+                                : 'bg-accent'
+                            }`}
+                          />
+                          {dayAppts.length > 1 && (
+                            <span className="text-[9px] font-bold tabular-nums opacity-80">
+                              {dayAppts.length}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </button>
                   );
@@ -256,6 +293,14 @@ export default function CoachCalendarPage() {
                             <MapPin className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
                             <span className="truncate">{appt.address}</span>
                           </p>
+                        </div>
+                        <div className="pt-2 border-t border-divider/60 flex justify-end">
+                          <Link
+                            href={`/messages?user=${appt.client_id}`}
+                            className="text-[11px] font-semibold text-accent-text hover:underline"
+                          >
+                            Message Student →
+                          </Link>
                         </div>
                       </div>
                     );

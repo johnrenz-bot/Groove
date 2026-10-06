@@ -36,6 +36,8 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { ProfileHero } from '@/components/shared/ProfileHero';
 import { ProfileSummary, VerificationStatus } from '@/components/profile/ProfileSummary';
+import { ProfileLinksCard, type ProfileLinks } from '@/components/profile/ProfileLinksCard';
+import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
 import { VerifiedBadge } from '@/components/verification/VerifiedBadge';
 import { VerificationDocumentsUpload } from '@/components/verification/VerificationDocumentsUpload';
 import { verificationStatusOf } from '@/lib/verification';
@@ -122,6 +124,13 @@ export default function CoachProfilePage() {
     notice_days: '1',
     cancellation_method: '',
   });
+  const [links, setLinks] = useState<ProfileLinks>({
+    website: '',
+    social_link: '',
+    github: '',
+  });
+  const [authProvider, setAuthProvider] = useState<string>('google');
+  const [authEmail, setAuthEmail] = useState<string>('');
 
   /** Load a fetched profile into the editable form state. */
   const hydrateForm = (data: FullCoach) => {
@@ -184,6 +193,23 @@ export default function CoachProfilePage() {
       if (!user) {
         router.push('/login');
         return;
+      }
+
+      const prov = (user.app_metadata?.provider || user.identities?.[0]?.provider || 'google') as string;
+      setAuthProvider(prov);
+      setAuthEmail(user.email || '');
+
+      try {
+        const cached = typeof window !== 'undefined' ? localStorage.getItem(`groove_links_${user.id}`) : null;
+        const parsed = cached ? JSON.parse(cached) : {};
+        const meta = user.user_metadata || {};
+        setLinks({
+          website: meta.website || parsed.website || '',
+          social_link: meta.social_link || parsed.social_link || '',
+          github: meta.github || parsed.github || '',
+        });
+      } catch {
+        // Non-blocking fallback
       }
 
       const { data: profile, error } = await supabase
@@ -403,6 +429,23 @@ export default function CoachProfilePage() {
 
       if (coachError) throw new Error(`Coach profile update failed: ${coachError.message}`);
 
+      // Save optional links to auth user metadata and localStorage
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            website: links.website || null,
+            social_link: links.social_link || null,
+            github: links.github || null,
+            links,
+          },
+        });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`groove_links_${user.id}`, JSON.stringify(links));
+        }
+      } catch {
+        // Non-blocking fallback
+      }
+
       setSuccess('Coach details & pricing terms updated successfully!');
       setEditing(false);
       await fetchCoachData();
@@ -616,9 +659,13 @@ export default function CoachProfilePage() {
                 {coach.bio || 'No bio added yet.'}
               </p>
             </ProfileSummary>
+
+            <ProfileLinksCard links={links} />
           </div>
 
           <div className="space-y-6">
+            <SignInMethodCard provider={authProvider} email={authEmail} />
+
             <VerificationStatus
               emailVerified={coach.email_verified}
               accountVerified={coach.account_verified}
@@ -694,6 +741,9 @@ export default function CoachProfilePage() {
             </div>
             <div className="mt-7">
               <CoachRatesSection values={coachForm} errors={errors} onChange={setCoachForm} />
+            </div>
+            <div className="mt-7">
+              <ProfileLinksCard links={links} editing={true} onChange={setLinks} />
             </div>
           </div>
 
