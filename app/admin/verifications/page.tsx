@@ -34,9 +34,9 @@ import {
   documentSlots,
   verificationStatusOf,
   type VerificationStatus,
-} from '@/lib/verification';
-import { VerificationStatusBadge } from '@/components/verification/VerifiedBadge';
-import { VerificationReviewPanel } from '@/components/verification/VerificationReviewPanel';
+} from '@/features/verification/services/verification';
+import { VerificationStatusBadge } from '@/features/verification/components/VerifiedBadge';
+import { VerificationReviewPanel } from '@/features/verification/components/VerificationReviewPanel';
 import { getInitials, formatDate } from '@/lib/utils';
 
 const PAGE_SIZE = 10;

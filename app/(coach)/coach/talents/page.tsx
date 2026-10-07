@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import CommunityFeed from '@/components/community/CommunityFeed';
-import { communityOf } from '@/lib/community';
+import CommunityFeed from '@/features/community/components/CommunityFeed';
+import { communityOf } from '@/features/community/utils/community';
 import { Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';

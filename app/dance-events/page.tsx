@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
-import { checkDanceAccess } from '@/lib/danceAccess';
-import { DanceEventsFeed } from '@/components/dance/DanceEventsFeed';
+import { checkDanceAccess, DanceEventsFeed } from '@/features/dance';
 import { PageHeader } from '@/components/shared/SectionHeader';
 
 /**

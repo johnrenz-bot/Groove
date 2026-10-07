@@ -17,17 +17,17 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { AppHeader } from '@/components/shared/Navbar';
-import BookingModal from '@/components/appointments/BookingModal';
+import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
 import { FullCoach, Profile, Feedback, CommunityPost } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { parseGenres } from '@/lib/utils';
-import { bookingGate, coachBookingGate } from '@/lib/verification';
-import { VerifiedBadge } from '@/components/verification/VerifiedBadge';
-import { VerificationRequiredNotice } from '@/components/verification/VerificationRequiredNotice';
-import { statusMeta } from '@/lib/presence';
-import { usePresence } from '@/lib/presence/usePresence';
-import { SignedMedia, useSignedMedia } from '@/components/community/SignedMedia';
+import { bookingGate, coachBookingGate } from '@/features/verification/services/verification';
+import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
+import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
+import { statusMeta } from '@/features/presence/utils/presence';
+import { usePresence } from '@/features/presence/hooks/usePresence';
+import { SignedMedia, useSignedMedia } from '@/features/community/components/SignedMedia';
 import { FollowButton } from '@/components/shared/FollowButton';
 import { fetchFollowCounts, type FollowCounts } from '@/lib/profileFollows';
 

@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Star, Trash2, FileText, MessageSquare, PenLine, Search } from 'lucide-react';
 import { PageHeader } from '@/components/shared/SectionHeader';
-import { AgreementSignature } from '@/components/booking/AgreementSignature';
+import { AgreementSignature } from '@/features/booking/components/AgreementSignature';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {

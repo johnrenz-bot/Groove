@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkDanceAccess } from '@/lib/danceAccess';
-import { fetchAllSources, dedupeEvents, SOURCES, type DanceEvent } from '@/lib/danceEventSources';
+import { checkDanceAccess, fetchAllSources, dedupeEvents, SOURCES, type DanceEvent } from '@/features/dance';
 
 /**
  * GET /api/dance-events — Dance competitions, workshops, news and results.

@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 import { Appointment, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import { isVerified, verificationStatusOf } from '@/lib/verification';
-import { VerificationRequiredNotice } from '@/components/verification/VerificationRequiredNotice';
-import { VerifiedBadge } from '@/components/verification/VerifiedBadge';
+import { isVerified, verificationStatusOf } from '@/features/verification/services/verification';
+import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
+import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/Button';

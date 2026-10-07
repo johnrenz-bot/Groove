@@ -20,10 +20,10 @@ import {
 } from 'lucide-react';
 import { AppHeader } from '@/components/shared/Navbar';
 import { Message, Profile } from '@/lib/types';
-import { statusMeta } from '@/lib/presence';
-import { usePresence } from '@/lib/presence/usePresence';
+import { statusMeta } from '@/features/presence/utils/presence';
+import { usePresence } from '@/features/presence/hooks/usePresence';
 import { createClient } from '@/lib/supabase/client';
-import { SessionAgreementCard } from '@/components/booking/SessionAgreementCard';
+import { SessionAgreementCard } from '@/features/booking/components/SessionAgreementCard';
 import {
   fetchAdminPartners,
   fetchConversationsForUser,

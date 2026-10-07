@@ -31,9 +31,9 @@ import {
   updateUserProfile,
   type AdminUserRecord,
 } from '@/lib/admin/service';
-import { VerificationReviewPanel } from '@/components/verification/VerificationReviewPanel';
-import { VerifiedBadge } from '@/components/verification/VerifiedBadge';
-import { canApproveVerification, approvalBlockMessage } from '@/lib/verification';
+import { VerificationReviewPanel } from '@/features/verification/components/VerificationReviewPanel';
+import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
+import { canApproveVerification, approvalBlockMessage } from '@/features/verification/services/verification';
 import { getInitials, formatDate, formatCurrency, parseGenres, VERIFICATION_BUCKET, SIGNED_URL_TTL_SECONDS } from '@/lib/utils';
 import { cn } from '@/components/shared/cn';
 import { createClient } from '@/lib/supabase/client';

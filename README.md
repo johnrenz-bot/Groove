@@ -19,366 +19,268 @@
 
 ---
 
-## Table of Contents
+## Overview
 
-- [Executive Summary](#executive-summary)
-- [System Architecture](#system-architecture)
-- [User Roles & Functional Modules](#user-roles--functional-modules)
-- [Key Features](#key-features)
-- [Technology Stack](#technology-stack)
-- [Project Directory Structure](#project-directory-structure)
-- [Installation & Local Setup](#installation--local-setup)
-- [Environment Configuration](#environment-configuration)
-- [Available Scripts](#available-scripts)
-- [Database & Storage Setup](#database--storage-setup)
-- [Security & Compliance](#security--compliance)
-- [Testing & Quality Assurance](#testing--quality-assurance)
-- [Build & Deployment](#build--deployment)
-- [Contribution Guidelines](#contribution-guidelines)
-- [License & Support](#license--support)
+**Groove** is a specialized, production-ready web platform engineered for the performing arts community in San Jose del Monte, Bulacan. It bridges performers and coaches across dance, singing, acting, and musical theater with streamlined discovery, real-time booking, digital e-signature agreements, interactive studio geolocation, and community showcase feeds.
 
----
-
-## Executive Summary
-
-**Groove** is a specialized, production-ready web application engineered to solve critical bottlenecks in the local performing arts sector of San Jose del Monte, Bulacan. Local artists and performers frequently encounter friction finding vetted mentors, enduring long booking communication delays, and struggling to identify available rehearsal studios.
-
-Groove provides a centralized, authenticated platform that facilitates:
-- **Discipline Discovery:** Direct access to vetted coaches across Dance, Singing, Acting, and Musical Theater.
-- **Session Scheduling:** End-to-end appointment lifecycle from inquiry to confirmation, session execution, and rating.
-- **Digital Contracts:** Legal digital session agreements backed by in-browser e-signatures (`react-signature-canvas`).
-- **Studio Geolocation:** Interactive OpenStreetMap/Leaflet locator identifying rehearsal spaces around San Jose del Monte.
-- **Real-Time Communication:** Instant messaging with rich media attachments (audio, video, documents, location pins).
-- **Administrative Governance:** Robust administrative back-office for coach verification, transaction auditing, and ticket triage.
-
----
-
-## System Architecture
-
-Groove follows the modern **Next.js App Router** architecture with Server Components by default, Client Components where interactivity is necessary, and route-level protection enforced at the network edge:
-
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                          Client Browser                                │
-│    Landing Page (Dark)  │  Auth Flows (Dark)  │  Portals (Dark / Light)│
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ HTTPS / WSS
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Next.js 16 (App Router)                         │
-│  middleware.ts ── Session Refresh & Role-Based Access Control (RBAC)   │
-│                                                                        │
-│  Routes:                                                               │
-│  ├── / (Landing)            ├── /login, /register/* (Auth)             │
-│  ├── /(client)/* (Client)   ├── /(coach)/* (Coach)                     │
-│  ├── /admin/* (Governance)  ├── /api/ai, /api/studios (Route Handlers) │
-└───────────────────┬───────────────────────────────┬────────────────────┘
-                    │ Database / Auth / Realtime    │ External APIs
-                    ▼                               ▼
-┌──────────────────────────────────────┐  ┌──────────────────────────────┐
-│        Supabase Cloud (BaaS)         │  │   External Cloud Services    │
-│  ├── PostgreSQL 15 + RLS             │  │  ├── OpenStreetMap Overpass  │
-│  ├── Supabase Auth (JWT Cookies)     │  │  │   (Live Studio Locator)   │
-│  ├── Realtime (Chat & Notifications) │  │  └── OpenRouter API          │
-│  └── Storage Buckets (Media/Docs)    │  │      (DeepSeek AI Assistant) │
-└──────────────────────────────────────┘  └──────────────────────────────┘
-```
-
----
-
-## User Roles & Functional Modules
-
-The platform enforces strict role-based authorization using authoritative profiles verified against the database:
-
-### 1. Client / Performer (`role: client`)
-- **Discovery:** Browse and filter coaches by discipline, genre, rate range, and verified credentials.
-- **Appointments:** Request session slots, manage pending bookings, and track confirmations.
-- **Agreements:** Review terms and digitally sign legal session contracts directly in the browser.
-- **Community:** Post performance media, comment on peer uploads, and react to updates.
-- **Communication:** Chat in real time with coaches, attach audio/video samples, and share locations.
-
-### 2. Coach / Mentor (`role: coach`)
-- **Profile & Rates:** Manage biography, specializations, hourly rates, payment guidelines, and demo media.
-- **Schedule Management:** Approve, decline, or reschedule incoming client booking requests.
-- **Digital Signatures:** Countersign session agreements with stored digital signatures.
-- **Verification Portal:** Submit government-issued ID and credentials for administrative vetting.
-- **Performance Showcase:** Publish portfolio reels and testimonials to build credibility.
-
-### 3. Administrator (`role: admin`)
-- **Credential Verification:** Review submitted coach accreditation documents with approve/reject workflows.
-- **User Oversight:** Inspect accounts, manage status (active/suspended), and monitor role assignments.
-- **Booking Auditing:** Real-time visibility into all platform transactions and appointment lifecycles.
-- **System Broadcasts:** Create and publish global announcements and scheduled maintenance notices.
-- **Platform Customization:** Configure site-wide theme defaults and brand accent palettes.
+Detailed engineering guides and workflow specs are maintained in the [`docs/`](./docs/) directory:
+- [Architecture Overview](./docs/architecture.md)
+- [Project Structure & Map](./docs/project-structure.md)
+- [Data Flow & Lifecycle](./docs/data-flow.md)
+- [Verification Workflow](./docs/verification-workflow.md)
+- [Admin Hardening](./docs/admin-hardening.md)
+- [Theme System](./docs/theme-system.md)
 
 ---
 
 ## Key Features
 
-- **Dark-First Brand Aesthetics:** Polished dark visual identity tailored for theatrical and artistic expression, with landing (`/`) and authentication (`/login`, `/register/*`) locked to dark mode.
-- **Seamless Loading Architecture:** Centered brand loading screen with smooth breathing animation and layout-shift prevention during initial mount and streaming route transitions.
-- **OpenStreetMap Studio Geolocation:** Real-time geographic spatial radius querying (1 km, 3 km, 5 km, 10 km) for dance studios and performance halls in and around San Jose del Monte.
-- **Integrated Digital Signatures:** In-app canvas-based agreement signing eliminating third-party paperwork overhead.
-- **Real-Time Synchronization:** Live notification badges, instant messaging channels, and live presence indicators powered by Supabase Realtime.
-- **DeepSeek AI Performing Arts Assistant:** Server-side AI assistant for platform inquiries, booking etiquette, and coach recommendations.
-- **Philippine Geographic Constraints:** Dedicated address selector scoped to San Jose del Monte barangays and Philippine regional standards.
+- **Discipline Discovery:** Filter and book mentors across Dance, Vocal Arts, Acting, and Musical Theater with verified credentials and transparent pricing.
+- **Appointment Scheduling:** Complete booking lifecycle from client inquiry to coach confirmation, session execution, and star ratings.
+- **In-Browser Digital Contracts:** Formal digital agreements with vector stroke e-signatures (`react-signature-canvas`) stored securely in Supabase Storage.
+- **Studio Geolocation:** Interactive OpenStreetMap and Leaflet map engine locating rehearsal spaces within customizable radii (1 km, 3 km, 5 km, 10 km) around San Jose del Monte.
+- **Live Direct Messaging & Presence:** Real-time WebSocket messaging and presence indicators powered by Supabase Realtime.
+- **Talent Showcase & Community Feed:** Category-filtered media feeds with signed URL delivery, post interactions, and comments.
+- **DeepSeek AI Coach Assistant:** Server-side AI assistant (`/api/ai/coach-assistant`) answering discipline, fee, and etiquette queries.
+- **Administrative Console:** Server-guarded back-office for coach document verification, audit logs, booking oversight, and system announcements.
+- **Theatrical Visual System:** Dark-mode-first aesthetic with dynamic theme switching across authenticated portals.
 
 ---
 
-## Technology Stack
+## Tech Stack
 
 | Layer | Technology | Details |
 |---|---|---|
-| **Framework** | Next.js 16.3.3 | App Router, Server Components, Route Handlers |
-| **Runtime & UI** | React 19.2.8 | Concurrent rendering, Server Actions, Suspense |
-| **Language** | TypeScript 5.x | Strict type safety, shared interfaces (`lib/types.ts`) |
-| **Styling** | Tailwind CSS v4 | `@tailwindcss/postcss`, CSS custom property tokens |
-| **Database** | PostgreSQL 15 (Supabase) | Row Level Security (RLS), triggers, stored functions |
-| **Authentication** | `@supabase/ssr` 0.12.5 | HTTP-only cookie session handling, JWT validation |
-| **Realtime Engine** | Supabase Realtime | WebSocket channels for messaging and alerts |
-| **Object Storage** | Supabase Storage | Isolated public and private media buckets |
-| **Mapping Engine** | Leaflet 1.9.4 & OSM | OpenStreetMap Overpass API integration |
-| **E-Signatures** | react-signature-canvas | Vector stroke capture for digital agreements |
-| **AI Integration** | OpenRouter API | DeepSeek Chat model integration |
-| **Iconography** | Lucide React | Clean, accessible vector icons |
-| **Typography** | Inter & Custom Display | Variable Sans via Google Fonts, custom display fonts |
+| **Framework** | Next.js 16.3.3 | App Router, Server Components, Route Handlers, Turbopack |
+| **UI & Runtime** | React 19.2.8 | Concurrent features, Server Actions, Suspense boundaries |
+| **Language** | TypeScript 5.x | Strict type safety with shared interfaces in `lib/types.ts` |
+| **Styling** | Tailwind CSS v4 | CSS variables design system via `@tailwindcss/postcss` |
+| **Backend as a Service** | Supabase | PostgreSQL 15, Row Level Security (RLS), Realtime WebSockets |
+| **Authentication** | `@supabase/ssr` 0.12.5 | HTTP-only cookie session exchange and Edge Middleware RBAC |
+| **Storage** | Supabase Storage | Isolated public and signed private object storage buckets |
+| **Mapping Engine** | Leaflet 1.9.4 & OpenStreetMap | Overpass API live studio queries |
+| **Signatures** | `react-signature-canvas` | Vector canvas e-signature capture |
+| **AI Assistant** | OpenRouter API | DeepSeek Chat model integration |
+| **Icons** | Lucide React | Accessible SVG icon set |
 
 ---
 
-## Project Directory Structure
+## Project Structure
+
+The codebase is organized using a **feature-driven architecture** where domain logic is colocated for clarity, while shared utilities, layouts, and database clients remain accessible across the application:
 
 ```text
 GrooveSystem/
-├── app/                              # Next.js App Router structure
-│   ├── (client)/                     # Authenticated client portal routes
-│   │   └── client/                   # /client/home, appointments, calendar, etc.
-│   ├── (coach)/                      # Authenticated coach portal routes
-│   │   └── coach/                    # /coach/home, appointments, calendar, etc.
-│   ├── admin/                        # Admin console (/admin/dashboard, users, etc.)
-│   ├── api/                          # Server Route Handlers
-│   │   ├── ai/                       # OpenRouter / DeepSeek AI assistant endpoint
-│   │   ├── studios/                  # OpenStreetMap Overpass geolocation API
-│   │   └── tickets/                  # Public support ticket ingestion
-│   ├── auth/                         # Supabase OAuth and email confirmation callbacks
-│   ├── contracts/                    # Digital agreement viewing and signing (/contracts/[id])
-│   ├── login/                        # Unified authentication entry point
-│   ├── register/                     # Role-based onboarding (/register/client, /register/coach)
-│   ├── forgot-password/              # Password recovery workflow
-│   ├── reset-password/               # Password reset token redemption
-│   ├── messages/                     # Direct real-time messaging interface
-│   ├── terms/                        # Legal terms of service
-│   ├── privacy/                      # Privacy policy and data handling documentation
-│   ├── userprofile/                  # Public user showcase profiles (/userprofile/[id])
-│   ├── globals.css                   # Core design tokens, dark theme rules, and utilities
-│   ├── layout.tsx                    # Root HTML layout, pre-paint theme init, global providers
-│   ├── loading.tsx                   # Root Suspense streaming loading screen
-│   └── page.tsx                      # Public landing and discipline showcase page
-├── components/                       # Reusable UI component library
-│   ├── admin/                        # Admin dashboards, verification tables, stat widgets
-│   ├── ai/                           # Chat assistant modal dialogs
-│   ├── appointments/                 # Booking creation, reschedule modals, status badges
-│   ├── auth/                         # Address selectors, multi-step registration forms
-│   ├── client/                       # Client dashboard views and talent grids
-│   ├── coach/                        # Coach booking lists, rate cards, schedule editors
-│   ├── community/                    # Social talent feed, comments, reactions
-│   ├── contracts/                    # Digital signature pad and agreement templates
-│   ├── navigation/                   # Desktop/mobile navigation bars, notifications
-│   ├── shared/                       # LoadingScreen, AppLoadingSplash, AuthLayout, PublicLayout
-│   ├── studio/                       # Leaflet map container and Overpass locator controls
-│   ├── theme/                        # ThemeProvider, RouteThemeEnforcer, PlatformThemeSync
-│   └── ui/                           # Primitives (Button, Modal, Card, FormField, Badges)
-├── lib/                              # Shared libraries, utilities, and configurations
-│   ├── admin/                        # Admin authorization claims and permissions
-│   ├── config/                       # Skills, genres, and discipline mappings
-│   ├── services/                     # Supabase database abstraction layer
-│   ├── supabase/                     # Client, Server, and Middleware Supabase initializers
-│   ├── geo.ts                        # Haversine distance and coordinate math
-│   ├── profileFields.ts              # Profile validation regex and date helpers
-│   ├── types.ts                      # Authoritative TypeScript definitions
-│   └── utils.ts                      # Date formatting, peso currency formatters
-├── public/                           # Static assets
-│   ├── image/                        # Brand imagery, hero assets, discipline photos
-│   │   └── wc/logo.png               # Official Groove brand logo
-│   └── media/                        # Static demo video reels
-├── supabase/                         # Database engineering assets
-│   ├── schema.sql                    # Full PostgreSQL DDL (tables, indexes, RLS, functions)
-│   └── seed.sql                      # Reference seed data for local testing
-├── middleware.ts                     # Edge authentication and route classification guard
-├── next.config.ts                    # Next.js runtime, image domains, and compiler settings
-├── tsconfig.json                     # TypeScript compiler configuration and path aliases
-├── eslint.config.mjs                 # Flat ESLint ruleset
-└── package.json                      # Project dependencies and script declarations
+├── app/                              # Next.js App Router (Routes & Layouts)
+│   ├── (client)/client/              # Authenticated Client Portal (/client/home, talent, appointments, etc.)
+│   ├── (coach)/coach/                # Authenticated Coach Portal (/coach/home, appointments, profile, etc.)
+│   ├── admin/                        # Server-guarded Admin Console (/admin/dashboard, users, verifications)
+│   ├── api/                          # Server Route Handlers (/api/ai, /api/studios, /api/tickets, /api/admin)
+│   ├── auth/callback/                # OAuth & Supabase session exchange callback
+│   ├── contracts/[id]/               # Digital contract view and sign route
+│   ├── dance-events/                 # External dance events directory page
+│   ├── login/, register/*            # Authentication routes (dark-mode enforced)
+│   ├── messages/                     # Direct messaging page
+│   ├── userprofile/[id]/             # Public coach and client showcase profile
+│   ├── layout.tsx, page.tsx          # Root shell layout and public landing page
+│   └── globals.css                   # Master CSS tokens, themes, and animations
+│
+├── features/                         # Feature Modules (Page → Component → Logic → Supabase)
+│   ├── appointments/                 # Booking modal, feedback dialog, and appointment CRUD
+│   │   ├── components/               # BookingModal.tsx, FeedbackModal.tsx
+│   │   └── services/                 # appointmentService.ts
+│   ├── booking/                      # Legal contracts, agreement cards, and canvas signatures
+│   │   ├── components/               # AgreementSignature, SessionAgreementCard, SessionAgreementDocument, etc.
+│   │   └── services/                 # bookingAgreement.ts
+│   ├── community/                    # Talent showcase feed, signed media rendering, and upload logic
+│   │   ├── components/               # CommunityFeed.tsx, SignedMedia.tsx
+│   │   ├── services/                 # communityService.ts
+│   │   └── utils/                    # community.ts, communityMedia.ts
+│   ├── dance/                        # Dance events feed, access gates, and external sources
+│   │   ├── components/               # DanceEventsFeed.tsx
+│   │   ├── hooks/                    # useDanceAccess.ts
+│   │   └── services/                 # danceAccess.ts, danceEventSources.ts
+│   ├── presence/                     # Real-time user status (online, busy, away, offline)
+│   │   ├── components/               # PresenceBridge.tsx, StatusSelect.tsx
+│   │   ├── hooks/                    # usePresence.ts
+│   │   └── utils/                    # presence.ts
+│   └── verification/                 # Coach ID verification workflow and booking gate rules
+│       ├── components/               # VerificationReviewPanel, VerificationDocumentsUpload, VerifiedBadge, etc.
+│       └── services/                 # verification.ts
+│
+├── components/                       # Shared & Reusable UI Components
+│   ├── admin/                        # Admin layout, user directory, tables, and drawers
+│   ├── client/, coach/               # Portal layouts and sidebar navigation definitions
+│   ├── shared/                       # AppTopNav, Footer, CoachCard, LoadingScreen, EmptyState, etc.
+│   ├── studio/                       # StudioLocator and Leaflet StudioLocatorMap
+│   ├── theme/                        # ThemeProvider, ThemeToggle, RouteThemeEnforcer
+│   └── ui/                           # Primitive atoms (Button, Card, Modal, Input, Badge, etc.)
+│
+├── lib/                              # Core Utilities, Supabase Clients & Types
+│   ├── admin/                        # Admin access control, server guards, and admin queries
+│   ├── config/                       # Disciplines and genre taxonomies (skillsConfig.ts)
+│   ├── supabase/                     # Supabase clients: client.ts, server.ts, middleware.ts
+│   ├── types.ts                      # Authoritative shared TypeScript interfaces
+│   ├── utils.ts                      # Common formatters (currency, dates, URLs)
+│   └── geo.ts, ph-locations.ts       # Coordinate math and Philippine PSGC locations
+│
+├── docs/                             # Engineering Architecture & Specifications
+├── public/                           # Static assets, fonts, brand logos, video media
+├── supabase/                         # PostgreSQL schemas, migrations, RLS policies, seeds
+├── middleware.ts                     # Edge authentication and RBAC session refresh
+├── next.config.ts                    # Next.js configuration and image domains
+└── tsconfig.json                     # TypeScript configuration with @/* path alias
 ```
 
 ---
 
-## Installation & Local Setup
+## High-Level Architecture & Data Flow
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Client Browser                                │
+│   Landing (Dark)  │  Auth Flows (Dark)  │  Portals (Dark / Light)       │
+└──────────────────────────────────┬──────────────────────────────────────┘
+                                   │ HTTPS / WSS
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       Next.js 16 (App Router)                           │
+│                                                                         │
+│  middleware.ts ─── Session Refresh + Role-Based Access Control (RBAC)   │
+│                                                                         │
+│  Route Hierarchy:                                                       │
+│  ├── /                         Public landing page                      │
+│  ├── /login, /register/*       Authentication                           │
+│  ├── /(client)/client/*        Authenticated client portal              │
+│  ├── /(coach)/coach/*          Authenticated coach portal               │
+│  ├── /admin/*                  Admin console (server-guarded)           │
+│  ├── /messages, /contracts/*   Shared authenticated routes              │
+│  └── /api/*                    Server route handlers                    │
+└───────────────────┬──────────────────────────┬──────────────────────────┘
+                    │                          │
+                    ▼                          ▼
+┌───────────────────────────────────┐  ┌──────────────────────────────────┐
+│       Supabase Cloud (BaaS)       │  │     External Cloud Services      │
+│  ├── PostgreSQL 15 + RLS          │  │  ├── OpenStreetMap Overpass API   │
+│  ├── Supabase Auth (JWT Cookies)  │  │  │   (Live Studio Locator)       │
+│  ├── Realtime (Chat, Presence)    │  │  └── OpenRouter API              │
+│  └── Storage Buckets (Media/Docs) │  │      (DeepSeek AI Assistant)     │
+└───────────────────────────────────┘  └──────────────────────────────────┘
+```
+
+### Architectural Dependency Flow
+
+Every feature module follows a clean, single-direction flow:
+
+$$\text{Page} \longrightarrow \text{Feature Component} \longrightarrow \text{Hook / Logic} \longrightarrow \text{Service / Server Action} \longrightarrow \text{Supabase PostgreSQL (RLS)}$$
+
+1. **Edge Enforcement:** `middleware.ts` runs on all requests to refresh auth tokens and enforce route access by role.
+2. **Server Guards:** High-privilege routes (e.g., `/admin/*`) apply a second server check (`lib/admin/guard.ts`) verifying the pinned administrative identity.
+3. **Row-Level Security:** Every query sent to PostgreSQL runs under Supabase RLS policies, ensuring accounts can only access data they own.
+
+---
+
+## Setup & Installation
 
 ### Prerequisites
 
-- **Node.js:** `v20.x` or higher (LTS recommended)
+- **Node.js:** `v20.x` or higher
 - **Package Manager:** `npm` v10+
-- **Database:** Supabase Cloud Project or local Supabase CLI instance
+- **Supabase Account:** Cloud project or local Supabase instance
 
-### Step-by-Step Setup
+### Quickstart
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/your-username/GrooveSystem.git
    cd GrooveSystem
    ```
 
-2. **Install project dependencies:**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Configure Environment Variables:**
-   Create a `.env.local` file by copying the template:
+3. **Configure environment variables:**
    ```bash
    cp .env.example .env.local
    ```
-   Populate your keys as detailed in the [Environment Configuration](#environment-configuration) section.
+   Fill in your Supabase project credentials in `.env.local` (see below).
 
-4. **Initialize the Database:**
-   - Navigate to the **SQL Editor** in your Supabase Dashboard.
-   - Run the contents of `supabase/schema.sql` to generate all required tables, triggers, and RLS policies.
-   - *(Optional)* Execute `supabase/seed.sql` to seed development test accounts and initial data.
+4. **Initialize the database:**
+   Execute `supabase/schema.sql` inside your Supabase project's SQL editor to generate all tables, enums, triggers, and Row Level Security policies. Optionally run `supabase/seed.sql` for initial development records.
 
-5. **Run the local development server:**
+5. **Start the development server:**
    ```bash
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+   Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ---
 
 ## Environment Configuration
 
-The application requires specific environment variables for database connectivity and external service integration. **Never commit `.env.local` or disclose secret keys.**
+Configure the following variables in `.env.local`. **Never commit actual production keys or secrets to version control.**
 
 ```env
 # ==============================================================================
-# BROWSER ACCESSIBLE CONFIGURATION (Safe to prefix with NEXT_PUBLIC_)
+# CLIENT-ACCESSIBLE SETTINGS (NEXT_PUBLIC_ prefix is exposed to browser bundles)
 # ==============================================================================
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # ==============================================================================
-# SERVER-SIDE ONLY CONFIGURATION (NEVER EXPOSE TO CLIENT / BROWSER)
+# SERVER-ONLY SETTINGS (NEVER EXPOSE TO THE CLIENT)
 # ==============================================================================
-# Service role key bypassing RLS for privileged admin API operations
+# Service role key bypassing RLS for administrative background operations
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
-# OpenRouter / DeepSeek AI integration for the coach assistant
+# OpenRouter DeepSeek integration for Coach AI Assistant
 OPENROUTER_API_KEY=your-openrouter-api-key
 OPENROUTER_MODEL=deepseek/deepseek-chat
 ```
-
-> **Security Warning:** `SUPABASE_SERVICE_ROLE_KEY` has administrative override permissions that bypass all Row Level Security policies. It must **only** be accessed in Node.js server environments (API Route Handlers) and must never appear in client bundles.
 
 ---
 
 ## Available Scripts
 
-| Command | Action |
+Defined in `package.json`:
+
+| Command | Description |
 |---|---|
-| `npm run dev` | Boots the Next.js development server with Turbopack on `http://localhost:3000`. |
-| `npm run build` | Compiles TypeScript, analyzes dependencies, and creates the optimized production build. |
-| `npm run start` | Serves the compiled production application. |
-| `npm run lint` | Runs ESLint across the entire codebase to detect syntax and architectural issues. |
+| `npm run dev` | Starts the Next.js development server with Turbopack on `localhost:3000`. |
+| `npm run build` | Compiles TypeScript, verifies route typings, and builds the production bundle. |
+| `npm run start` | Runs the compiled Next.js application in production mode. |
+| `npm run lint` | Runs ESLint across the codebase. |
+| `npx tsc --noEmit` | Performs a complete static type check without emitting files. |
 
 ---
 
-## Database & Storage Setup
+## Supabase Storage Buckets
 
-### Supabase Storage Buckets
+The platform utilizes private and public Supabase Storage buckets:
 
-Configure the following storage buckets in your Supabase dashboard with appropriate visibility settings:
-
-| Bucket Identifier | Visibility | Primary Purpose |
+| Bucket Identifier | Visibility | Description |
 |---|---|---|
-| `avatars` | Public | User profile photos and avatars |
-| `community-media` | Public | Video reels and photo uploads for the talent feed |
-| `verification-documents` | Private (Admin Only) | Government IDs and coach credentials for verification |
-| `messages-media` | Private (Participants) | Chat attachments (images, recordings, documents) |
-| `signatures` | Private (Participants) | Vector signature images for digital contracts |
-| `contracts` | Private (Participants) | Generated legal contract documents |
-| `tickets-attachments` | Private (Admin/Submitter)| Support ticket diagnostic attachments |
+| `avatars` | Public | Profile pictures for clients and coaches |
+| `media-posts` | Authenticated / Signed | User performance portfolio and talent videos |
+| `verification-documents` | Private (Admin Only) | Government IDs and accreditation certificates |
+| `signatures` | Private (Participants) | Vector PNG signatures for digital contracts |
+| `contracts` | Private (Participants) | Stored session agreement PDFs |
 
 ---
 
-## Security & Compliance
+## Notes for Future Developers
 
-Groove implements defense-in-depth security principles across each architectural tier:
-
-1. **Row Level Security (RLS):** Every PostgreSQL table enforces strict RLS policies ensuring that clients and coaches can only read and write their own records.
-2. **Authoritative Session Verification:** Authentication cookies are parsed and validated via `@supabase/ssr` within `middleware.ts`. User role claims are verified directly against the `profiles` table rather than client-submitted metadata.
-3. **Admin Identity Hardening:** Access to `/admin/*` requires both an explicit `admin` role and verification against a pinned administrative identity in `lib/admin/access.ts`.
-4. **Input Sanitization & Validation:** All user inputs are validated against strict regex patterns (email, phone, usernames) and Philippine location boundaries before submission.
-5. **No Credentials Leaks:** API keys and service role tokens remain restricted to server execution contexts.
+1. **Path Aliasing:** Use the `@/*` alias for clean imports (e.g., `@/features/appointments/...`, `@/lib/...`, `@/components/...`).
+2. **Backward Compatibility:** Existing imports via `@/components/...` and `@/lib/...` for moved feature files are preserved through re-export barrels, preventing breaking changes across external references.
+3. **Server vs. Client Components:** Prefer React Server Components by default. Add `'use client'` strictly when components require React hooks, event listeners, canvas interactions, or browser APIs.
+4. **Theme Isolation:** Public pages (`/`, `/login`, `/register/*`) are permanently enforced to dark mode. Authenticated portals support user preference and admin-configured global themes.
+5. **Security Rules:** Never use `SUPABASE_SERVICE_ROLE_KEY` in Client Components. Admin authorization requires both `role = 'admin'` in the database and email match against the pinned administrative identity in `lib/admin/access.ts`.
 
 ---
 
-## Testing & Quality Assurance
+## License
 
-Quality assurance is maintained through continuous static analysis and compilation checks:
-
-- **ESLint Code Quality:**
-  ```bash
-  npm run lint
-  ```
-- **TypeScript Static Verification:**
-  ```bash
-  npx tsc --noEmit
-  ```
-- **Production Build Testing:**
-  ```bash
-  npm run build
-  ```
-
----
-
-## Build & Deployment
-
-### Vercel Deployment (Recommended)
-
-Groove is optimized for native deployment on the **Vercel** platform:
-
-1. Push your repository to your Git provider (GitHub, GitLab, or Bitbucket).
-2. Import the repository into your Vercel Dashboard.
-3. Under **Project Settings > Environment Variables**, supply all variables defined in `.env.example`.
-4. Ensure `NEXT_PUBLIC_APP_URL` points to your custom production domain (e.g., `https://groove.ph`).
-5. Trigger the production deployment. Vercel automatically builds and deploys serverless and edge functions across its global edge network.
-
----
-
-## Contribution Guidelines
-
-We welcome contributions to the Groove platform. To maintain codebase integrity:
-
-1. **Fork & Branch:** Create a feature branch from `main`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-2. **Follow Coding Standards:**
-   - Adhere to Server-First Next.js patterns.
-   - Use semantic design tokens from `app/globals.css` rather than hardcoding hex colors.
-   - Maintain dark-mode enforcement for public landing and authentication routes.
-3. **Verify Changes:**
-   Run lint and type checks before submitting a Pull Request:
-   ```bash
-   npm run lint
-   npx tsc --noEmit
-   ```
-4. **Submit PR:** Provide a clear description of changes, motivation, and test steps in your Pull Request.
-
----
-
-## License & Support
-
-- **License:** Proprietary. All rights reserved. Unauthorized copying, distribution, or modification of this source code is strictly prohibited.
-- **Organization:** Groove Performing Arts Platform
-- **Location:** San Jose del Monte, Bulacan, Philippines
-- **Inquiries & Support:** [Groove1152000@gmail.com](mailto:Groove1152000@gmail.com)
+Proprietary. All rights reserved. Built for Groove Performing Arts Platform, San Jose del Monte, Bulacan, Philippines.

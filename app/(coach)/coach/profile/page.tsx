@@ -28,7 +28,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import type { FullCoach, Feedback, CommunityPost } from '@/lib/types';
-import { ShowcaseGrid } from '@/components/community/SignedMedia';
+import { ShowcaseGrid } from '@/features/community/components/SignedMedia';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { FormError, FormSuccess } from '@/components/ui/FormError';
@@ -38,9 +38,9 @@ import { ProfileHero } from '@/components/shared/ProfileHero';
 import { ProfileSummary, VerificationStatus } from '@/components/profile/ProfileSummary';
 import { ProfileLinksCard, type ProfileLinks } from '@/components/profile/ProfileLinksCard';
 import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
-import { VerifiedBadge } from '@/components/verification/VerifiedBadge';
-import { VerificationDocumentsUpload } from '@/components/verification/VerificationDocumentsUpload';
-import { verificationStatusOf } from '@/lib/verification';
+import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
+import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
+import { verificationStatusOf } from '@/features/verification/services/verification';
 import {
   AddressSection,
   CoachBioSection,

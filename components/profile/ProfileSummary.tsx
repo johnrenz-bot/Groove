@@ -4,7 +4,7 @@ import React from 'react';
 import { CheckCircle2, Clock, ShieldAlert, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { ProfileFieldRow } from '@/lib/profileFields';
-import { VerificationStatusBadge } from '@/components/verification/VerifiedBadge';
+import { VerificationStatusBadge } from '@/features/verification/components/VerifiedBadge';
 
 /**
  * The read-only half of Profile: a clean summary of exactly the fields the

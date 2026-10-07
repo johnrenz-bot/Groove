@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, X, RotateCcw, Filter, Users, Sparkles } from 'lucide-react';
-import CommunityFeed from '@/components/community/CommunityFeed';
-import { communityOf } from '@/lib/community';
-import BookingModal from '@/components/appointments/BookingModal';
+import CommunityFeed from '@/features/community/components/CommunityFeed';
+import { communityOf } from '@/features/community/utils/community';
+import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
 import { CoachCard } from '@/components/shared/CoachCard';
 import { FullCoach, Profile } from '@/lib/types';
-import { bookingGate } from '@/lib/verification';
-import { VerificationRequiredNotice } from '@/components/verification/VerificationRequiredNotice';
+import { bookingGate } from '@/features/verification/services/verification';
+import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { Card } from '@/components/ui/Card';

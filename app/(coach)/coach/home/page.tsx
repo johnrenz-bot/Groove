@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { VerifiedIcon } from '@/components/verification/VerifiedBadge';
+import { VerifiedIcon } from '@/features/verification/components/VerifiedBadge';
 import { Profile, FullCoach, Appointment, Announcement } from '@/lib/types';
 import { getInitials } from '@/lib/utils';
 import {

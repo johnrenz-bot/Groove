@@ -10,7 +10,7 @@ import {
   Star,
   CalendarDays,
 } from 'lucide-react';
-import FeedbackModal from '@/components/appointments/FeedbackModal';
+import FeedbackModal from '@/features/appointments/components/FeedbackModal';
 import { Appointment, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
