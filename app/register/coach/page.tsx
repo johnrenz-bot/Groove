@@ -40,7 +40,6 @@ import {
   Layers,
 } from 'lucide-react';
 import { AuthLayout } from '@/components/shared/AuthLayout';
-import { GoogleRegisterButton } from '@/components/shared/GoogleRegisterButton';
 import { FormError } from '@/components/ui/FormError';
 import { createClient } from '@/lib/supabase/client';
 
@@ -609,17 +608,6 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             <Award className="h-3 w-3" aria-hidden="true" />
             Coach &amp; Choreographer Registration
           </span>
-        </div>
-
-        {/* Google sign-up. Placed above the step indicator because the coach form
-            itself only renders on step 3, and this has to be reachable on first
-            arrival. It is a separate handshake: the 3-step form is untouched. */}
-        <div className="mb-6">
-          <GoogleRegisterButton role="coach" label="as a Coach" />
-          <p className="mt-2 text-center text-[11px] text-subtle-foreground">
-            Google coach accounts start unverified. Upload your ID and supporting documents from
-            your profile to apply for verification.
-          </p>
         </div>
 
         {/* 3-Step Indicator */}

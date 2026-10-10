@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { cn } from '@/components/shared/cn';
 import {
   Mail,
   AtSign,
@@ -212,8 +213,11 @@ export function PersonalSection({
             value={values.suffix}
             onChange={(e) => set({ suffix: e.target.value })}
             placeholder="Jr., III"
-            className={inputClasses}
+            className={cn(inputClasses, err('suffix') && 'border-danger')}
+            aria-invalid={err('suffix') ? 'true' : undefined}
+            aria-describedby={err('suffix') ? 'pf-suffix-error' : undefined}
           />
+          <InlineError id="pf-suffix-error" message={err('suffix')} />
         </div>
       </div>
 
@@ -853,6 +857,9 @@ export function validateProfileSections(input: {
   }
   if (input.payment_type === 'online' && !input.payment_handle?.trim()) {
     errs.payment_handle = VALIDATION_MESSAGES.paymentHandleRequired;
+  }
+  if (personal.suffix && personal.suffix.trim().length > 50) {
+    errs.suffix = VALIDATION_MESSAGES.suffixTooLong;
   }
 
   return errs;

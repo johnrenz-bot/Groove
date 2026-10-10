@@ -22,6 +22,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { BookingStatus } from './agreementStatus';
 
 export type SigningRole = 'client' | 'coach';
 
@@ -68,10 +69,119 @@ export interface BookingAgreement {
 
 const SIGNATURE_BUCKET = 'contract-signatures';
 
+/**
+ * An agreement row as the messages thread needs it: the agreement itself plus
+ * the booking it belongs to.
+ *
+ * `booking` is null when the agreement has not been linked to a booking yet, or
+ * when the booking is not visible to this reader. That is a real state, not an
+ * error, and every consumer treats it as "status not yet known" rather than
+ * assuming a value.
+ */
+export interface ConversationAgreement extends BookingAgreement {
+  booking: ConversationBooking | null;
+}
+
+/** The appointment columns the thread renders from. */
+export interface ConversationBooking {
+  id: number;
+  status: BookingStatus;
+  date?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  location?: string | null;
+  session_type?: string | null;
+  is_online?: boolean | null;
+}
+
 /** The reference a human would quote: the booking's 5-digit number. */
 export function agreementReference(agreement: BookingAgreement | null): string {
   if (!agreement?.appointment_id) return '—';
   return `#${String(agreement.appointment_id).padStart(5, '0')}`;
+}
+
+/**
+ * Every agreement for a conversation, each with its own linked booking.
+ *
+ * WHY THIS EXISTS ALONGSIDE `fetchBookingAgreement`
+ *   The old function returned ONE row: it fetched up to five and then picked a
+ *   single "best" one (signed first, then awaiting-signatures, then newest). A
+ *   coach and a client with three sessions between them therefore saw ONE card
+ *   — and which one it was depended on a priority heuristic rather than on what
+ *   the database actually said. Two of the three bookings were simply invisible,
+ *   including a completed one that still needed its PDF.
+ *
+ *   This returns the real set. The thread renders one card per row, and the
+ *   status of each is derived from its own agreement + booking pair, so the
+ *   cards cannot be confused for one another.
+ *
+ * PAIRING, NOT CROSS-JOIN
+ *   `agreements.appointment_id` is the link, and `agreements_appointment_id_key`
+ *   is a UNIQUE index over it — one agreement per booking. So joining on
+ *   `appointment_id` is unambiguous: no row can be attached to the wrong
+ *   booking, which is exactly the corruption the backfill in
+ *   02_booking_schema.sql refused to risk.
+ *
+ *   The `.or(...)` restricts to the client/coach pairing in EITHER direction, so
+ *   a conversation between the same two people where they happened to be the
+ *   coach/client the other way round does not leak a card into this thread.
+ */
+export async function fetchConversationAgreements(
+  supabase: SupabaseClient,
+  a: string,
+  b: string
+): Promise<ConversationAgreement[]> {
+  if (!a || !b || a === b) return [];
+
+  const { data, error } = await supabase
+    .from('agreements')
+    .select(
+      `*,
+       client:client_id (id, firstname, lastname, username, photo_url),
+       coach:coach_id  (id, firstname, lastname, username, photo_url),
+       booking:appointment_id (
+         id, status, date, start_time, end_time, location, session_type, is_online
+       )`
+    )
+    .or(
+      `and(client_id.eq.${a},coach_id.eq.${b}),and(client_id.eq.${b},coach_id.eq.${a})`
+    )
+    // Oldest first so the thread reads chronologically and the newest — the one
+    // most likely to need action — sits last, next to the composer.
+    .order('scheduled_at', { ascending: true, nullsFirst: false })
+    .order('id', { ascending: true });
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as ConversationAgreement[];
+
+  /* Sorting happens HERE as well as in SQL because `scheduled_at` is nullable:
+     rows without it sort unpredictably at the database level, and the thread's
+     correctness must not depend on a column being populated. The effective
+     date (agreement's scheduled_at, else its booking's date) is what "oldest
+     first" actually means for a booking, so that is what is sorted on. Rows
+     with no date at all go last, rather than to an arbitrary position among
+     dated ones. */
+  return rows
+    .map((row, index) => ({ row, index }))
+    .sort((x, y) => {
+      const dx = effectiveSortDate(x.row);
+      const dy = effectiveSortDate(y.row);
+      if (dx && dy) return dx - dy;
+      if (dx) return -1;
+      if (dy) return 1;
+      return x.index - y.index;
+    })
+    .map((x) => x.row);
+}
+
+/** Epoch ms of the date this agreement is really about, or null if undated. */
+function effectiveSortDate(row: ConversationAgreement): number | null {
+  const raw = row.scheduled_at ?? row.booking?.date ?? null;
+  if (!raw) return null;
+  // A bare DATE parses as UTC midnight; that is fine for ordering two dates.
+  const t = new Date(raw).getTime();
+  return Number.isNaN(t) ? null : t;
 }
 
 /**
@@ -81,6 +191,10 @@ export function agreementReference(agreement: BookingAgreement | null): string {
  * the newest. Only agreements where the two are the client/coach pair are
  * considered, so an unrelated booking between the same people in the opposite
  * role pairing cannot leak into this conversation.
+ *
+ * RETAINED for callers that genuinely want a single agreement — the Contact
+ * Overview's "latest agreement" line uses it deliberately, and the appointment
+ * flow does too. The messages thread uses `fetchConversationAgreements`.
  */
 export async function fetchBookingAgreement(
   supabase: SupabaseClient,

@@ -11,7 +11,6 @@ import { FormField, PasswordInput } from '@/components/ui/FormField';
 import { FormError } from '@/components/ui/FormError';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
 
 /**
  * Remember-me persistence keys.
@@ -206,17 +205,6 @@ function LoginForm() {
         }
       >
         <FormError message={error} className="mb-5" />
-
-        {/* Google leads, credentials follow. The divider carries no wording: a
-            label between two sign-in options is noise, and the button itself
-            already names the provider. */}
-        <div className="mb-6">
-          <GoogleSignInButton next={redirectTo ?? undefined} />
-          <div className="my-6 flex items-center gap-4" aria-hidden="true">
-            <span className="h-px flex-1 bg-divider" />
-            <span className="h-px flex-1 bg-divider" />
-          </div>
-        </div>
 
         <form onSubmit={handleLogin} noValidate className="space-y-5">
           <FormField

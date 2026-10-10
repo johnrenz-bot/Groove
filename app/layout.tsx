@@ -6,6 +6,7 @@ import { PlatformThemeSync } from '@/components/theme/PlatformThemeSync';
 import { RouteThemeEnforcer } from '@/components/theme/RouteThemeEnforcer';
 import { AppLoadingSplash } from '@/components/shared/AppLoadingSplash';
 import { PresenceBridge } from '@/components/shared/PresenceBridge';
+import { ClickSoundBridge } from '@/features/sound/components/ClickSoundBridge';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -105,6 +106,12 @@ export default function RootLayout({
           {/* One presence subscription for the whole app, so /messages, coach
               cards and the header all read the same live value. */}
           <PresenceBridge />
+          {/* One click-sound listener for the whole app, mounted beside the
+              presence bridge for the same reason: every shell renders a
+              different subset of controls, so a per-shell or per-component
+              listener would leave some routes silent and some clicks doubled.
+              Renders nothing. */}
+          <ClickSoundBridge />
           {children}
         </ThemeProvider>
       </body>

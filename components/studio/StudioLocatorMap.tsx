@@ -47,6 +47,8 @@ export interface MapStudio {
   address: string | null;
   latitude: number;
   longitude: number;
+  /** 'curated' | 'openstreetmap' — shown in the popup label. */
+  source?: 'curated' | 'openstreetmap';
 }
 
 interface Props {
@@ -56,6 +58,8 @@ interface Props {
   studios: MapStudio[];
   /** Drawn in a contrasting colour so the chosen centre is never ambiguous. */
   isMyLocation: boolean;
+  /** When set, the map pans to this studio's marker and opens its popup. */
+  focusId?: string | null;
   onPickStudio: (id: string) => void;
   /** Fires on every map click; the parent decides whether a click means anything. */
   onPickCenter?: (next: LatLng) => void;
@@ -104,6 +108,7 @@ export function StudioLocatorMap({
   radiusKm,
   studios,
   isMyLocation,
+  focusId,
   onPickStudio,
   onPickCenter,
   onReady,
@@ -113,6 +118,9 @@ export function StudioLocatorMap({
   const circleRef = useRef<Leaflet.Circle | null>(null);
   const markerLayerRef = useRef<Leaflet.LayerGroup | null>(null);
   const centerMarkerRef = useRef<Leaflet.Marker | null>(null);
+  const markersRef = useRef<Map<string, Leaflet.Marker> | null>(null);
+  /** Latest focus id, readable from the marker effect without a dependency. */
+  const focusIdRef = useRef<string | null>(focusId ?? null);
 
   /**
    * Bumped once the map instance exists.
@@ -145,6 +153,7 @@ export function StudioLocatorMap({
     onPickRef.current = onPickStudio;
     onPickCenterRef.current = onPickCenter;
     onReadyRef.current = onReady;
+    focusIdRef.current = focusId ?? null;
   });
 
   // ---- create once -------------------------------------------------------
@@ -230,6 +239,7 @@ export function StudioLocatorMap({
       circleRef.current = null;
       markerLayerRef.current = null;
       centerMarkerRef.current = null;
+      markersRef.current = null;
     };
     // Intentionally empty: the map is created once. Radius, centre and studios
     // are applied by the effects below so changing them never rebuilds it.
@@ -289,6 +299,7 @@ export function StudioLocatorMap({
       // radius change would add a second copy of every marker.
       layer.clearLayers();
 
+      const markers = new Map<string, Leaflet.Marker>();
       studios.forEach((studio) => {
         const marker = L.marker([studio.latitude, studio.longitude], {
           icon: pinIcon(L, '#e8a93b'),
@@ -297,16 +308,39 @@ export function StudioLocatorMap({
           keyboard: true,
         });
 
+        // Source label keeps the map consistent with the list, which also
+        // distinguishes curated listings from community-sourced OSM rows.
+        const source = studio.source === 'curated' ? 'Curated listing' : 'Community-sourced · OSM';
         const address = studio.address ? `<br><span>${escapeHtml(studio.address)}</span>` : '';
         marker.bindPopup(
-          `<strong>${escapeHtml(studio.name)}</strong>${address}`,
+          `<strong>${escapeHtml(studio.name)}</strong><br><span>${source}</span>${address}`,
           { closeButton: true, autoPan: true }
         );
         marker.on('click', () => onPickRef.current(studio.id));
         marker.addTo(layer);
+        markers.set(studio.id, marker);
       });
+      markersRef.current = markers;
+
+      // A radius change rebuilds the layer while the selection survives in the
+      // parent, so re-open the focused marker's popup after the rebuild.
+      const focusId = focusIdRef.current;
+      if (focusId && markers.has(focusId)) markers.get(focusId)!.openPopup();
     })();
   }, [mapVersion, studios]);
+
+  // ---- focus a marker from the list ---------------------------------------
+  // Clicking a row in the parent's list sets focusId; openPopup() auto-pans, so
+  // this is the whole "click a list item to focus its marker" behaviour. The
+  // marker layer is re-created asynchronously, so the effect only bothers when
+  // focusId itself changes and the rebuild path above handles the same-focus
+  // case.
+  useEffect(() => {
+    const map = mapRef.current;
+    const marker = markersRef.current?.get(focusId ?? '');
+    if (!map || !marker) return;
+    marker.openPopup();
+  }, [mapVersion, focusId]);
 
   return <div ref={containerRef} className="h-full w-full" role="application" aria-label="Studio map" />;
 }

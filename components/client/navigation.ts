@@ -5,6 +5,7 @@ import {
   CalendarDays,
   MessageSquare,
   Info,
+  Users,
 } from 'lucide-react';
 import type { RoleNav } from '@/components/shared/navTypes';
 
@@ -31,6 +32,7 @@ export const CLIENT_NAV: RoleNav = {
     { href: '/client/talent', label: 'Find Coaches', icon: Sparkles },
     { href: '/client/appointments', label: 'Appointments', icon: Calendar },
     { href: '/client/calendar', label: 'Calendar', icon: CalendarDays },
+    { href: '/users', label: 'Users', icon: Users },
     { href: '/messages', label: 'Messages', icon: MessageSquare },
   ],
   groups: [

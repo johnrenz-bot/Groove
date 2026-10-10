@@ -66,5 +66,9 @@ export function sameCenter(a: LatLng | null, b: LatLng | null): boolean {
  * and importing it from a 'use client' module works today only by luck: it would
  * risk dragging Leaflet into the server bundle. One definition, imported by the
  * map and by the route, so the search centre and the map centre cannot drift.
+ *
+ * Matches the SJDM Poblacion coordinate from the Groove PH Google Maps
+ * reference. (An earlier value, 14.7607, 120.9941, sat ~7 km southwest in
+ * Marilao/Bocaue and made every radius filter measure from the wrong spot.)
  */
-export const DEFAULT_CENTER: LatLng = { lat: 14.7607, lng: 120.9941 };
+export const DEFAULT_CENTER: LatLng = { lat: 14.8139, lng: 121.0453 };

@@ -7,7 +7,8 @@
  *                 form, using the registration password rules.
  *   - Profile   : a pointer to the role's Profile page, not a second editor.
  *   - Appearance: the ONE existing global ThemeToggle — no second theme control
- *                 is introduced anywhere in this app.
+ *                 is introduced anywhere in this app — plus the click-sound
+ *                 preference, which is the same kind of device setting.
  *   - Notifications: rendered only when the caller passes notification content,
  *                 because this platform has no stored notification preferences.
  *   - Danger Zone: destructive actions, gated behind a confirm step.
@@ -33,6 +34,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { Button } from '@/components/ui/Button';
 import { PasswordInput } from '@/components/ui/FormField';
 import { FormError, FormSuccess } from '@/components/ui/FormError';
@@ -339,8 +341,8 @@ export function AppearanceSettings() {
   return (
     <SettingsSection
       icon={<Palette className="h-4 w-4" />}
-      title="Appearance"
-      description="Dark or light mode. This setting applies across Groove on this device."
+      title="Appearance &amp; Sound"
+      description="Theme and interface sounds. These settings apply across Groove on this device."
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -351,6 +353,14 @@ export function AppearanceSettings() {
         </div>
         {/* The one ThemeToggle in the app. Not re-implemented here. */}
         <ThemeToggle variant="pill" />
+      </div>
+
+      {/* The click-sound preference. It lives here because it is the same class of
+          setting as the theme — a per-device preference — and because the account
+          menu toggle and this one read the same flag rather than keeping separate
+          copies. */}
+      <div className="mt-4 border-t border-divider pt-4">
+        <SoundToggle />
       </div>
     </SettingsSection>
   );

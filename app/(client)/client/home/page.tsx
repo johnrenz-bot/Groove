@@ -454,13 +454,13 @@ export default function ClientHomePage() {
           </Card>
         </div>
 
-        {/* Studios locator. One shared component for both dashboards; it reads
-            the studios table and draws a real radius, which the static Google
-            Maps embed it replaced could not do. */}
+        {/* Studios locator. One shared component for both dashboards; it merges
+            curated listings with live OpenStreetMap results and draws a real
+            radius, which the static Google Maps embed it replaced could not. */}
         <StudioLocator
           id="studios"
           title="Rehearsal Studios Locator"
-          subtitle="Verified performing arts spaces and rehearsal facilities in San Jose del Monte and Bulacan"
+          subtitle="Performing arts spaces in San Jose del Monte and Bulacan — curated listings plus community-sourced results"
         />
       </div>
 

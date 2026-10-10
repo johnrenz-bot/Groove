@@ -19,6 +19,7 @@ import {
   type FollowCounts,
 } from '@/lib/profileFollows';
 import { ProfileFollowList } from '@/components/shared/ProfileFollowList';
+import { PhilippineFlag } from '@/components/ui/PhilippineFlag';
 
 /**
  * The redesigned identity header, shared by /client/profile and /coach/profile.
@@ -206,7 +207,7 @@ export function ProfileHero({
                 aria-label="Philippines"
                 className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
               >
-                <span className="text-sm leading-none" role="img" aria-label="Philippine flag">🇵🇭</span>
+                <PhilippineFlag />
                 <span>Philippines</span>
               </span>
             </div>

@@ -101,6 +101,7 @@ export const VALIDATION_MESSAGES = {
   bioRequired: 'Please provide a brief bio (minimum 10 characters) about your coaching experience.',
   rateInvalid: 'Please set a valid standard rate.',
   paymentHandleRequired: 'Please provide your GCash or Maya mobile number for online payments.',
+  suffixTooLong: 'Suffix must be 50 characters or less.',
 } as const;
 
 /* ------------------------------------------------------------------ */

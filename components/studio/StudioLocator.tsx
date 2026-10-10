@@ -14,18 +14,20 @@
  * section reads the same as before at a glance.
  *
  * WHERE THE DATA COMES FROM
- *   OpenStreetMap, queried through the Overpass API by the server route
- *   /api/studios. Free, no API key, no billing account.
+ *   The server route /api/studios merges two sources, and each row carries a
+ *   `source` tag so the UI can label them honestly:
  *
- *   This replaced a read of `public.studios`, which shipped empty by design and
- *   so always showed zero results. Discovery no longer depends on anyone
- *   entering studios by hand, and nothing is written back: every row rendered
- *   here came from OpenStreetMap moments ago, so there is no path by which a
- *   fabricated studio reaches the map.
+ *   - Curated listings (lib/studios/curatedStudios.ts): the six SJDM venues in
+ *     the Groove PH Google Maps reference, transcribed by hand from that
+ *     user-provided source. Free, no API key.
+ *   - Community listings: OpenStreetMap, queried through the Overpass API by
+ *     the server route. Free, no API key, no billing account.
  *
- *   With no places in range the locator shows an explicit empty state rather
- *   than an invented marker, because a fabricated studio on a map is worse than
- *   no map.
+ *   Nothing is written back to either source, and nothing is fabricated: a
+ *   curated row either exists in the reference or not, and an OSM row comes
+ *   from OpenStreetMap moments ago. With no places in range the locator shows
+ *   an explicit empty state rather than an invented marker, because a
+ *   fabricated studio on a map is worse than no map.
  *
  * RADIUS ACCURACY
  *   The route returns everything inside its own generous search circle (12 km),
@@ -51,13 +53,16 @@ type RadiusKm = (typeof RADII)[number];
 const DEFAULT_CENTER_LABEL = 'San Jose del Monte, Bulacan';
 
 /**
- * A studio as returned by /api/studios — a live OpenStreetMap element.
+ * A studio as returned by /api/studios — either a curated listing from the
+ * Groove PH reference or a live OpenStreetMap element.
  *
- * No rating field: OSM records no review scores, and inventing a neutral or
- * zero rating would be worse than showing nothing. There is therefore nothing to
- * render where a star used to be.
+ * No rating field: neither source records review scores, and inventing a
+ * neutral or zero rating would be worse than showing nothing. There is
+ * therefore nothing to render where a star used to be.
  */
 interface StudioPlace extends MapStudio {
+  /** 'curated' or 'openstreetmap' — drives the source label in the list. */
+  source: 'curated' | 'openstreetmap';
   mapsUrl: string;
   distanceKm: number;
 }
@@ -109,10 +114,10 @@ export function StudioLocator({
       setLoading(true);
       setLoadError(null);
       try {
-        // Discovery now comes from Google Places via the server route, which
-        // holds the key. Nothing is read from `public.studios` and nothing is
-        // written either, so there is no admin list to keep in step and no way
-        // for an unverified studio to appear.
+        // Discovery comes from the server route /api/studios, which merges the
+        // curated dataset (lib/studios/curatedStudios.ts) with live
+        // OpenStreetMap results. Each row carries a `source` so the list can
+        // distinguish curated listings from community-sourced rows.
         //
         // The centre is part of the request so that "My Location" and a picked
         // map centre search around where the user is actually looking. The
@@ -326,6 +331,7 @@ export function StudioLocator({
           radiusKm={radiusKm}
           studios={nearby}
           isMyLocation={isMyLocation}
+          focusId={selectedId}
           onPickStudio={setSelectedId}
           onPickCenter={pickCenter}
         />
@@ -348,9 +354,9 @@ export function StudioLocator({
           <Overlay>
             <MapPin className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             <span className="max-w-sm text-center">
-              No studios have been added yet. The locator reads the{' '}
-              <code className="font-mono text-[11px]">studios</code> table, which is empty until
-              an administrator enters real locations.
+              No studios are available around this centre. Try moving the centre
+              or adjusting your location — the locator covers curated venues and
+              OpenStreetMap listings.
             </span>
           </Overlay>
         )}
@@ -416,10 +422,20 @@ export function StudioLocator({
                     <span className="text-[11px] font-semibold text-accent-text">
                       {formatDistance(studio.distanceKm)} away
                     </span>
-                    {/* The OSM element this row was built from. */}
-                    <span className="font-mono text-[10px] text-subtle-foreground">
-                      {studio.id}
-                    </span>
+                    {/* Source label: curated listings vs community-sourced OSM
+                        rows are kept visually distinct on purpose. */}
+                    {studio.source === 'curated' ? (
+                      <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-semibold text-accent-text">
+                        Curated
+                      </span>
+                    ) : (
+                      <span
+                        className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground"
+                        title="Community-sourced from OpenStreetMap"
+                      >
+                        OSM
+                      </span>
+                    )}
                   </span>
                 </div>
 
@@ -430,7 +446,7 @@ export function StudioLocator({
                   className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-accent-text underline-offset-2 hover:underline"
                 >
                   <MapPin className="h-3 w-3" aria-hidden="true" />
-                  View on OpenStreetMap
+                  {studio.source === 'curated' ? 'Get directions' : 'View on OpenStreetMap'}
                 </a>
               </li>
             );
@@ -438,12 +454,14 @@ export function StudioLocator({
         </ul>
       )}
 
-      {/* OpenStreetMap attribution. A licence condition of using OSM data, not
-          a nicety, so it is rendered wherever results are shown — not only on
-          the Leaflet attribution control, which can be collapsed. */}
+      {/* Data-source attribution. The OSM credit is a licence condition of using
+          OSM data, so it is rendered wherever results are shown — not only on
+          the Leaflet attribution control, which can be collapsed. The curated
+          and community rows are also labelled individually in the list. */}
       {!loading && !loadError && (
         <p className="mt-3 text-[11px] text-subtle-foreground">
-          Studio details from{' '}
+          Studio details from curated listings (coordinates from the Groove PH
+          Google Maps reference) and{' '}
           <a
             href="https://www.openstreetmap.org/copyright"
             target="_blank"
@@ -452,8 +470,8 @@ export function StudioLocator({
           >
             © OpenStreetMap contributors
           </a>
-          . Listings are community-sourced; confirm hours and fees with the venue
-          before booking.
+          . No ratings, phone numbers or opening hours are shown for either
+          source — confirm details with the venue before booking.
         </p>
       )}
     </Card>

@@ -28,7 +28,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import type { FullCoach, Feedback, CommunityPost } from '@/lib/types';
-import { ShowcaseGrid } from '@/features/community/components/SignedMedia';
+import { ProfileMediaGrid } from '@/features/community/components/SignedMedia';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { FormError, FormSuccess } from '@/components/ui/FormError';
@@ -41,6 +41,8 @@ import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
 import { verificationStatusOf } from '@/features/verification/services/verification';
+import { AchievementSection } from '@/components/achievements/AchievementSection';
+import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
 import {
   AddressSection,
   CoachBioSection,
@@ -131,6 +133,30 @@ export default function CoachProfilePage() {
   });
   const [authProvider, setAuthProvider] = useState<string>('google');
   const [authEmail, setAuthEmail] = useState<string>('');
+
+  // Achievement hooks
+  const { achievements: coachAchievements, refetch: refetchCoachAchievements } = useAchievements(
+    coach?.id ?? null,
+    'coach'
+  );
+  const { badgeStatus: coachBadgeStatus, refetch: refetchCoachBadgeStatus } = useBadgeStatus(
+    coach?.id ?? null
+  );
+
+  /**
+   * Recompute achievement progress from live Supabase data, then reload the
+   * task list and badge so the modal reflects a just-saved profile. Used when
+   * the section mounts and whenever the modal is opened.
+   */
+  const handleRefreshAchievements = useCallback(async () => {
+    if (!coach?.id) return;
+    try {
+      const { refreshAchievements } = await import('@/app/actions/achievements');
+      await refreshAchievements(coach.id);
+    } finally {
+      await Promise.all([refetchCoachAchievements(), refetchCoachBadgeStatus()]);
+    }
+  }, [coach?.id, refetchCoachAchievements, refetchCoachBadgeStatus]);
 
   /** Load a fetched profile into the editable form state. */
   const hydrateForm = (data: FullCoach) => {
@@ -408,12 +434,14 @@ export default function CoachProfilePage() {
       // Genres keep the exact shape registration writes: JSON { skill, genres }.
       const genresJSON = JSON.stringify({ skill: coachForm.talents, genres: coachForm.genres });
 
+      // `bio` lives on `profiles` (written above) — `coach_profiles` has no bio
+      // column, so sending it here made every coach save fail with a schema
+      // cache error (PGRST204 / 42703).
       const { error: coachError } = await supabase
         .from('coach_profiles')
         .upsert(
           {
             id: user.id,
-            bio: bio.trim(),
             talents: coachForm.talents,
             genres: genresJSON,
             service_fee: Number(coachForm.service_fee),
@@ -448,6 +476,15 @@ export default function CoachProfilePage() {
 
       setSuccess('Coach details & pricing terms updated successfully!');
       setEditing(false);
+
+      // Update achievements after profile save
+      try {
+        const { updateAchievementsAfterProfileUpdate } = await import('@/app/actions/achievements');
+        await updateAchievementsAfterProfileUpdate(user.id, 'coach');
+      } catch (e) {
+        console.error('Failed to update achievements:', e);
+      }
+
       await fetchCoachData();
     } catch (err) {
       setFailure(err instanceof Error ? err.message : 'Failed to update coach profile.');
@@ -563,6 +600,19 @@ export default function CoachProfilePage() {
           </div>
         </ProfileHero>
       </div>
+
+      {/* Achievements - Full width section below profile header */}
+      {coach && (
+        <div className="mb-6">
+          <AchievementSection
+            tasks={coachAchievements.length > 0 ? coachAchievements : []}
+            badgeStatus={coachBadgeStatus}
+            userId={coach.id}
+            role="coach"
+            onRefresh={handleRefreshAchievements}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mb-6 flex flex-wrap items-center gap-1 border-b border-divider">
@@ -819,7 +869,7 @@ export default function CoachProfilePage() {
             /* Same shared renderer as the client profile and the public
                profile: it resolves the private-bucket path to a signed URL and
                owns the loading / broken states. */
-            <ShowcaseGrid
+            <ProfileMediaGrid
               items={posts}
               emptyState={
                 <EmptyState

@@ -48,15 +48,16 @@ export default function FeedbackModal({
       // PGRST204 because public.feedbacks had no such column at all. The `||`
       // was also dead: both values are truthy for a real booking, so the
       // fallback could never be reached.
-      const { error: insertError } = await supabase.from('feedbacks').insert({
+      const { data: feedbackData, error: insertError } = await supabase.from('feedbacks').insert({
         appointment_id: appointment.id,
         coach_id: appointment.coach_id,
         user_id: user.id,
         rating,
         comment,
-      });
+      }).select('id').single();
 
       if (insertError) throw insertError;
+      const feedbackId = feedbackData?.id;
 
       // Mirror the review onto the booking so the coach's session list shows it.
       //
@@ -96,6 +97,20 @@ export default function FeedbackModal({
 
       setSuccess(true);
       if (onSuccess) onSuccess();
+
+      // Update achievements after review submission
+      const isFiveStar = rating === 5;
+      try {
+        const { updateAchievementsAfterReviewSubmitted } = await import('@/app/actions/achievements');
+        await updateAchievementsAfterReviewSubmitted(user.id, 'client', feedbackId, isFiveStar);
+        // Also update coach achievements if it's a 5-star review
+        if (isFiveStar) {
+          await updateAchievementsAfterReviewSubmitted(appointment.coach_id, 'coach', feedbackId, true);
+        }
+      } catch (e) {
+        console.error('Failed to update achievements:', e);
+      }
+
       setTimeout(() => {
         setSuccess(false);
         onClose();

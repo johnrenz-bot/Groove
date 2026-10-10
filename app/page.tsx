@@ -427,7 +427,7 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* ══════════════ STUDIO LOCATOR — live OpenStreetMap data ══════════════
+      {/* ══════════════ STUDIO LOCATOR — curated + live OpenStreetMap data ═════
           This section used to render three hardcoded "partner studios" with
           invented names, invented descriptions and invented hourly rates
           (three different peso-per-hour figures), next to a Google Maps embed
@@ -435,29 +435,32 @@ export default function WelcomePage() {
           there is no studio table, and no such directory existed to be listed.
 
           It is now the same <StudioLocator> the dashboards use, backed by
-          /api/studios -> the OpenStreetMap Overpass API. Every name, distance
-          and link on the page is a real search result. No price, rating,
-          review or description is shown, because none of those exist in the
-          source data and inventing them is exactly what this replaces. */}
+          /api/studios, which merges curated listings (the SJDM venues from the
+          Groove PH Google Maps reference, see lib/studios/curatedStudios.ts)
+          with live OpenStreetMap Overpass results. Every name, distance and
+          link on the page is real, and the list labels each row's source. No
+          price, rating, review or description is shown, because none of those
+          were verified and inventing them is exactly what this replaces. */}
       <section id="studios" className="g-section">
         <div className="g-container">
           <SectionHeader
             eyebrow="Studio locator"
             title="Find a rehearsal space near you"
-            subtext="Live results from OpenStreetMap for dance studios, performing arts venues, and rehearsal spaces around San Jose del Monte, Bulacan. Narrow by distance, then open a result to see exactly where it is."
+            subtext="Curated listings plus live OpenStreetMap results for dance studios, performing arts venues, and rehearsal spaces around San Jose del Monte, Bulacan. Narrow by distance, then open a result to see exactly where it is."
           />
 
           <Reveal className="mt-12">
             <StudioLocator
               id="studio-locator"
               title="Rehearsal spaces near San Jose del Monte"
-              subtitle="Live OpenStreetMap results — distances are measured from your chosen centre"
+              subtitle="Curated and community listings — distances are measured from your chosen centre"
             />
           </Reveal>
 
           <p className="mt-5 text-center text-xs text-subtle-foreground">
-            Listings come from the OpenStreetMap community, not from Groove, and carry no price or
-            rating data. Confirm hours, fees and access directly with the venue before you book.
+            Listings are curated from the Groove PH Google Maps reference or come from the
+            OpenStreetMap community — not from Groove — and carry no price or rating data.
+            Confirm hours, fees and access directly with the venue before you book.
           </p>
         </div>
       </section>

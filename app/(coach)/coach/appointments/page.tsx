@@ -119,6 +119,7 @@ async function buildAgreementTerms(
 export default function CoachAppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [coachProfile, setCoachProfile] = useState<Profile | null>(null);
+  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -140,6 +141,7 @@ export default function CoachAppointmentsPage() {
         .eq('id', user.id)
         .single();
       setCoachProfile(profile);
+      setCurrentUser(profile);
 
       const { data, error } = await supabase
         .from('appointments')
@@ -204,6 +206,19 @@ export default function CoachAppointmentsPage() {
       setAppointments((prev) =>
         prev.map((a) => (a.id === appt.id ? { ...a, status: newStatus } : a))
       );
+
+      // Trigger achievement check when session is completed
+      if (newStatus === 'completed' && currentUser) {
+        try {
+          const { updateAchievementsAfterBookingConfirmed } = await import('@/app/actions/achievements');
+          // Coach gets first booking achievement
+          await updateAchievementsAfterBookingConfirmed(currentUser.id, 'coach', appt.id);
+          // Client gets first booking achievement
+          await updateAchievementsAfterBookingConfirmed(appt.client_id, 'client', appt.id);
+        } catch (e) {
+          console.error('Failed to update achievements:', e);
+        }
+      }
     } catch (err) {
       console.error('Error updating status:', err);
       setActionError(

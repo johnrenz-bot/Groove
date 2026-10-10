@@ -27,7 +27,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import type { Profile, CommunityPost } from '@/lib/types';
-import { ShowcaseGrid } from '@/features/community/components/SignedMedia';
+import { ProfileMediaGrid } from '@/features/community/components/SignedMedia';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { FormError, FormSuccess } from '@/components/ui/FormError';
@@ -40,6 +40,8 @@ import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
 import { verificationStatusOf } from '@/features/verification/services/verification';
+import { AchievementSection } from '@/components/achievements/AchievementSection';
+import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
 import {
   AddressSection,
   ClientTalentSection,
@@ -113,6 +115,30 @@ export default function ClientProfilePage() {
   });
   const [authProvider, setAuthProvider] = useState<string>('google');
   const [authEmail, setAuthEmail] = useState<string>('');
+
+  // Achievement hooks
+  const { achievements: clientAchievements, refetch: refetchClientAchievements } = useAchievements(
+    profile?.id ?? null,
+    'client'
+  );
+  const { badgeStatus: clientBadgeStatus, refetch: refetchClientBadgeStatus } = useBadgeStatus(
+    profile?.id ?? null
+  );
+
+  /**
+   * Recompute achievement progress from live Supabase data, then reload the
+   * task list and badge so the modal reflects a just-saved profile. Used when
+   * the section mounts and whenever the modal is opened.
+   */
+  const handleRefreshAchievements = useCallback(async () => {
+    if (!profile?.id) return;
+    try {
+      const { refreshAchievements } = await import('@/app/actions/achievements');
+      await refreshAchievements(profile.id);
+    } finally {
+      await Promise.all([refetchClientAchievements(), refetchClientBadgeStatus()]);
+    }
+  }, [profile?.id, refetchClientAchievements, refetchClientBadgeStatus]);
 
   const hydrateForm = (data: Profile, cp: { talent?: string | null } | null) => {
     const b = splitBirthdate(data.birthdate);
@@ -376,6 +402,15 @@ export default function ClientProfilePage() {
 
       setSuccess('Profile information saved successfully!');
       setEditing(false);
+
+      // Update achievements after profile save
+      try {
+        const { updateAchievementsAfterProfileUpdate } = await import('@/app/actions/achievements');
+        await updateAchievementsAfterProfileUpdate(user.id, 'client');
+      } catch (e) {
+        console.error('Failed to update achievements:', e);
+      }
+
       await fetchProfileData();
     } catch (err) {
       setFailure(err instanceof Error ? err.message : 'Failed to update profile.');
@@ -489,6 +524,19 @@ export default function ClientProfilePage() {
           </div>
         </ProfileHero>
       </div>
+
+      {/* Achievements - Full width section below profile header */}
+      {profile && (
+        <div className="mb-6">
+          <AchievementSection
+            tasks={clientAchievements.length > 0 ? clientAchievements : []}
+            badgeStatus={clientBadgeStatus}
+            userId={profile.id}
+            role="client"
+            onRefresh={handleRefreshAchievements}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mb-6 flex flex-wrap items-center gap-1 border-b border-divider">
@@ -679,7 +727,7 @@ export default function ClientProfilePage() {
             /* Shared renderer: resolves the private-bucket path to a signed URL
                and owns the loading / broken states. Rendering media_path
                directly is what left every profile image broken. */
-            <ShowcaseGrid
+            <ProfileMediaGrid
               items={posts}
               emptyState={
                 <EmptyState

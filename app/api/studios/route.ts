@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_CENTER, haversineKm, type LatLng } from '@/lib/geo';
+import { CURATED_STUDIOS } from '@/lib/studios/curatedStudios';
 
 /**
- * Rehearsal studio discovery — OpenStreetMap, via the Overpass API.
+ * Rehearsal studio discovery — OpenStreetMap via the Overpass API, merged with
+ * the curated dataset in lib/studios/curatedStudios.ts.
+ *
+ * CURATED LISTINGS
+ * OpenStreetMap has no record of the six SJDM venues in that dataset, so they
+ * could never appear through a tag query alone. Each response therefore merges
+ * the curated rows (marked `source: "curated"`) with the community rows
+ * (marked `source: "openstreetmap"`) and ranks both by distance from the
+ * search centre. The dataset's provenance is documented in that file; nothing
+ * here invents a studio.
  *
  * WHY OVERPASS
  * Discovery is free and needs no key or billing account. The previous
@@ -101,7 +111,7 @@ const USER_AGENT =
   'GrooveSystem-StudioLocator/1.0 (rehearsal studio discovery; OpenStreetMap Overpass)';
 
 export interface NormalisedPlace {
-  /** "node/123", "way/456" — unique per OSM element. */
+  /** "node/123", "way/456", or a curated dataset id ("curated/dojo-dance-studio"). */
   id: string;
   osmType: string;
   osmId: number;
@@ -109,7 +119,10 @@ export interface NormalisedPlace {
   address: string | null;
   latitude: number;
   longitude: number;
-  /** Link to the OSM element. OSM carries no review scores, so no rating field. */
+  /** Where the row came from — drives the list label in the locator. */
+  source: 'curated' | 'openstreetmap';
+  /** Navigation link for the row. OSM rows point at the OSM element; curated
+      rows point at a key-free Google Maps directions URL. */
   mapsUrl: string;
   distanceKm: number;
 }
@@ -188,6 +201,20 @@ function localityFromTags(tags: Record<string, string>): string | null {
   );
 }
 
+/**
+ * Navigation link for curated listings.
+ *
+ * This is the documented, key-free Google Maps deep link (a plain web URL, not
+ * the Google Maps JavaScript API and not Places API), so opening directions to
+ * a curated coordinate costs nothing and needs no billing account.
+ */
+function googleMapsDirectionsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat.toFixed(6)},${lng.toFixed(6)}`;
+}
+
+/** Dedupe distance for "same name effectively at the same position" checks. */
+const SAME_PLACE_KM = 0.04;
+
 interface OverpassElement {
   type?: string;
   id?: number;
@@ -205,6 +232,27 @@ export async function GET(request: NextRequest) {
   const center: LatLng = isValidLatLng(latParam, lngParam)
     ? { lat: latParam, lng: lngParam }
     : DEFAULT_CENTER;
+
+  // Curated listings (lib/studios/curatedStudios.ts), included only when they
+  // fall inside this route's generous 12 km search circle. The client is what
+  // applies the exact 1/3/5/10 km radius; the route's wider circle is so a
+  // radius change never needs a refetch.
+  const curatedEntries: NormalisedPlace[] = CURATED_STUDIOS.map(
+    (s): NormalisedPlace => ({
+      id: `curated/${s.id}`,
+      osmType: 'curated',
+      osmId: 0,
+      name: s.name,
+      address: s.address,
+      latitude: s.latitude,
+      longitude: s.longitude,
+      source: 'curated',
+      mapsUrl: googleMapsDirectionsUrl(s.latitude, s.longitude),
+      distanceKm: haversineKm(center, { lat: s.latitude, lng: s.longitude }),
+    })
+  )
+    .filter((s) => s.distanceKm <= MAX_RADIUS_M / 1000)
+    .sort((a, b) => a.distanceKm - b.distanceKm);
 
   const requestBody = new URLSearchParams({
     data: buildQuery(center, MAX_RADIUS_M),
@@ -253,6 +301,29 @@ export async function GET(request: NextRequest) {
 
   if (!upstream) {
     const busy = lastFailure?.busy ?? true;
+    // Curated listings do not depend on Overpass, so an OSM outage should not
+    // blank the whole locator: return whatever curated rows are in range with a
+    // warning, and only hard-fail when there is nothing at all to show.
+    if (curatedEntries.length > 0) {
+      return NextResponse.json(
+        {
+          places: curatedEntries,
+          center,
+          sources: ['curated'],
+          attribution: '© OpenStreetMap contributors',
+          warning: busy
+            ? 'The OpenStreetMap community search is busy right now, so only curated listings are shown.'
+            : 'OpenStreetMap community results could not be reached, so only curated listings are shown.',
+        },
+        {
+          status: 200,
+          headers: {
+            'Cache-Control': 'public, max-age=60',
+            'X-Data-Source': 'curated-fallback',
+          },
+        }
+      );
+    }
     return NextResponse.json(
       {
         error: busy
@@ -270,8 +341,10 @@ export async function GET(request: NextRequest) {
   const byKey = new Map<string, NormalisedPlace>();
   // Second dedupe pass: the same venue is often mapped twice — a building as a
   // way and its entrance as a node — so an identical name at effectively the
-  // same position is treated as one place.
-  const seenPositions: { name: string; lat: number; lng: number }[] = [];
+  // same position is treated as one place. Seeded with the curated rows so an
+  // OSM element that is the same venue cannot double-render a curated pin.
+  const seenPositions: { name: string; lat: number; lng: number }[] =
+    curatedEntries.map((s) => ({ name: s.name, lat: s.latitude, lng: s.longitude }));
   let skippedUnnamed = 0;
   let skippedNoCentre = 0;
 
@@ -307,7 +380,7 @@ export async function GET(request: NextRequest) {
       seenPositions.some(
         (c) =>
           c.name.toLowerCase() === name.toLowerCase() &&
-          haversineKm({ lat: c.lat, lng: c.lng }, { lat, lng }) < 0.04
+          haversineKm({ lat: c.lat, lng: c.lng }, { lat, lng }) < SAME_PLACE_KM
       )
     ) {
       continue;
@@ -321,6 +394,7 @@ export async function GET(request: NextRequest) {
       address: addressFromTags(tags) ?? localityFromTags(tags),
       latitude: lat,
       longitude: lng,
+      source: 'openstreetmap',
       mapsUrl: `https://www.openstreetmap.org/${el.type}/${el.id}`,
       distanceKm: haversineKm(center, { lat, lng }),
     });
@@ -328,19 +402,27 @@ export async function GET(request: NextRequest) {
   }
 
   // Nearest first, THEN capped. Sorting before the cap is what guarantees a
-  // 1 km filter still finds its results even though only 20 are sent.
-  const places = [...byKey.values()]
-    .sort((a, b) => a.distanceKm - b.distanceKm)
-    .slice(0, MAX_RESULTS);
+  // 1 km filter still finds its results even though only 20 are sent. Curated
+  // listings merge into the same ranking and are all within 12 km by the filter
+  // above, so a narrowed radius never hides a curated studio from this route.
+  const osmPlaces = [...byKey.values()].sort((a, b) => a.distanceKm - b.distanceKm);
+  const places = [...curatedEntries, ...osmPlaces].slice(0, MAX_RESULTS);
 
-  const truncated = byKey.size > places.length;
+  const truncated = curatedEntries.length + osmPlaces.length > places.length;
   const skipped = skippedUnnamed + skippedNoCentre + Number(truncated);
 
   return NextResponse.json(
     {
       places,
       center,
-      source: 'openstreetmap',
+      // Per-row `source` distinguishes curated from community rows; this is the
+      // summary for the footer note.
+      sources:
+        places.some((p) => p.source === 'curated') && places.some((p) => p.source === 'openstreetmap')
+          ? ['curated', 'openstreetmap']
+          : places.some((p) => p.source === 'curated')
+            ? ['curated']
+            : ['openstreetmap'],
       // Attribution is a licence condition of OpenStreetMap data, not a nicety.
       attribution: '© OpenStreetMap contributors',
       warning:
@@ -352,7 +434,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         'Cache-Control': 'public, max-age=600',
-        'X-Data-Source': 'openstreetmap-overpass',
+        'X-Data-Source': 'curated+openstreetmap-overpass',
       },
     }
   );

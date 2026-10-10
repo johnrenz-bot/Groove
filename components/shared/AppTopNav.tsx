@@ -8,10 +8,13 @@ import { createClient } from '@/lib/supabase/client';
 import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
 import { useDanceAccess } from '@/features/dance/hooks/useDanceAccess';
 import { ThemeModeSelect } from '@/components/theme/ThemeModeSelect';
+import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { PresenceDot, StatusSelect } from '@/components/shared/StatusSelect';
 import { usePresence } from '@/features/presence/hooks/usePresence';
 import { Profile } from '@/lib/types';
 import { getInitials } from '@/lib/utils';
+import { useUserSearch, type UserSearchResult } from './useUserSearch';
+import { UserSearchResults } from './UserSearchResults';
 import type { NavItem, NavGroup } from './navTypes';
 import {
   ChevronDown,
@@ -283,12 +286,28 @@ export function AppTopNav({
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  // The query and the ref moved out of the old <SearchBox> so the field can
-  // exist inline in the header rather than inside a separate panel.
-  const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const scrolled = useScrolled();
+
+  /* Real user search. This used to be a substring filter over the role's own
+     navigation, which meant typing a member's name returned nothing — the field
+     looked like it searched people and silently only searched pages.
+     `useUserSearch` debounces and queries GET /api/users; this component owns
+     the presentation and the keyboard handling. */
+  const userSearch = useUserSearch();
+  // Which result the arrow keys are on. -1 = none highlighted, which is the
+  // resting state: Enter should not immediately navigate to an arbitrary row.
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const setSearchQuery = useCallback(
+    (value: string) => {
+      userSearch.setQuery(value);
+      // Any edit invalidates the highlight — the highlighted row is no longer
+      // the best match for the new text.
+      setActiveIndex(-1);
+    },
+    [userSearch]
+  );
 
   // The resolved identity. When the parent layout already resolved the profile
   // it arrives as `propUser`; otherwise it is fetched once on mount.
@@ -413,12 +432,14 @@ export function AppTopNav({
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
 
-  // Collapse clears the query, so a later open starts blank instead of showing
-  // a stale filter the user has to clear by hand.
+  // Collapse clears the query AND the results, so a later open starts blank
+  // instead of showing a stale list the user has to clear by hand. It also
+  // cancels any in-flight request — closing the panel should stop the work.
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
-    setSearchQuery('');
-  }, []);
+    setActiveIndex(-1);
+    userSearch.reset();
+  }, [userSearch]);
 
   const searchRef = useDismiss(searchOpen, closeSearch);
 
@@ -450,30 +471,87 @@ export function AppTopNav({
       event.preventDefault();
       setOpenGroup(null);
       setAccountOpen(false);
-      setSearchQuery('');
+      userSearch.reset();
+      setActiveIndex(-1);
       setSearchOpen(true);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
+    // `userSearch.reset` is stable (useCallback with no deps); re-subscribing on
+    // every query change would drop the listener mid-typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const brandHref = homeHref ?? meta.homeHref;
   const displayName = user?.firstname || (role === 'coach' ? 'Coach' : 'Artist');
 
-  /** Flat list of every destination, for the search field. */
-  const allItems: NavItem[] = [...primary, ...groups.flatMap((g) => g.items)];
+  /** Go to a search result's public profile. */
+  const goToUser = useCallback(
+    (user: UserSearchResult) => {
+      closeSearch();
+      router.push(`/userprofile/${user.id}`);
+    },
+    [closeSearch, router]
+  );
 
-  /* Same matching rule the old SearchBox used: case-insensitive substring over
-     the label and the href, so "book" finds /client/appointments and "coach"
-     finds both the label and the path. */
-  const searchMatches: NavItem[] = (() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return allItems;
-    return allItems.filter(
-      (item) =>
-        item.label.toLowerCase().includes(q) || item.href.toLowerCase().includes(q)
-    );
-  })();
+  /**
+   * Keyboard handling for the result list.
+   *
+   * Uses `aria-activedescendant` rather than moving DOM focus: the focus stays on
+   * the input, so typing continues uninterrupted while the highlight moves. That
+   * is the pattern a combobox/listbox pair requires — moving focus into the list
+   * would make every subsequent keystroke land in the wrong element.
+   */
+  const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const count = userSearch.results.length;
+
+    switch (e.key) {
+      case 'Escape':
+        // Stop the panel-level Escape handler from also firing, so one press
+        // closes the search once rather than twice.
+        e.stopPropagation();
+        closeSearch();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        if (count > 0) setActiveIndex((i) => (i + 1) % count);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (count > 0) setActiveIndex((i) => (i <= 0 ? count - 1 : i - 1));
+        break;
+      case 'Home':
+        if (count > 0) {
+          e.preventDefault();
+          setActiveIndex(0);
+        }
+        break;
+      case 'End':
+        if (count > 0) {
+          e.preventDefault();
+          setActiveIndex(count - 1);
+        }
+        break;
+      case 'Enter': {
+        // Prefer the highlighted row; fall back to the first result so Enter is
+        // useful without having to arrow down first.
+        const target =
+          activeIndex >= 0 && activeIndex < count
+            ? userSearch.results[activeIndex]
+            : userSearch.results[0];
+        if (target) {
+          e.preventDefault();
+          goToUser(target);
+        }
+        break;
+      }
+    }
+  };
+
+  const activeOptionId =
+    activeIndex >= 0 && activeIndex < userSearch.results.length
+      ? `header-usearch-option-${activeIndex}`
+      : undefined;
 
   return (
     // `data-scrolled` is the whole scroll affordance. At rest the header has no
@@ -501,7 +579,7 @@ export function AppTopNav({
                 alt=""
                 width={22}
                 height={22}
-                className="h-[22px] w-auto object-contain"
+                className="h-[22px] w-[22px] object-contain"
               />
             </span>
             <span className="g-header-wordmark">
@@ -583,7 +661,7 @@ export function AppTopNav({
                     setOpenGroup(null);
                   }
                 }}
-                aria-label={searchOpen ? 'Close search' : 'Search navigation'}
+                aria-label={searchOpen ? 'Close search' : 'Search coaches and clients'}
                 aria-expanded={searchOpen}
                 className="inline-flex flex-shrink-0 cursor-pointer items-center justify-center"
               >
@@ -593,32 +671,26 @@ export function AppTopNav({
               <input
                 ref={searchInputRef}
                 type="text"
-                value={searchQuery}
+                role="combobox"
+                value={userSearch.query}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
-                    e.stopPropagation();
-                    closeSearch();
-                    return;
-                  }
-                  if (e.key === 'Enter') {
-                    const first = searchMatches[0];
-                    if (first) {
-                      window.location.href = first.href;
-                      closeSearch();
-                    }
-                  }
-                }}
+                onKeyDown={onSearchKeyDown}
+                autoComplete="off"
+                spellCheck={false}
                 // Only meaningful while open; while collapsed the input is taken
                 // out of the tab order and the accessibility tree by CSS.
                 tabIndex={searchOpen ? 0 : -1}
                 aria-hidden={!searchOpen}
-                aria-label="Search navigation"
-                placeholder="Jump to a page…"
+                aria-label="Search coaches and clients"
+                aria-expanded={searchOpen}
+                aria-controls="header-usearch-list"
+                aria-autocomplete="list"
+                aria-activedescendant={activeOptionId}
+                placeholder="Search coaches & clients…"
                 className="g-hsearch-input"
               />
 
-              {searchOpen && searchQuery.length > 0 && (
+              {searchOpen && userSearch.query.length > 0 && (
                 <button
                   type="button"
                   onClick={() => {
@@ -634,34 +706,18 @@ export function AppTopNav({
             </div>
 
             {searchOpen && (
-              <div
-                className="g-hsearch-results"
-                role="dialog"
-                aria-label="Search results"
-              >
-                {searchMatches.length === 0 ? (
-                  <p className="g-search-empty">No pages match “{searchQuery}”.</p>
-                ) : (
-                  searchMatches.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={closeSearch}
-                        className="g-panel-item"
-                      >
-                        <span className="g-panel-item-icon" aria-hidden="true">
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <span className="g-panel-item-text">
-                          <span className="g-panel-item-label">{item.label}</span>
-                          <span className="g-panel-item-desc">{item.href}</span>
-                        </span>
-                      </Link>
-                    );
-                  })
-                )}
+              <div className="g-hsearch-results" role="presentation">
+                <UserSearchResults
+                  results={userSearch.results}
+                  status={userSearch.status}
+                  error={userSearch.error}
+                  query={userSearch.query}
+                  isSearchable={userSearch.isSearchable}
+                  activeIndex={activeIndex}
+                  onActiveIndexChange={setActiveIndex}
+                  onNavigate={goToUser}
+                  idPrefix="header-usearch"
+                />
               </div>
             )}
           </div>
@@ -781,6 +837,16 @@ export function AppTopNav({
                   <p className="g-account-section-label">Appearance</p>
                   <div className="g-account-section-body">
                     <ThemeModeSelect />
+                  </div>
+                </div>
+
+                {/* Click sounds. Same account-level preference as the theme: a
+                    device setting, not a navigation destination, so it belongs
+                    in this group rather than in the nav. */}
+                <div className="g-account-section">
+                  <p className="g-account-section-label">Sound</p>
+                  <div className="g-account-section-body">
+                    <SoundToggle />
                   </div>
                 </div>
 
@@ -941,6 +1007,13 @@ export function AppTopNav({
             <div className="g-sheet-section">
               <p className="g-sheet-label">Appearance</p>
               <ThemeModeSelect />
+            </div>
+
+            {/* Repeated in the sheet because that sheet is a phone's primary
+                surface — the account menu is not reachable at that width. */}
+            <div className="g-sheet-section">
+              <p className="g-sheet-label">Sound</p>
+              <SoundToggle />
             </div>
 
             {/* Sign out lives at the end of the sheet, where the rail used to

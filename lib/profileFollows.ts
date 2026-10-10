@@ -1,6 +1,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
+import { FOLLOW_PERSON_COLUMNS } from '@/lib/publicProfile';
 
 /**
  * Profile follows — one shared implementation for admin, coach and client.
@@ -43,6 +44,9 @@ export interface FollowPerson {
   username: string | null;
   photo_url: string | null;
   role: string | null;
+  city_name?: string | null;
+  province_name?: string | null;
+  account_verified?: boolean;
 }
 
 const TABLE = 'profile_follows';
@@ -125,23 +129,38 @@ export async function fetchIsFollowing(
  * many-to-many relationship without a FK hint, so this reads the edge UUIDs
  * first and then fetches the profiles in one second query. Two round trips,
  * no N+1, and no view or function required in the database.
+ *
+ * PAGES: pass `page`/`pageSize` to page through the edges. The list is capped
+ * at whatever the caller asks for; `hasMore` is a heuristic (a full page
+ * means a next page probably exists), which is all an infinite scroll needs.
  */
 export async function fetchFollowList(
   profileId: string,
-  side: 'followers' | 'following'
-): Promise<{ people: FollowPerson[]; missingTable: boolean }> {
-  if (!profileId) return { people: [], missingTable: false };
+  side: 'followers' | 'following',
+  opts?: { page?: number; pageSize?: number }
+): Promise<{ people: FollowPerson[]; missingTable: boolean; hasMore: boolean }> {
+  if (!profileId) return { people: [], missingTable: false, hasMore: false };
   const supabase = createClient();
 
-  const column = side === 'followers' ? 'following_id' : 'follower_id';
+  const page = Math.max(0, opts?.page ?? 0);
+  const pageSize = Math.min(50, Math.max(1, opts?.pageSize ?? 30));
+
+  // Two roles for the two columns. `anchor` is the profile the list is ABOUT
+  // (the filter column); `peopleCol` is the OTHER endpoint of each edge — the
+  // people actually filling the list. Extracting the anchor would return the
+  // profile itself as its own follower/following entry.
+  const anchor = side === 'followers' ? 'following_id' : 'follower_id';
+  const peopleCol = side === 'followers' ? 'follower_id' : 'following_id';
+
   const { data: edges, error } = await supabase
     .from(TABLE)
-    .select(`${column}`)
-    .eq(column, profileId)
-    .limit(200);
+    .select(`${peopleCol}`)
+    .eq(anchor, profileId)
+    .order('created_at', { ascending: false })
+    .range(page * pageSize, page * pageSize + pageSize - 1);
 
   if (error) {
-    return { people: [], missingTable: isMissingTable(error) };
+    return { people: [], missingTable: isMissingTable(error), hasMore: false };
   }
 
   // PostgREST returns a differently-shaped object per selected column, so the
@@ -150,23 +169,50 @@ export async function fetchFollowList(
   const ids = [
     ...new Set(
       (edges ?? [])
-        .map((r) => (r as Record<string, unknown>)[column])
+        .map((r) => (r as Record<string, unknown>)[peopleCol])
         .filter((v): v is string => typeof v === 'string' && v.length > 0)
     ),
   ];
-  if (ids.length === 0) return { people: [], missingTable: false };
+  if (ids.length === 0) return { people: [], missingTable: false, hasMore: false };
 
   const { data: profiles, error: profileErr } = await supabase
     .from('profiles')
-    .select('id, firstname, lastname, username, photo_url, role')
+    .select(FOLLOW_PERSON_COLUMNS.join(', '))
     .in('id', ids);
 
-  if (profileErr) return { people: [], missingTable: false };
+  if (profileErr) return { people: [], missingTable: false, hasMore: false };
 
   return {
-    people: (profiles ?? []) as FollowPerson[],
+    people: (profiles ?? []) as unknown as FollowPerson[],
     missingTable: false,
+    hasMore: (edges ?? []).length === pageSize,
   };
+}
+
+/**
+ * Which of `profileIds` the viewer currently follows, as a Set of ids.
+ *
+ * One round trip for a whole list, so a modal or directory never fires one
+ * `fetchIsFollowing` per row. Edge rows are tiny (two UUIDs), so the read is
+ * cheap even at a page of 30-50 people.
+ */
+export async function fetchFollowingState(
+  viewerId: string,
+  profileIds: string[]
+): Promise<Set<string>> {
+  if (!viewerId || profileIds.length === 0) return new Set();
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('following_id')
+    .eq('follower_id', viewerId)
+    .in('following_id', profileIds);
+  if (error) return new Set();
+  return new Set(
+    (data ?? [])
+      .map((r) => r.following_id)
+      .filter((v): v is string => typeof v === 'string' && v.length > 0)
+  );
 }
 
 export type FollowResult =

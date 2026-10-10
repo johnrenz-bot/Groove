@@ -21,7 +21,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { ImageOff, Loader2 } from 'lucide-react';
+import { ImageOff, Images, Loader2, Pin, Play } from 'lucide-react';
 import { isVideoPath, signCommunityMediaBatch } from '../utils/communityMedia';
 
 type State = 'loading' | 'ready' | 'broken';
@@ -82,13 +82,33 @@ export function SignedMedia({
   urls: Record<string, string>;
   broken: Record<string, boolean>;
   alt: string;
-  /** `grid` fills a fixed-ratio box; `feed` allows a taller image. */
-  variant?: 'grid' | 'feed';
+  /**
+   * `grid` fills a fixed-ratio box; `feed` allows a taller image; `tile` is the
+   * square profile-grid tile.
+   */
+  variant?: 'grid' | 'feed' | 'tile';
   className?: string;
 }) {
   const url = urls[path];
 
   if (url) {
+    /* A tile is a thumbnail, not a player: native controls would sit on top of
+       the artwork and swallow the hover/click area of a ~200px square. The feed
+       and grid variants are larger and keep full controls. */
+    if (isVideoPath(path) && variant === 'tile') {
+      return (
+        <video
+          src={url}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-label={alt}
+          className={`h-full w-full bg-black object-cover ${className}`}
+        />
+      );
+    }
+
     return isVideoPath(path) ? (
       <video
         src={url}
@@ -106,7 +126,7 @@ export function SignedMedia({
         src={url}
         alt={alt}
         className={
-          variant === 'grid'
+          variant === 'grid' || variant === 'tile'
             ? `h-full w-full object-cover ${className}`
             : `max-h-[520px] w-full object-cover ${className}`
         }
@@ -116,6 +136,22 @@ export function SignedMedia({
   }
 
   if (broken[path]) {
+    /* Inside a square tile the full-sentence explanation does not fit and would
+       shrink the artwork of every healthy tile around it, so the tile variant
+       degrades to the icon alone; the long copy stays on the larger surfaces. */
+    if (variant === 'tile') {
+      return (
+        <div
+          className={`flex h-full w-full items-center justify-center bg-muted/50 ${className}`}
+          role="img"
+          aria-label={`${alt} — unavailable`}
+          title="This file could not be loaded. It may have been removed, or media storage may not be configured yet."
+        >
+          <ImageOff className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+        </div>
+      );
+    }
+
     return (
       <div
         className={`flex flex-col items-center justify-center gap-1.5 bg-muted/50 px-4 text-center ${
@@ -137,6 +173,18 @@ export function SignedMedia({
     );
   }
 
+  if (variant === 'tile') {
+    return (
+      <div
+        className={`flex h-full w-full items-center justify-center bg-muted/40 ${className}`}
+        role="status"
+        aria-label="Loading media"
+      >
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex items-center justify-center bg-muted/40 ${
@@ -151,22 +199,140 @@ export function SignedMedia({
 }
 
 /**
- * Convenience wrapper: renders a grid of media for a list of posts and handles
- * the batch signing for the whole page.
+ * A post as the profile grid needs it.
  *
- * This is what the three profile surfaces use, so none of them has to know about
- * signing, batching, or the three media states.
+ * Only `media_path` is required, because only `media_path` exists today:
+ * `community_posts` (supabase/schema.sql) has id, author_id, caption,
+ * media_path, talent, deleted_at and the timestamps — there is no `is_pinned`
+ * and no carousel/media-count column.
+ *
+ * `is_pinned` and `carouselCount` are therefore OPTIONAL and default off. They
+ * are read here so the overlay works the moment such a column is added to the
+ * query, without inventing one: this component never fabricates a pinned or
+ * multi-image post that the database does not say exists.
  */
-export function ShowcaseGrid({
-  items,
-  variant = 'grid',
-  emptyState,
+export type ProfileMediaItem = {
+  id: string | number;
+  media_path?: string | null;
+  caption?: string | null;
+  /** Only rendered when the caller's query actually returns it. */
+  is_pinned?: boolean | null;
+  /** Rendered only when > 1. */
+  carouselCount?: number | null;
+};
+
+/**
+ * The corner badges on a tile. Top-left for state the member chose (pinned),
+ * top-right for the media kind (video, carousel) — the same sides Instagram
+ * uses, so the grid is readable without a legend.
+ *
+ * Each badge is decorative: the meaning is carried in `sr-only` text so a screen
+ * reader is told the tile is a pinned video rather than only seeing icons.
+ */
+function TileBadges({ item }: { item: ProfileMediaItem }) {
+  const isVideo = Boolean(item.media_path && isVideoPath(item.media_path));
+  const carouselCount = item.carouselCount ?? 0;
+  const showCarousel = carouselCount > 1;
+
+  if (!item.is_pinned && !isVideo && !showCarousel) return null;
+
+  const badge =
+    'absolute flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-[2px]';
+
+  return (
+    <>
+      {item.is_pinned && (
+        <span className={`${badge} left-1.5 top-1.5`}>
+          <Pin className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="sr-only">Pinned</span>
+        </span>
+      )}
+      {isVideo && (
+        <span className={`${badge} right-1.5 top-1.5`}>
+          <Play className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+          <span className="sr-only">Video</span>
+        </span>
+      )}
+      {showCarousel && (
+        <span
+          className={`${badge} right-1.5 top-1.5`}
+          title={`${carouselCount} items in this carousel`}
+        >
+          <Images className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="sr-only">{carouselCount} items in this carousel</span>
+        </span>
+      )}
+    </>
+  );
+}
+
+/**
+ * ONE media tile: a perfect square that fills with the media.
+ *
+ * The square comes from `aspect-square` rather than a fixed pixel height, so the
+ * tile is exactly as wide as its column at every breakpoint — five across on
+ * desktop, three on a phone — with no letterboxing and no chance of two tiles in
+ * the same row differing by a sub-pixel.
+ *
+ * `object-cover` is what stops a 4:3 photo from stretching inside a 1:1 box; the
+ * grid crops to a square instead of distorting it.
+ *
+ * Overflow is clipped on the tile, and there is no gap and no rounding, because
+ * the reference grid is edge-to-edge: adjacent tiles meet flush.
+ */
+function ProfileMediaTile({
+  item,
+  urls,
+  broken,
 }: {
-  /** Anything with an id and a media_path. */
-  items: { id: string | number; media_path?: string | null; caption?: string | null }[];
-  variant?: 'grid' | 'feed';
-  /** Rendered when there is nothing to show. */
+  item: ProfileMediaItem;
+  urls: Record<string, string>;
+  broken: Record<string, boolean>;
+}) {
+  return (
+    <div className="relative aspect-square overflow-hidden bg-muted">
+      <SignedMedia
+        path={item.media_path as string}
+        urls={urls}
+        broken={broken}
+        alt={item.caption || 'Showcase media'}
+        variant="tile"
+      />
+      <TileBadges item={item} />
+    </div>
+  );
+}
+
+/**
+ * THE profile media grid — one implementation for all three profile surfaces.
+ *
+ * `/client/profile`, `/coach/profile` and `/userprofile/[id]` used to carry three
+ * separate grids (and the public one had its own copy of the tile markup). They
+ * were all `aspect-video` cards in a `g-card` wrapper with real gaps, which is the
+ * opposite of the reference: it is a flush 5-column mosaic of squares.
+ *
+ * Layout contract, all of it in the two class strings below:
+ *   - `grid-cols-3 sm:grid-cols-4 lg:grid-cols-5` — 5 across on desktop, 4 on
+ *     tablet, 3 on a phone. Each column is `1fr`, so all columns in a row are
+ *     the same width by construction.
+ *   - `gap-0` — zero gaps, horizontally and vertically.
+ *   - `w-full` + `overflow-hidden` — the grid is edge-to-edge within whatever
+ *     content width the page gives it, and cannot push the page wider.
+ *
+ * Handles its own batched signing, so callers pass rows and nothing else.
+ *
+ * The empty state is rendered by the caller (`emptyState`) because each surface
+ * has its own copy and its own call to action; it is returned unwrapped so the
+ * empty state keeps its own card styling rather than inheriting the mosaic.
+ */
+export function ProfileMediaGrid({
+  items,
+  emptyState,
+  className = '',
+}: {
+  items: ProfileMediaItem[];
   emptyState?: React.ReactNode;
+  className?: string;
 }) {
   const { urls, broken } = useSignedMedia(items.map((i) => i.media_path));
   const withMedia = items.filter((i) => i.media_path);
@@ -174,22 +340,11 @@ export function ShowcaseGrid({
   if (withMedia.length === 0) return <>{emptyState}</>;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div
+      className={`grid w-full grid-cols-3 gap-0 overflow-hidden sm:grid-cols-4 lg:grid-cols-5 ${className}`}
+    >
       {withMedia.map((item) => (
-        <div key={item.id} className="g-card space-y-2 overflow-hidden p-3">
-          <div className="aspect-video overflow-hidden rounded-xl bg-muted">
-            <SignedMedia
-              path={item.media_path as string}
-              urls={urls}
-              broken={broken}
-              alt={item.caption || 'Showcase media'}
-              variant={variant}
-            />
-          </div>
-          {item.caption && (
-            <p className="line-clamp-2 text-xs text-muted-foreground">{item.caption}</p>
-          )}
-        </div>
+        <ProfileMediaTile key={item.id} item={item} urls={urls} broken={broken} />
       ))}
     </div>
   );

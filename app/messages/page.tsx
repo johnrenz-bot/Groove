@@ -23,7 +23,8 @@ import { Message, Profile } from '@/lib/types';
 import { statusMeta } from '@/features/presence/utils/presence';
 import { usePresence } from '@/features/presence/hooks/usePresence';
 import { createClient } from '@/lib/supabase/client';
-import { SessionAgreementCard } from '@/features/booking/components/SessionAgreementCard';
+import { AgreementThread } from '@/features/booking/components/AgreementThread';
+import { ContactOverview } from '@/features/booking/components/ContactOverview';
 import {
   fetchAdminPartners,
   fetchConversationsForUser,
@@ -695,9 +696,12 @@ function MessagesMessenger() {
                       </>
                     )}
 
-                    {/* Integrated Session Agreement Card with Full Agreement Modal */}
+                    {/* Session agreements — one card per booking between these
+                        two people, oldest first. Replaces a single card that
+                        resolved "the" agreement and therefore showed only one of
+                        them however many existed. */}
                     {currentUser && (
-                      <SessionAgreementCard
+                      <AgreementThread
                         currentUserId={currentUser.id}
                         partnerId={activePartner.id}
                       />
@@ -706,69 +710,12 @@ function MessagesMessenger() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Collapsible Partner Profile Drawer */}
-                  {showPartnerPanel && (
-                    <aside
-                      aria-label="Partner Details"
-                      className="w-72 shrink-0 border-l border-divider bg-card/95 p-4 space-y-4 overflow-y-auto animate-in slide-in-from-right-4 duration-200 hidden lg:block"
-                    >
-                      <div className="flex items-center justify-between border-b border-divider pb-3">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                          Contact Overview
-                        </h3>
-                        <button
-                          onClick={() => setShowPartnerPanel(false)}
-                          className="text-muted-foreground hover:text-foreground cursor-pointer"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-
-                      <div className="text-center space-y-2">
-                        <span className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border bg-muted font-bold text-foreground text-lg shadow-sm">
-                          {activePartner.photo_url ? (
-                            <img
-                              src={activePartner.photo_url}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            activePartner.firstname?.[0]
-                          )}
-                        </span>
-                        <div>
-                          <p className="text-sm font-bold text-foreground">
-                            {activePartner.firstname} {activePartner.lastname}
-                          </p>
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-text">
-                            {activePartner.role}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-3.5 text-xs">
-                        <div className="flex items-start gap-2 text-muted-foreground">
-                          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" />
-                          <span>{activePartner.city_name || activePartner.address_summary || 'San Jose del Monte, Bulacan'}</span>
-                        </div>
-                        {activePartner.bio && (
-                          <p className="leading-relaxed text-foreground/90 text-[11px]">
-                            {activePartner.bio}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2 pt-2">
-                        <Link
-                          href={`/userprofile/${activePartner.id}`}
-                          className="flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-accent text-xs font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover"
-                        >
-                          <span>Full Profile</span>
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </Link>
-                      </div>
-                    </aside>
-                  )}
+                  {/* Contact Overview. Rendered through a portal at the top of
+                      the tree rather than inline here: inside the thread's
+                      `overflow-y-auto` ancestor it was clipped on mobile, and it
+                      needs to sit above the sticky header. The old inline
+                      `<aside>` also rendered nothing at all below `lg`, so a
+                      phone user had a Details button that opened nothing. */}
                 </div>
 
                 {/* Fixed Composer Bar */}
@@ -832,6 +779,19 @@ function MessagesMessenger() {
           </section>
         </div>
       </main>
+
+      {/* Contact Overview — a portal overlay, so it is rendered here at the
+          page level rather than inside the scrollable thread. Closes on X,
+          backdrop click, and Escape (handled inside the component). */}
+      {currentUser && activePartner && (
+        <ContactOverview
+          open={showPartnerPanel}
+          onClose={() => setShowPartnerPanel(false)}
+          viewer={currentUser}
+          partner={activePartner}
+          currentUserId={currentUser.id}
+        />
+      )}
     </div>
   );
 }

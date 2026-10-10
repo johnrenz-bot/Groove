@@ -616,7 +616,7 @@ export default function CoachHomePage() {
             `padding="none"` treatment keeps this card's edge-to-edge map. */}
         <StudioLocator
           title="Rehearsal Studios Directory"
-          subtitle="Verified dance and performing arts studios in San Jose del Monte, Bulacan"
+          subtitle="Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results"
           padding="none"
         />
 

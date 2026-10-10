@@ -67,6 +67,23 @@ export default function ClientAppointmentsPage() {
     fetchAppointments();
   }, [fetchAppointments]);
 
+  // Check achievements when appointments load
+  useEffect(() => {
+    if (currentUser && appointments.length > 0) {
+      const hasConfirmed = appointments.some(a => a.status === 'confirmed' || a.status === 'completed');
+      if (hasConfirmed) {
+        (async () => {
+          try {
+            const { updateAchievementsAfterBookingConfirmed } = await import('@/app/actions/achievements');
+            await updateAchievementsAfterBookingConfirmed(currentUser.id, 'client', appointments[0].id);
+          } catch (e) {
+            console.error('Failed to update achievements:', e);
+          }
+        })();
+      }
+    }
+  }, [appointments, currentUser]);
+
   const handleCancel = async (id: number) => {
     if (!confirm('Are you sure you want to cancel this appointment?')) return;
 

@@ -12,7 +12,6 @@ import {
 import { AddressData } from '@/components/auth/AddressSelector';
 import { CLIENT_TALENT_OPTIONS, normalizeContactForStorage } from '@/lib/profileFields';
 import { AuthLayout } from '@/components/shared/AuthLayout';
-import { GoogleRegisterButton } from '@/components/shared/GoogleRegisterButton';
 import { Sparkles } from 'lucide-react';
 
 export default function ClientRegistrationPage() {
@@ -336,24 +335,6 @@ export default function ClientRegistrationPage() {
           </div>
         }
       />
-
-      {/* Google sign-up sits below the email/password form and does not touch
-          it: the form keeps its own state and submit handler. */}
-      <div className="mt-6">
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-[11px] uppercase tracking-wider text-subtle-foreground">
-            <span className="bg-surface px-2">or</span>
-          </div>
-        </div>
-        <GoogleRegisterButton role="client" label="as a Client" />
-        <p className="mt-2 text-center text-[11px] text-subtle-foreground">
-          Google accounts are created without a verification ID. You can upload one later from your
-          profile.
-        </p>
-      </div>
     </AuthLayout>
   );
 }
