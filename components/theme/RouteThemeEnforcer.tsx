@@ -2,10 +2,13 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { resolveInitialMode, resolveMode } from './ThemeProvider';
+import {
+  applyGlobalTheme,
+  resolveInitialGlobalTheme,
+} from './ThemeProvider';
 
 /**
- * Routes that must ALWAYS render in dark mode without user theme toggling.
+ * Routes that render in dark mode presentation by default for public landing & auth.
  */
 export const DARK_ONLY_ROUTES: readonly string[] = [
   '/',
@@ -20,9 +23,9 @@ export function isDarkOnlyRoute(pathname: string | null | undefined): boolean {
 }
 
 /**
- * RouteThemeEnforcer guarantees that the landing page and authentication
- * flows strictly adhere to dark mode at all times, without overwriting
- * the user's theme preference for other pages (such as dashboards).
+ * RouteThemeEnforcer ensures landing and authentication flows render in dark mode,
+ * while seamlessly restoring the global or user-selected theme on all authenticated
+ * and dashboard routes.
  */
 export function RouteThemeEnforcer() {
   const pathname = usePathname();
@@ -34,15 +37,13 @@ export function RouteThemeEnforcer() {
     const isDarkOnly = isDarkOnlyRoute(pathname);
 
     if (isDarkOnly) {
-      // Force dark mode presentation on the DOM without altering stored preferences
-      root.classList.remove('light');
+      // Force dark presentation on public auth without altering stored preferences
+      root.classList.remove('light', 'classic');
       root.style.colorScheme = 'dark';
     } else {
-      // Restore user's stored or system preference when navigating to other routes
-      const storedMode = resolveInitialMode();
-      const resolved = resolveMode(storedMode);
-      root.classList.toggle('light', resolved === 'light');
-      root.style.colorScheme = resolved;
+      // Restore active global theme
+      const storedGlobal = resolveInitialGlobalTheme();
+      applyGlobalTheme(storedGlobal);
     }
   }, [pathname]);
 

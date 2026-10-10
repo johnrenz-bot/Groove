@@ -43,6 +43,7 @@ const THEME_INIT_SCRIPT = `
 (function () {
   try {
     var ACCENTS = ['gold', 'ember', 'ocean', 'orchid', 'jade', 'rose'];
+    var THEMES = ['dark', 'light', 'classic', 'halloween', 'christmas'];
     var MODES = ['dark', 'light', 'system'];
     var root = document.documentElement;
 
@@ -53,8 +54,9 @@ const THEME_INIT_SCRIPT = `
       path === '/register/coach' ||
       path === '/register/client';
 
-    // The user's preference, which may be 'system'. Falls back to the legacy
-    // single key so an existing dark/light choice survives the upgrade.
+    var storedGlobal = localStorage.getItem('groove-global-theme');
+    var activeGlobal = THEMES.indexOf(storedGlobal) > -1 ? storedGlobal : null;
+
     var storedMode = localStorage.getItem('groove-theme-mode');
     if (MODES.indexOf(storedMode) === -1) {
       storedMode = localStorage.getItem('groove-theme') === 'light' ? 'light' : 'dark';
@@ -63,21 +65,30 @@ const THEME_INIT_SCRIPT = `
     var theme;
     if (isDarkOnly) {
       theme = 'dark';
+      activeGlobal = activeGlobal === 'halloween' || activeGlobal === 'christmas' ? activeGlobal : 'dark';
+    } else if (activeGlobal) {
+      theme = activeGlobal === 'light' || activeGlobal === 'classic' ? 'light' : 'dark';
     } else if (storedMode === 'system') {
       theme =
         typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-color-scheme: dark)').matches
           ? 'dark'
           : 'light';
+      activeGlobal = theme;
     } else {
       theme = storedMode;
+      activeGlobal = theme;
     }
 
     var storedAccent = localStorage.getItem('groove-accent');
     var accent = ACCENTS.indexOf(storedAccent) > -1 ? storedAccent : 'gold';
 
     root.setAttribute('data-theme-mode', storedMode);
-    root.classList.toggle('light', theme === 'light');
+    root.setAttribute('data-theme', activeGlobal || 'dark');
+    root.classList.toggle('light', activeGlobal === 'light');
+    root.classList.toggle('classic', activeGlobal === 'classic');
+    root.classList.toggle('halloween', activeGlobal === 'halloween');
+    root.classList.toggle('christmas', activeGlobal === 'christmas');
     root.style.colorScheme = theme;
     root.setAttribute('data-accent', accent);
   } catch (e) {

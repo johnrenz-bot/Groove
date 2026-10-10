@@ -60,7 +60,7 @@ export function CoachCard({
   return (
     <article
       className={cn(
-        'group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-white/10 bg-[#0e1217] shadow-lg transition-all duration-500 hover:border-accent/50 hover:shadow-[0_20px_48px_rgba(0,0,0,0.7)] aspect-[3/4] sm:aspect-[4/5] min-h-[480px] w-full',
+        'group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border/80 bg-card shadow-md transition-all duration-500 hover:border-accent/60 hover:shadow-xl aspect-[3/4] sm:aspect-[4/5] min-h-[480px] w-full',
         className
       )}
     >
@@ -73,8 +73,8 @@ export function CoachCard({
           loading="lazy"
         />
       ) : (
-        <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-gradient-to-br from-[#161a22] via-[#0f1318] to-[#0a0c0e]">
-          <span className="flex h-20 w-20 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-2xl font-black uppercase tracking-wider text-accent-text shadow-inner">
+        <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-muted/60">
+          <span className="flex h-20 w-20 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-2xl font-black uppercase tracking-wider text-accent-text shadow-sm">
             {getInitials(coach.firstname, coach.lastname)}
           </span>
         </div>

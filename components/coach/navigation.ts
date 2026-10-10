@@ -32,15 +32,21 @@ export const COACH_NAV: RoleNav = {
     { href: '/coach/talents', label: 'Showcase', icon: Sparkles },
     { href: '/coach/appointments', label: 'Bookings', icon: Calendar },
     { href: '/coach/calendar', label: 'Calendar', icon: CalendarDays },
-    { href: '/users', label: 'Users', icon: Users },
-    { href: '/messages', label: 'Messages', icon: MessageSquare },
   ],
   groups: [
+    {
+      label: 'Community',
+      icon: Users,
+      items: [
+        { href: '/users', label: 'Directory', icon: Users, description: 'Find coaches, clients & collaborators' },
+        { href: '/messages', label: 'Messages', icon: MessageSquare, description: 'Direct messaging with clients' },
+      ],
+    },
     {
       label: 'About',
       icon: Info,
       items: [
-        { href: '/coach/about', label: 'About Groove', icon: Info },
+        { href: '/coach/about', label: 'About Groove', icon: Info, description: 'Platform mission, policies and guides' },
       ],
     },
   ],

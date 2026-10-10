@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import CommunityFeed from '@/features/community/components/CommunityFeed';
 import { communityOf } from '@/features/community/utils/community';
+import { CommunityShowcasePlaylists } from '@/features/music';
 import { Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
@@ -65,10 +66,17 @@ export default function CoachTalentsPage() {
           <div className="g-skeleton h-36 w-full rounded-[22px]" />
         </div>
       ) : (
-        <CommunityFeed
-          currentUser={coachProfile}
-          community={communityOf(coachProfile, myTalent)}
-        />
+        <>
+          <CommunityShowcasePlaylists
+            currentUser={coachProfile}
+            community={communityOf(coachProfile, myTalent)}
+          />
+
+          <CommunityFeed
+            currentUser={coachProfile}
+            community={communityOf(coachProfile, myTalent)}
+          />
+        </>
       )}
     </div>
   );

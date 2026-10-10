@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, X, RotateCcw, Filter, Users, Sparkles } from 'lucide-react';
+import { Search, X, RotateCcw } from 'lucide-react';
 import CommunityFeed from '@/features/community/components/CommunityFeed';
 import { communityOf } from '@/features/community/utils/community';
+import { CommunityShowcasePlaylists } from '@/features/music';
 import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
 import { CoachCard } from '@/components/shared/CoachCard';
@@ -48,9 +49,8 @@ export default function ClientTalentPage() {
   const [selectedCoachForAI, setSelectedCoachForAI] = useState<FullCoach | null>(null);
   const [gateNotice, setGateNotice] = useState(false);
 
-  const fetchCoachesAndProfile = useCallback(async () => {
+  const loadCoachesAndProfile = useCallback(async () => {
     try {
-      setLoading(true);
       const supabase = createClient();
 
       const {
@@ -91,8 +91,8 @@ export default function ClientTalentPage() {
   }, []);
 
   useEffect(() => {
-    fetchCoachesAndProfile();
-  }, [fetchCoachesAndProfile]);
+    void loadCoachesAndProfile();
+  }, [loadCoachesAndProfile]);
 
   // Filter coaches
   const filteredCoaches = coaches.filter((coach) => {
@@ -382,7 +382,7 @@ export default function ClientTalentPage() {
           isOpen={!!selectedCoachForBooking}
           onClose={() => setSelectedCoachForBooking(null)}
           onSuccess={() => {
-            fetchCoachesAndProfile();
+            void loadCoachesAndProfile();
             setSelectedCoachForBooking(null);
           }}
         />
@@ -393,12 +393,14 @@ export default function ClientTalentPage() {
         <CoachAIAssistantModal
           coachContext={{
             id: selectedCoachForAI.id,
-            fullName: `${selectedCoachForAI.firstname} ${selectedCoachForAI.lastname}`,
+            fullName: `${selectedCoachForAI.firstname} ${selectedCoachForAI.lastname}`.trim(),
             talents: selectedCoachForAI.coach_profile?.talents || '',
             genres: selectedCoachForAI.coach_profile?.genres || '',
-            hourlyRate: selectedCoachForAI.coach_profile?.service_fee || 500,
+            serviceFee: selectedCoachForAI.coach_profile?.service_fee || null,
+            duration: selectedCoachForAI.coach_profile?.duration || '',
             bio: selectedCoachForAI.bio || '',
             location: selectedCoachForAI.city_name || 'San Jose del Monte, Bulacan',
+            photoUrl: selectedCoachForAI.photo_url || null,
           }}
           isOpen={!!selectedCoachForAI}
           onClose={() => setSelectedCoachForAI(null)}

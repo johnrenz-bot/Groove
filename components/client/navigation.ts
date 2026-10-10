@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Info,
   Users,
+  Bot,
 } from 'lucide-react';
 import type { RoleNav } from '@/components/shared/navTypes';
 
@@ -30,17 +31,24 @@ export const CLIENT_NAV: RoleNav = {
   primary: [
     { href: '/client/home', label: 'Dashboard', icon: Home },
     { href: '/client/talent', label: 'Find Coaches', icon: Sparkles },
+    { href: '/client/groovey', label: 'Groovey AI', icon: Bot },
     { href: '/client/appointments', label: 'Appointments', icon: Calendar },
     { href: '/client/calendar', label: 'Calendar', icon: CalendarDays },
-    { href: '/users', label: 'Users', icon: Users },
-    { href: '/messages', label: 'Messages', icon: MessageSquare },
   ],
   groups: [
+    {
+      label: 'Community',
+      icon: Users,
+      items: [
+        { href: '/users', label: 'Directory', icon: Users, description: 'Connect with artists, coaches & peers' },
+        { href: '/messages', label: 'Messages', icon: MessageSquare, description: 'Direct messaging and active chats' },
+      ],
+    },
     {
       label: 'About',
       icon: Info,
       items: [
-        { href: '/client/about', label: 'About Groove', icon: Info },
+        { href: '/client/about', label: 'About Groove', icon: Info, description: 'Platform mission, vision and guides' },
       ],
     },
   ],

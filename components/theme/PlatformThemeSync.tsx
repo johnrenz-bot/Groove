@@ -2,27 +2,22 @@
 
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { ACCENTS, setAccent, setThemeMode, type Accent } from './ThemeProvider';
+import {
+  ACCENTS,
+  setAccent,
+  setGlobalTheme,
+  GLOBAL_THEMES,
+  type Accent,
+  type GlobalThemeId,
+} from './ThemeProvider';
 import { isDarkOnlyRoute } from './RouteThemeEnforcer';
 
 /**
  * Applies the platform appearance chosen in the admin console to every
  * interface — admin, coach, client, and the public pages.
  *
- * This is what makes "theme changes apply consistently across Admin, Coach, and
- * Client" true in practice rather than only for the admin's own browser. It sits
- * in the root layout, above every route, so one fetch reaches all of them.
- *
- * Resolution order:
- *   1. If the admin has *not* locked the theme, a user's own stored preference
- *      wins — a personal light/dark choice is not overruled by an admin default.
- *   2. Otherwise the platform default is applied.
- *
- * The accent is platform-wide unconditionally: it is brand identity, not a
- * personal preference, so an admin changing it means everyone sees it.
- *
- * Renders nothing. Silent on failure by design — a missing settings row must not
- * block the app from rendering, and the CSS defaults are already correct.
+ * When an admin activates a theme, this sync immediately updates all open tabs
+ * and pages across all user roles.
  */
 export function PlatformThemeSync() {
   const applied = useRef(false);
@@ -50,35 +45,28 @@ export function PlatformThemeSync() {
           setAccent(accent as Accent);
         }
 
-        // Base theme: platform default unless the admin locked it, in which case
-        // it overrides the user's stored preference.
         const locked = settings.theme_locked === 'true';
 
-        // Read BOTH storage keys, not just the legacy one. `groove-theme` is
-        // written as a side effect of painting a palette, so it is set for
-        // essentially every returning visitor — which made the old check almost
-        // always true and silently skipped the platform default for a brand-new
-        // user who had simply never touched the control. `groove-theme-mode` is
-        // the key that actually records a deliberate choice, so it is the one
-        // that decides whether the user has an opinion worth respecting.
+        // Check platform_theme (e.g. 'classic', 'halloween', 'christmas', 'dark', 'light')
+        const rawPlatformTheme = settings.platform_theme || settings.theme || 'dark';
+        const platformTheme: GlobalThemeId = GLOBAL_THEMES.some((t) => t.id === rawPlatformTheme)
+          ? (rawPlatformTheme as GlobalThemeId)
+          : 'dark';
+
         const hasStoredPreference = (() => {
           try {
             const mode = window.localStorage.getItem('groove-theme-mode');
             if (mode === 'dark' || mode === 'light' || mode === 'system') return true;
-            // No mode key: fall back to the legacy palette key, which is only
-            // meaningful if it was written by the old two-state control.
-            return window.localStorage.getItem('groove-theme') === 'light';
+            return false;
           } catch {
             return false;
           }
         })();
 
         if (locked || !hasStoredPreference) {
-          const platformTheme = settings.theme === 'light' ? 'light' : 'dark';
           const isDarkOnly = typeof window !== 'undefined' && isDarkOnlyRoute(window.location.pathname);
-          // Never force light theme onto dark-only routes
-          if (!isDarkOnly || platformTheme === 'dark') {
-            setThemeMode(platformTheme);
+          if (!isDarkOnly || platformTheme === 'dark' || platformTheme === 'halloween' || platformTheme === 'christmas') {
+            setGlobalTheme(platformTheme);
           }
         }
       } catch {
@@ -88,8 +76,22 @@ export function PlatformThemeSync() {
 
     apply();
 
+    // Listen for realtime theme changes from Supabase system_settings
+    const supabase = createClient();
+    const channel = supabase
+      .channel('theme-system-settings')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'system_settings' },
+        () => {
+          apply();
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, []);
 

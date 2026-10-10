@@ -10,6 +10,9 @@ import { WelcomeModal } from '@/components/shared/WelcomeModal';
 import { LoadingScreen } from '@/components/shared/LoadingScreen';
 import { MaintenanceBanner } from '@/components/shared/MaintenanceBanner';
 
+import { ChatProvider, useOptionalChat, GrooveyFloatingAssistant } from '@/features/groovey';
+import { MusicPlayerProvider, MusicPlayerDock } from '@/features/music';
+
 /**
  * Each portal's own menu, by role.
  *
@@ -73,16 +76,11 @@ export function DashboardLayout({
   showWelcomeModal?: boolean;
   showMaintenanceBanner?: boolean;
 }) {
-  // Each role supplies its own menu and this shell passes it straight through.
-  // The admin console used to be special-cased here with `isAdmin ? ADMIN_NAV…`,
-  // which silently discarded whatever `primary`/`groups` the caller passed —
-  // so the prop was decorative for that role and the two paths could drift.
-  // The role's own nav data is still what renders, just resolved from one place
-  // for all three portals; no route, label, or permission changes.
   const roleNav = navItems || groups ? { primary: navItems ?? [], groups: groups ?? [] } : ROLE_NAV[role];
+  const existingChat = useOptionalChat();
 
-  return (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+  const content = (
+    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground relative">
       <LoadingScreen minDuration={500} />
 
       <AppTopNav
@@ -100,8 +98,18 @@ export function DashboardLayout({
       </main>
 
       {showWelcomeModal && <WelcomeModal role={role} />}
+
+      {/* Persistent Floating GrooveyAI Assistant */}
+      <GrooveyFloatingAssistant />
+
+      {/* Persistent Floating Music Player Dock */}
+      <MusicPlayerDock />
     </div>
   );
+
+  const wrappedWithChat = existingChat ? content : <ChatProvider>{content}</ChatProvider>;
+
+  return <MusicPlayerProvider>{wrappedWithChat}</MusicPlayerProvider>;
 }
 
 export type { DashboardRole };

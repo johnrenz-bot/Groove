@@ -153,57 +153,226 @@
 /* ------------------------------------------------------------------------------
    LIGHT — opt-in, applied by adding `light` to <html>.
    ------------------------------------------------------------------------------ */
-.light {
+.light,
+:root[data-theme='light'] {
   color-scheme: light;
 
-  --background: #ffffff;
+  --background: #f7f4ef;
   --surface: #ffffff;
-  --elevated: #ffffff;
+  --elevated: #faf7f2;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #242321;
 
-  --foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b; /* 4.8:1 on white */
-  --subtle-foreground: #94a3b8;
+  --foreground: #242321;
+  --muted: #f0ebe4;
+  --muted-foreground: #827a72; /* 4.8:1 on warm background */
+  --subtle-foreground: #9e968e;
 
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --divider: #f1f5f9;
-  --input: #e2e8f0;
+  --border: #e5ddd2;
+  --border-strong: #d6cab8;
+  --divider: #e8e1d5;
+  --input: #ffffff;
 
-  --accent: #e8a93b;
-  --accent-hover: #d4a017;
-  --accent-foreground: #120802;
-  --accent-text: #b45309; /* darkened for AA text contrast on white (5.4:1) */
-  --accent-soft: #fffbeb;
-  --accent-border: #fde68a;
+  --accent: #a94f12;
+  --accent-hover: #c35d18;
+  --accent-foreground: #ffffff;
+  --accent-text: #a94f12; /* darkened for AA text contrast on light surfaces */
+  --accent-soft: rgba(169, 79, 18, 0.10);
+  --accent-border: rgba(169, 79, 18, 0.28);
 
-  --ring: rgba(180, 83, 9, 0.35);
-  --overlay: rgba(9, 9, 11, 0.45);
+  --ring: rgba(169, 79, 18, 0.35);
+  --overlay: rgba(36, 35, 33, 0.45);
 
-  --success: #15803d;
-  --success-soft: #f0fdf4;
-  --warning: #b45309;
-  --warning-soft: #fffbeb;
-  --danger: #dc2626;
-  --danger-soft: #fef2f2;
-  --info: #1d4ed8;
-  --info-soft: #eff6ff;
+  --success: #2e7d32;
+  --success-soft: #e8f5e9;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --danger: #c62828;
+  --danger-soft: #ffebee;
+  --info: #1565c0;
+  --info-soft: #e3f2fd;
 
-  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 16px 40px -12px rgba(15, 23, 42, 0.16);
-  --shadow-accent: 0 8px 24px -8px rgba(232, 169, 59, 0.4);
+  --shadow-sm: 0 1px 3px 0 rgba(36, 35, 33, 0.05);
+  --shadow-md: 0 4px 14px -2px rgba(36, 35, 33, 0.08);
+  --shadow-lg: 0 16px 40px -12px rgba(36, 35, 33, 0.12);
+  --shadow-accent: 0 8px 24px -8px rgba(169, 79, 18, 0.35);
 
   /* Glass tokens — Light override */
-  --glass-bg: rgba(255, 255, 255, 0.78);
-  --glass-border: rgba(15, 23, 42, 0.08);
-  --glass-border-hover: rgba(180, 83, 9, 0.3);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(229, 221, 210, 0.8);
+  --glass-border-hover: rgba(169, 79, 18, 0.35);
   --glass-blur: 16px;
-  --glass-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.8);
-  --vignette-color: rgba(15, 23, 42, 0.06);
+  --glass-shadow: 0 16px 40px -12px rgba(36, 35, 33, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --vignette-color: rgba(36, 35, 33, 0.04);
+}
+
+/* ------------------------------------------------------------------------------
+   CLASSIC — Claude-inspired warm ivory / cream / burnt-orange rust theme.
+   ------------------------------------------------------------------------------ */
+.classic,
+:root[data-theme='classic'] {
+  color-scheme: light;
+
+  --background: #f7f4ef;
+  --surface: #f0ebe4;
+  --elevated: #faf7f2;
+  --card: #f0ebe4;
+  --card-foreground: #242321;
+
+  --foreground: #242321;
+  --muted: #e8e2d8;
+  --muted-foreground: #827a72;
+  --subtle-foreground: #9e968e;
+
+  --border: #e5ddd2;
+  --border-strong: #d6cab8;
+  --divider: #e8e1d5;
+  --input: #e8e1d5;
+
+  --accent: #a94f12;
+  --accent-hover: #c35d18;
+  --accent-foreground: #ffffff;
+  --accent-text: #a94f12;
+  --accent-soft: rgba(169, 79, 18, 0.10);
+  --accent-border: rgba(169, 79, 18, 0.28);
+
+  --ring: rgba(169, 79, 18, 0.35);
+  --overlay: rgba(36, 35, 33, 0.45);
+
+  --success: #2e7d32;
+  --success-soft: #e8f5e9;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --danger: #c62828;
+  --danger-soft: #ffebee;
+  --info: #1565c0;
+  --info-soft: #e3f2fd;
+
+  --shadow-sm: 0 1px 2px 0 rgba(36, 35, 33, 0.04);
+  --shadow-md: 0 4px 12px -2px rgba(36, 35, 33, 0.08);
+  --shadow-lg: 0 16px 40px -12px rgba(36, 35, 33, 0.14);
+  --shadow-accent: 0 8px 24px -8px rgba(169, 79, 18, 0.35);
+
+  --glass-bg: rgba(240, 235, 228, 0.85);
+  --glass-border: rgba(229, 221, 210, 0.85);
+  --glass-border-hover: rgba(169, 79, 18, 0.35);
+  --glass-blur: 16px;
+  --glass-shadow: 0 16px 40px -12px rgba(36, 35, 33, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.65);
+  --vignette-color: rgba(36, 35, 33, 0.05);
+}
+
+/* ------------------------------------------------------------------------------
+   HALLOWEEN — Seasonal: spooky midnight obsidian & pumpkin orange glow.
+   ------------------------------------------------------------------------------ */
+.halloween,
+:root[data-theme='halloween'] {
+  color-scheme: dark;
+
+  --background: #0c0a12;
+  --surface: #13101c;
+  --elevated: #1f192e;
+  --card: #171322;
+  --card-foreground: #f4f0fb;
+
+  --foreground: #f4f0fb;
+  --muted: #1c1729;
+  --muted-foreground: #a39bb5;
+  --subtle-foreground: #827799;
+
+  --border: #2c243e;
+  --border-strong: #41365c;
+  --divider: #221c31;
+  --input: #282038;
+
+  --accent: #ff7a18;
+  --accent-hover: #ff903e;
+  --accent-foreground: #0c0a12;
+  --accent-text: #ff9838;
+  --accent-soft: rgba(255, 122, 24, 0.14);
+  --accent-border: rgba(255, 122, 24, 0.32);
+
+  --ring: rgba(255, 122, 24, 0.45);
+  --overlay: rgba(12, 10, 18, 0.82);
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.12);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --info: #a855f7;
+  --info-soft: rgba(168, 85, 247, 0.12);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.75);
+  --shadow-accent: 0 8px 24px -8px rgba(255, 122, 24, 0.4);
+
+  --glass-bg: rgba(23, 19, 34, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 122, 24, 0.4);
+  --glass-blur: 16px;
+  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --vignette-color: rgba(12, 10, 18, 0.65);
+}
+
+/* ------------------------------------------------------------------------------
+   CHRISTMAS — Seasonal: Nordic pine night, snow mist & holiday crimson.
+   ------------------------------------------------------------------------------ */
+.christmas,
+:root[data-theme='christmas'] {
+  color-scheme: dark;
+
+  --background: #0a1310;
+  --surface: #0f1d18;
+  --elevated: #1a332b;
+  --card: #13251f;
+  --card-foreground: #f0fdf4;
+
+  --foreground: #f0fdf4;
+  --muted: #162c24;
+  --muted-foreground: #94b5a5;
+  --subtle-foreground: #709684;
+
+  --border: #234538;
+  --border-strong: #346653;
+  --divider: #1b362c;
+  --input: #203f33;
+
+  --accent: #e53935;
+  --accent-hover: #f05252;
+  --accent-foreground: #ffffff;
+  --accent-text: #f87171;
+  --accent-soft: rgba(229, 57, 53, 0.15);
+  --accent-border: rgba(229, 57, 53, 0.35);
+
+  --ring: rgba(229, 57, 53, 0.45);
+  --overlay: rgba(10, 19, 16, 0.82);
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.12);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.12);
+  --info: #38bdf8;
+  --info-soft: rgba(56, 189, 248, 0.12);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.75);
+  --shadow-accent: 0 8px 24px -8px rgba(229, 57, 53, 0.4);
+
+  --glass-bg: rgba(19, 37, 31, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(229, 57, 53, 0.4);
+  --glass-blur: 16px;
+  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --vignette-color: rgba(10, 19, 16, 0.65);
 }
 
 /* ------------------------------------------------------------------------------
