@@ -147,6 +147,8 @@ export interface AppTopNavProps {
   portalLabel?: string;
   /** Where the brand logo links to. Defaults to the role's dashboard. */
   homeHref?: string;
+  /** When true, hides the 'Groove' wordmark — show the mark icon only. */
+  logoOnly?: boolean;
   /** Pre-resolved identity, when the parent layout already has it. */
   user?: Profile | null;
 }
@@ -251,6 +253,7 @@ export function AppTopNav({
   groups: groupsProp = [],
   portalLabel,
   homeHref,
+  logoOnly = false,
   user: propUser,
 }: AppTopNavProps) {
   const router = useRouter();
@@ -582,10 +585,12 @@ export function AppTopNav({
                 className="h-[22px] w-[22px] object-contain"
               />
             </span>
-            <span className="g-header-wordmark">
-              <span className="g-header-name">Groove</span>
-              {portalLabel && <span className="g-header-role">{portalLabel}</span>}
-            </span>
+            {!logoOnly && (
+              <span className="g-header-wordmark">
+                <span className="g-header-name">Groove</span>
+                {portalLabel && <span className="g-header-role">{portalLabel}</span>}
+              </span>
+            )}
           </Link>
         </div>
 

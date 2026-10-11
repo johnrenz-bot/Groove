@@ -89,6 +89,7 @@ export function DashboardLayout({
         groups={roleNav.groups}
         portalLabel={portalLabel ?? ROLE_PORTAL_LABEL[role]}
         homeHref={homeHref ?? ROLE_HOME[role]}
+        logoOnly={role !== 'admin'}
       />
 
       {showMaintenanceBanner && <MaintenanceBanner />}
