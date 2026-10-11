@@ -68,6 +68,35 @@ export function BadgeModal({
       })
     : null;
 
+  const footerContent = (
+    <>
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={onShare}
+        className="w-full sm:w-auto"
+      >
+        Share Achievement
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onDownload}
+        className="w-full sm:w-auto"
+      >
+        Save Badge
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClose}
+        className="w-full sm:w-auto"
+      >
+        Close
+      </Button>
+    </>
+  );
+
   return (
     <Modal
       open={isOpen}
@@ -75,12 +104,14 @@ export function BadgeModal({
       title={badgeType}
       size="md"
       showClose={false}
+      footer={footerContent}
     >
       {/*
         The Modal component already renders a header with the title and
         role="dialog" aria-modal="true". We use its `title` prop for the
-        accessible label. Below we render only the body + sticky footer
-        inside the scrollable region the Modal provides.
+        accessible label. Below we render only the body content; the sticky
+        footer is passed via the Modal's `footer` prop so it remains visible
+        without scrolling when the task list is long.
       */}
 
       {/* ── Extra header row: "Badge Earned" pill + close button ── */}
@@ -219,37 +250,6 @@ export function BadgeModal({
           </ul>
         </div>
       )}
-
-      {/* ── Footer actions ── rendered via Modal's footer prop indirectly;
-          since Modal scrolls children and has its own footer slot, we render
-          the footer inline here and rely on the scrollable body showing it.
-          To make it sticky we use Modal's `footer` prop pattern via JSX below. */}
-      <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-divider pt-4">
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={onShare}
-          className="w-full sm:w-auto"
-        >
-          Share Achievement
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onDownload}
-          className="w-full sm:w-auto"
-        >
-          Save Badge
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="w-full sm:w-auto"
-        >
-          Close
-        </Button>
-      </div>
     </Modal>
   );
 }
