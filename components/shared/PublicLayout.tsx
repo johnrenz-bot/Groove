@@ -16,6 +16,8 @@ export interface PublicNavLink {
 export const DEFAULT_PUBLIC_LINKS: PublicNavLink[] = [
   { label: 'Talents', href: '/#talent' },
   { label: 'Studios', href: '/#studios' },
+  { label: 'Performers', href: '/#performers' },
+  { label: 'Coaches', href: '/#coaches' },
   { label: 'About', href: '/#about' },
   { label: 'Services', href: '/#services' },
 ];
@@ -63,7 +65,7 @@ export function PublicNavbar({
     syncHash();
     window.addEventListener('hashchange', syncHash);
 
-    const sectionIds = ['talent', 'studios', 'about', 'services'];
+    const sectionIds = ['talent', 'studios', 'performers', 'coaches', 'about', 'services'];
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {

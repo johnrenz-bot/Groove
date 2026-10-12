@@ -22,6 +22,9 @@ import {
   ClipboardCheck,
   PenLine,
   ArrowDown,
+  Calendar,
+  CalendarDays,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -175,6 +178,96 @@ const STEPS = [
     description:
       'Confirm the agreement with a digital signature, coordinate in the studio, and grow your craft with the community.',
     icon: <ClipboardCheck className="h-5 w-5" />,
+  },
+];
+
+const PERFORMER_FEATURES = [
+  {
+    icon: <Sparkles className="h-5 w-5" />,
+    title: 'Browse Coaches',
+    description:
+      'Discover verified coaches by discipline, compare their rates and reviews, and book the right mentor for your craft.',
+    href: '/client/talent',
+  },
+  {
+    icon: <CalendarDays className="h-5 w-5" />,
+    title: 'Book Appointments',
+    description:
+      'Request rehearsal sessions, confirm agreements with a digital signature, and track every booking in one place.',
+    href: '/client/appointments',
+  },
+  {
+    icon: <Calendar className="h-5 w-5" />,
+    title: 'Manage Calendar',
+    description:
+      'Organize your rehearsal schedule, view upcoming sessions at a glance, and never miss an important practice date.',
+    href: '/client/calendar',
+  },
+  {
+    icon: <Bot className="h-5 w-5" />,
+    title: 'AI Chat Assistant (Groovey)',
+    description:
+      'Get instant answers about bookings, coach bios, pricing, and platform policies from Groovey AI — available 24/7.',
+    href: '/client/groovey',
+  },
+  {
+    icon: <MessageSquare className="h-5 w-5" />,
+    title: 'Direct Messages',
+    description:
+      'Message coaches directly to clarify session details, discuss rates, and coordinate rehearsal logistics in real time.',
+    href: '/messages',
+  },
+  {
+    icon: <MapPin className="h-5 w-5" />,
+    title: 'Studio Locator',
+    description:
+      'Find rehearsal spaces and performing arts venues near San Jose del Monte, Bulacan — curated and community listings.',
+    href: '/#studios',
+  },
+];
+
+const COACH_FEATURES = [
+  {
+    icon: <Sparkles className="h-5 w-5" />,
+    title: 'Showcase Feed',
+    description:
+      'Browse performer talent posts from local artists, discover emerging students, and find the right fit for your coaching style.',
+    href: '/coach/talents',
+  },
+  {
+    icon: <CalendarDays className="h-5 w-5" />,
+    title: 'Manage Appointments',
+    description:
+      'Review incoming session requests, confirm or reschedule bookings, and maintain a clear record of all your engagements.',
+    href: '/coach/appointments',
+  },
+  {
+    icon: <Calendar className="h-5 w-5" />,
+    title: 'Session Calendar',
+    description:
+      'Track your full teaching schedule in one visual calendar, so you always know what is coming up and can plan ahead.',
+    href: '/coach/calendar',
+  },
+  {
+    icon: <MessageSquare className="h-5 w-5" />,
+    title: 'Direct Messages',
+    description:
+      'Communicate with performers directly to clarify expectations, share rehearsal notes, and coordinate session details.',
+    href: '/messages',
+  },
+  {
+    icon: <MapPin className="h-5 w-5" />,
+    title: 'Studio Locator',
+    description:
+      'Find nearby rehearsal spaces and performing arts venues around San Jose del Monte for your coaching sessions.',
+    href: '/#studios',
+  },
+  {
+    icon: <HelpCircle className="h-5 w-5" />,
+    title: 'Support Tickets',
+    description:
+      'Submit issues or inquiries directly to the Groove admin team for fast, professional assistance with any platform concern.',
+    href: '#',
   },
 ];
 
@@ -523,6 +616,12 @@ export default function WelcomePage() {
         </div>
       </section>
 
+      {/* ══════════════ PERFORMERS ══════════════ */}
+      <PerformersSection />
+
+      {/* ══════════════ COACHES ══════════════ */}
+      <CoachesSection />
+
       {/* ══════════════ CTA ══════════════ */}
       <section className="g-section-alt g-section">
         <div className="g-container">
@@ -534,6 +633,63 @@ export default function WelcomePage() {
             >
               <div className="h-[280px] w-[500px] rounded-full bg-accent/20 blur-[90px]" />
             </div>
+
+            {/* Filipino-inspired decorative SVG — aria-hidden, pointer-events-none, no animation */}
+            {/* prefers-reduced-motion: satisfied by construction — no transitions or animations are applied */}
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              className="pointer-events-none absolute inset-0 h-full w-full"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="xMidYMid slice"
+              viewBox="0 0 800 400"
+            >
+              {/* Philippine sun: 16 thin rays radiating from center */}
+              <g transform="translate(400,200)" fill="#FCD116" opacity="0.04">
+                {Array.from({ length: 16 }).map((_, i) => {
+                  const angle = (i * 360) / 16;
+                  const rad = (angle * Math.PI) / 180;
+                  const x2 = Math.cos(rad) * 220;
+                  const y2 = Math.sin(rad) * 220;
+                  return (
+                    <line
+                      key={i}
+                      x1="0"
+                      y1="0"
+                      x2={x2}
+                      y2={y2}
+                      stroke="#FCD116"
+                      strokeWidth="2"
+                    />
+                  );
+                })}
+              </g>
+              {/* Three five-pointed stars scattered in the upper area */}
+              {/* Star 1 — upper left */}
+              <polygon
+                points="120,60 124,72 137,72 127,80 131,92 120,84 109,92 113,80 103,72 116,72"
+                fill="#FCD116"
+                opacity="0.05"
+              />
+              {/* Star 2 — upper center-right */}
+              <polygon
+                points="560,50 564,62 577,62 567,70 571,82 560,74 549,82 553,70 543,62 556,62"
+                fill="#FCD116"
+                opacity="0.05"
+              />
+              {/* Star 3 — upper right */}
+              <polygon
+                points="700,80 704,92 717,92 707,100 711,112 700,104 689,112 693,100 683,92 696,92"
+                fill="#FCD116"
+                opacity="0.05"
+              />
+              {/* Subtle chevron / wave band at the bottom — Philippine blue accent */}
+              <path
+                d="M0,340 Q200,310 400,340 Q600,370 800,340 L800,400 L0,400 Z"
+                fill="#0038A8"
+                opacity="0.06"
+              />
+            </svg>
             <div className="relative mx-auto max-w-xl space-y-5">
               <span className="g-eyebrow">
                 <PenLine className="h-3 w-3" aria-hidden="true" />
@@ -676,5 +832,115 @@ function PublicLayoutFooterExtra() {
         <ArrowUp className="h-4 w-4" />
       </button>
     </div>
+  );
+}
+
+/** 'For Performers' landing section — showcases confirmed client features. */
+function PerformersSection() {
+  return (
+    <section id="performers" className="g-section">
+      <div className="g-container">
+        {/* Custom centered eyebrow with Philippine blue left-border accent */}
+        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+          <span
+            className="g-eyebrow border-l-[3px] pl-2"
+            style={{ borderLeftColor: '#0038A8' }}
+          >
+            For Performers
+          </span>
+        </div>
+        <SectionHeader
+          title="Your stage, your terms"
+          subtext="Everything a performer needs — find verified coaches, book rehearsals, and manage your artistic journey in one place."
+        />
+
+        <Reveal className="g-reveal-stagger mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {PERFORMER_FEATURES.map((feature) => (
+            <div
+              key={feature.title}
+              className="g-card g-card-hover group flex flex-col gap-4 p-6 sm:p-7"
+            >
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
+              >
+                {feature.icon}
+              </span>
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold tracking-[-0.01em] text-foreground">
+                  {feature.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </Reveal>
+
+        <div className="mt-10 flex justify-center">
+          <Link href="/register/client">
+            <Button size="lg" trailingIcon={<ArrowRight className="h-4 w-4" />}>
+              Join as Performer
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** 'For Coaches' landing section — showcases confirmed coach features. */
+function CoachesSection() {
+  return (
+    <section id="coaches" className="g-section-alt g-section">
+      <div className="g-container">
+        {/* Custom centered eyebrow with Philippine red left-border accent */}
+        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+          <span
+            className="g-eyebrow border-l-[3px] pl-2"
+            style={{ borderLeftColor: '#CE1126' }}
+          >
+            For Coaches
+          </span>
+        </div>
+        <SectionHeader
+          title="Grow your coaching practice"
+          subtext="Tools built for instructors — manage your schedule, connect with local talent, and build a reputation in the SJDM performing arts scene."
+        />
+
+        <Reveal className="g-reveal-stagger mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {COACH_FEATURES.map((feature) => (
+            <div
+              key={feature.title}
+              className="g-card g-card-hover group flex flex-col gap-4 p-6 sm:p-7"
+            >
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
+              >
+                {feature.icon}
+              </span>
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold tracking-[-0.01em] text-foreground">
+                  {feature.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </Reveal>
+
+        <div className="mt-10 flex justify-center">
+          <Link href="/register/coach">
+            <Button size="lg" trailingIcon={<ArrowRight className="h-4 w-4" />}>
+              Join as Coach
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
