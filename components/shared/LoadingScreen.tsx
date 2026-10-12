@@ -99,7 +99,7 @@ export function LoadingScreen({
         {/* Prominent centered logo */}
         <div className="relative g-loading-logo transition-transform duration-300">
           <Image
-            src="/image/wc/logo.png"
+            src="/image/Logo/GroovePH-Logo.png"
             alt="Groove"
             width={160}
             height={50}

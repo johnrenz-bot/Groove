@@ -117,7 +117,7 @@ export function PublicNavbar({
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 transition-transform hover:scale-[1.02]" aria-label="Groove home">
             <Image
-              src="/image/wc/logo.png"
+              src="/image/Logo/GroovePH-Logo.png"
               alt="Groove"
               width={104}
               height={32}
@@ -206,7 +206,7 @@ export function PublicNavbar({
               <div className="flex items-center justify-between border-b border-divider pb-5">
                 <Link href="/" onClick={() => setMobileOpen(false)} aria-label="Groove home">
                   <Image
-                    src="/image/wc/logo.png"
+                    src="/image/Logo/GroovePH-Logo.png"
                     alt="Groove"
                     width={96}
                     height={30}

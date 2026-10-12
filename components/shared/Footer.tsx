@@ -28,7 +28,7 @@ export function Footer({
         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-3">
             <Image
-              src="/image/wc/logo.png"
+              src="/image/Logo/GroovePH-Logo.png"
               alt="Groove"
               width={96}
               height={32}

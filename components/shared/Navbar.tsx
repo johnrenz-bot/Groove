@@ -41,7 +41,7 @@ export function AppHeader({
           <Link href={meta.path} className="g-header-logo" aria-label="Groove dashboard">
             <span className="g-header-mark">
               <Image
-                src="/image/wc/logo.png"
+                src="/image/Logo/GroovePH-Logo.png"
                 alt=""
                 width={22}
                 height={22}

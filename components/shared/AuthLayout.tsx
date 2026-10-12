@@ -44,7 +44,7 @@ export function AuthLayout({
       aria-label="Groove home"
     >
       <Image
-        src="/image/wc/logo.png"
+        src="/image/Logo/GroovePH-Logo.png"
         alt="Groove"
         width={104}
         height={32}

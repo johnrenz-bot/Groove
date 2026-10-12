@@ -578,7 +578,7 @@ export function AppTopNav({
           <Link href={brandHref} className="g-header-logo" aria-label={`Groove — ${portalLabel ?? meta.label}`}>
             <span className="g-header-mark">
               <Image
-                src="/image/wc/logo.png"
+                src="/image/Logo/GroovePH-Logo.png"
                 alt=""
                 width={22}
                 height={22}
