@@ -79,6 +79,12 @@
 
   --radius: 16px;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Philippine flag accent palette — used exclusively for decorative SVG/border
+     elements on the landing page. Never override semantic tokens with these. */
+  --ph-blue: #0038A8;
+  --ph-red: #CE1126;
+  --ph-yellow: #FCD116;
 }
 
 /* ------------------------------------------------------------------------------
@@ -973,6 +979,45 @@ textarea {
 }
 .zoom-in-95 {
   animation-name: g-enter-scale;
+}
+
+/* ------------------------------------------------------------------------------
+   WelcomeModal animations  (wm- prefix to avoid naming collisions)
+   ------------------------------------------------------------------------------ */
+
+/* Amber spotlight breathes gently behind the logo */
+@keyframes wm-spotlight-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.8; }
+}
+
+/* Logo enters with a slight overshoot */
+@keyframes wm-logo-pop {
+  0%   { opacity: 0; transform: scale(0) translateY(8px); }
+  80%  { opacity: 1; transform: scale(1.06) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Body text fades up into position */
+@keyframes wm-text-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Equalizer bar piston — scaleY oscillates around the center */
+@keyframes wm-eq-rise {
+  0%, 100% { transform: scaleY(0.15); }
+  50%       { transform: scaleY(1); }
+}
+
+/* Disable every wm-* animation for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .wm-reduced *,
+  .wm-reduced *::before,
+  .wm-reduced *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* ------------------------------------------------------------------------------

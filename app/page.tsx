@@ -267,7 +267,7 @@ const COACH_FEATURES = [
     title: 'Support Tickets',
     description:
       'Submit issues or inquiries directly to the Groove admin team for fast, professional assistance with any platform concern.',
-    href: '#',
+    href: '/coach/home',
   },
 ];
 
@@ -844,7 +844,7 @@ function PerformersSection() {
         <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
           <span
             className="g-eyebrow border-l-[3px] pl-2"
-            style={{ borderLeftColor: '#0038A8' }}
+            style={{ borderLeftColor: 'var(--ph-blue)' }}
           >
             For Performers
           </span>
@@ -856,25 +856,24 @@ function PerformersSection() {
 
         <Reveal className="g-reveal-stagger mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {PERFORMER_FEATURES.map((feature) => (
-            <div
-              key={feature.title}
-              className="g-card g-card-hover group flex flex-col gap-4 p-6 sm:p-7"
-            >
-              <span
-                aria-hidden="true"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
-              >
-                {feature.icon}
-              </span>
-              <div className="space-y-1.5">
-                <h3 className="text-base font-bold tracking-[-0.01em] text-foreground">
-                  {feature.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {feature.description}
-                </p>
+            <Link key={feature.title} href={feature.href} className="group">
+              <div className="g-card g-card-hover flex h-full flex-col gap-4 p-6 sm:p-7">
+                <span
+                  aria-hidden="true"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
+                >
+                  {feature.icon}
+                </span>
+                <div className="space-y-1.5">
+                  <h3 className="text-base font-bold tracking-[-0.01em] text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </Reveal>
 
@@ -899,7 +898,7 @@ function CoachesSection() {
         <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
           <span
             className="g-eyebrow border-l-[3px] pl-2"
-            style={{ borderLeftColor: '#CE1126' }}
+            style={{ borderLeftColor: 'var(--ph-red)' }}
           >
             For Coaches
           </span>
@@ -911,25 +910,24 @@ function CoachesSection() {
 
         <Reveal className="g-reveal-stagger mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {COACH_FEATURES.map((feature) => (
-            <div
-              key={feature.title}
-              className="g-card g-card-hover group flex flex-col gap-4 p-6 sm:p-7"
-            >
-              <span
-                aria-hidden="true"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
-              >
-                {feature.icon}
-              </span>
-              <div className="space-y-1.5">
-                <h3 className="text-base font-bold tracking-[-0.01em] text-foreground">
-                  {feature.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {feature.description}
-                </p>
+            <Link key={feature.title} href={feature.href} className="group">
+              <div className="g-card g-card-hover flex h-full flex-col gap-4 p-6 sm:p-7">
+                <span
+                  aria-hidden="true"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
+                >
+                  {feature.icon}
+                </span>
+                <div className="space-y-1.5">
+                  <h3 className="text-base font-bold tracking-[-0.01em] text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </Reveal>
 
