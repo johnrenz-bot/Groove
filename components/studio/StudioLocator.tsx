@@ -257,7 +257,7 @@ export function StudioLocator({
   );
 
   return (
-    <Card padding={padding} id={id} className={className}>
+    <Card padding={padding} id={id} className={`overflow-hidden${className ? ` ${className}` : ''}`}>
       <CardHeader icon={<MapPin className="h-4 w-4" />} title={title} subtitle={subtitle} />
 
       {/* Controls. Above the map, inside the same card, so the section keeps the

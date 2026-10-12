@@ -458,18 +458,19 @@ export default function CoachHomePage() {
       {/* Main 3-col grid */}
       <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
         {/* 2-col main */}
-        <div className="space-y-4 sm:space-y-5 lg:col-span-2">
+        <div className="min-w-0 space-y-4 sm:space-y-5 lg:col-span-2">
           <UpcomingSessionsWidget
             appointments={appointments}
             perspective="coach"
             viewAllHref="/coach/appointments"
+            className="lg:h-full"
           />
           <BadgeMiniWidget userId={coach.id} role="coach" />
           <SupportCallout onSubmitTicket={() => setShowTicket(true)} />
         </div>
 
         {/* Sidebar */}
-        <aside className="space-y-4 sm:space-y-5">
+        <aside className="min-w-0 space-y-4 sm:space-y-5">
           <MiniCalendar />
 
           {/* Students card */}
@@ -512,7 +513,6 @@ export default function CoachHomePage() {
       <StudioLocator
         title="Rehearsal Studios Directory"
         subtitle="Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results"
-        padding="none"
       />
 
       {selectedUser && <ProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}

@@ -8,6 +8,7 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { formatDate } from '@/lib/utils';
+import { cn } from '@/components/shared/cn';
 import type { BadgeVariant } from '@/components/ui/Badge';
 
 export interface UpcomingSessionsWidgetProps {
@@ -15,6 +16,7 @@ export interface UpcomingSessionsWidgetProps {
   loading?: boolean;
   viewAllHref: string;
   perspective: 'client' | 'coach';
+  className?: string;
 }
 
 function statusVariant(status: string): BadgeVariant {
@@ -29,9 +31,10 @@ export function UpcomingSessionsWidget({
   loading = false,
   viewAllHref,
   perspective,
+  className,
 }: UpcomingSessionsWidgetProps) {
   return (
-    <Card padding="md" className="h-full">
+    <Card padding="md" className={cn('h-full', className)}>
       <CardHeader
         icon={<Calendar className="h-4 w-4" />}
         title="Upcoming Sessions"

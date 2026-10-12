@@ -264,7 +264,7 @@ export default function ClientHomePage() {
 
         {/* Main grid */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
-          <div className="space-y-5 lg:col-span-2 lg:space-y-6">
+          <div className="min-w-0 space-y-5 lg:col-span-2 lg:space-y-6">
             <CoachAvatarRow coaches={recommendedCoaches} viewAllHref="/client/talent" />
             <BadgeMiniWidget userId={user.id} role="client" />
             <SupportCallout onSubmitTicket={() => setShowTicketModal(true)} />
@@ -273,6 +273,7 @@ export default function ClientHomePage() {
             appointments={upcomingAppointments}
             perspective="client"
             viewAllHref="/client/appointments"
+            className="min-w-0 lg:h-full"
           />
         </div>
 
