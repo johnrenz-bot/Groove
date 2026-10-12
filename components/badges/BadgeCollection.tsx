@@ -38,6 +38,14 @@ export interface BadgeCollectionSectionProps {
   loading?: boolean;
   className?: string;
   onRefresh?: () => Promise<void>;
+  /**
+   * When true the inner `<header>` block (title, description, refresh button)
+   * is suppressed. Use this when the parent card already renders its own
+   * `CardHeader` — e.g. `BadgeMiniWidget` on the coach/client dashboard — to
+   * avoid double-header visual overlap. The `handleRefresh` function is still
+   * active; the parent can surface it via its own action slot.
+   */
+  hideHeader?: boolean;
 }
 
 /**
@@ -53,6 +61,7 @@ export function BadgeCollection({
   loading = false,
   className,
   onRefresh,
+  hideHeader = false,
 }: BadgeCollectionSectionProps) {
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
@@ -154,29 +163,31 @@ export function BadgeCollection({
 
   return (
     <section className={cn('space-y-4', className)} aria-labelledby="badge-collection-heading">
-      {/* Section header */}
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <h2
-            id="badge-collection-heading"
-            className="text-lg font-semibold text-foreground"
+      {/* Section header — hidden when a parent card already provides one */}
+      {!hideHeader && (
+        <header className="flex items-center justify-between gap-3">
+          <div>
+            <h2
+              id="badge-collection-heading"
+              className="text-lg font-semibold text-foreground"
+            >
+              Badge Collection
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Complete tasks to earn badges and showcase your achievements
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => void handleRefresh()}
+            disabled={refreshing || loading}
+            aria-label="Refresh badges"
           >
-            Badge Collection
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Complete tasks to earn badges and showcase your achievements
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => void handleRefresh()}
-          disabled={refreshing || loading}
-          aria-label="Refresh badges"
-        >
-          <RefreshCw className={cn('h-4 w-4', (refreshing || loading) && 'animate-spin')} />
-        </Button>
-      </header>
+            <RefreshCw className={cn('h-4 w-4', (refreshing || loading) && 'animate-spin')} />
+          </Button>
+        </header>
+      )}
 
       {/* Badge grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

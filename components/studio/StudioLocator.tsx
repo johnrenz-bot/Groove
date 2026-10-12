@@ -262,7 +262,7 @@ export function StudioLocator({
 
       {/* Controls. Above the map, inside the same card, so the section keeps the
           shape it had as a plain map panel. */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-3 mt-1 flex flex-wrap items-center gap-2 gap-y-2">
         {/* Radius */}
         <div
           className="flex items-center gap-1 rounded-full border border-border bg-muted p-1"
@@ -310,7 +310,7 @@ export function StudioLocator({
           My Location
         </Button>
 
-        <p className="ml-auto text-xs text-muted-foreground" aria-live="polite">
+        <p className="ml-auto w-full text-xs text-muted-foreground sm:w-auto" aria-live="polite">
           Centre: <span className="font-semibold text-foreground">{centerLabel}</span> ·{' '}
           {nearby.length} within {radiusKm} km
         </p>
@@ -322,7 +322,7 @@ export function StudioLocator({
         </p>
       )}
 
-      <div className="relative aspect-[21/9] overflow-hidden rounded-2xl border border-border">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border sm:aspect-[16/9] lg:aspect-[21/9]">
         {/* Always mounted. An earlier version gated this on an `onReady` flag,
             which is a deadlock: the flag is only set by the map this condition
             decides whether to render. */}
@@ -459,7 +459,7 @@ export function StudioLocator({
           the Leaflet attribution control, which can be collapsed. The curated
           and community rows are also labelled individually in the list. */}
       {!loading && !loadError && (
-        <p className="mt-3 text-[11px] text-subtle-foreground">
+        <p className="mt-4 border-t border-divider pt-3 text-[11px] text-subtle-foreground">
           Studio details from curated listings (coordinates from the Groove PH
           Google Maps reference) and{' '}
           <a
