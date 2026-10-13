@@ -8,7 +8,6 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { formatDate } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
 import type { BadgeVariant } from '@/components/ui/Badge';
 
 export interface UpcomingSessionsWidgetProps {
@@ -16,6 +15,17 @@ export interface UpcomingSessionsWidgetProps {
   loading?: boolean;
   viewAllHref: string;
   perspective: 'client' | 'coach';
+  /**
+   * Height is the caller's decision.
+   *
+   * This card used to hard-code `h-full`, which is unsafe inside a grid: a grid
+   * item is stretched to its row, so `h-full` resolved against the *row* height
+   * instead of collapsing to the card's own content. That grew the card past the
+   * bottom of its grid cell, and the siblings below it (Badge Progress, Support
+   * Callout) were pushed outside the grid box — where the next sibling in the
+   * page painted straight over them. Callers that genuinely want an equal-height
+   * row (the client dashboard's sidebar card) still pass `lg:h-full` explicitly.
+   */
   className?: string;
 }
 
@@ -34,7 +44,7 @@ export function UpcomingSessionsWidget({
   className,
 }: UpcomingSessionsWidgetProps) {
   return (
-    <Card padding="md" className={cn('h-full', className)}>
+    <Card padding="md" className={className}>
       <CardHeader
         icon={<Calendar className="h-4 w-4" />}
         title="Upcoming Sessions"

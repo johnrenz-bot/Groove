@@ -4,8 +4,6 @@ import React, { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { AddressSelector, AddressData } from '@/components/auth/AddressSelector';
 import {
-  Eye,
-  EyeOff,
   UploadCloud,
   Mail,
   AtSign,
@@ -22,7 +20,6 @@ import {
 } from 'lucide-react';
 import {
   PasswordInput,
-  PasswordRequirements,
   PASSWORD_REQUIREMENTS,
 } from '@/components/ui/FormField';
 import { FormError } from '@/components/ui/FormError';
@@ -142,10 +139,12 @@ function FieldLabel({
 
 /** Form Section Header with numbered icon container and descriptive subtext. */
 function FormSectionHeader({
+  id,
   icon: Icon,
   title,
   description,
 }: {
+  id: string;
   icon: React.ElementType;
   title: string;
   description?: string;
@@ -156,12 +155,35 @@ function FormSectionHeader({
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
       <div>
-        <h3 className="text-sm sm:text-base font-bold text-foreground">{title}</h3>
+        <h3 id={id} className="text-sm sm:text-base font-bold text-foreground">
+          {title}
+        </h3>
         {description && (
           <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{description}</p>
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Every fieldset names itself through its section heading. Without this a
+ * screen reader announces the inputs as an unlabelled group, and the numbered
+ * sections lose their meaning.
+ */
+function SectionFieldset({
+  id,
+  className = '',
+  children,
+}: {
+  id: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <fieldset className={className} aria-labelledby={id}>
+      {children}
+    </fieldset>
   );
 }
 
@@ -218,6 +240,7 @@ export function RegistrationFormFields({
     barangay_code: '',
     barangay_name: '',
     street: '',
+    subdivision: '',
     postal_code: '',
     address_summary: '',
   });
@@ -227,6 +250,10 @@ export function RegistrationFormFields({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  /* The file input is visually hidden under its own card, so it has no
+     browser-drawn focus ring. Track it and paint the ring on the card instead,
+     otherwise keyboard users cannot see where they are. */
+  const [fileInputFocused, setFileInputFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const errorBannerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -395,8 +422,9 @@ export function RegistrationFormFields({
     const firstKey = order.find((k) => errs[k]);
 
     if (firstKey === 'barangay' || firstKey === 'street') {
-      document.getElementById(firstKey === 'barangay' ? 'reg-region-city' : 'reg-street')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const target = document.getElementById(firstKey === 'barangay' ? 'reg-barangay' : 'reg-street');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (target instanceof HTMLElement) target.focus({ preventScroll: true });
       return;
     }
 
@@ -468,9 +496,23 @@ export function RegistrationFormFields({
         <FormError message={displayError} />
       </div>
 
+      {/* Tells the user up front which fields are mandatory, so the asterisks
+          below do not have to be decoded one at a time. */}
+      <p className="-mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <span aria-hidden="true" className="text-accent-text">
+          *
+        </span>
+        <span>Required field</span>
+        <span aria-hidden="true" className="text-subtle-foreground">
+          &mdash;
+        </span>
+        <span>Everything else is optional.</span>
+      </p>
+
       {/* ── Section 1: Personal Information ── */}
-      <fieldset className="space-y-6">
+      <SectionFieldset id="reg-legend-personal" className="space-y-6">
         <FormSectionHeader
+          id="reg-legend-personal"
           icon={User}
           title="1. Personal Information"
           description="Enter your legal name and date of birth for account identity."
@@ -561,11 +603,15 @@ export function RegistrationFormFields({
             aria-labelledby="reg-dob-label"
           >
             <select
+              id="reg-birth-year"
+              name="birth_year"
               aria-label="Birth year"
+              aria-invalid={err('birth') ? 'true' : undefined}
+              aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
               value={personal.birth_year}
               onChange={(e) => setPersonal({ ...personal, birth_year: e.target.value, birth_day: '' })}
               required
-              className={selectClasses}
+              className={`${selectClasses} ${err('birth') ? 'border-danger' : ''}`}
             >
               <option value="">Year</option>
               {BIRTH_YEARS.map((y) => (
@@ -574,11 +620,15 @@ export function RegistrationFormFields({
             </select>
 
             <select
+              id="reg-birth-month"
+              name="birth_month"
               aria-label="Birth month"
+              aria-invalid={err('birth') ? 'true' : undefined}
+              aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
               value={personal.birth_month}
               onChange={(e) => setPersonal({ ...personal, birth_month: e.target.value, birth_day: '' })}
               required
-              className={selectClasses}
+              className={`${selectClasses} ${err('birth') ? 'border-danger' : ''}`}
             >
               <option value="">Month</option>
               {MONTHS.map((m, i) => (
@@ -587,11 +637,14 @@ export function RegistrationFormFields({
             </select>
 
             <select
+              id="reg-birth-day"
+              name="birth_day"
               aria-label="Birth day"
               value={personal.birth_day}
               onChange={(e) => setPersonal({ ...personal, birth_day: e.target.value })}
               required
               aria-invalid={err('birth') ? 'true' : undefined}
+              aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
               className={`${selectClasses} ${err('birth') ? 'border-danger' : ''}`}
             >
               <option value="">Day</option>
@@ -600,13 +653,14 @@ export function RegistrationFormFields({
               ))}
             </select>
           </div>
-          <InlineError message={err('birth')} />
+          <InlineError id="reg-birth-error" message={err('birth')} />
         </div>
-      </fieldset>
+      </SectionFieldset>
 
       {/* ── Section 2: Philippine Address ── */}
-      <fieldset className="space-y-4 border-t border-border pt-8">
+      <SectionFieldset id="reg-legend-address" className="space-y-4 border-t border-border pt-8">
         <FormSectionHeader
+          id="reg-legend-address"
           icon={MapPin}
           title="2. Service Location (San Jose del Monte, Bulacan)"
           description="Verified local coverage within San Jose del Monte city limits."
@@ -620,11 +674,12 @@ export function RegistrationFormFields({
             street: fieldErrors.street,
           }}
         />
-      </fieldset>
+      </SectionFieldset>
 
       {/* ── Section 3: Contact & Account ── */}
-      <fieldset className="space-y-5 border-t border-border pt-8">
+      <SectionFieldset id="reg-legend-contact" className="space-y-5 border-t border-border pt-8">
         <FormSectionHeader
+          id="reg-legend-contact"
           icon={Phone}
           title="3. Contact &amp; Account Details"
           description="Your credentials for secure authentication and booking notifications."
@@ -780,21 +835,22 @@ export function RegistrationFormFields({
             )}
           </div>
         </div>
-      </fieldset>
+      </SectionFieldset>
 
       {/* ── Section 4: Document Upload ── */}
       {documentSection ? (
         documentSection
       ) : (
-        <fieldset className="space-y-4 border-t border-border pt-8">
+        <SectionFieldset id="reg-legend-id" className="space-y-4 border-t border-border pt-8">
           <FormSectionHeader
+            id="reg-legend-id"
             icon={Shield}
             title="4. Identity Verification"
             description="Upload a government-issued or student ID to verify your artist status and protect the community."
           />
 
           <div
-            className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-8 text-center transition-all duration-200 ${
+            className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-6 transition-all duration-200 sm:p-8 ${fileInputFocused ? 'border-accent bg-accent-soft/40' : ''} ${
               idFile
                 ? 'border-accent-border bg-card/80 shadow-md'
                 : 'border-border bg-muted/30 hover:border-accent-border/70 hover:bg-muted/60'
@@ -806,6 +862,8 @@ export function RegistrationFormFields({
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleIdChange}
+              onFocus={() => setFileInputFocused(true)}
+              onBlur={() => setFileInputFocused(false)}
               aria-label="Upload identity document"
               aria-invalid={err('idFile') ? 'true' : undefined}
               aria-describedby={err('idFile') ? `${role}TermsUpload-error` : undefined}
@@ -868,7 +926,7 @@ export function RegistrationFormFields({
             )}
           </div>
           <InlineError id={`${role}TermsUpload-error`} message={err('idFile')} />
-        </fieldset>
+        </SectionFieldset>
       )}
 
       {/* ── Section 5: Terms & Submit ── */}

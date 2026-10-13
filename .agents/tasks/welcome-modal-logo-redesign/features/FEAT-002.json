@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Replace all /image/wc/logo.png logo references with /image/Logo/GroovePH-Logo.png across 7 component files, then regenerate favicons from the new logo and update Next.js metadata in app/layout.tsx. FEAT-002 is independent of FEAT-001 — they touch different parts of each file (FEAT-001 touches only the interior JSX of WelcomeModal, FEAT-002 does not touch WelcomeModal at all).",
+  "status": "pending",
+  "steps": [
+    "Replace src='/image/wc/logo.png' with src='/image/Logo/GroovePH-Logo.png' in all 7 component files. Keep existing width/height props and className (object-contain) identical — do NOT change layout or sizing. Files to edit: (1) components/shared/AppTopNav.tsx — one Image at line ~581, width=22 height=22. (2) components/shared/Footer.tsx — one Image at line ~31, width=96 height=32. (3) components/shared/AuthLayout.tsx — one Image at line ~47, width=104 height=32. (4) components/shared/Navbar.tsx — one Image at line ~44, width=22 height=22. (5) components/shared/LoadingScreen.tsx — one Image at line ~102, width=160 height=50. (6) components/shared/PublicLayout.tsx — two Images, at lines ~120 and ~209, widths 104 and 96. Do NOT touch WelcomeModal.tsx — that file uses /image/Logo/welcome-Logo.png after FEAT-001.",
+    "Generate replacement favicon files from /public/image/Logo/GroovePH-Logo.png using sharp in a Node script. Create scripts/generate-favicons.mjs with this content: import sharp from 'sharp'; import path from 'path'; import { fileURLToPath } from 'url'; const __dirname = path.dirname(fileURLToPath(import.meta.url)); const src = path.resolve(__dirname, '../public/image/Logo/GroovePH-Logo.png'); const pub = path.resolve(__dirname, '../public'); await sharp(src).resize(16,16).toFile(path.join(pub,'favicon-16x16.png')); await sharp(src).resize(32,32).toFile(path.join(pub,'favicon-32x32.png')); await sharp(src).resize(48,48).toFile(path.join(pub,'favicon-48x48.png')); await sharp(src).resize(32,32).toFile(path.join(pub,'favicon.ico')); await sharp(src).resize(192,192).toFile(path.join(pub,'icon-192.png')); await sharp(src).resize(512,512).toFile(path.join(pub,'icon-512.png')); await sharp(src).resize(180,180).toFile(path.join(pub,'apple-touch-icon.png')); console.log('Favicons generated.'); Then run it: node scripts/generate-favicons.mjs from c:\\website\\GrooveSystem. Note: .ico generation via sharp produces a PNG renamed as .ico — this is acceptable for modern browsers. If sharp cannot write .ico directly, write favicon.ico as the 32×32 PNG (browsers accept PNG-encoded .ico).",
+    "Update the metadata icons object in app/layout.tsx to reference the new icon files. Replace the existing icons block with: icons: { icon: [ { url: '/favicon.ico' }, { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' }, { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }, { url: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { url: '/icon-512.png', sizes: '512x512', type: 'image/png' }, ], apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }], }. Remove any references to old icon paths only if they are listed there — the existing references already point to the correct public-root paths, so this is an additive change (adding 192/512 entries). Do NOT touch any other part of layout.tsx.",
+    "Run `npm run lint` and `npm run build` from c:\\website\\GrooveSystem. Fix only errors introduced by these changes (wrong import, missing alt, unknown prop). Do not touch unrelated lint errors that pre-existed."
+  ],
+  "acceptance_criteria": [
+    "All 7 component files (AppTopNav, Footer, AuthLayout, Navbar, LoadingScreen, PublicLayout x2) serve /image/Logo/GroovePH-Logo.png",
+    "No component changes layout, sizing, or className — only the src path changed",
+    "/public/favicon-16x16.png, favicon-32x32.png, favicon-48x48.png, favicon.ico, icon-192.png, icon-512.png, apple-touch-icon.png all exist and are non-zero bytes after the script runs",
+    "app/layout.tsx metadata.icons includes 192 and 512 PNG entries",
+    "WelcomeModal.tsx is NOT modified by this FEAT",
+    "`npm run lint` passes with zero new errors",
+    "`npm run build` completes successfully"
+  ],
+  "verification": [
+    "cd c:\\website\\GrooveSystem && node scripts/generate-favicons.mjs",
+    "cd c:\\website\\GrooveSystem && npm run lint",
+    "cd c:\\website\\GrooveSystem && npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

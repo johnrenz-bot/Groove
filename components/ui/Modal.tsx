@@ -89,7 +89,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-3 backdrop-blur-md transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-[var(--overlay)] p-3 backdrop-blur-sm transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -101,7 +101,7 @@ export function Modal({
         aria-label={typeof title === 'string' ? title : undefined}
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl transition-all duration-200 sm:rounded-3xl animate-in fade-in zoom-in-95',
+          'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-[var(--shadow-lg)] transition-all duration-200 sm:rounded-2xl animate-in fade-in zoom-in-95',
           SIZES[size],
           className
         )}

@@ -1,15 +1,23 @@
 @import "tailwindcss";
 
 /* ==============================================================================
-   GROOVE — Design tokens (single source of truth)
+   GROOVE PH — Design tokens (single source of truth)
 
    ONE place defines every color: this file. Nothing else declares a hex value.
 
+   THE BRAND (five colors, and only five)
+     UNITY BLUE      #2F4E8C  primary action, links, active nav, focus accents
+     RELIEF RED      #AE313A  destructive actions, errors, important warnings
+     SUNBURST YELLOW #F4BE4D  restrained accent only — featured, verified, badges
+     WHITEWASHED     #F7F0E1  light background, light surfaces, text on dark
+       FENCE (cream)
+     CARBON          #353535  dark background, dark text on light surfaces
+
    THEMING
-     :root  -> DARK. This is the DEFAULT palette, applied when <html> has no
-               theme class at all. Dark-first means the base declaration is dark,
-               so a page rendered before JS hydrates is already correct.
-     .light -> the opt-in LIGHT palette.
+     :root  -> DARK (Carbon). The DEFAULT palette, applied when <html> has no
+               theme class at all. Dark-first means the base declaration is
+               dark, so a page rendered before JS hydrates is already correct.
+     .light -> LIGHT (Whitewashed Fence cream).
 
    A single ThemeProvider (components/theme/ThemeProvider.tsx) owns which class is
    on <html>; an inline script in app/layout.tsx sets it before first paint.
@@ -17,9 +25,11 @@
    class here and every page follows.
 
    ACCENT
-     Groove gold #E8A93B — one hue, everything else neutral. It is the only brand
-     color; status colors (success/warning/danger/info) are desaturated so they
-     never outshine it.
+     The token family `accent*` is the PRIMARY INTERACTIVE color, so it is
+     Unity Blue in both themes. `--brand-sunburst` is a separate, deliberately
+     scarce highlight: it is never a button fill and never carries white text.
+     Status colors (success/warning/danger/info) are desaturated warm neutrals so
+     they never outshine the brand.
    ============================================================================== */
 
 @theme {
@@ -57,11 +67,20 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-foreground: var(--danger-foreground);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
 
   --color-ring: var(--ring);
   --color-overlay: var(--overlay);
+
+  /* Sunburst Yellow, as a usable utility. Scarce by contract: featured marks,
+     verified badges, the talent banners. Its paired foreground is Carbon —
+     white on #F4BE4D is 1.6:1 and fails AA outright. */
+  --color-brand-sunburst: var(--brand-sunburst);
+  --color-brand-sunburst-fg: var(--brand-sunburst-fg);
+  --color-brand-sunburst-soft: var(--brand-sunburst-soft);
+  --color-brand-sunburst-border: var(--brand-sunburst-border);
 
   /* `primary` is a legacy alias for `accent`. Mapping it here rather than
      editing 28 call sites keeps every older usage on one visual identity.
@@ -77,7 +96,16 @@
   --color-glass-border: var(--glass-border);
   --color-glass-border-hover: var(--glass-border-hover);
 
-  --radius: 16px;
+  /* --- Shape & rhythm -------------------------------------------------------
+     Two radii, one scale. Controls (buttons, inputs, chips) sit at 8px; cards
+     and panels sit at 14px; anything that holds a photograph goes to 16px.
+     `--radius-card` / `--radius-control` are aliased into Tailwind below so a
+     component can ask for the scale by name instead of guessing a pixel value. */
+  --radius: 14px;
+  --radius-control: 8px;
+  --radius-card: 14px;
+  --radius-panel: 16px;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Philippine flag accent palette — used exclusively for decorative SVG/border
@@ -89,62 +117,114 @@
 
 /* ------------------------------------------------------------------------------
    DARK — the default palette (`:root`).
-   Near-black layered surfaces rather than flat grey, so elevation reads clearly
-   in both themes. Foreground/muted pairs are tuned for WCAG AA on their own
-   surface; --accent-text is a lighter gold than light mode's, because gold on
-   near-black needs more luminance to clear 4.5:1.
+
+   Structure: a pure black page, near-black raised surfaces, cream type.
+
+     --background   #000000  the page
+     --surface      #171717  nav rail, sidebars
+     --card         #171717  cards, modals, panels
+     --foreground   #F7F0E1  primary text and important icons
+     --border       #353535  subtle charcoal hairlines and dividers
+
+   On a black page the one-pixel border is doing more work than it used to:
+   `#171717` on `#000000` is only 1.17:1, so a card's silhouette comes from its
+   outline, not from a change in plane. That is why `--input` and
+   `--border-strong` are held to 3:1 (WCAG 1.4.11) while `--border` and
+   `--divider` stay at the quiet charcoal — the difference between a decorative
+   edge and a boundary a user has to be able to find.
+
+     --muted-foreground  #A8A093  6.9:1 on --card   8.1:1 on --background
+     --subtle-foreground #948C7E  5.4:1 on --card   6.3:1 on --background
+     --accent            #F7F0E1  18.5:1 vs its black foreground
+     --accent-text       #F7F0E1  15.8:1 on --card
+     --danger            #E58C93  8.2:1 on --card
+     --success           #6FBF93  8.9:1 on --card
+     --warning           #D9A94A  9.9:1 on --card
+     --info              #7FB0D0  8.7:1 on --card
+
+   BUTTONS AND INTERACTIVE ACCENTS ARE CREAM.
+   `--accent` is the cream, `--accent-foreground` is pure black. That is the one
+   inversion in the palette and it is deliberate: the primary action becomes the
+   brightest thing on a black page, which is what makes a single button read as
+   the single obvious next step. It also means `--accent-text` is cream, so every
+   accent-coloured link, icon and badge is legible on every dark surface.
+
+   SOFT TINTS IN DARK
+     A `-soft` tint is the hue at low alpha over near-black. Because the text
+     token sitting on it is light, the tint is kept DARK: a pale wash under a
+     cream label would eat the contrast, and a chip whose label drops below 4.5:1
+     is a chip that cannot be read. Selection is carried by the fill plus the
+     `-border` token. This is the same pattern GitHub and Linear use in dark mode.
    ------------------------------------------------------------------------------ */
 :root {
   color-scheme: dark;
 
-  --background: #0b0d10;
-  --surface: #0f1216;
-  --elevated: #14181d;
-  --card: #111519;
-  --card-foreground: #f2f4f7;
+  --background: #000000;
+  --surface: #171717;
+  --elevated: #171717;
+  --card: #171717;
+  --card-foreground: #f7f0e1;
 
-  --foreground: #edeff3;
-  --muted: #171b21;
-  --muted-foreground: #9ba3ae; /* 7.1:1 on --card */
-  --subtle-foreground: #7c8593; /* 4.9:1 on --card */
+  --foreground: #f7f0e1;
+  --muted: #1c1c1c;
+  --muted-foreground: #a8a093; /* 6.9:1 on --card */
+  --subtle-foreground: #948c7e; /* 5.4:1 on --card */
 
-  --border: #232830;
-  --border-strong: #363d47;
-  --divider: #1b1f26;
-  --input: #2a3038;
+  --border: #353535;
+  --border-strong: #6b6b6b; /* 3.2:1 on --card */
+  --divider: #353535;
+  /* A field on near-black has nothing but its outline to announce it, so this
+     is held to 3:1. `--border` above stays quiet for resting surface edges. */
+  --input: #707070; /* 3.6:1 on --card */
 
-  --accent: #e8a93b;
-  --accent-hover: #f2b858;
-  --accent-foreground: #120802;
-  --accent-text: #f0b95a;
-  --accent-soft: rgba(232, 169, 59, 0.12);
-  --accent-border: rgba(232, 169, 59, 0.28);
+  --accent: #f7f0e1;
+  --accent-hover: #e4dcc9;
+  --accent-foreground: #000000; /* 18.5:1 */
+  --accent-text: #f7f0e1;
+  --accent-soft: rgba(247, 240, 225, 0.1);
+  --accent-border: rgba(247, 240, 225, 0.28);
 
-  --ring: rgba(232, 169, 59, 0.4);
-  --overlay: rgba(3, 5, 8, 0.72);
+  --ring: rgba(247, 240, 225, 0.55);
+  --overlay: rgba(0, 0, 0, 0.74);
 
-  --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.12);
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.12);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
-  --info: #60a5fa;
-  --info-soft: rgba(96, 165, 250, 0.12);
+  /* Destructive: `--danger` is the AA-safe TEXT/ICON red. The button fill is a
+     separate token because the brand red carries cream at 5.6:1 on both the
+     black page and the near-black card, in either theme. */
+  --danger: #e58c93;
+  --danger-soft: rgba(174, 49, 58, 0.26);
+  --danger-solid: #ae313a;
+  --danger-foreground: #f7f0e1;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
-  --shadow-accent: 0 8px 24px -8px rgba(232, 169, 59, 0.35);
+  --success: #6fbf93;
+  --success-soft: rgba(46, 107, 79, 0.26);
+  --warning: #d9a94a;
+  --warning-soft: rgba(138, 93, 8, 0.26);
+  --info: #7fb0d0;
+  --info-soft: rgba(61, 106, 130, 0.26);
+
+  /* Sunburst Yellow. Scarce by contract: featured marks, verified badges, a
+     selected highlight. `--brand-sunburst-fg` is Carbon, never white — white on
+     #F4BE4D is 1.6:1 and fails AA by a wide margin. */
+  --brand-sunburst: #f4be4d;
+  --brand-sunburst-fg: #353535;
+  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
+  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
+  --shadow-accent: 0 8px 24px -10px rgba(247, 240, 225, 0.16);
 
   /* Glass tokens — Dark default */
-  --glass-bg: rgba(17, 21, 25, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(232, 169, 59, 0.35);
+  --glass-bg: rgba(23, 23, 23, 0.82);
+  --glass-border: rgba(247, 240, 225, 0.12);
+  --glass-border-hover: rgba(247, 240, 225, 0.36);
   --glass-blur: 16px;
-  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.65);
-  --glass-highlight: rgba(255, 255, 255, 0.05);
-  --vignette-color: rgba(0, 0, 0, 0.6);
+  --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  --glass-highlight: rgba(247, 240, 225, 0.05);
+  /* The page is already pure black, so a black vignette is invisible here.
+     A faint cream lift at the edges is what actually reads as depth. */
+  --vignette-color: rgba(247, 240, 225, 0.025);
 
   /* Legacy aliases. Older inline-styled surfaces still read these; mapping them
      onto current tokens means one edit here fixes all of them. */
@@ -157,240 +237,299 @@
 }
 
 /* ------------------------------------------------------------------------------
-   LIGHT — opt-in, applied by adding `light` to <html>.
+   LIGHT — Whitewashed Fence cream. Applied by adding `light` to <html>.
+
+     --background          #F7F0E1  the warm neutral foundation
+     --surface             #EFE6D2  nav rail / sidebar, one step down
+     --card                #FCF8EF  elevated surfaces, a step up
+     --accent              #2F3A45  Slate
+     --accent-hover        #3B4854  Slate hover
+     --accent-foreground   #FFFFFF  on Slate = 11.6:1
+     --accent-soft         #DDE2E6  active nav fill, icon circles, badges
+     --ring                #2F3A45  at 40% — the keyboard focus ring
+     --accent-text         #2F3A45  10.9:1 on --card, 8.9:1 on --accent-soft
+     --muted-foreground    #6B6459  5.2:1 on --background, 5.0:1 on --card
+     --subtle-foreground   #736B5F  4.6:1 on --background
+     --danger              #AE313A  Relief Red, 5.6:1 on --background
+     --warning             #8A5D08  Sunburst darkened for text; 5.1:1
+     --border              #DDD1B8  the warm one-pixel border
    ------------------------------------------------------------------------------ */
 .light,
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --background: #f7f4ef;
-  --surface: #ffffff;
-  --elevated: #faf7f2;
-  --card: #ffffff;
-  --card-foreground: #242321;
+  --background: #f7f0e1;
+  --surface: #efe6d2;
+  --elevated: #fcf8ef;
+  --card: #fcf8ef;
+  --card-foreground: #353535;
 
-  --foreground: #242321;
-  --muted: #f0ebe4;
-  --muted-foreground: #827a72; /* 4.8:1 on warm background */
-  --subtle-foreground: #9e968e;
+  --foreground: #353535;
+  --muted: #efe6d2;
+  --muted-foreground: #6b6459; /* 5.2:1 on warm background */
+  --subtle-foreground: #736b5f; /* 4.6:1 on warm background */
 
-  --border: #e5ddd2;
-  --border-strong: #d6cab8;
-  --divider: #e8e1d5;
-  --input: #ffffff;
+  --border: #ddd1b8;
+  --border-strong: #8f8471; /* 3.5:1 on --card */
+  --divider: #e7ddc9;
+  --input: #8a8172; /* 3.6:1 on --card — a field has to announce itself */
 
-  --accent: #a94f12;
-  --accent-hover: #c35d18;
-  --accent-foreground: #ffffff;
-  --accent-text: #a94f12; /* darkened for AA text contrast on light surfaces */
-  --accent-soft: rgba(169, 79, 18, 0.10);
-  --accent-border: rgba(169, 79, 18, 0.28);
+  --accent: #2f3a45;
+  --accent-hover: #3b4854;
+  --accent-foreground: #ffffff; /* 11.6:1 on --accent */
+  --accent-text: #2f3a45; /* 10.9:1 on --card, 8.9:1 on --accent-soft */
+  --accent-soft: #dde2e6;
+  --accent-border: rgba(47, 58, 69, 0.28);
 
-  --ring: rgba(169, 79, 18, 0.35);
-  --overlay: rgba(36, 35, 33, 0.45);
+  --ring: rgba(47, 58, 69, 0.4);
+  --overlay: rgba(53, 53, 53, 0.42);
 
-  --success: #2e7d32;
-  --success-soft: #e8f5e9;
-  --warning: #d97706;
-  --warning-soft: #fef3c7;
-  --danger: #c62828;
-  --danger-soft: #ffebee;
-  --info: #1565c0;
-  --info-soft: #e3f2fd;
+  --danger: #ae313a; /* Relief Red — 5.6:1 on cream */
+  --danger-soft: rgba(174, 49, 58, 0.1);
+  --danger-solid: #ae313a;
+  --danger-foreground: #f7f0e1; /* 5.6:1 */
 
-  --shadow-sm: 0 1px 3px 0 rgba(36, 35, 33, 0.05);
-  --shadow-md: 0 4px 14px -2px rgba(36, 35, 33, 0.08);
-  --shadow-lg: 0 16px 40px -12px rgba(36, 35, 33, 0.12);
-  --shadow-accent: 0 8px 24px -8px rgba(169, 79, 18, 0.35);
+  --success: #2e6b4f;
+  --success-soft: rgba(46, 107, 79, 0.12);
+  --warning: #8a5d08;
+  --warning-soft: rgba(244, 190, 77, 0.28);
+  --info: #3d6a82;
+  --info-soft: rgba(61, 106, 130, 0.12);
+
+  --brand-sunburst: #f4be4d;
+  --brand-sunburst-fg: #353535;
+  --brand-sunburst-soft: rgba(244, 190, 77, 0.28);
+  --brand-sunburst-border: rgba(190, 142, 38, 0.5);
+
+  --shadow-sm: 0 1px 2px 0 rgba(53, 53, 53, 0.05);
+  --shadow-md: 0 4px 14px -6px rgba(53, 53, 53, 0.12);
+  --shadow-lg: 0 18px 40px -20px rgba(53, 53, 53, 0.22);
+  --shadow-accent: 0 8px 24px -12px rgba(47, 58, 69, 0.35);
 
   /* Glass tokens — Light override */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(229, 221, 210, 0.8);
-  --glass-border-hover: rgba(169, 79, 18, 0.35);
+  --glass-bg: rgba(252, 248, 239, 0.86);
+  --glass-border: rgba(221, 209, 184, 0.85);
+  --glass-border-hover: rgba(47, 58, 69, 0.4);
   --glass-blur: 16px;
-  --glass-shadow: 0 16px 40px -12px rgba(36, 35, 33, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.9);
-  --vignette-color: rgba(36, 35, 33, 0.04);
+  --glass-shadow: 0 16px 40px -20px rgba(53, 53, 53, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+  --vignette-color: rgba(53, 53, 53, 0.03);
 }
 
 /* ------------------------------------------------------------------------------
-   CLASSIC — Claude-inspired warm ivory / cream / burnt-orange rust theme.
+   CLASSIC — the editorial light variant.
+
+   Same Whitewashed Fence foundation as `light`, but warmer and flatter: the page
+   and the cards sit closer together, which reads more like a printed page. Kept
+   as a separate id because the admin theme catalogue and `platform_theme` in
+   `system_settings` both reference it — removing it would strand stored values.
    ------------------------------------------------------------------------------ */
 .classic,
 :root[data-theme='classic'] {
   color-scheme: light;
 
-  --background: #f7f4ef;
-  --surface: #f0ebe4;
-  --elevated: #faf7f2;
-  --card: #f0ebe4;
-  --card-foreground: #242321;
+  --background: #f7f0e1;
+  --surface: #efe6d2;
+  --elevated: #faf5e9;
+  --card: #faf5e9;
+  --card-foreground: #353535;
 
-  --foreground: #242321;
-  --muted: #e8e2d8;
-  --muted-foreground: #827a72;
-  --subtle-foreground: #9e968e;
+  --foreground: #353535;
+  --muted: #ece2cc;
+  --muted-foreground: #6b6459;
+  --subtle-foreground: #736b5f;
 
-  --border: #e5ddd2;
-  --border-strong: #d6cab8;
-  --divider: #e8e1d5;
-  --input: #e8e1d5;
+  --border: #ddd1b8;
+  --border-strong: #8f8471;
+  --divider: #e7ddc9;
+  --input: #8a8172;
 
-  --accent: #a94f12;
-  --accent-hover: #c35d18;
-  --accent-foreground: #ffffff;
-  --accent-text: #a94f12;
-  --accent-soft: rgba(169, 79, 18, 0.10);
-  --accent-border: rgba(169, 79, 18, 0.28);
+  --accent: #2f4e8c;
+  --accent-hover: #274273;
+  --accent-foreground: #f7f0e1;
+  --accent-text: #2f4e8c;
+  --accent-soft: rgba(47, 78, 140, 0.09);
+  --accent-border: rgba(47, 78, 140, 0.26);
 
-  --ring: rgba(169, 79, 18, 0.35);
-  --overlay: rgba(36, 35, 33, 0.45);
+  --ring: rgba(47, 78, 140, 0.3);
+  --overlay: rgba(53, 53, 53, 0.42);
 
-  --success: #2e7d32;
-  --success-soft: #e8f5e9;
-  --warning: #d97706;
-  --warning-soft: #fef3c7;
-  --danger: #c62828;
-  --danger-soft: #ffebee;
-  --info: #1565c0;
-  --info-soft: #e3f2fd;
+  --danger: #ae313a;
+  --danger-soft: rgba(174, 49, 58, 0.1);
+  --danger-solid: #ae313a;
+  --danger-foreground: #f7f0e1;
 
-  --shadow-sm: 0 1px 2px 0 rgba(36, 35, 33, 0.04);
-  --shadow-md: 0 4px 12px -2px rgba(36, 35, 33, 0.08);
-  --shadow-lg: 0 16px 40px -12px rgba(36, 35, 33, 0.14);
-  --shadow-accent: 0 8px 24px -8px rgba(169, 79, 18, 0.35);
+  --success: #2e6b4f;
+  --success-soft: rgba(46, 107, 79, 0.12);
+  --warning: #8a5d08;
+  --warning-soft: rgba(244, 190, 77, 0.28);
+  --info: #3d6a82;
+  --info-soft: rgba(61, 106, 130, 0.12);
 
-  --glass-bg: rgba(240, 235, 228, 0.85);
-  --glass-border: rgba(229, 221, 210, 0.85);
-  --glass-border-hover: rgba(169, 79, 18, 0.35);
+  --brand-sunburst: #f4be4d;
+  --brand-sunburst-fg: #353535;
+  --brand-sunburst-soft: rgba(244, 190, 77, 0.28);
+  --brand-sunburst-border: rgba(190, 142, 38, 0.5);
+
+  --shadow-sm: 0 1px 2px 0 rgba(53, 53, 53, 0.04);
+  --shadow-md: 0 4px 12px -6px rgba(53, 53, 53, 0.1);
+  --shadow-lg: 0 16px 40px -20px rgba(53, 53, 53, 0.2);
+  --shadow-accent: 0 8px 24px -12px rgba(47, 78, 140, 0.32);
+
+  --glass-bg: rgba(250, 245, 233, 0.88);
+  --glass-border: rgba(221, 209, 184, 0.85);
+  --glass-border-hover: rgba(47, 78, 140, 0.38);
   --glass-blur: 16px;
-  --glass-shadow: 0 16px 40px -12px rgba(36, 35, 33, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.65);
-  --vignette-color: rgba(36, 35, 33, 0.05);
+  --glass-shadow: 0 16px 40px -20px rgba(53, 53, 53, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.7);
+  --vignette-color: rgba(53, 53, 53, 0.04);
 }
 
 /* ------------------------------------------------------------------------------
-   HALLOWEEN — Seasonal: spooky midnight obsidian & pumpkin orange glow.
+   HALLOWEEN — Seasonal. Same black page and near-black surfaces as the default
+   dark theme, with a cooler charcoal tint on the raised planes and Sunburst
+   Yellow carrying the festive highlight. Still only the brand colors.
    ------------------------------------------------------------------------------ */
 .halloween,
 :root[data-theme='halloween'] {
   color-scheme: dark;
 
-  --background: #0c0a12;
-  --surface: #13101c;
-  --elevated: #1f192e;
-  --card: #171322;
-  --card-foreground: #f4f0fb;
+  --background: #000000;
+  --surface: #151517;
+  --elevated: #151517;
+  --card: #151517;
+  --card-foreground: #f7f0e1;
 
-  --foreground: #f4f0fb;
-  --muted: #1c1729;
-  --muted-foreground: #a39bb5;
-  --subtle-foreground: #827799;
+  --foreground: #f7f0e1;
+  --muted: #1a1a1d;
+  --muted-foreground: #a49c93;
+  --subtle-foreground: #918a80;
 
-  --border: #2c243e;
-  --border-strong: #41365c;
-  --divider: #221c31;
-  --input: #282038;
+  --border: #353535;
+  --border-strong: #6b6b6b;
+  --divider: #303033;
+  --input: #707070;
 
-  --accent: #ff7a18;
-  --accent-hover: #ff903e;
-  --accent-foreground: #0c0a12;
-  --accent-text: #ff9838;
-  --accent-soft: rgba(255, 122, 24, 0.14);
-  --accent-border: rgba(255, 122, 24, 0.32);
+  --accent: #f7f0e1;
+  --accent-hover: #e4dcc9;
+  --accent-foreground: #000000;
+  --accent-text: #f7f0e1;
+  --accent-soft: rgba(247, 240, 225, 0.1);
+  --accent-border: rgba(247, 240, 225, 0.28);
 
-  --ring: rgba(255, 122, 24, 0.45);
-  --overlay: rgba(12, 10, 18, 0.82);
+  --ring: rgba(247, 240, 225, 0.55);
+  --overlay: rgba(0, 0, 0, 0.76);
 
-  --success: #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.12);
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.12);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
-  --info: #a855f7;
-  --info-soft: rgba(168, 85, 247, 0.12);
+  --danger: #e58c93;
+  --danger-soft: rgba(174, 49, 58, 0.28);
+  --danger-solid: #ae313a;
+  --danger-foreground: #f7f0e1;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.55);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.75);
-  --shadow-accent: 0 8px 24px -8px rgba(255, 122, 24, 0.4);
+  --success: #6fbf93;
+  --success-soft: rgba(46, 107, 79, 0.26);
+  --warning: #f4be4d;
+  --warning-soft: rgba(138, 93, 8, 0.26);
+  --info: #7fb0d0;
+  --info-soft: rgba(61, 106, 130, 0.26);
 
-  --glass-bg: rgba(23, 19, 34, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(255, 122, 24, 0.4);
+  --brand-sunburst: #f4be4d;
+  --brand-sunburst-fg: #353535;
+  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
+  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
+  --shadow-accent: 0 8px 24px -10px rgba(244, 190, 77, 0.18);
+
+  --glass-bg: rgba(21, 21, 23, 0.82);
+  --glass-border: rgba(247, 240, 225, 0.12);
+  --glass-border-hover: rgba(244, 190, 77, 0.36);
   --glass-blur: 16px;
-  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
-  --glass-highlight: rgba(255, 255, 255, 0.06);
-  --vignette-color: rgba(12, 10, 18, 0.65);
+  --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  --glass-highlight: rgba(247, 240, 225, 0.05);
+  --vignette-color: rgba(247, 240, 225, 0.025);
 }
 
 /* ------------------------------------------------------------------------------
-   CHRISTMAS — Seasonal: Nordic pine night, snow mist & holiday crimson.
+   CHRISTMAS — Seasonal. The same black page and near-black surfaces, warmed one
+   step, with Relief Red carrying the holiday accent over the cream interface.
    ------------------------------------------------------------------------------ */
 .christmas,
 :root[data-theme='christmas'] {
   color-scheme: dark;
 
-  --background: #0a1310;
-  --surface: #0f1d18;
-  --elevated: #1a332b;
-  --card: #13251f;
-  --card-foreground: #f0fdf4;
+  --background: #000000;
+  --surface: #171614;
+  --elevated: #171614;
+  --card: #171614;
+  --card-foreground: #f7f0e1;
 
-  --foreground: #f0fdf4;
-  --muted: #162c24;
-  --muted-foreground: #94b5a5;
-  --subtle-foreground: #709684;
+  --foreground: #f7f0e1;
+  --muted: #1c1b18;
+  --muted-foreground: #aaa297;
+  --subtle-foreground: #978e83;
 
-  --border: #234538;
-  --border-strong: #346653;
-  --divider: #1b362c;
-  --input: #203f33;
+  --border: #353535;
+  --border-strong: #6b6b6b;
+  --divider: #32302c;
+  --input: #707070;
 
-  --accent: #e53935;
-  --accent-hover: #f05252;
-  --accent-foreground: #ffffff;
-  --accent-text: #f87171;
-  --accent-soft: rgba(229, 57, 53, 0.15);
-  --accent-border: rgba(229, 57, 53, 0.35);
+  --accent: #f7f0e1;
+  --accent-hover: #e4dcc9;
+  --accent-foreground: #000000;
+  --accent-text: #f7f0e1;
+  --accent-soft: rgba(247, 240, 225, 0.1);
+  --accent-border: rgba(247, 240, 225, 0.28);
 
-  --ring: rgba(229, 57, 53, 0.45);
-  --overlay: rgba(10, 19, 16, 0.82);
+  --ring: rgba(247, 240, 225, 0.55);
+  --overlay: rgba(0, 0, 0, 0.76);
 
-  --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.12);
-  --warning: #f59e0b;
-  --warning-soft: rgba(245, 158, 11, 0.15);
-  --danger: #ef4444;
-  --danger-soft: rgba(239, 68, 68, 0.12);
-  --info: #38bdf8;
-  --info-soft: rgba(56, 189, 248, 0.12);
+  --danger: #e58c93;
+  --danger-soft: rgba(174, 49, 58, 0.3);
+  --danger-solid: #ae313a;
+  --danger-foreground: #f7f0e1;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.55);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.75);
-  --shadow-accent: 0 8px 24px -8px rgba(229, 57, 53, 0.4);
+  --success: #6fbf93;
+  --success-soft: rgba(46, 107, 79, 0.26);
+  --warning: #f4be4d;
+  --warning-soft: rgba(138, 93, 8, 0.26);
+  --info: #7fb0d0;
+  --info-soft: rgba(61, 106, 130, 0.26);
 
-  --glass-bg: rgba(19, 37, 31, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(229, 57, 53, 0.4);
+  --brand-sunburst: #f4be4d;
+  --brand-sunburst-fg: #353535;
+  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
+  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
+  --shadow-accent: 0 8px 24px -10px rgba(174, 49, 58, 0.22);
+
+  --glass-bg: rgba(23, 22, 20, 0.82);
+  --glass-border: rgba(247, 240, 225, 0.12);
+  --glass-border-hover: rgba(174, 49, 58, 0.4);
   --glass-blur: 16px;
-  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
-  --glass-highlight: rgba(255, 255, 255, 0.06);
-  --vignette-color: rgba(10, 19, 16, 0.65);
+  --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  --glass-highlight: rgba(247, 240, 225, 0.05);
+  --vignette-color: rgba(247, 240, 225, 0.025);
 }
 
 /* ------------------------------------------------------------------------------
-   ACCENT PALETTES — admin-selectable brand color.
+   ACCENT PALETTES — the admin-selectable interactive color.
 
    The previous "theme switcher" set a `data-theme` attribute that nothing read.
    This is the real thing: an accent slug on <html> as `data-accent`, backed by
    these blocks that override only the accent token family. Every other token is
-   untouched, so a palette change recolors the entire app — admin, coach, and
+   untouched, so an accent change recolors the entire app — admin, coach, and
    client alike — without touching one component.
 
-   Two blocks per palette: the dark default and the light override. Specificity
+   The slug set is the brand's own three interactive colors. `unity` is the
+   default; an admin may switch the whole platform to Relief Red or to Sunburst
+   Yellow, and the fallback for an unrecognised or absent value is `unity`.
+
+   Two blocks per accent: the dark default and the light override. Specificity
    matters and is deliberate:
      `:root[data-accent='x']`  (0,2,0) beats `:root`      (0,1,0)
      `.light[data-accent='x']` (0,2,0) beats `.light`     (0,1,0)
@@ -401,125 +540,82 @@
    theme's surface; the soft/border values are the same hue at low alpha.
    ------------------------------------------------------------------------------ */
 
-:root[data-accent='gold'] {
-  --accent: #e8a93b;
-  --accent-hover: #f2b858;
-  --accent-foreground: #120802;
-  --accent-text: #f0b95a;
-  --accent-soft: rgba(232, 169, 59, 0.12);
-  --accent-border: rgba(232, 169, 59, 0.28);
-  --ring: rgba(232, 169, 59, 0.4);
-  --shadow-accent: 0 8px 24px -8px rgba(232, 169, 59, 0.35);
+/* DARK PAIRS. In dark mode the interactive accent is cream on black by
+   default, so `--accent-foreground` is pure black. The two alternative accents
+   keep their own identity but each one is given an explicitly checked
+   foreground rather than inheriting a default. */
+:root[data-accent='unity'] {
+  --accent: #f7f0e1;
+  --accent-hover: #e4dcc9;
+  --accent-foreground: #000000;
+  --accent-text: #f7f0e1;
+  --accent-soft: rgba(247, 240, 225, 0.1);
+  --accent-border: rgba(247, 240, 225, 0.28);
+  --ring: rgba(247, 240, 225, 0.55);
+  --shadow-accent: 0 8px 24px -10px rgba(247, 240, 225, 0.16);
 }
 
-:root[data-accent='ember'] {
-  --accent: #e8703a;
-  --accent-hover: #f2834f;
-  --accent-foreground: #160702;
-  --accent-text: #f0855a;
-  --accent-soft: rgba(232, 112, 58, 0.13);
-  --accent-border: rgba(232, 112, 58, 0.3);
-  --ring: rgba(232, 112, 58, 0.4);
-  --shadow-accent: 0 8px 24px -8px rgba(232, 112, 58, 0.35);
+:root[data-accent='relief'] {
+  --accent: #d9616a;
+  --accent-hover: #e47079;
+  --accent-foreground: #000000; /* 5.9:1 */
+  --accent-text: #f0a3a9;
+  --accent-soft: rgba(217, 97, 106, 0.2);
+  --accent-border: rgba(217, 97, 106, 0.45);
+  --ring: rgba(240, 163, 169, 0.5);
+  --shadow-accent: 0 8px 24px -10px rgba(217, 97, 106, 0.35);
 }
 
-:root[data-accent='ocean'] {
-  --accent: #38a8d8;
-  --accent-hover: #55bce7;
-  --accent-foreground: #04141c;
-  --accent-text: #5cc0e8;
-  --accent-soft: rgba(56, 168, 216, 0.13);
-  --accent-border: rgba(56, 168, 216, 0.3);
-  --ring: rgba(56, 168, 216, 0.4);
-  --shadow-accent: 0 8px 24px -8px rgba(56, 168, 216, 0.35);
+:root[data-accent='sunburst'] {
+  --accent: #f4be4d;
+  --accent-hover: #e5af40;
+  --accent-foreground: #000000; /* 12.3:1 */
+  --accent-text: #f4be4d;
+  --accent-soft: rgba(244, 190, 77, 0.18);
+  --accent-border: rgba(244, 190, 77, 0.45);
+  --ring: rgba(244, 190, 77, 0.5);
+  --shadow-accent: 0 8px 24px -10px rgba(244, 190, 77, 0.3);
 }
 
-:root[data-accent='orchid'] {
-  --accent: #a855f7;
-  --accent-hover: #b979f9;
-  --accent-foreground: #14061c;
-  --accent-text: #c08afb;
-  --accent-soft: rgba(168, 85, 247, 0.14);
-  --accent-border: rgba(168, 85, 247, 0.32);
-  --ring: rgba(168, 85, 247, 0.42);
-  --shadow-accent: 0 8px 24px -8px rgba(168, 85, 247, 0.38);
+/* Light-mode pairs — UNCHANGED by the dark revision EXCEPT for one required
+   addition: each pair must restate `--accent-foreground`.
+
+   The dark pairs above set it to black, because the dark accent is cream. In
+   light mode the accent is a saturated brand colour, so the foreground has to
+   flip back to cream or the primary button renders black-on-blue at 2.5:1.
+   `--accent-foreground` is a single token shared by every `bg-accent` surface,
+   so it has to be declared on both sides of the pair. */
+.light[data-accent='unity'] {
+  --accent: #2f3a45;
+  --accent-hover: #3b4854;
+  --accent-foreground: #ffffff; /* 11.6:1 */
+  --accent-text: #2f3a45;
+  --accent-soft: #dde2e6;
+  --accent-border: rgba(47, 58, 69, 0.28);
+  --ring: rgba(47, 58, 69, 0.4);
 }
 
-:root[data-accent='jade'] {
-  --accent: #2fb98a;
-  --accent-hover: #43c99b;
-  --accent-foreground: #02140d;
-  --accent-text: #4ecfa4;
-  --accent-soft: rgba(47, 185, 138, 0.13);
-  --accent-border: rgba(47, 185, 138, 0.3);
-  --ring: rgba(47, 185, 138, 0.4);
-  --shadow-accent: 0 8px 24px -8px rgba(47, 185, 138, 0.35);
+.light[data-accent='relief'] {
+  --accent: #ae313a;
+  --accent-hover: #93272f;
+  --accent-foreground: #f7f0e1; /* 5.6:1 */
+  --accent-text: #ae313a;
+  --accent-soft: rgba(174, 49, 58, 0.1);
+  --accent-border: rgba(174, 49, 58, 0.28);
+  --ring: rgba(174, 49, 58, 0.3);
 }
 
-:root[data-accent='rose'] {
-  --accent: #e0557f;
-  --accent-hover: #ea6b90;
-  --accent-foreground: #1c0410;
-  --accent-text: #ef7ba1;
-  --accent-soft: rgba(224, 85, 127, 0.13);
-  --accent-border: rgba(224, 85, 127, 0.3);
-  --ring: rgba(224, 85, 127, 0.4);
-  --shadow-accent: 0 8px 24px -8px rgba(224, 85, 127, 0.35);
-}
-
-/* Light-mode pairs — written after every dark block so they win the tie. */
-.light[data-accent='gold'] {
-  --accent: #e8a93b;
-  --accent-hover: #d4a017;
-  --accent-text: #b45309;
-  --accent-soft: #fffbeb;
-  --accent-border: #fde68a;
-  --ring: rgba(180, 83, 9, 0.35);
-}
-
-.light[data-accent='ember'] {
-  --accent: #e8703a;
-  --accent-hover: #d2541f;
-  --accent-text: #b23c14;
-  --accent-soft: #fff4ed;
-  --accent-border: #fdd0b8;
-  --ring: rgba(178, 60, 20, 0.35);
-}
-
-.light[data-accent='ocean'] {
-  --accent: #38a8d8;
-  --accent-hover: #1c86b4;
-  --accent-text: #0b6a92;
-  --accent-soft: #eff9ff;
-  --accent-border: #bae6fd;
-  --ring: rgba(11, 106, 146, 0.35);
-}
-
-.light[data-accent='orchid'] {
-  --accent: #a855f7;
-  --accent-hover: #8b3fe0;
-  --accent-text: #7127a8;
-  --accent-soft: #faf5ff;
-  --accent-border: #e9d5ff;
-  --ring: rgba(113, 39, 168, 0.35);
-}
-
-.light[data-accent='jade'] {
-  --accent: #2fb98a;
-  --accent-hover: #1f9b72;
-  --accent-text: #0f7355;
-  --accent-soft: #effdf7;
-  --accent-border: #b6f0da;
-  --ring: rgba(15, 115, 85, 0.35);
-}
-
-.light[data-accent='rose'] {
-  --accent: #e0557f;
-  --accent-hover: #c93a65;
-  --accent-text: #a81f4d;
-  --accent-soft: #fff1f5;
-  --accent-border: #fbcfe0;
-  --ring: rgba(168, 31, 77, 0.35);
+.light[data-accent='sunburst'] {
+  /* Sunburst is 1.6:1 on cream, so it is never a fill in light mode. The fill
+     drops to a darkened Sunburst that carries cream at 5.1:1; the pure brand
+     yellow stays available through `--brand-sunburst`. */
+  --accent: #8a6312;
+  --accent-hover: #75520e;
+  --accent-foreground: #f7f0e1; /* 4.8:1 */
+  --accent-text: #8a5d08;
+  --accent-soft: rgba(244, 190, 77, 0.3);
+  --accent-border: rgba(138, 99, 18, 0.45);
+  --ring: rgba(138, 99, 18, 0.4);
 }
 
 * {
@@ -539,6 +635,43 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 200ms var(--ease-out-expo), color 200ms var(--ease-out-expo);
   position: relative;
+}
+
+/* ------------------------------------------------------------------------------
+   Editorial display type.
+
+   A serif for page titles, greeting-style headlines and large section headings —
+   the one typographic move that separates a considered interface from a generic
+   dashboard. Everything else stays Inter: the serif is for display sizes only,
+   never for a form label, a table cell or a paragraph of body copy.
+
+   `.g-display` is opt-in so no existing heading changes by accident; `.g-title`
+   is the smaller variant used by page headers.
+   ------------------------------------------------------------------------------ */
+.g-display,
+.g-title,
+.font-display {
+  font-family: var(--font-serif), ui-serif, Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  color: var(--foreground);
+  text-wrap: balance;
+}
+
+.g-display {
+  font-size: clamp(2rem, 4.6vw, 3.25rem);
+  line-height: 1.08;
+}
+
+.g-title {
+  font-size: clamp(1.5rem, 3vw, 2.125rem);
+  line-height: 1.18;
+}
+
+/* The serif needs a touch more leading air at display sizes to stay calm. */
+.g-display + p,
+.g-title + p {
+  line-height: 1.65;
 }
 
 /* Fixed subtle grain/noise + soft vignette film across the page */
@@ -576,7 +709,6 @@ textarea {
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 8px;
 }
 
 /* ------------------------------------------------------------------------------
@@ -584,7 +716,7 @@ textarea {
    ------------------------------------------------------------------------------ */
 .g-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1240px;
   margin-inline: auto;
   padding-inline: 1.25rem;
 }
@@ -700,7 +832,7 @@ textarea {
   max-height: min(26rem, calc(100vh - 6rem));
   flex-direction: column;
   overflow: hidden;
-  border-radius: 0.875rem;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background-color: var(--card);
   box-shadow: var(--shadow-panel);
@@ -1083,7 +1215,7 @@ textarea {
 .g-card {
   background-color: var(--card);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 14px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -1111,7 +1243,7 @@ textarea {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 20px; /* within the 16–24px card-radius contract */
+  border-radius: 16px; /* the photo scale — one step up from .g-card */
   background-color: var(--card);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 220ms var(--ease-out-expo), transform 220ms var(--ease-out-expo),
@@ -1299,11 +1431,11 @@ textarea {
    ------------------------------------------------------------------------------ */
 .g-input {
   width: 100%;
-  height: 48px;
+  height: 44px;
   padding-inline: 0.875rem;
   background-color: var(--card);
   border: 1px solid var(--input);
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--foreground);
   font-size: 0.875rem;
   outline: none;
@@ -1361,13 +1493,26 @@ textarea.g-input {
 
 select.g-input {
   appearance: none;
-  /* The chevron cannot inherit a token through a data URI, so it is a neutral
-     grey that reads acceptably on both the dark card and the white one. */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  /* A data URI cannot inherit a CSS variable, so the two theme variants live on
+     `--select-chevron` itself and the rule below just reads it. One variable,
+     two values, no duplicated `background-image` line. */
+  background-image: var(--select-chevron);
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   padding-right: 2.25rem;
   cursor: pointer;
+}
+
+:root {
+  /* Dark: muted cream, which clears 6:1 against the near-black field. */
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8a093' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+.light,
+.classic,
+:root[data-theme='classic'],
+:root[data-theme='light'] {
+  /* Light: Carbon, which clears 9:1 against the cream card. */
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23535335' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 select.g-input option {
@@ -1376,29 +1521,24 @@ select.g-input option {
 }
 
 /* ------------------------------------------------------------------------------
-   Dark Mode Enforcement for Auth / Landing
+   THEME NEUTRALITY
+
+   There is deliberately no `.dark-only-page` override any more. The previous
+   version pinned ~18 tokens to `!important` dark values, which made light mode
+   unreachable on the landing page, the auth screens and the performing-arts
+   loader — a user who chose cream was still served near-black.
+
+   Light and dark are now the same token set with two different values, so every
+   route honours the stored preference and the OS default. The only things that
+   stay dark in both themes are the surfaces that sit on top of photography
+   (`.g-imagecard*` scrims, `.dark-only-photo`), where a near-black wash is a
+   legibility device rather than a theme choice.
    ------------------------------------------------------------------------------ */
-.dark-only-page {
-  color-scheme: dark !important;
-  --background: #0b0d10 !important;
-  --surface: #0f1216 !important;
-  --elevated: #14181d !important;
-  --card: #111519 !important;
-  --card-foreground: #f2f4f7 !important;
-  --foreground: #edeff3 !important;
-  --muted: #171b21 !important;
-  --muted-foreground: #9ba3ae !important;
-  --subtle-foreground: #7c8593 !important;
-  --border: #232830 !important;
-  --border-strong: #363d47 !important;
-  --divider: #1b1f26 !important;
-  --input: #2a3038 !important;
-  --glass-bg: rgba(17, 21, 25, 0.72) !important;
-  --glass-border: rgba(255, 255, 255, 0.08) !important;
-  --glass-border-hover: rgba(232, 169, 59, 0.35) !important;
-  --glass-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.65) !important;
-  --glass-highlight: rgba(255, 255, 255, 0.05) !important;
-  --vignette-color: rgba(0, 0, 0, 0.6) !important;
+
+/* Scrim companion for photo-backed surfaces. Kept as a named hook so the
+   landing hero and the auth split column read as one decision. */
+.dark-only-photo {
+  color-scheme: dark;
 }
 
 /* ------------------------------------------------------------------------------
@@ -1439,11 +1579,11 @@ select.g-input option {
 .g-input-static {
   display: flex;
   align-items: center;
-  height: 48px;
+  height: 44px;
   padding-inline: 0.875rem;
   background-color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--muted-foreground);
   font-size: 0.875rem;
 }
@@ -1623,6 +1763,15 @@ select.g-input option {
   }
 }
 
+/* The shimmer is decoration on a placeholder. A user who has asked for reduced
+   motion gets a flat block, not a slowed-down one. */
+@media (prefers-reduced-motion: reduce) {
+  .g-skeleton::after {
+    animation: none;
+    background-image: none;
+  }
+}
+
 /* ------------------------------------------------------------------------------
    Verified badge
 
@@ -1760,7 +1909,9 @@ select.g-input option {
   align-items: center;
   gap: 1rem;
   height: var(--nav-header-h);
-  max-width: 1320px;
+  /* MUST equal DashboardLayout's `max-w-[1240px]` and `.g-container`. A header
+     wider than the content it floats over reads as a permanent misalignment. */
+  max-width: 1240px;
   margin-inline: auto;
   padding-inline: 1rem;
 }
@@ -2147,7 +2298,7 @@ select.g-input option {
   min-width: 13rem;
   max-width: min(20rem, calc(100vw - 2rem));
   transform: translateX(-50%);
-  border-radius: 1rem;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background-color: var(--card);
   box-shadow: var(--shadow-panel);
@@ -2850,6 +3001,11 @@ select.g-input option {
 .leaflet-container {
   background-color: var(--muted);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Leaflet stacks its own panes at z-index 200-1000. The map lives inside an
+     `isolate` + `overflow-hidden` box on the Studio Locator card, and this makes
+     the container its own stacking context too, so those values can never lift
+     the map above that card, the sticky header, a dropdown, or a modal. */
+  z-index: 0;
 }
 .leaflet-tile-pane {
   /* Tiles are photographic; a slight desaturation stops them competing with the
@@ -3246,4 +3402,1422 @@ select.g-input option {
   /* Guard against any inherited filter inverting black ink into white. */
   filter: none;
   opacity: 1;
+}
+
+/* =============================================================================
+ * HEADER — the redesigned shared header  (hx- prefix)
+ * ===========================================================================
+ *
+ * Prefixed `hx-` for the same reason the WelcomeModal's rules are `wm-`: these
+ * are one component's styles and must not collide with anything else in a
+ * 3,400-line sheet. The component lives in components/header/.
+ *
+ * WHAT IS REUSED AND WHY
+ *   Every colour here is a token. The old header's rules are untouched and still
+ *   drive the admin console, the standalone Navbar, and the public layouts — so
+ *   this block is additive and the two headers cannot drift apart on palette,
+ *   only on arrangement.
+ *
+ * THE TWO RULES THAT ARE NOT THE OLD ONES
+ *
+ *   1. `border-color` is set explicitly everywhere. globals.css declares a
+ *      universal `* { border-color: var(--border) }` OUTSIDE any @layer, which
+ *      outranks every Tailwind `border-<colour>` utility regardless of what the
+ *      component asks for. A Tailwind class in the markup would silently lose.
+ *
+ *   2. Nothing animates `width` on a live element during scroll. The sliding
+ *      pill transitions width and transform, which are the only two properties
+ *      that can carry it without a reflow per frame.
+ * =========================================================================== */
+
+/* Surfaces for the header, its dropdown panels, the mobile drawer and the
+   command palette.
+
+   EVERY ONE OF THESE IS AN ALIAS OF AN EXISTING TOKEN. There are no colours
+   invented here. An earlier version of this block hardcoded `#0b0b0b`,
+   `#1a1a1a`, `#141414` and `rgba(255,255,255,0.08)`, which pinned every panel to
+   dark: in the Light theme the Community and Profile menus stayed black while
+   the page behind them went cream, and their grey text was tuned for a dark
+   ground it no longer had.
+
+   The app already defines the right vocabulary — `--card` for a raised surface,
+   `--muted` for a hover fill, `--border` for a hairline, `--shadow-panel` for
+   depth — and each has a light-theme value already contrast-checked in
+   globals.css. So the fix is to use them, not to add a second palette.
+
+   Declared at `:root` rather than on `.hx-header`, because the drawer and the
+   palette are SIBLINGS of the header element: they render in a fragment so their
+   panels can escape the bar's stacking context, and tokens declared on the bar
+   do not reach them. That gap showed up as a drawer with no background at all. */
+:root {
+  /* 72px, not the 68px `--nav-header-h` the admin header uses: this bar carries
+     a 40px logo mark plus a two-line wordmark, and at 68px the row was tight
+     against the mark's own padding. The drawer head reads the same token. */
+  --hx-header-h: 4.5rem;
+  /* Raised surface: a dropdown or the drawer. Solid in both themes. */
+  --hx-surface: var(--card);
+  /* Hover fill. Fully opaque in both themes, so hovering can never let the page
+     show through a panel. */
+  --hx-surface-hover: var(--muted);
+  --hx-hairline: var(--border);
+  /* The colour a presence dot's ring is cut in. It has to match whatever the dot
+     is sitting on, so it is an alias that surfaces re-point locally. */
+  --hx-surface-avatar: var(--card);
+  --hx-surface-panel: var(--card);
+}
+
+.hx-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  /* SOLID, always.
+     This bar used to be fully transparent at rest and only gained a background
+     once the page had scrolled, which meant the navigation had no surface at all
+     for the entire first screenful. It is now near-solid from the first paint,
+     with the hairline always present: this is a boundary, and a boundary that
+     only sometimes exists is not one. */
+  background-color: color-mix(in srgb, var(--background) 92%, transparent);
+  border-bottom: 1px solid var(--hx-hairline);
+  transition:
+    background-color var(--nav-dur) var(--nav-ease),
+    box-shadow var(--nav-dur) var(--nav-ease);
+}
+.hx-header[data-scrolled] {
+  background-color: color-mix(in srgb, var(--background) 97%, transparent);
+  box-shadow: var(--shadow-header);
+}
+
+/* Three zones, not flex. The brand is fixed, the nav takes what it needs and may
+   shrink, and the account cluster is pinned right. Flex let the middle zone win
+   and squeeze the account menu — the one control a user must never lose. */
+.hx-header-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  height: var(--hx-header-h);
+  /* MUST match the page content: every page wrapper in this app is
+     `max-w-[1240px] px-5 sm:px-8`. A header at a different inset from the
+     content it floats over reads as a permanent misalignment, which is the most
+     visible way a header can look broken. */
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+@media (min-width: 640px) {
+  .hx-header-inner {
+    gap: 1.25rem;
+    padding-inline: 2rem;
+  }
+}
+.hx-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.hx-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+/* --- Brand ---------------------------------------------------------------- */
+
+@keyframes hx-logo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.hx-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  border-radius: 0.75rem;
+  animation: hx-logo-in 560ms var(--nav-ease) both;
+}
+.hx-logo-mark {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  overflow: hidden;
+  transition:
+    transform 420ms var(--nav-ease),
+    box-shadow 420ms var(--nav-ease),
+    border-color 420ms var(--nav-ease);
+}
+.hx-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Hover: a small lift, a hair of rotation, and a glow that reads as the mark
+   catching light rather than as a coloured halo bolted onto it. */
+.hx-logo:hover .hx-logo-mark {
+  transform: translateY(-1px) rotate(-4deg) scale(1.06);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-lg);
+}
+.hx-logo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.hx-logo-word {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0.125rem 0;
+}
+.hx-logo-name {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.hx-logo-sub {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* The shimmer. One sweep across the lockup every ~7s, then nothing for the
+   rest of the cycle — a continuous shine reads as "loading", and a logo is
+   never loading. The mark and the wordmark run on different phases so the two
+   never look like one synchronised animation. */
+@keyframes hx-logo-sheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-160%);
+  }
+  8% {
+    opacity: 0.85;
+  }
+  22% {
+    opacity: 0;
+    transform: translateX(220%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(220%);
+  }
+}
+.hx-logo-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 38%;
+  pointer-events: none;
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: hx-logo-sheen 7s var(--nav-ease) 1.2s infinite;
+}
+.hx-logo-sheen--word {
+  animation-delay: 3.7s;
+  width: 45%;
+}
+/* The wordmark box is `overflow: hidden`, so the sweep is clipped to the type
+   and the sheen cannot bleed past the letters. */
+.hx-logo-sheen--word {
+  left: -45%;
+}
+
+/* On a phone the portal label is the first thing to go: the product name alone
+   identifies the app. Below 400px the wordmark goes too, leaving the mark. */
+@media (max-width: 639px) {
+  .hx-logo-sub {
+    display: none;
+  }
+}
+@media (max-width: 400px) {
+  .hx-logo-word {
+    display: none;
+  }
+}
+
+/* --- Nav row + the sliding active pill -------------------------------------- */
+
+.hx-header-nav {
+  position: relative;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-width: 0;
+  /* MUST NOT be `overflow: hidden`. Every panel hangs BELOW this row, which is
+     only as tall as the triggers, so clipping would leave each menu present in
+     the DOM and invisible on screen — it looked like the buttons did nothing. */
+  overflow: visible;
+}
+@media (min-width: 1024px) {
+  .hx-header-nav {
+    display: flex;
+  }
+}
+
+/* The pill is the CSS equivalent of Framer Motion's layoutId. framer-motion is
+   not a dependency here and a ~34KB runtime for one shared-element transition is
+   a bad trade, so the same effect is a translated, resized span with a
+   spring-ish cubic-bezier. `--hx-pill-spring` overshoots slightly, which is what
+   makes it read as a spring rather than as a slide. */
+.hx-pill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  border-radius: 0.5rem;
+  background-color: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, width;
+  transition:
+    transform 420ms cubic-bezier(0.22, 1.2, 0.36, 1),
+    width 420ms cubic-bezier(0.22, 1.2, 0.36, 1),
+    opacity 180ms ease;
+}
+.hx-pill[data-active] {
+  opacity: 1;
+}
+/* Until `useSlidingIndicator` has placed the pill at least once, it must not
+   transition — otherwise it flies in from x=0 on every page load, which reads
+   as a bug rather than as an entrance. The attribute is set one frame after
+   the first placement, by which point the browser has painted it in place. */
+.hx-pill:not([data-settled]) {
+  transition: opacity 180ms ease;
+}
+
+.hx-link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  height: 2.25rem;
+  padding-inline: 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+.hx-link:hover {
+  color: var(--foreground);
+}
+.hx-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 0.5rem;
+}
+/* The trigger's own hover is deliberately weaker than the panel's. A pointer
+   crossing the trigger should not flash a different background it is about to
+   leave — the panel opening underneath is the real feedback. */
+.hx-link--trigger:hover {
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+/* Landing-page anchors. In-page jumps, so they keep the ordinary hover fill —
+   unlike a dropdown trigger, where filling on hover would flash a highlight the
+   pointer is about to leave as the panel opens underneath. `href="#id"` plus the
+   global `html { scroll-behavior: smooth }` is the whole scroll implementation. */
+.hx-link--anchor {
+  color: var(--muted-foreground);
+}
+.hx-link--anchor:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+.hx-link[data-active='true'] {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.hx-link-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 160ms ease;
+}
+.hx-link[data-active='true'] .hx-link-icon,
+.hx-link:hover .hx-link-icon {
+  opacity: 1;
+}
+
+.hx-caret {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: transform 200ms var(--nav-ease);
+}
+/* Driven by `aria-expanded` so the caret is correct for mouse and keyboard
+   alike, and by `data-open` in the drawer where there is no aria state to hang
+   it off during the CSS-only disclosure. */
+[aria-expanded='true'] > .hx-caret,
+.hx-caret[data-open] {
+  transform: rotate(180deg);
+}
+
+/* --- Panels ---------------------------------------------------------------- */
+
+/* One class for the dropdown panel and the account panel, exactly as the old
+   header did with `.g-panel`. Two near-identical blocks would drift.
+
+   SOLID, NOT GLASS.
+   These panels used to sit on `--glass-bg` — `rgba(23,23,23,0.82)` — behind a
+   `backdrop-filter`. Over a page with text on it, that is 18% of the page
+   showing through the menu: a greeting, a card headline, a button label, all of
+   it readable straight through the items you are trying to click. It read as a
+   rendering bug and it was one — a menu is a surface that interrupts the page,
+   and a surface you can see the page through is not interrupting anything.
+
+   So: opaque fill, a real 1px hairline, and a shadow deep enough to lift it off
+   the content. No blur, no alpha. `z-index: 100` because the header bar itself
+   is z-40 and these hang below it — at the old z-50 a panel was within reach of
+   whatever the page had stacked high. */
+.hx-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 100;
+  min-width: 20rem;
+  padding: 0.375rem;
+  border: 1px solid var(--hx-hairline);
+  border-radius: 0.75rem;
+  background-color: var(--hx-surface);
+  /* Re-point the ring token: inside a panel the dot sits on the panel, not on
+     the translucent header bar. */
+  --hx-surface-avatar: var(--hx-surface-panel);
+  box-shadow: var(--shadow-panel);
+  transform-origin: top right;
+}
+.hx-dropdown .hx-panel {
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Open/close is a fade + a short rise + a slight scale, inside the 150–200ms
+   the brief asks for. `data-state` rather than a class so the element can stay
+   mounted through the exit — unmounting on close would make it blink. */
+@keyframes hx-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes hx-panel-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+.hx-panel[data-state='open'] {
+  animation: hx-panel-in 180ms var(--nav-ease) both;
+}
+.hx-panel[data-state='closed'] {
+  animation: hx-panel-out 160ms ease both;
+}
+/* The dropdown is centred on its trigger, so its rise must not fight the
+   translateX(-50%) that centres it. */
+.hx-dropdown .hx-panel[data-state='open'] {
+  animation-name: hx-panel-in-centred;
+}
+.hx-dropdown .hx-panel[data-state='closed'] {
+  animation-name: hx-panel-out-centred;
+}
+@keyframes hx-panel-in-centred {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+@keyframes hx-panel-out-centred {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -4px) scale(0.98);
+  }
+}
+
+.hx-panel-heading {
+  margin: 0;
+  padding: 0.5rem 0.625rem 0.375rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  /* `--muted-foreground`, not `--subtle-foreground`. A 10px uppercase label at
+     5.4:1 dark / 4.6:1 light technically clears AA, but it clears it by a margin
+     so thin that it reads as grey-on-grey in practice — and it was the first
+     thing a user reported as unreadable. 6.9:1 / 5.2:1 is comfortable at this
+     size. Every CONTENT label in the bar uses this token; only icons,
+     placeholders and key hints stay on `--subtle-foreground`. */
+  color: var(--muted-foreground);
+}
+.hx-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Rounded icon tile + bold title + one-line gray description.
+
+   `align-items: flex-start` rather than `center`: once descriptions are allowed
+   to wrap (they were `nowrap` + ellipsis, which clipped "Musical theatre,
+   production & staging" to "Musical theatre, production & stag…"), rows are no
+   longer all the same height, and centring made the icon tiles float at
+   different heights row to row. Top-aligned keeps every tile on one line. */
+.hx-panel-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.625rem;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+.hx-panel-item:hover,
+.hx-panel-item:focus-visible {
+  /* Solid, and a real step lighter than the panel — not `var(--muted)`, which is
+     itself translucent and let the page show through on hover as well. */
+  background-color: var(--hx-surface-hover);
+  outline: none;
+}
+.hx-panel-item:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.hx-panel-item-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--hx-hairline);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms var(--nav-ease);
+}
+/* The tile is the hover target's smallest element, so it carries the glow: a
+   highlight behind a row of text reads as a row highlight, but a lit icon tile
+   reads as "this one is the destination". */
+.hx-panel-item:hover .hx-panel-item-icon,
+.hx-panel-item:focus-visible .hx-panel-item-icon {
+  color: var(--accent-text);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  transform: scale(1.04);
+}
+.hx-panel-item-text {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  /* Nudged down so the title's cap-height sits on the tile's optical centre
+     rather than its box centre. */
+  padding-top: 1px;
+}
+.hx-panel-item-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.hx-panel-item-desc {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+  /* Wraps. `white-space: nowrap` + `text-overflow: ellipsis` was truncating
+     real descriptions mid-word, which is worse than a two-line row: the user
+     could not read what the destination was. */
+  overflow-wrap: anywhere;
+}
+/* A nudge, not a slide: the arrow should look like it is being pushed forward. */
+.hx-panel-item-arrow {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--subtle-foreground);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 150ms ease,
+    transform 150ms var(--nav-ease);
+}
+.hx-panel-item:hover .hx-panel-item-arrow,
+.hx-panel-item:focus-visible .hx-panel-item-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* --- Search trigger -------------------------------------------------------- */
+
+.hx-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding-inline: 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+.hx-search-btn:hover {
+  color: var(--foreground);
+  border-color: var(--border-strong);
+  background-color: var(--muted);
+}
+.hx-search-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.hx-search-kbd {
+  padding: 0.0625rem 0.3125rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background-color: var(--muted);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--subtle-foreground);
+}
+/* Below `lg` the bar has no room for a labelled field; it collapses to the same
+   icon-only control the bell uses, which keeps the two hit targets identical. */
+@media (max-width: 1279px) {
+  .hx-search-text,
+  .hx-search-kbd {
+    display: none;
+  }
+  .hx-search-btn {
+    width: 2.25rem;
+    padding-inline: 0;
+    justify-content: center;
+  }
+}
+
+.hx-burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+.hx-burger:hover {
+  background-color: var(--muted);
+}
+.hx-burger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (min-width: 1024px) {
+  .hx-burger {
+    display: none;
+  }
+}
+
+/* --- Account pill ---------------------------------------------------------- */
+
+.hx-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 2.75rem;
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--foreground);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.hx-account:hover {
+  background-color: var(--muted);
+  border-color: var(--hx-hairline);
+}
+.hx-account:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.hx-avatar-wrap,
+.hx-drawer-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+/* The presence dot is a plain static inline span (`.g-presence-dot`), so it
+   needs an absolutely-positioned wrapper or it renders BESIDE the avatar
+   instead of on its corner — which is the overlap this pill had. The ring is
+   cut in the header's own surface colour so the dot reads as a badge riding the
+   avatar rather than as a second avatar. */
+.hx-presence {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: block;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px var(--hx-surface-avatar);
+  line-height: 0;
+}
+.hx-avatar,
+.hx-drawer-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.hx-drawer-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 0.875rem;
+}
+.hx-avatar-img {
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+.hx-account-meta {
+  display: block;
+  min-width: 0;
+  text-align: left;
+}
+.hx-account-name {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 9rem;
+}
+.hx-account-sub {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+/* Below `sm` the name and role go and the pill collapses to the avatar — the
+   drawer reintroduces the full identity, so nothing is actually lost. */
+@media (max-width: 639px) {
+  .hx-account-meta {
+    display: none;
+  }
+}
+
+.hx-panel--account {
+  min-width: 19.5rem;
+}
+.hx-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+.hx-account-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  font-weight: 700;
+}
+.hx-account-avatar-img {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+.hx-account-identity {
+  min-width: 0;
+}
+.hx-account-fullname {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.hx-account-email {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hx-account-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  padding: 0.0625rem 0.4375rem;
+  border: 1px solid var(--accent-border);
+  border-radius: 9999px;
+  background-color: var(--accent-soft);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent-text);
+}
+.hx-account-greeting {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.hx-panel-foot {
+  padding: 0.375rem 0.375rem 0.125rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--hx-hairline);
+}
+.hx-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.hx-menu-item:hover {
+  background-color: var(--hx-surface-hover);
+}
+.hx-menu-item:focus-visible {
+  background-color: var(--hx-surface-hover);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.hx-menu-item-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+.hx-menu-item--danger,
+.hx-menu-item--danger .hx-menu-item-icon {
+  color: var(--danger);
+}
+
+.hx-account-section {
+  padding: 0.625rem 0.75rem;
+  border-top: 1px solid var(--hx-hairline);
+}
+.hx-account-section-label {
+  margin: 0 0 0.375rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* --- Signed-out auth buttons ------------------------------------------------ */
+
+.hx-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.hx-auth-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2.25rem;
+  padding-inline: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.hx-auth-link:hover {
+  background-color: var(--muted);
+  border-color: var(--border-strong);
+}
+.hx-auth-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.hx-auth-link--primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.hx-auth-link--primary:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+@media (max-width: 400px) {
+  .hx-auth-link span,
+  .hx-auth-link svg {
+    display: none;
+  }
+  .hx-auth-link {
+    padding-inline: 0.75rem;
+  }
+}
+
+/* --- Session-resolving skeleton ----------------------------------------------
+ *
+ * Shown in the actions zone while `<SessionProvider>` resolves. The rule this
+ * replaces was: render "Sign In / Get started", then swap to the signed-in bar a
+ * moment later. A signed-in user saw the guest bar flash on every public page,
+ * which is indistinguishable from having been logged out.
+ *
+ * The placeholders are the same heights as the real controls (2.25rem / 2.75rem)
+ * so nothing shifts when the session lands. It is deliberately not a spinner: a
+ * spinner is a different shape, and a shape change is exactly the layout shift
+ * this is meant to prevent.
+ * ---------------------------------------------------------------------------- */
+.hx-header-nav[data-resolving] {
+  visibility: hidden;
+}
+.hx-skeleton-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.hx-skeleton {
+  display: block;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  border: 1px solid var(--hx-hairline);
+}
+.hx-skeleton--icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+}
+.hx-skeleton--bell {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+}
+.hx-skeleton--pill {
+  width: 11rem;
+  height: 2.75rem;
+}
+
+/* --- Mobile drawer ---------------------------------------------------------- */
+
+.hx-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  /* Opaque scrim. It was `var(--overlay)` behind a blur, which left the page
+     legible underneath the drawer and made the whole sheet feel like it was
+     floating in the same space as the content it was covering. */
+  background-color: color-mix(in srgb, var(--background) 78%, transparent);
+  animation: hx-fade-in 160ms ease both;
+}
+@keyframes hx-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hx-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.hx-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(22rem, 88vw);
+  height: 100%;
+  /* Solid. Same reasoning as the panels: a sheet that covers the page must not
+     be a window onto it. */
+  background-color: var(--hx-surface);
+  border-right: 1px solid var(--hx-hairline);
+  box-shadow: var(--shadow-panel);
+  animation: hx-drawer-in 260ms var(--nav-ease) both;
+}
+.hx-drawer-head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--hx-header-h);
+  padding-inline: 1.25rem;
+  border-bottom: 1px solid var(--hx-hairline);
+}
+.hx-drawer-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.hx-drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+.hx-drawer-close:hover {
+  background-color: var(--muted);
+}
+.hx-drawer-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.hx-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 0.75rem 2rem;
+}
+.hx-drawer-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--hx-hairline);
+  border-radius: 1rem;
+  background-color: var(--muted);
+  /* The dot sits on this card, not on the translucent bar. */
+  --hx-surface-avatar: var(--muted);
+}
+.hx-drawer-greeting {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.hx-drawer-section {
+  margin-bottom: 0.25rem;
+}
+.hx-drawer-label,
+.hx-drawer-subheading {
+  margin: 0;
+  padding: 0.75rem 0.75rem 0.375rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+/* 3rem = 48px. That is the WCAG 2.2 target-size floor, and the reason these are
+   not the 36px rows the desktop bar uses: on a phone these are links people
+   tap with a thumb while walking. */
+.hx-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.hx-drawer-link:hover {
+  background-color: var(--hx-surface-hover);
+}
+.hx-drawer-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.hx-drawer-link-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+.hx-drawer-link--danger,
+.hx-drawer-link--danger .hx-drawer-link-icon {
+  color: var(--danger);
+}
+.hx-drawer-sub {
+  padding-left: 0.5rem;
+}
+.hx-drawer-sublink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  color: var(--foreground);
+  text-decoration: none;
+}
+.hx-drawer-sublink:hover {
+  background-color: var(--hx-surface-hover);
+}
+.hx-drawer-sublink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.hx-drawer-sublink[aria-current='page'] {
+  background-color: var(--accent-soft);
+}
+.hx-drawer-sublink-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  color: var(--subtle-foreground);
+}
+.hx-drawer-sublink-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.hx-drawer-sublink-desc {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--muted-foreground);
+}
+.hx-drawer-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.hx-drawer-auth-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.hx-drawer-auth-link--primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* --- Command palette (Cmd/Ctrl+K) ------------------------------------------ */
+
+.hx-cmdk {
+  max-width: 40rem;
+}
+.hx-cmdk-head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--divider);
+}
+.hx-cmdk-search-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+.hx-cmdk-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  outline: none;
+}
+.hx-cmdk-input::placeholder {
+  color: var(--subtle-foreground);
+}
+.hx-cmdk-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.375rem;
+  padding-inline: 0.3125rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background-color: var(--muted);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  color: var(--subtle-foreground);
+}
+.hx-cmdk-list {
+  max-height: 22rem;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+.hx-cmdk-group {
+  display: flex;
+  align-items: center;
+  gap: 0.3125rem;
+  margin: 0;
+  padding: 0.5rem 0.625rem 0.25rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.hx-cmdk-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+.hx-cmdk-row.is-active {
+  background-color: var(--accent-soft);
+}
+.hx-cmdk-row-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+}
+.hx-cmdk-avatar {
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.hx-cmdk-row-text {
+  min-width: 0;
+}
+.hx-cmdk-row-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.hx-cmdk-row-desc {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hx-cmdk-empty {
+  margin: 0;
+  padding: 1.5rem 0.75rem;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+.hx-cmdk-foot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--divider);
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+.hx-cmdk-foot span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* --- Notification bell: one nudge when something NEW arrives ---------------- */
+
+@keyframes hx-bell-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(13deg);
+  }
+  40% {
+    transform: rotate(-11deg);
+  }
+  60% {
+    transform: rotate(7deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+}
+.g-topbar-action[data-wiggle] svg {
+  animation: hx-bell-wiggle 900ms var(--nav-ease) 1;
+  transform-origin: 50% 15%;
+}
+
+/* --- Reduced motion ---------------------------------------------------------
+ *
+ * Not "a slower animation" — no animation. Every one of these is decoration on
+ * a control, and `prefers-reduced-motion` is a request for the control to simply
+ * BE THERE. The exit/enter keyframes are neutralised rather than shortened so
+ * nothing lands mid-transform.
+ * ---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .hx-header,
+  .hx-logo,
+  .hx-logo-mark,
+  .hx-logo-sheen,
+  .hx-pill,
+  .hx-link,
+  .hx-caret,
+  .hx-panel,
+  .hx-panel-item,
+  .hx-panel-item-icon,
+  .hx-panel-item-arrow,
+  .hx-search-btn,
+  .hx-account,
+  .hx-auth-link,
+  .hx-drawer,
+  .hx-drawer-backdrop,
+  .hx-menu-item,
+  .hx-drawer-link,
+  .hx-drawer-sublink,
+  .hx-burger,
+  .hx-cmdk-row,
+  .g-topbar-action[data-wiggle] svg {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  /* The shimmer is pure decoration and is the one thing here worth removing
+     outright rather than finishing instantly. */
+  .hx-logo-sheen {
+    display: none !important;
+  }
+  .hx-logo:hover .hx-logo-mark {
+    transform: none;
+  }
 }

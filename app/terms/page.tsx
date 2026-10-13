@@ -102,8 +102,8 @@ export default function TermsAndConditionsPage() {
         Legal Document
       </div>
 
-      <article className="max-w-[70ch] space-y-12">
-        <section id="acceptance" className="scroll-mt-28">
+      <article className="max-w-[70ch] space-y-12 sm:space-y-14">
+        <section id="acceptance" className="scroll-mt-24">
           <SectionHeading title="Acceptance of Terms" icon={<CheckCircle className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -113,14 +113,14 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="definitions" className="scroll-mt-28">
+        <section id="definitions" className="scroll-mt-24">
           <SectionHeading title="Definitions" icon={<BookOpen className="h-4 w-4" />} />
           <Prose>
             <dl className="g-card divide-y divide-divider overflow-hidden">
               {DEFINITIONS.map(({ term, def }) => (
                 <div
                   key={term}
-                  className="grid gap-1 px-5 py-4 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-4"
+                  className="grid gap-1 px-5 py-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"
                 >
                   <dt className="text-sm font-bold text-foreground">{term}</dt>
                   <dd className="text-sm leading-relaxed text-muted-foreground">{def}</dd>
@@ -130,7 +130,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="accounts" className="scroll-mt-28">
+        <section id="accounts" className="scroll-mt-24">
           <SectionHeading title="User Accounts" icon={<UserCheck className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -141,7 +141,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="conduct" className="scroll-mt-28">
+        <section id="conduct" className="scroll-mt-24">
           <SectionHeading title="User Conduct" icon={<ShieldAlert className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -152,14 +152,14 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="payments" className="scroll-mt-28">
-          <SectionHeading title="Booking & Payments" icon={<CreditCard className="h-4 w-4" />} />
+        <section id="payments" className="scroll-mt-24">
+          <SectionHeading title="Booking &amp; Payments" icon={<CreditCard className="h-4 w-4" />} />
           <Prose>
             <p>
               Payments occur directly between Client and Coach via agreed channels. Groove
               facilitates scheduling, digital agreement contracts, and communication.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {PAYMENT_METHODS.map((m) => (
                 <span key={m} className="g-pill">
                   {m}
@@ -169,7 +169,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="smartchat" className="scroll-mt-28">
+        <section id="smartchat" className="scroll-mt-24">
           <SectionHeading title="Smart Chat Support" icon={<Bot className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -179,7 +179,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="ip" className="scroll-mt-28">
+        <section id="ip" className="scroll-mt-24">
           <SectionHeading title="Intellectual Property" icon={<Lightbulb className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -189,30 +189,30 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="disclaimer" className="scroll-mt-28">
-          <SectionHeading title="Disclaimer & Liability" icon={<AlertTriangle className="h-4 w-4" />} />
+        <section id="disclaimer" className="scroll-mt-24">
+          <SectionHeading title="Disclaimer &amp; Liability" icon={<AlertTriangle className="h-4 w-4" />} />
           <Prose>
-        <Callout tone="warning">
-          The Platform is provided on an &ldquo;as-is&rdquo; basis. Groove exercises reasonable
-          care in verifying coaches and facilitating contracts.
-        </Callout>
+            <Callout tone="warning">
+              The Platform is provided on an &ldquo;as-is&rdquo; basis. Groove exercises reasonable
+              care in verifying coaches and facilitating contracts.
+            </Callout>
           </Prose>
         </section>
 
-        <section id="privacy" className="scroll-mt-28">
-          <SectionHeading title="Privacy & Data Use" icon={<Lock className="h-4 w-4" />} />
+        <section id="privacy" className="scroll-mt-24">
+          <SectionHeading title="Privacy &amp; Data Use" icon={<Lock className="h-4 w-4" />} />
           <Prose>
             <p>
               How we handle your personal information is set out in full in our{' '}
               <Link
                 href="/privacy"
-                className="font-semibold text-accent-text hover:underline underline-offset-2"
+                className="font-semibold text-accent-text underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 Privacy Policy
               </Link>
               . In summary:
             </p>
-            <ul className="mt-4 space-y-3">
+            <ul className="space-y-3">
               {PRIVACY_POINTS.map((point) => (
                 <li key={point.label} className="flex gap-3">
                   <span
@@ -239,7 +239,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="changes" className="scroll-mt-28">
+        <section id="changes" className="scroll-mt-24">
           <SectionHeading title="Changes to Terms" icon={<RefreshCw className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -249,7 +249,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="termination" className="scroll-mt-28">
+        <section id="termination" className="scroll-mt-24">
           <SectionHeading title="Termination" icon={<Ban className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -260,7 +260,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="law" className="scroll-mt-28">
+        <section id="law" className="scroll-mt-24">
           <SectionHeading title="Governing Law" icon={<Scale className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -270,7 +270,7 @@ export default function TermsAndConditionsPage() {
           </Prose>
         </section>
 
-        <section id="contact" className="scroll-mt-28">
+        <section id="contact" className="scroll-mt-24">
           <SectionHeading title="Contact" icon={<Mail className="h-4 w-4" />} />
           <Prose>
             <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-5">
@@ -280,11 +280,11 @@ export default function TermsAndConditionsPage() {
               >
                 <Mail className="h-4 w-4" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Email us at</p>
                 <a
                   href="mailto:Groove1152000@gmail.com"
-                  className="text-sm font-semibold text-accent-text hover:underline underline-offset-2"
+                  className="break-all text-sm font-semibold text-accent-text underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   Groove1152000@gmail.com
                 </a>
@@ -299,6 +299,10 @@ export default function TermsAndConditionsPage() {
 
 /* ─── Presentational blocks (token-driven, no inline styles) ─── */
 
+/**
+ * Section heading. Rendered as an <h2> so the document keeps a real heading
+ * hierarchy for screen readers and the browser's find-in-page.
+ */
 function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode }) {
   return (
     <div className="mb-4 flex items-center gap-3.5">
@@ -308,7 +312,7 @@ function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode 
       >
         {icon}
       </span>
-      <h2 className="text-xl font-bold tracking-[-0.02em] text-foreground">{title}</h2>
+      <h2 className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl">{title}</h2>
     </div>
   );
 }

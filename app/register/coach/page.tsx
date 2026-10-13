@@ -12,14 +12,13 @@ import {
   labelClasses,
   sectionHeadingClasses,
 } from '@/components/auth/RegistrationFormFields';
-import { AddressData } from '@/components/auth/AddressSelector';
+import { AddressData, composeStreetLine } from '@/components/auth/AddressSelector';
 import {
   DEFAULT_SKILLS_AND_GENRES,
   getAvailableSkills,
   validateSkillsSelection,
 } from '@/lib/config/skillsConfig';
 import {
-  ArrowLeft,
   ArrowRight,
   Award,
   Sparkles,
@@ -28,15 +27,12 @@ import {
   FileCheck,
   Camera,
   Loader2,
-  AlertCircle,
   X,
-  MapPin,
   Music,
   Mic,
   Clapperboard,
   Drama,
   Check,
-  CheckCircle2,
   Layers,
 } from 'lucide-react';
 import { AuthLayout } from '@/components/shared/AuthLayout';
@@ -493,8 +489,10 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
           ? rawBarangayCode
           : cityCodePrefix;
 
-      // `bio` lives on `profiles`. There is no subdivision column: the
-      // AddressSelector already folds Subdivision/Village into the street line.
+      // `bio` lives on `profiles`. There is no subdivision column, so the street
+      // line and the subdivision are joined here. composeStreetLine() is the
+      // one definition of that join, so the stored value is byte-identical to
+      // what the old folded selector produced.
       const { error: profileErr } = await supabase.from('profiles').upsert({
         id: userId,
         custom_id: random4Digit,
@@ -518,7 +516,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
         city_name: step1Data.address.city_name,
         barangay_code: barangayCode,
         barangay_name: step1Data.address.barangay_name,
-        street: step1Data.address.street || null,
+        street: composeStreetLine(step1Data.address.street, step1Data.address.subdivision) || null,
         postal_code: step1Data.address.postal_code || null,
         terms_accepted: true,
         email_verified: false,

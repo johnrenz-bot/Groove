@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, X, RotateCcw } from 'lucide-react';
-import CommunityFeed from '@/features/community/components/CommunityFeed';
+import { ShowcaseShell } from '@/features/showcase/components/ShowcaseShell';
 import { communityOf } from '@/features/community/utils/community';
-import { CommunityShowcasePlaylists } from '@/features/music';
 import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
 import { CoachCard } from '@/components/shared/CoachCard';
@@ -93,6 +92,30 @@ export default function ClientTalentPage() {
   useEffect(() => {
     void loadCoachesAndProfile();
   }, [loadCoachesAndProfile]);
+
+  /**
+   * Deep-link the tabs.
+   *
+   * The header's Dashboard menu has two distinct entries — "Showcase" and "Find
+   * Coaches" — and this route is BOTH of them: it is one page with two tabs.
+   * Without this, both links would open the same tab and the menu would be
+   * lying about where it takes you.
+   *
+   * A hash rather than a query param deliberately: `useSearchParams()` opts a
+   * client page out of static rendering unless it is wrapped in a Suspense
+   * boundary, and a nav change should not cost this route that. A hash needs no
+   * framework support at all.
+   */
+  useEffect(() => {
+    const applyHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'showcase') setActiveTab('community');
+      else if (hash === 'directory') setActiveTab('coaches');
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
 
   // Filter coaches
   const filteredCoaches = coaches.filter((coach) => {
@@ -369,9 +392,15 @@ export default function ClientTalentPage() {
           )}
         </div>
       ) : (
-        <CommunityFeed
+        /* The Community Showcase tab shares the coach showcase's shell, so both
+           routes get the identical compact header, music bar, modal, two-column
+           split and talent selector. */
+        <ShowcaseShell
+          role="client"
+          eyebrow="Community Showcase · San Jose del Monte"
           currentUser={currentUser}
-          community={communityOf(currentUser, myTalent)}
+          memberCommunity={communityOf(currentUser, myTalent)}
+          loading={loading}
         />
       )}
 

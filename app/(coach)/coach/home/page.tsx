@@ -369,7 +369,7 @@ export default function CoachHomePage() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-7">
+    <div className="space-y-6 sm:space-y-8">
       {/* Page header */}
       <PageHeader
         eyebrow="Coach Control Terminal"
@@ -455,24 +455,18 @@ export default function CoachHomePage() {
         announcement={announcement}
       />
 
-      {/* Main 3-col grid */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
-        {/* 2-col main */}
-        <div className="min-w-0 space-y-4 sm:space-y-5 lg:col-span-2">
-          <UpcomingSessionsWidget
-            appointments={appointments}
-            perspective="coach"
-            viewAllHref="/coach/appointments"
-            className="lg:h-full"
-          />
-          <BadgeMiniWidget userId={coach.id} role="coach" />
-          <SupportCallout onSubmitTicket={() => setShowTicket(true)} />
-        </div>
+      {/* Main grid — the same shape /client/home uses: a three-track grid whose
+          left track stacks the content cards and whose right track stacks the
+          session list and the calendar.
 
-        {/* Sidebar */}
-        <aside className="min-w-0 space-y-4 sm:space-y-5">
-          <MiniCalendar />
-
+          `items-start` is load-bearing. The grid default is `stretch`, which
+          hands each track its sibling's row height; a percentage height inside
+          a stretched track then resolves against the row instead of against the
+          card's own content, which is what previously grew "Upcoming Sessions"
+          past the bottom of the grid and let the studios section paint over
+          everything that overflowed out of it. */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           {/* Students card */}
           <Card padding="none">
             <CardHeader
@@ -506,14 +500,30 @@ export default function CoachHomePage() {
               ))}
             </div>
           </Card>
-        </aside>
+
+          <BadgeMiniWidget userId={coach.id} role="coach" />
+
+          <SupportCallout onSubmitTicket={() => setShowTicket(true)} />
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-1">
+          <UpcomingSessionsWidget
+            appointments={appointments}
+            perspective="coach"
+            viewAllHref="/coach/appointments"
+          />
+          <MiniCalendar />
+        </div>
       </div>
 
-      {/* Studio locator */}
-      <StudioLocator
-        title="Rehearsal Studios Directory"
-        subtitle="Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results"
-      />
+      {/* Studios locator — its own full-width section, matching /client/home,
+          where the locator is a direct child of the page's vertical stack. */}
+      <section aria-label="Rehearsal Studios Directory">
+        <StudioLocator
+          title="Rehearsal Studios Directory"
+          subtitle="Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results"
+        />
+      </section>
 
       {selectedUser && <ProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
       {showTicket && <TicketModal coach={coach} onClose={() => setShowTicket(false)} />}

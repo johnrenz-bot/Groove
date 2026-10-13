@@ -5,9 +5,18 @@ import {
   getGeminiApiKey,
   GROOVEYY_SYSTEM_INSTRUCTION,
   PRIMARY_MODEL,
-  FALLBACK_MODELS,
   isTransientError,
   isPermanentError,
+  isDailyQuotaError,
+  extractQuotaInfo,
+  getErrorStatus,
+  computeBackoffDelayMs,
+  markModelQuotaCooldown,
+  clearModelCooldown,
+  getModelCooldown,
+  getModelChain,
+  MAX_ATTEMPTS_PER_MODEL,
+  RETRY_TOTAL_BUDGET_MS,
   getUserFriendlyErrorMessage,
   sleep,
   recordActiveProviderStatus,
@@ -67,7 +76,8 @@ export async function POST(req: NextRequest) {
     }));
 
     const encoder = new TextEncoder();
-    const modelsToTry = [PRIMARY_MODEL, ...FALLBACK_MODELS.filter((m) => m !== PRIMARY_MODEL)];
+    const modelsToTry = getModelChain();
+    const startedAt = Date.now();
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -75,9 +85,13 @@ export async function POST(req: NextRequest) {
         let lastError: unknown = null;
 
         for (const model of modelsToTry) {
-          const maxRetries = 2; // 1 initial attempt + 1 retry for transient errors
+          // Skip models already known to be quota-blocked. Google's per-day quota is
+          // dimensioned per model, so the next model in the chain still has budget.
+          if (getModelCooldown(model) > 0) {
+            continue;
+          }
 
-          for (let attempt = 0; attempt < maxRetries; attempt++) {
+          for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
             try {
               const responseStream = await ai.models.generateContentStream({
                 model,
@@ -97,6 +111,7 @@ export async function POST(req: NextRequest) {
               }
 
               // Successfully completed streaming
+              clearModelCooldown(model);
               recordActiveProviderStatus('gemini', model, true);
               controller.enqueue(encoder.encode('data: [DONE]\n\n'));
               controller.close();
@@ -126,26 +141,43 @@ export async function POST(req: NextRequest) {
                 return;
               }
 
+              const status = getErrorStatus(err);
+
               // 404 (model not supported/found): advance immediately to next fallback model
-              const status = Number((err as { status?: number; code?: number })?.status || (err as { status?: number; code?: number })?.code);
               if (status === 404) {
                 break;
               }
 
-              // Transient error with retry attempts remaining: wait exponential backoff with jitter
-              if (isTransientError(err) && attempt < maxRetries - 1) {
-                const delay = 500 * Math.pow(2, attempt) + Math.random() * 200;
+              // Daily free-tier cap: retrying now cannot succeed. Cool this model down
+              // for the rest of its quota window and fail over to a model with its own budget.
+              if (isDailyQuotaError(err)) {
+                const { retryAfterSeconds } = extractQuotaInfo(err);
+                const cooldownMs =
+                  retryAfterSeconds !== null
+                    ? Math.min(retryAfterSeconds * 1000, 24 * 60 * 60 * 1000)
+                    : 60 * 60 * 1000;
+                markModelQuotaCooldown(model, Date.now() + cooldownMs);
+                console.warn(
+                  `[Groovey] ${model} daily quota exhausted. Failing over to the next model.`
+                );
+                break;
+              }
+
+              const budgetExhausted = Date.now() - startedAt >= RETRY_TOTAL_BUDGET_MS;
+
+              // Transient error: bounded exponential backoff with jitter, honoring Retry-After.
+              if (isTransientError(err) && attempt < MAX_ATTEMPTS_PER_MODEL - 1 && !budgetExhausted) {
+                const { retryAfterSeconds } = extractQuotaInfo(err);
+                const delay = computeBackoffDelayMs(attempt, retryAfterSeconds);
                 await sleep(delay);
                 continue;
               }
 
-              // Transient error with retries exhausted for this model: break to attempt next model
+              // Retries exhausted for this model (or total budget spent): try the next model.
               if (isTransientError(err)) {
                 console.warn(`[Groovey] Model ${model} unavailable. Falling back...`);
-                break;
               }
 
-              // Any other error: break to next model
               break;
             }
           }

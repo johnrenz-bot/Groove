@@ -126,8 +126,8 @@ export default function PrivacyPolicyPage() {
         Legal Document
       </div>
 
-      <article className="max-w-[70ch] space-y-12">
-        <section id="overview" className="scroll-mt-28">
+      <article className="max-w-[70ch] space-y-12 sm:space-y-14">
+        <section id="overview" className="scroll-mt-24">
           <SectionHeading title="Overview" icon={<ShieldCheck className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -140,7 +140,7 @@ export default function PrivacyPolicyPage() {
               This policy supplements our{' '}
               <Link
                 href="/terms"
-                className="font-semibold text-accent-text hover:underline underline-offset-2"
+                className="font-semibold text-accent-text underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 Terms &amp; Conditions
               </Link>
@@ -149,15 +149,15 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="collect" className="scroll-mt-28">
+        <section id="collect" className="scroll-mt-24">
           <SectionHeading title="Information We Collect" icon={<Database className="h-4 w-4" />} />
           <Prose>
             <p>We collect only the information the Platform needs to operate:</p>
-            <ul className="mt-4 space-y-3">
+            <ul className="space-y-3">
               {DATA_COLLECTED.map((item) => (
                 <li
                   key={item.title}
-                  className="g-card px-5 py-4"
+                  className="g-card px-5 py-4 transition-colors hover:border-border-strong"
                 >
                   <p className="text-sm font-bold text-foreground">{item.title}</p>
                   <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
@@ -169,7 +169,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="use" className="scroll-mt-28">
+        <section id="use" className="scroll-mt-24">
           <SectionHeading title="How We Use Your Information" icon={<Eye className="h-4 w-4" />} />
           <Prose>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -192,13 +192,13 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="sharing" className="scroll-mt-28">
+        <section id="sharing" className="scroll-mt-24">
           <SectionHeading title="When We Share Information" icon={<Users className="h-4 w-4" />} />
           <Prose>
             <p>
               We do not sell your personal information. We share it only in these circumstances:
             </p>
-            <ul className="mt-4 list-disc space-y-2 pl-5 marker:text-accent-text">
+            <ul className="list-disc space-y-2 pl-5 marker:text-accent-text">
               <li>
                 <strong className="font-semibold text-foreground">With other users.</strong>{' '}
                 When you book a session or send a request, the coach sees the profile and contact
@@ -219,7 +219,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="retention" className="scroll-mt-28">
+        <section id="retention" className="scroll-mt-24">
           <SectionHeading title="Data Retention" icon={<Database className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -231,7 +231,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="security" className="scroll-mt-28">
+        <section id="security" className="scroll-mt-24">
           <SectionHeading title="Security" icon={<ShieldCheck className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -243,7 +243,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="your-rights" className="scroll-mt-28">
+        <section id="your-rights" className="scroll-mt-24">
           <SectionHeading title="Your Rights & Controls" icon={<KeyRound className="h-4 w-4" />} />
           <Prose>
             <div className="grid gap-3">
@@ -258,7 +258,7 @@ export default function PrivacyPolicyPage() {
                   >
                     <Icon className="h-4 w-4" />
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-bold text-foreground">{title}</p>
                     <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{body}</p>
                   </div>
@@ -268,7 +268,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="cookies" className="scroll-mt-28">
+        <section id="cookies" className="scroll-mt-24">
           <SectionHeading title="Cookies & Sessions" icon={<Database className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -279,7 +279,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="children" className="scroll-mt-28">
+        <section id="children" className="scroll-mt-24">
           <SectionHeading title="Children’s Privacy" icon={<ShieldCheck className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -291,7 +291,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="changes" className="scroll-mt-28">
+        <section id="changes" className="scroll-mt-24">
           <SectionHeading title="Changes to This Policy" icon={<Scale className="h-4 w-4" />} />
           <Prose>
             <p>
@@ -302,7 +302,7 @@ export default function PrivacyPolicyPage() {
           </Prose>
         </section>
 
-        <section id="contact" className="scroll-mt-28">
+        <section id="contact" className="scroll-mt-24">
           <SectionHeading title="Contact Us" icon={<Mail className="h-4 w-4" />} />
           <Prose>
             <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-5">
@@ -312,13 +312,13 @@ export default function PrivacyPolicyPage() {
               >
                 <Mail className="h-4 w-4" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">
                   Questions, requests, or complaints
                 </p>
                 <a
                   href="mailto:Groove1152000@gmail.com"
-                  className="text-sm font-semibold text-accent-text hover:underline underline-offset-2"
+                  className="break-all text-sm font-semibold text-accent-text underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   Groove1152000@gmail.com
                 </a>
@@ -333,6 +333,10 @@ export default function PrivacyPolicyPage() {
 
 /* ─── Presentational blocks (token-driven, no inline styles) ─── */
 
+/**
+ * Section heading. Rendered as an <h2> so the document keeps a real heading
+ * hierarchy for screen readers and the browser's find-in-page.
+ */
 function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode }) {
   return (
     <div className="mb-4 flex items-center gap-3.5">
@@ -342,7 +346,7 @@ function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode 
       >
         {icon}
       </span>
-      <h2 className="text-xl font-bold tracking-[-0.02em] text-foreground">{title}</h2>
+      <h2 className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl">{title}</h2>
     </div>
   );
 }

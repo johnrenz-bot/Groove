@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Info,
   Users,
+  BookOpen,
 } from 'lucide-react';
 import type { RoleNav } from '@/components/shared/navTypes';
 
@@ -32,6 +33,13 @@ export const COACH_NAV: RoleNav = {
     { href: '/coach/talents', label: 'Showcase', icon: Sparkles },
     { href: '/coach/appointments', label: 'Bookings', icon: Calendar },
     { href: '/coach/calendar', label: 'Calendar', icon: CalendarDays },
+    // Reference material rather than a daily task, so it sits LAST in the row
+    // for the same reason as on the client side.
+    {
+      href: '/coach/performing-arts-philippines',
+      label: 'Performing Arts',
+      icon: BookOpen,
+    },
   ],
   groups: [
     {

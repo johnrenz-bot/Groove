@@ -15,8 +15,7 @@ import {
   MapPin,
   ExternalLink,
   X,
-  Calendar,
-  Music,
+  FileSignature,
 } from 'lucide-react';
 import { AppHeader } from '@/components/shared/Navbar';
 import { Message, Profile } from '@/lib/types';
@@ -25,6 +24,7 @@ import { usePresence } from '@/features/presence/hooks/usePresence';
 import { createClient } from '@/lib/supabase/client';
 import { AgreementThread } from '@/features/booking/components/AgreementThread';
 import { ContactOverview } from '@/features/booking/components/ContactOverview';
+import { cn } from '@/components/shared/cn';
 import {
   fetchAdminPartners,
   fetchConversationsForUser,
@@ -81,6 +81,21 @@ function formatMessageGroupDate(dateString: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+/**
+ * The two halves of an open conversation.
+ *
+ * They used to be one scrolling column: the agreement cards sat at the bottom of
+ * the message feed, so a coach and client with a few sessions between them had
+ * to scroll past a wall of contracts to reach the conversation, and the composer
+ * — the thing you are actually there to use — sat below all of it.
+ */
+type ThreadTab = 'messages' | 'agreements';
+
+const THREAD_TABS: { id: ThreadTab; label: string; icon: React.ReactNode }[] = [
+  { id: 'messages', label: 'Messages', icon: <MessageSquare className="h-3.5 w-3.5" /> },
+  { id: 'agreements', label: 'Session Agreements', icon: <FileSignature className="h-3.5 w-3.5" /> },
+];
+
 export default function MessagesPage() {
   return (
     <Suspense
@@ -111,6 +126,7 @@ function MessagesMessenger() {
   const [sending, setSending] = useState(false);
   const [showPartnerPanel, setShowPartnerPanel] = useState(false);
   const [mobileTab, setMobileTab] = useState<'contacts' | 'chat'>('contacts');
+  const [threadTab, setThreadTab] = useState<ThreadTab>('messages');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -363,6 +379,11 @@ function MessagesMessenger() {
   const selectPartner = (partner: Profile) => {
     setActivePartner(partner);
     setMobileTab('chat');
+    // A new conversation always opens on the conversation, not on whatever
+    // section the previous one was left in. The agreements are still one click
+    // away, and the tab keeps the count of outstanding signatures, so nothing
+    // is hidden by the reset.
+    setThreadTab('messages');
   };
 
   return (
@@ -599,7 +620,65 @@ function MessagesMessenger() {
                   </div>
                 </header>
 
-                <div className="flex flex-1 min-h-0 overflow-hidden">
+                {/* ── Section switch ───────────────────────────────────────────
+                    Messages and Session Agreements used to share one scrolling
+                    column, with the agreement cards stacked under the composer.
+                    They are separate concerns with different jobs — one is a
+                    conversation, the other is a document trail — so they get one
+                    tab each. The keydown handler is the ARIA tab pattern's
+                    arrow-key navigation; the same pill markup as
+                    CalendarToolbar, so the two read identically. */}
+                <div
+                  role="tablist"
+                  aria-label="Conversation sections"
+                  onKeyDown={(e) => {
+                    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                    e.preventDefault();
+                    const i = THREAD_TABS.findIndex((t) => t.id === threadTab);
+                    const next =
+                      e.key === 'ArrowRight'
+                        ? (i + 1) % THREAD_TABS.length
+                        : (i - 1 + THREAD_TABS.length) % THREAD_TABS.length;
+                    setThreadTab(THREAD_TABS[next].id);
+                  }}
+                  className="shrink-0 border-b border-divider bg-card/60 px-3 py-2 sm:px-5"
+                >
+                  <div className="flex gap-1 rounded-full border border-border bg-muted/60 p-1">
+                    {THREAD_TABS.map((t) => {
+                      const selected = t.id === threadTab;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          role="tab"
+                          id={`thread-tab-${t.id}`}
+                          aria-selected={selected}
+                          aria-controls="thread-panel"
+                          tabIndex={selected ? 0 : -1}
+                          onClick={() => setThreadTab(t.id)}
+                          className={cn(
+                            'inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card sm:flex-none',
+                            selected
+                              ? 'bg-accent text-accent-foreground shadow-[var(--shadow-sm)]'
+                              : 'text-muted-foreground hover:bg-card hover:text-foreground'
+                          )}
+                        >
+                          {t.icon}
+                          {t.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div
+                  id="thread-panel"
+                  role="tabpanel"
+                  aria-labelledby={`thread-tab-${threadTab}`}
+                  className="flex min-h-0 flex-1 flex-col overflow-hidden"
+                >
+                  {threadTab === 'messages' ? (
+                    <>
                   {/* Messages Feed */}
                   <div className="g-scroll flex-1 min-h-0 overflow-y-auto p-4 space-y-3.5 sm:p-6">
                     {messages.length === 0 ? (
@@ -635,11 +714,56 @@ function MessagesMessenger() {
                       </div>
                     ) : (
                       <>
+                        {/* Conversation start. Real data — the first message's
+                            own timestamp — not a stored "started at" column, so
+                            it cannot drift from the thread it describes. */}
+                        <div className="flex flex-col items-center gap-1.5 pb-1 pt-2 text-center">
+                          <span
+                            aria-hidden="true"
+                            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold uppercase text-muted-foreground"
+                          >
+                            {activePartner.photo_url ? (
+                              <img
+                                src={activePartner.photo_url}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              activePartner.firstname?.[0]
+                            )}
+                          </span>
+                          <p className="text-xs font-bold text-foreground">
+                            {activePartner.firstname} {activePartner.lastname}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Conversation started{' '}
+                            {formatMessageGroupDate(messages[0].created_at)}
+                          </p>
+                        </div>
+
                         {messages.map((m, index) => {
                           const isMe = m.sender_id === currentUser?.id;
                           const showDateHeader =
                             index === 0 ||
                             formatMessageGroupDate(messages[index - 1].created_at) !==
+                              formatMessageGroupDate(m.created_at);
+
+                          /* Consecutive messages from the same person, with no
+                             day change between them, are one burst: they get
+                             tighter spacing, a squared-off inner corner, and a
+                             single avatar on the burst rather than one per
+                             bubble. Purely presentational — no message is
+                             merged, reordered, or hidden. */
+                          const prev = index > 0 ? messages[index - 1] : null;
+                          const next = index < messages.length - 1 ? messages[index + 1] : null;
+                          const startsGroup =
+                            !prev ||
+                            prev.sender_id !== m.sender_id ||
+                            showDateHeader;
+                          const endsGroup =
+                            !next ||
+                            next.sender_id !== m.sender_id ||
+                            formatMessageGroupDate(next.created_at) !==
                               formatMessageGroupDate(m.created_at);
 
                           return (
@@ -652,12 +776,54 @@ function MessagesMessenger() {
                                 </div>
                               )}
 
-                              <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                              <div
+                                className={cn(
+                                  'flex items-end gap-2',
+                                  isMe ? 'justify-end' : 'justify-start',
+                                  endsGroup ? 'mb-3.5' : 'mb-1.5'
+                                )}
+                              >
+                                {/* Partner avatar: a gutter column on the
+                                    incoming side, shown once per burst. The
+                                    spacer on the outgoing side keeps the two
+                                    columns of bubbles aligned. */}
+                                {!isMe && (
+                                  <span
+                                    aria-hidden="true"
+                                    className={cn(
+                                      'h-7 w-7 shrink-0 overflow-hidden rounded-full border border-border bg-muted text-[10px] font-bold uppercase text-muted-foreground',
+                                      startsGroup ? 'visible' : 'invisible'
+                                    )}
+                                  >
+                                    {activePartner.photo_url ? (
+                                      <img
+                                        src={activePartner.photo_url}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                      />
+                                    ) : (
+                                      <span className="flex h-full w-full items-center justify-center">
+                                        {activePartner.firstname?.[0]}
+                                      </span>
+                                    )}
+                                  </span>
+                                )}
+
                                 <div
-                                  className={`max-w-[85%] sm:max-w-[75%] space-y-2 rounded-2xl p-3.5 text-xs leading-relaxed shadow-sm transition ${
+                                  className={`max-w-[80%] space-y-2 rounded-2xl p-3.5 text-xs leading-relaxed shadow-sm transition sm:max-w-[70%] ${
                                     isMe
-                                      ? 'rounded-br-sm bg-accent font-medium text-accent-foreground shadow-[var(--shadow-sm)]'
-                                      : 'rounded-bl-sm border border-border bg-card text-foreground shadow-xs'
+                                      ? 'bg-accent font-medium text-accent-foreground shadow-[var(--shadow-sm)]'
+                                      : 'border border-border bg-card text-foreground shadow-xs'
+                                  } ${
+                                    // The tail is only squared on the corner the
+                                    // burst actually continues from.
+                                    isMe
+                                      ? endsGroup
+                                        ? 'rounded-br-sm'
+                                        : 'rounded-br-none'
+                                      : endsGroup
+                                        ? 'rounded-bl-sm'
+                                        : 'rounded-bl-none'
                                   }`}
                                 >
                                   {m.media_path && (
@@ -696,17 +862,6 @@ function MessagesMessenger() {
                       </>
                     )}
 
-                    {/* Session agreements — one card per booking between these
-                        two people, oldest first. Replaces a single card that
-                        resolved "the" agreement and therefore showed only one of
-                        them however many existed. */}
-                    {currentUser && (
-                      <AgreementThread
-                        currentUserId={currentUser.id}
-                        partnerId={activePartner.id}
-                      />
-                    )}
-
                     <div ref={messagesEndRef} />
                   </div>
 
@@ -716,13 +871,17 @@ function MessagesMessenger() {
                       needs to sit above the sticky header. The old inline
                       `<aside>` also rendered nothing at all below `lg`, so a
                       phone user had a Details button that opened nothing. */}
-                </div>
 
-                {/* Fixed Composer Bar */}
-                <form
-                  onSubmit={handleSendMessage}
-                  className="flex shrink-0 items-center gap-2 border-t border-divider bg-card px-3 py-3 sm:px-5 sm:py-3.5"
-                >
+                  {/* Composer. Inside the Messages tab only: a message box
+                      sitting under a list of contracts invites you to type into
+                      a conversation you are not reading. Enter sends, Shift+Enter
+                      is left to the input, and requestSubmit() goes through the
+                      SAME onSubmit handler as the button — there is no second
+                      send path. */}
+                  <form
+                    onSubmit={handleSendMessage}
+                    className="flex shrink-0 items-center gap-2 border-t border-divider bg-card px-3 py-3 sm:px-5 sm:py-3.5"
+                  >
                   <label
                     className="g-topbar-action flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-border text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
                     aria-label="Attach photo, video, or file"
@@ -746,6 +905,12 @@ function MessagesMessenger() {
                     placeholder={`Message ${activePartner.firstname}…`}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        e.currentTarget.form?.requestSubmit();
+                      }
+                    }}
                     className="g-input h-10 flex-1 text-xs sm:text-sm"
                   />
 
@@ -761,7 +926,27 @@ function MessagesMessenger() {
                       <Send className="h-4 w-4" aria-hidden="true" />
                     )}
                   </button>
-                </form>
+                  </form>
+                  </>
+                ) : (
+                  /* ── Session Agreements ─────────────────────────────────────
+                      The same <AgreementThread> that used to sit at the bottom
+                      of the message feed, rendered in its `panelled` mode. It is
+                      the SAME data path — one query, one realtime pair — so
+                      signing, status and the history all still update live while
+                      the user is on this tab. */
+                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                    {currentUser && (
+                      <AgreementThread
+                        currentUserId={currentUser.id}
+                        partnerId={activePartner.id}
+                        mode="panelled"
+                        viewerRole={currentUser.role === 'coach' ? 'coach' : 'client'}
+                      />
+                    )}
+                  </div>
+                )}
+                </div>
               </>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center text-muted-foreground">

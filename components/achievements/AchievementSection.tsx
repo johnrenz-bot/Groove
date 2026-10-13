@@ -128,6 +128,17 @@ export function AchievementSection({
   const badgeDescription = badgeStatus?.badge_description || getBadgeDescription(role);
   const isUnlocked = badgeStatus?.is_unlocked ?? false;
   const unlockedAt = badgeStatus?.unlocked_at ?? null;
+  const badgeImageUrl = badgeStatus?.badge_image_url || '/image/Badge/Groove-BADGE.png';
+
+  // Download badge image function
+  const downloadBadge = useCallback((imageUrl: string) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = 'Groove-BADGE.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
 
   // Still show the section even if no tasks loaded yet (will show static placeholder)
   if (tasks.length === 0) {
@@ -179,6 +190,7 @@ export function AchievementSection({
           badgeDescription={badgeDescription}
           tasks={tasks.map(t => ({ title: t.title, description: t.description }))}
           unlockedAt={unlockedAt}
+          badgeImageUrl={badgeImageUrl}
           onShare={() => {
             if (navigator.share) {
               navigator.share({
@@ -192,9 +204,7 @@ export function AchievementSection({
               );
             }
           }}
-          onDownload={() => {
-            alert('Badge image download coming soon!');
-          }}
+          onDownload={() => downloadBadge(badgeImageUrl)}
         />
       )}
 
@@ -209,6 +219,7 @@ export function AchievementSection({
         unlockedAt={unlockedAt}
         onRefresh={handleRefresh}
         onTaskClick={handleTaskClick}
+        badgeImageUrl={badgeImageUrl}
         onShare={() => {
           if (navigator.share) {
             navigator.share({
@@ -222,9 +233,7 @@ export function AchievementSection({
             );
           }
         }}
-        onDownload={() => {
-          alert('Badge image download coming soon!');
-        }}
+        onDownload={() => downloadBadge(badgeImageUrl)}
       />
     </section>
   );

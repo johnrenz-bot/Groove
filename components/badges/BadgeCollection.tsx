@@ -162,7 +162,10 @@ export function BadgeCollection({
   }));
 
   return (
-    <section className={cn('space-y-4', className)} aria-labelledby="badge-collection-heading">
+    <section
+      className={cn('@container space-y-4', className)}
+      aria-labelledby={hideHeader ? undefined : 'badge-collection-heading'}
+    >
       {/* Section header — hidden when a parent card already provides one */}
       {!hideHeader && (
         <header className="flex items-center justify-between gap-3">
@@ -189,8 +192,14 @@ export function BadgeCollection({
         </header>
       )}
 
-      {/* Badge grid */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Badge grid.
+
+          Column count is driven by the CONTAINER, not the viewport. This section
+          is also rendered inside a dashboard card that is half a grid cell wide,
+          where a viewport-keyed `lg:grid-cols-3` squeezed three tiles into ~170px
+          and truncated their labels. The profile pages are full-width, so they
+          still get three across exactly as before. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 @2xl:grid-cols-3">
         {loading ? (
           <>
             <Skeleton className="h-28 rounded-2xl" />

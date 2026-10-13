@@ -322,7 +322,27 @@ export function StudioLocator({
         </p>
       )}
 
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border sm:aspect-[16/9] lg:aspect-[21/9]">
+      {/* The map surface.
+
+          Three things are deliberate here, and all three are containment rather
+          than cosmetics:
+
+          - An explicit height instead of `aspect-*`. An aspect ratio derives
+            this box's height from the width, so the card's height was never
+            known until the browser had resolved the whole grid — and in a grid
+            row that feeds straight back into how tall the row is. Because the
+            height is fixed from the first paint, the map, the "Loading
+            studios…" overlay and the empty/error states all occupy the same box,
+            so there is no layout shift to compensate for and no separate
+            dynamic-import fallback height to keep in sync.
+          - `isolate` creates a stacking context. Leaflet hard-codes its panes at
+            z-index 200-1000; without a containing context those values compete
+            with the sticky header, dropdowns and modals instead of with this
+            card.
+          - `overflow-hidden` clips the tile layer to the rounded box, so no map
+            pixels can paint outside the card.
+          */}
+      <div className="relative z-0 isolate overflow-hidden rounded-xl h-[320px] md:h-[400px]">
         {/* Always mounted. An earlier version gated this on an `onReady` flag,
             which is a deadlock: the flag is only set by the map this condition
             decides whether to render. */}

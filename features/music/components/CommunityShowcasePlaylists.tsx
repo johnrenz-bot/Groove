@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import {
   Music,
@@ -28,11 +28,33 @@ import { cn } from '@/components/shared/cn';
 interface CommunityShowcasePlaylistsProps {
   currentUser?: Profile | null;
   community?: string | null;
+  /**
+   * Drops the outer card chrome so the hub can live inside a dialog without a
+   * border nested inside a border. Everything else is identical.
+   */
+  embedded?: boolean;
+  /** Open straight into the playlist-creation form. */
+  startInCreateMode?: boolean;
+  /**
+   * Reports whether the creation form is open, so a containing dialog knows not
+   * to dismiss on a backdrop click while there is unsaved input.
+   */
+  onCreateModeChange?: (creating: boolean) => void;
+  /**
+   * Publishes this component's `handleAddTrack` so an enclosing surface — the
+   * hub's inline panel — can add a track without becoming a second writer for
+   * `music_playlists`. One writer means the panel and this list cannot drift.
+   */
+  onRegisterAddTrack?: (add: (item: MusicSearchResult) => void) => void;
 }
 
 export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProps> = ({
   currentUser,
   community = 'General',
+  embedded = false,
+  startInCreateMode = false,
+  onCreateModeChange,
+  onRegisterAddTrack,
 }) => {
   const { currentTrack, isPlaying, playTrack, togglePlay } = useMusicPlayer();
 
@@ -51,10 +73,16 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
   const [addedTrackId, setAddedTrackId] = useState<string | null>(null);
 
   // Create Playlist Modal
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(startInCreateMode);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [creating, setCreating] = useState(false);
+
+  // Tell the containing dialog that the form is open, so a stray backdrop click
+  // cannot discard a half-written playlist.
+  useEffect(() => {
+    onCreateModeChange?.(showCreateModal);
+  }, [showCreateModal, onCreateModeChange]);
 
   const loadAllPlaylists = useCallback(async () => {
     try {
@@ -120,31 +148,47 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
   const selectedPlaylist = playlists.find((p) => p.id === selectedPlaylistId) || playlists[0];
 
   // Add track to playlist
-  const handleAddTrack = async (item: MusicSearchResult) => {
-    if (!selectedPlaylist) return;
-    const newTrack: MusicTrack = {
-      id: `trk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      youtubeId: item.youtubeId,
-      title: item.title,
-      artist: item.artist,
-      thumbnail: item.thumbnail,
-      duration: item.duration || 'Track',
-      addedAt: new Date().toISOString(),
-    };
+  const handleAddTrack = useCallback(
+    async (item: MusicSearchResult) => {
+      if (!selectedPlaylist) return;
+      const newTrack: MusicTrack = {
+        id: `trk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        youtubeId: item.youtubeId,
+        title: item.title,
+        artist: item.artist,
+        thumbnail: item.thumbnail,
+        duration: item.duration || 'Track',
+        addedAt: new Date().toISOString(),
+      };
 
-    const updated: MusicPlaylist = {
-      ...selectedPlaylist,
-      tracks: [...selectedPlaylist.tracks, newTrack],
-    };
+      const updated: MusicPlaylist = {
+        ...selectedPlaylist,
+        tracks: [...selectedPlaylist.tracks, newTrack],
+      };
 
-    setAddedTrackId(item.youtubeId);
-    setTimeout(() => setAddedTrackId(null), 2000);
+      setAddedTrackId(item.youtubeId);
+      setTimeout(() => setAddedTrackId(null), 2000);
 
-    const res = await upsertPlaylist(updated);
-    if (res.success) {
-      setPlaylists((prev) => prev.map((p) => (p.id === res.playlist.id ? res.playlist : p)));
-    }
-  };
+      const res = await upsertPlaylist(updated);
+      if (res.success) {
+        setPlaylists((prev) => prev.map((p) => (p.id === res.playlist.id ? res.playlist : p)));
+      }
+    },
+    [selectedPlaylist]
+  );
+
+  // Republish the current add handler whenever it changes, and hand the parent a
+  // stable wrapper once. The parent stores it in a ref, so registration never
+  // triggers a render.
+  const handleAddTrackRef = useRef(handleAddTrack);
+  useEffect(() => {
+    handleAddTrackRef.current = handleAddTrack;
+  }, [handleAddTrack]);
+
+  useEffect(() => {
+    if (!onRegisterAddTrack) return;
+    onRegisterAddTrack((item) => handleAddTrackRef.current(item));
+  }, [onRegisterAddTrack]);
 
   // Remove track
   const handleRemoveTrack = async (trackIndex: number) => {
@@ -234,7 +278,12 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
   };
 
   return (
-    <div className="space-y-6 rounded-3xl border border-border/80 bg-card/60 p-5 sm:p-7 backdrop-blur-sm shadow-sm transition-all">
+    <div
+      className={cn(
+        'space-y-5',
+        !embedded && 'rounded-3xl border border-border/80 bg-card/60 p-5 sm:p-7 backdrop-blur-sm shadow-sm transition-all'
+      )}
+    >
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
         <div>

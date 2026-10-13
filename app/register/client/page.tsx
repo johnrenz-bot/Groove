@@ -9,7 +9,7 @@ import {
   PersonalData,
   ContactAccountData,
 } from '@/components/auth/RegistrationFormFields';
-import { AddressData } from '@/components/auth/AddressSelector';
+import { AddressData, composeStreetLine } from '@/components/auth/AddressSelector';
 import { CLIENT_TALENT_OPTIONS, normalizeContactForStorage } from '@/lib/profileFields';
 import { AuthLayout } from '@/components/shared/AuthLayout';
 import { Sparkles } from 'lucide-react';
@@ -181,7 +181,11 @@ export default function ClientRegistrationPage() {
         province_name: data.address.province_name,
         city_name: data.address.city_name,
         barangay_name: data.address.barangay_name,
-        street: data.address.street || null,
+        // `profiles.street` (VARCHAR 160) holds the street line and the
+        // subdivision joined, so the stored value is unchanged from before the
+        // two fields were separated. composeStreetLine() is the single
+        // definition of that join.
+        street: composeStreetLine(data.address.street, data.address.subdivision) || null,
         postal_code: data.address.postal_code || null,
         terms_accepted: true,
         email_verified: false,

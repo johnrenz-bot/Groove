@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Create BadgeCollectionSection component and replace AchievementSection on both profile pages. Fix the badge image fallback path from the nonexistent /image/Groove-BADGE.svg to /image/Badge/Groove-BADGE.png. The new component renders an inline collection grid (Groove Badge card + 2 Coming Soon placeholders) instead of a hidden button-only section. Uses existing useAchievements and useBadgeStatus hooks with no new DB queries.",
+  "status": "pending",
+  "steps": [
+    "Fix badge image fallback in components/achievements/AchievementSection.tsx: change the badgeImageUrl fallback from '/image/Groove-BADGE.svg' to '/image/Badge/Groove-BADGE.png'. Same fix in any other file that references '/image/Groove-BADGE.svg'.",
+    "Create components/achievements/BadgeCollectionSection.tsx as a 'use client' component. Props: { tasks: AchievementWithProgress[], badgeStatus: UserBadgeStatus | null, userId: string, role: 'client' | 'coach', loading?: boolean, className?: string, onRefresh?: () => Promise<void> }. Renders: (1) Section header 'Badge Collection' with subtitle and refresh button. (2) Grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4. (3) Groove Badge card: img src='/image/Badge/Groove-BADGE.png' with grayscale/opacity when locked, badgeStatus.badge_name title, badgeStatus.badge_description, status pill (green Earned / amber In Progress / gray Locked), earned date from badgeStatus.unlocked_at (formatted toLocaleDateString('en-PH'), only shown when non-null), progress bar tasks_completed/tasks_total when not earned, task checklist (3 rows, CheckCircle2 green when completed, Circle gray when not, incomplete tasks render as <Link> to relevant page using getTaskUrls map from AchievementSection), 'View Details' button that calls onViewDetails prop. (4) Auto-triggers AchievementModal on first unlock using sessionStorage guard (same pattern as AchievementSection). (5) Two 'Coming Soon' placeholder cards: dimmed Lock icon, label 'Coming Soon', gray border bg-muted cursor-default — no invented names. (6) Loading state: when loading===true show 3 g-skeleton h-48 rounded-2xl cards.",
+    "Add BadgeCollectionSection export to components/achievements/index.ts",
+    "Update app/(client)/client/profile/page.tsx: destructure loading as achievementsLoading from useAchievements return. Replace import of AchievementSection with BadgeCollectionSection. Replace the <AchievementSection> render (inside the 'mb-6' div) with <BadgeCollectionSection tasks={clientAchievements} badgeStatus={clientBadgeStatus} userId={profile.id} role='client' loading={achievementsLoading} onRefresh={handleRefreshAchievements} />.",
+    "Update app/(coach)/coach/profile/page.tsx: same pattern as client profile. Destructure loading from useAchievements. Replace AchievementSection with BadgeCollectionSection with role='coach'."
+  ],
+  "acceptance_criteria": [
+    "npm run build exits 0 with no TypeScript errors",
+    "npm run lint exits 0",
+    "BadgeCollectionSection renders on /client/profile with: Groove Badge card showing /image/Badge/Groove-BADGE.png, task checklist with real completion status, 2 Coming Soon placeholder cards",
+    "BadgeCollectionSection renders on /coach/profile with the same structure using coach data",
+    "When loading===true, 3 skeleton cards are shown instead of the real grid",
+    "When badgeStatus.is_unlocked===true, the badge image is full color and shows an earned date if unlocked_at is not null",
+    "When badgeStatus.is_unlocked===false, the badge image is grayscale/dimmed and a progress bar shows tasks_completed/tasks_total",
+    "Incomplete tasks render as links to the correct pages (/client/profile/edit, /client/talent, /client/appointments for client; /coach/profile/edit, /coach/appointments for coach)",
+    "Existing AchievementsModal and AchievementModal still open correctly from the new component",
+    "No reference to /image/Groove-BADGE.svg remains in the codebase"
+  ],
+  "verification": [
+    "cd c:\\website\\GrooveSystem && npm run lint",
+    "cd c:\\website\\GrooveSystem && npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

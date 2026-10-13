@@ -21,10 +21,16 @@ export { GLOBAL_THEMES };
 export type Theme = 'dark' | 'light';
 export type ThemeMode = 'dark' | 'light' | 'system';
 
-/** The OS preference. Guarded for SSR. */
+/**
+ * The OS preference. Guarded for SSR.
+ *
+ * `systemTheme()` used to invert this query (match 'light', return dark) which
+ * meant a user with no saved preference got dark unless their OS said "light".
+ * Matching `dark` directly is the honest reading of the setting.
+ */
 function systemTheme(): Theme {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'dark';
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  return window.matchMedia(DARK_QUERY).matches ? 'dark' : 'light';
 }
 
 /** Resolves a stored preference to the palette it actually means. */
@@ -32,16 +38,22 @@ export function resolveMode(mode: ThemeMode): Theme {
   return mode === 'system' ? systemTheme() : mode;
 }
 
-export type Accent = 'gold' | 'ember' | 'ocean' | 'orchid' | 'jade' | 'rose';
+export type Accent = 'unity' | 'relief' | 'sunburst';
 
+/**
+ * The admin-selectable interactive color. Only the brand's own three colors —
+ * there is no sixth hue that is not part of GroovePH's identity.
+ */
 export const ACCENTS: { value: Accent; label: string; description: string; swatch: string }[] = [
-  { value: 'gold', label: 'Groove Gold', description: 'The default brand accent', swatch: '#e8a93b' },
-  { value: 'ember', label: 'Ember', description: 'Warm burnt orange', swatch: '#e8703a' },
-  { value: 'ocean', label: 'Deep Ocean', description: 'Cool cyan blue', swatch: '#38a8d8' },
-  { value: 'orchid', label: 'Orchid', description: 'Vivid violet', swatch: '#a855f7' },
-  { value: 'jade', label: 'Jade', description: 'Calm green', swatch: '#2fb98a' },
-  { value: 'rose', label: 'Rose', description: 'Soft magenta', swatch: '#e0557f' },
+  { value: 'unity', label: 'Unity Blue', description: 'The default brand accent', swatch: '#2F4E8C' },
+  { value: 'relief', label: 'Relief Red', description: 'Warm, urgent, unmistakable', swatch: '#AE313A' },
+  { value: 'sunburst', label: 'Sunburst Yellow', description: 'Bright, optimistic highlight', swatch: '#F4BE4D' },
 ];
+
+export const DEFAULT_ACCENT: Accent = 'unity';
+/** A first-time visitor follows the OS. Dark remains the no-JS fallback. */
+export const DEFAULT_MODE: ThemeMode = 'system';
+export const DEFAULT_THEME: Theme = 'dark';
 
 export const GLOBAL_THEME_KEY = 'groove-global-theme';
 const THEME_KEY = 'groove-theme';
@@ -85,33 +97,40 @@ function getSnapshot(): Theme {
 }
 
 function getAccentSnapshot(): Accent {
-  if (typeof document === 'undefined') return 'gold';
+  if (typeof document === 'undefined') return DEFAULT_ACCENT;
   const value = document.documentElement.getAttribute('data-accent');
-  return ACCENTS.some((a) => a.value === value) ? (value as Accent) : 'gold';
+  return ACCENTS.some((a) => a.value === value) ? (value as Accent) : DEFAULT_ACCENT;
 }
 
 const MODES: ThemeMode[] = ['dark', 'light', 'system'];
 
 function getModeSnapshot(): ThemeMode {
-  if (typeof document === 'undefined') return 'dark';
+  if (typeof document === 'undefined') return DEFAULT_MODE;
   const value = document.documentElement.getAttribute('data-theme-mode');
-  return MODES.includes(value as ThemeMode) ? (value as ThemeMode) : 'dark';
+  return MODES.includes(value as ThemeMode) ? (value as ThemeMode) : DEFAULT_MODE;
 }
 
+/* --- Server snapshots -------------------------------------------------------
+   These are what React renders on the very first pass, before the pre-paint
+   script in app/layout.tsx has run. They must match the *token defaults* in
+   globals.css, because anything else produces a visible flash on the first
+   paint of a cold load. `html` therefore also carries
+   `suppressHydrationWarning`, since the script mutates those attributes a few
+   milliseconds later. */
 function getServerSnapshot(): Theme {
-  return 'dark';
+  return DEFAULT_THEME;
 }
 
 function getServerGlobalThemeSnapshot(): GlobalThemeId {
-  return 'dark';
+  return DEFAULT_THEME;
 }
 
 function getServerAccentSnapshot(): Accent {
-  return 'gold';
+  return DEFAULT_ACCENT;
 }
 
 function getServerModeSnapshot(): ThemeMode {
-  return 'dark';
+  return DEFAULT_MODE;
 }
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
@@ -221,45 +240,51 @@ export function setAccent(next: Accent) {
   emit();
 }
 
+/**
+ * Which *palette* the app should paint with, given what is in storage.
+ *
+ * An explicit stored mode wins. With nothing stored the OS decides, and an
+ * unrecognised or absent accent falls back to Unity Blue — so a database row
+ * left over from a previous accent scheme (`gold`, `ember`, …) degrades to the
+ * brand default instead of leaving the app unstyled.
+ */
 export function resolveInitialGlobalTheme(): GlobalThemeId {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return DEFAULT_THEME;
   try {
-    const stored = window.localStorage.getItem(GLOBAL_THEME_KEY);
-    if (stored && GLOBAL_THEMES.some((t) => t.id === stored)) {
-      return stored as GlobalThemeId;
-    }
-    const legacy = window.localStorage.getItem(THEME_KEY);
-    return legacy === 'light' ? 'light' : 'dark';
+    const mode = resolveInitialMode();
+    if (mode !== 'system') return mode;
+    return systemTheme();
   } catch {
-    return 'dark';
+    return DEFAULT_THEME;
   }
 }
 
 export function resolveInitialTheme(): Theme {
-  const global = resolveInitialGlobalTheme();
-  const meta = GLOBAL_THEMES.find((t) => t.id === global);
-  return meta?.colorScheme || 'dark';
+  return resolveMode(resolveInitialMode());
 }
 
 export function resolveInitialMode(): ThemeMode {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return DEFAULT_MODE;
   try {
     const stored = window.localStorage.getItem(MODE_KEY);
     if (MODES.includes(stored as ThemeMode)) return stored as ThemeMode;
+    // Legacy: before `system` existed, `groove-theme` only ever held a resolved
+    // colour. Honour it so an existing visitor is not reset to the OS default.
     const legacy = window.localStorage.getItem(THEME_KEY);
-    return legacy === 'light' ? 'light' : 'dark';
+    if (legacy === 'light' || legacy === 'dark') return legacy;
+    return DEFAULT_MODE;
   } catch {
-    return 'dark';
+    return DEFAULT_MODE;
   }
 }
 
 export function resolveInitialAccent(): Accent {
-  if (typeof window === 'undefined') return 'gold';
+  if (typeof window === 'undefined') return DEFAULT_ACCENT;
   try {
     const value = window.localStorage.getItem(ACCENT_KEY);
-    return ACCENTS.some((a) => a.value === value) ? (value as Accent) : 'gold';
+    return ACCENTS.some((a) => a.value === value) ? (value as Accent) : DEFAULT_ACCENT;
   } catch {
-    return 'gold';
+    return DEFAULT_ACCENT;
   }
 }
 
@@ -280,10 +305,10 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  globalTheme: 'dark',
-  theme: 'dark',
-  accent: 'gold',
-  mode: 'dark',
+  globalTheme: DEFAULT_THEME,
+  theme: DEFAULT_THEME,
+  accent: DEFAULT_ACCENT,
+  mode: DEFAULT_MODE,
   previewTheme: null,
   activeThemeMeta: GLOBAL_THEMES[0],
   isSeasonal: false,
@@ -324,12 +349,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const handleSetMode = useCallback((next: ThemeMode) => setThemeMode(next), []);
   const handleSetAccent = useCallback((next: Accent) => setAccent(next), []);
 
+  /**
+   * The icon-button toggle in the header. It flips to the opposite *resolved*
+   * palette and, crucially, writes an EXPLICIT mode — otherwise a visitor who
+   * arrived in `system` mode would tap the toggle, see a change, and find it
+   * reverted the next time their OS switched themes.
+   */
   const toggle = useCallback(() => {
     if (globalTheme === 'classic') {
-      setGlobalTheme('dark');
-    } else {
-      setGlobalTheme(theme === 'dark' ? 'light' : 'dark');
+      setThemeMode('dark');
+      return;
     }
+    setThemeMode(theme === 'dark' ? 'light' : 'dark');
   }, [globalTheme, theme]);
 
   useEffect(() => {

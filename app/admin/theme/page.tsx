@@ -34,6 +34,7 @@ import {
 import { useAdminData } from '@/lib/admin/useAdminData';
 import {
   ACCENTS,
+  DEFAULT_ACCENT,
   GLOBAL_THEMES,
   useTheme,
   type Accent,
@@ -144,15 +145,15 @@ export default function AdminThemePage() {
       await Promise.all([
         savePlatformSetting('platform_theme', 'dark'),
         savePlatformSetting('theme', 'dark'),
-        savePlatformSetting('theme_accent', 'gold'),
+        savePlatformSetting('theme_accent', DEFAULT_ACCENT),
         savePlatformSetting('theme_locked', 'false'),
       ]);
       setGlobalTheme('dark');
-      setAccent('gold');
+      setAccent(DEFAULT_ACCENT);
       setPreviewTheme(null);
       notifyChange();
       refresh();
-      setToast('Theme reset to Groove Dark default.');
+      setToast('Theme reset to Groove Dark with Unity Blue.');
       setConfirmReset(false);
     } catch (err) {
       setToast(err instanceof Error ? err.message : 'Could not reset theme.');

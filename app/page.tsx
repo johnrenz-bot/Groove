@@ -311,7 +311,7 @@ export default function WelcomePage() {
   }, []);
 
   return (
-    <PublicLayout transparentNav onCtaClick={() => setRoleModalOpen(true)}>
+    <PublicLayout>
       {/* ══════════════ HERO — full-bleed cinematic, always dark ══════════════
           Always dark regardless of theme, because the photograph is: inverting
           it in light mode would mean a washed-out grey stage. The scrims below

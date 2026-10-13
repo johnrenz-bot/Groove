@@ -3,3 +3,4 @@ export * from './AchievementTaskList';
 export * from './AchievementModal';
 export * from './AchievementsModal';
 export * from './AchievementSection';
+export * from './BadgeCollectionSection';

@@ -14,8 +14,8 @@ export interface BadgeMiniWidgetProps {
 }
 
 export function BadgeMiniWidget({ userId, role }: BadgeMiniWidgetProps) {
-  const { achievements, loading: achievementsLoading } = useAchievements(userId, role);
-  const { badgeStatus, loading: badgeLoading } = useBadgeStatus(userId);
+  const { achievements, loading: achievementsLoading, refetch: refetchAchievements } = useAchievements(userId, role);
+  const { badgeStatus, loading: badgeLoading, refetch: refetchBadgeStatus } = useBadgeStatus(userId);
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -23,9 +23,10 @@ export function BadgeMiniWidget({ userId, role }: BadgeMiniWidgetProps) {
     try {
       await refreshAchievements(userId);
     } finally {
+      await Promise.all([refetchAchievements(), refetchBadgeStatus()]);
       setRefreshing(false);
     }
-  }, [userId]);
+  }, [userId, refetchAchievements, refetchBadgeStatus]);
 
   if (achievementsLoading || badgeLoading) {
     return <div className="g-skeleton h-28 rounded-[20px]" aria-hidden />;

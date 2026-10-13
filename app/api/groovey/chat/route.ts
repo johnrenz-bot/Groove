@@ -6,6 +6,7 @@ import {
   GROOVEYY_SYSTEM_INSTRUCTION,
   generateContentWithFallbackAndRetry,
   getUserFriendlyErrorMessage,
+  isDailyQuotaError,
 } from '@/features/groovey/server/gemini';
 
 export const dynamic = 'force-dynamic';
@@ -64,11 +65,14 @@ export async function POST(req: NextRequest) {
         systemInstruction: contextualSystemInstruction,
         temperature: 0.7,
       },
+      messagesForFallback: contextWindow,
     });
 
     return NextResponse.json({ text: response.text || '' });
   } catch (err: unknown) {
     console.error('Groovey Gemini generate error:', err);
-    return NextResponse.json({ error: getUserFriendlyErrorMessage(err) }, { status: 500 });
+    // Quota exhaustion is a 429, not a server fault; surface the correct status code.
+    const status = isDailyQuotaError(err) ? 429 : 500;
+    return NextResponse.json({ error: getUserFriendlyErrorMessage(err) }, { status });
   }
 }

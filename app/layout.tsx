@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Source_Serif_4 } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { SessionProvider } from '@/components/header/SessionProvider';
 import { PlatformThemeSync } from '@/components/theme/PlatformThemeSync';
 import { RouteThemeEnforcer } from '@/components/theme/RouteThemeEnforcer';
 import { AppLoadingSplash } from '@/components/shared/AppLoadingSplash';
@@ -12,6 +13,20 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-sans',
+});
+
+/**
+ * Display face. Used only by `.g-display` / `.g-title` / `.font-display` — page
+ * titles, greeting headlines and large section headings. Body copy, forms and
+ * controls stay on Inter, which is what keeps the serif reading as editorial
+ * rather than as a theme change.
+ */
+const serif = Source_Serif_4({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
 });
 
 export const metadata: Metadata = {
@@ -32,61 +47,66 @@ export const metadata: Metadata = {
 
 /**
  * Runs before first paint so a returning visitor never sees a flash of the
- * wrong palette (or the default gold when they chose another). It duplicates
- * ThemeProvider's resolution logic by design — it must run before React does.
- * Keep the two in sync; both use the same storage keys and the same defaults.
+ * wrong palette. It duplicates ThemeProvider's resolution logic by design — it
+ * must run before React does. Keep the two in sync; both use the same storage
+ * keys and the same defaults.
+ *
+ * Resolution order on a first visit with nothing stored:
+ *   1. an explicit saved mode (`groove-theme-mode`: light | dark | system)
+ *   2. the operating system's `prefers-color-scheme`
+ *   3. dark, as the token default
  *
  * Only the *stored* preference is applied here. The platform default pushed by
  * an admin is fetched after mount by <PlatformThemeSync />, which is a deliberate
  * trade: a network round trip cannot happen before paint, so the admin's chosen
  * default lands a moment after first render rather than never.
+ *
+ * There is no route-pinned dark mode any more: light and dark are the same token
+ * set with different values, so every route honours this one decision.
  */
 const THEME_INIT_SCRIPT = `
 (function () {
   try {
-    var ACCENTS = ['gold', 'ember', 'ocean', 'orchid', 'jade', 'rose'];
+    var ACCENTS = ['unity', 'relief', 'sunburst'];
     var THEMES = ['dark', 'light', 'classic', 'halloween', 'christmas'];
     var MODES = ['dark', 'light', 'system'];
     var root = document.documentElement;
 
-    var path = window.location.pathname;
-    var isDarkOnly =
-      path === '/' ||
-      path === '/login' ||
-      path === '/register/coach' ||
-      path === '/register/client';
-
-    var storedGlobal = localStorage.getItem('groove-global-theme');
-    var activeGlobal = THEMES.indexOf(storedGlobal) > -1 ? storedGlobal : null;
-
     var storedMode = localStorage.getItem('groove-theme-mode');
     if (MODES.indexOf(storedMode) === -1) {
-      storedMode = localStorage.getItem('groove-theme') === 'light' ? 'light' : 'dark';
+      // Legacy: the pre-system-modes key only ever held a resolved colour.
+      var legacy = localStorage.getItem('groove-theme');
+      storedMode = legacy === 'light' || legacy === 'dark' ? legacy : null;
     }
 
     var theme;
-    if (isDarkOnly) {
-      theme = 'dark';
-      activeGlobal = activeGlobal === 'halloween' || activeGlobal === 'christmas' ? activeGlobal : 'dark';
-    } else if (activeGlobal) {
-      theme = activeGlobal === 'light' || activeGlobal === 'classic' ? 'light' : 'dark';
-    } else if (storedMode === 'system') {
+    var activeGlobal;
+    if (storedMode === 'system' || storedMode === null) {
       theme =
         typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light';
+        window.matchMedia('(prefers-color-scheme: light)').matches
+          ? 'light'
+          : 'dark';
       activeGlobal = theme;
     } else {
       theme = storedMode;
       activeGlobal = theme;
     }
 
-    var storedAccent = localStorage.getItem('groove-accent');
-    var accent = ACCENTS.indexOf(storedAccent) > -1 ? storedAccent : 'gold';
+    // A rich global theme (classic / seasonal) only overrides the base mode if
+    // the visitor has not made an explicit choice of their own.
+    if (!storedMode) {
+      var storedGlobal = localStorage.getItem('groove-global-theme');
+      if (THEMES.indexOf(storedGlobal) > -1 && storedGlobal !== theme) {
+        activeGlobal = storedGlobal;
+      }
+    }
 
-    root.setAttribute('data-theme-mode', storedMode);
-    root.setAttribute('data-theme', activeGlobal || 'dark');
+    var storedAccent = localStorage.getItem('groove-accent');
+    var accent = ACCENTS.indexOf(storedAccent) > -1 ? storedAccent : 'unity';
+
+    root.setAttribute('data-theme-mode', storedMode || 'system');
+    root.setAttribute('data-theme', activeGlobal);
     root.classList.toggle('light', activeGlobal === 'light');
     root.classList.toggle('classic', activeGlobal === 'classic');
     root.classList.toggle('halloween', activeGlobal === 'halloween');
@@ -107,25 +127,36 @@ export default function RootLayout({
   return (
     // suppressHydrationWarning: the script above mutates <html> before React
     // hydrates, so the class here deliberately does not match it.
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${serif.variable}`}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <ThemeProvider>
-          <PlatformThemeSync />
-          <RouteThemeEnforcer />
-          <AppLoadingSplash />
-          {/* One presence subscription for the whole app, so /messages, coach
-              cards and the header all read the same live value. */}
-          <PresenceBridge />
-          {/* One click-sound listener for the whole app, mounted beside the
-              presence bridge for the same reason: every shell renders a
-              different subset of controls, so a per-shell or per-component
-              listener would leave some routes silent and some clicks doubled.
-              Renders nothing. */}
-          <ClickSoundBridge />
-          {children}
+          {/* The session lives HERE, above every route, not inside the /coach and
+              /client groups. It used to be read separately by each header, which
+              is how a signed-in user ended up looking signed out on any page
+              rendered by a different layout. One provider, one answer, for the
+              dashboards and the public pages alike. */}
+          <SessionProvider>
+            <PlatformThemeSync />
+            <RouteThemeEnforcer />
+            <AppLoadingSplash />
+            {/* One presence subscription for the whole app, so /messages, coach
+                cards and the header all read the same live value. */}
+            <PresenceBridge />
+            {/* One click-sound listener for the whole app, mounted beside the
+                presence bridge for the same reason: every shell renders a
+                different subset of controls, so a per-shell or per-component
+                listener would leave some routes silent and some clicks doubled.
+                Renders nothing. */}
+            <ClickSoundBridge />
+            {children}
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

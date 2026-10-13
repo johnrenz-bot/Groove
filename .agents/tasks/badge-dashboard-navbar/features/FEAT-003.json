@@ -1,0 +1,25 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Improve AppTopNav: add profile photo to the mobile sheet identity block (currently shows initials-only), and add a Messages shortcut icon button in the actions zone for client and coach roles. Check and patch g-sheet-link active state CSS if the accent color rule is absent. Navigation files (client/navigation.ts, coach/navigation.ts) need no changes — Messages is already in Community group and dashboards now have a quick-link from FEAT-002. Independent of FEAT-001 and FEAT-002.",
+  "status": "pending",
+  "steps": [
+    "In components/shared/AppTopNav.tsx, find the mobile sheet identity block (inside the g-sheet-body div, the g-sheet-identity div). It currently renders a plain <span className='g-account-avatar'> with initials. Replace it with the same conditional rendering used in the desktop account button: if user?.photo_url exists render <Image src={user.photo_url} alt='' width={40} height={40} className='g-account-avatar-img' /> (same class as the account panel avatar image), otherwise render the initials span. Image is already imported at the top of the file.",
+    "In components/shared/AppTopNav.tsx, add a Messages shortcut icon button in the actions zone (Zone 3 g-header-actions div). Place it between the search ref div and the NotificationDropdown. Only render it when role === 'client' || role === 'coach'. Use: <Link href='/messages' aria-label='Messages' className='inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors'><MessageSquare className='h-[18px] w-[18px]' /></Link>. Import MessageSquare from lucide-react (add to existing import).",
+    "Check the global CSS file (likely app/globals.css or app/app.css — find it with grep for 'g-sheet-link') for the active state rule: .g-sheet-link[data-active] or [data-active].g-sheet-link. If the rule sets color to the accent text color and a background, no change needed. If it is missing or only sets color without a left-border accent indicator, add: a left border accent indicator (border-l-2 border-accent equivalent) to distinguish the active route in the mobile sheet. Use CSS custom properties consistent with the existing design tokens."
+  ],
+  "acceptance_criteria": [
+    "npm run build exits 0 with no TypeScript errors",
+    "npm run lint exits 0",
+    "AppTopNav mobile sheet shows user's profile photo when available, initials when not",
+    "AppTopNav actions zone shows a MessageSquare icon link to /messages for client and coach roles, hidden for admin role",
+    "Active nav items in the mobile sheet are visually distinguished with accent color/border",
+    "All existing AppTopNav functionality (search, notifications, account dropdown, logout, presence, theme) continues to work"
+  ],
+  "verification": [
+    "cd c:\\website\\GrooveSystem && npm run lint",
+    "cd c:\\website\\GrooveSystem && npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
