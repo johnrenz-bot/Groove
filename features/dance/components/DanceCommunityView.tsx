@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { DanceCommunityHero } from './DanceCommunityHero';
 import { OrgLogoBar } from './OrgLogoBar';
 import { UpdatesFilterBar } from './UpdatesFilterBar';
@@ -9,9 +10,61 @@ import { UpcomingEventsSection } from './UpcomingEventsSection';
 import { FeaturedCrewsRoster } from './FeaturedCrewsRoster';
 import { DanceUpdatesSkeletonGrid } from './DanceSkeletons';
 import type { DanceUpdateRecord } from '../services/danceService';
-import { ChevronLeft, ChevronRight, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
+import { ORGANIZATIONS } from '@/lib/dance/constants';
+import type { DanceOrg } from '@/lib/dance/types';
+import { OrgLogoCarouselClient } from './OrgLogoCarouselClient';
+import {
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  AlertCircle,
+  Sparkles,
+  ChevronRight as ChevronRightSmall,
+} from 'lucide-react';
 
-export function DanceCommunityView() {
+/**
+ * Breadcrumb for the dance community page.
+ * Community / Performing Arts / Dance
+ */
+function Breadcrumb() {
+  return (
+    <nav aria-label="Breadcrumb" className="mb-6">
+      <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <li>
+          <Link
+            href="/users"
+            className="font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Community
+          </Link>
+        </li>
+        <li aria-hidden="true">
+          <ChevronRightSmall className="h-3.5 w-3.5 text-muted-foreground/60" />
+        </li>
+        <li>
+          <Link
+            href="/performing-arts-philippines"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Performing Arts
+          </Link>
+        </li>
+        <li aria-hidden="true">
+          <ChevronRightSmall className="h-3.5 w-3.5 text-muted-foreground/60" />
+        </li>
+        <li>
+          <span className="font-semibold text-foreground">Dance</span>
+        </li>
+      </ol>
+    </nav>
+  );
+}
+
+interface DanceCommunityViewProps {
+  initialOrgs?: DanceOrg[];
+}
+
+export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
   // Filter States
   const [region, setRegion] = useState<string>('all');
   const [category, setCategory] = useState<string>('all');
@@ -28,6 +81,44 @@ export function DanceCommunityView() {
   const [loading, setLoading] = useState<boolean>(true);
   const [eventsLoading, setEventsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string>('Recently verified');
+
+  // Read initial parameters from URL
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const regParam = params.get('region');
+    const catParam = params.get('category');
+    const orgParam = params.get('org');
+    const qParam = params.get('q');
+    const langParam = params.get('lang');
+    const pageParam = params.get('page');
+
+    if (regParam) setRegion(regParam);
+    if (catParam) setCategory(catParam);
+    if (orgParam) setSelectedOrg(orgParam);
+    if (qParam) setSearchQuery(qParam);
+    if (langParam === 'en' || langParam === 'tl') setLanguage(langParam);
+    if (pageParam && Number(pageParam) > 0) setPage(Number(pageParam));
+  }, []);
+
+  // Sync state to URL params cleanly
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams();
+    if (region !== 'all') params.set('region', region);
+    if (category !== 'all') params.set('category', category);
+    if (selectedOrg !== 'all') params.set('org', selectedOrg);
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (language !== 'en') params.set('lang', language);
+    if (page > 1) params.set('page', String(page));
+
+    const newQuery = params.toString();
+    const newUrl = newQuery
+      ? `${window.location.pathname}?${newQuery}${window.location.hash}`
+      : `${window.location.pathname}${window.location.hash}`;
+    window.history.replaceState(null, '', newUrl);
+  }, [region, category, selectedOrg, searchQuery, language, page]);
 
   // Check if any filter is active
   const hasActiveFilters =
@@ -56,6 +147,23 @@ export function DanceCommunityView() {
       setUpdates(data.updates || []);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
+
+      // Determine last updated time from latest update
+      if (data.updates && data.updates.length > 0 && data.updates[0].published_at) {
+        try {
+          const date = new Date(data.updates[0].published_at);
+          setLastUpdated(
+            date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          );
+        } catch {
+          setLastUpdated('Recently verified');
+        }
+      }
     } catch (err: any) {
       console.error('Failed to load dance updates:', err);
       setError('Unable to load latest dance updates. Please try again.');
@@ -118,43 +226,49 @@ export function DanceCommunityView() {
     setPage(1);
   };
 
+  // Distinct federations count from tracked organizations
+  const federationsCount = useMemo(() => ORGANIZATIONS.length, []);
+
   return (
-    <div className="min-h-screen bg-[#050B10] text-white">
-      {/* 1. Hero Banner */}
+    <div className="space-y-0 pb-12">
+      {/* 0. Breadcrumb: Community / Performing Arts / Dance */}
+      <Breadcrumb />
+
+      {/* 1. Hero Banner matching Groove theme */}
       <DanceCommunityHero
-        totalUpdatesCount={total || 18}
-        totalEventsCount={upcomingEvents.length || 6}
+        totalUpdatesCount={total}
+        totalEventsCount={upcomingEvents.length}
+        federationsCount={federationsCount}
+        lastUpdated={lastUpdated}
       />
 
-      {/* 2. Organization Logo Bar */}
+      {/* 1b. Official League Logo Carousel */}
+      <OrgLogoCarouselClient orgs={initialOrgs ?? []} />
+
+      {/* 2. Organization Logo Filter Bar */}
       <OrgLogoBar selectedOrg={selectedOrg} onSelectOrg={handleSelectOrg} />
 
       {/* 3. Upcoming Events Showcase Carousel / Grid */}
       <UpcomingEventsSection events={upcomingEvents} loading={eventsLoading} />
 
       {/* 4. Latest Updates Section */}
-      <section id="latest-updates" className="py-16">
-        <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8">
-          {/* Section Heading */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 bg-[#C8102E]" />
-                <span className="font-mono text-xs font-black uppercase tracking-widest text-[#C6F10E]">
-                  REAL-TIME DISCOVERY & REPORTING
-                </span>
-              </div>
-              <h2 className="mt-1 text-3xl font-black uppercase tracking-tight sm:text-4xl">
-                LATEST <span className="text-[#C6F10E]">UPDATES</span>
-              </h2>
-            </div>
-            <div className="font-mono text-xs text-[#93A3AF]">
-              Showing <span className="font-bold text-white">{updates.length}</span> of{' '}
-              <span className="font-bold text-[#C6F10E]">{total}</span> verified dispatches
-            </div>
+      <section id="latest-updates" className="scroll-mt-24 py-8">
+        {/* Section Heading */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <span className="g-eyebrow mb-2">Real-Time Discovery &amp; Reporting</span>
+            <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Latest <span className="font-normal italic text-muted-foreground">Updates</span>
+            </h2>
           </div>
+          <div className="text-xs text-muted-foreground">
+            Showing <span className="font-semibold text-foreground">{updates.length}</span> of{' '}
+            <span className="font-semibold text-accent-text">{total}</span> verified dispatches
+          </div>
+        </div>
 
-          {/* Filters Bar */}
+        {/* Filters Bar */}
+        <div className="mt-6">
           <UpdatesFilterBar
             region={region}
             category={category}
@@ -167,82 +281,82 @@ export function DanceCommunityView() {
             onClearFilters={handleClearFilters}
             hasActiveFilters={hasActiveFilters}
           />
+        </div>
 
-          {/* Updates Feed */}
-          <div className="mt-8">
-            {loading ? (
-              <DanceUpdatesSkeletonGrid count={6} />
-            ) : error ? (
-              <div className="border border-[#C8102E]/40 bg-[#0A141C] p-8 text-center">
-                <AlertCircle className="mx-auto h-8 w-8 text-[#C8102E]" />
-                <p className="mt-3 font-mono text-sm font-bold text-white">{error}</p>
+        {/* Updates Feed Grid */}
+        <div className="mt-6">
+          {loading ? (
+            <DanceUpdatesSkeletonGrid count={6} />
+          ) : error ? (
+            <div className="rounded-2xl border border-danger/40 bg-card p-8 text-center shadow-sm">
+              <AlertCircle className="mx-auto h-8 w-8 text-danger" />
+              <p className="mt-3 text-sm font-semibold text-foreground">{error}</p>
+              <button
+                type="button"
+                onClick={() => fetchUpdates()}
+                className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Retry
+              </button>
+            </div>
+          ) : updates.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-sm">
+              <Sparkles className="mx-auto h-8 w-8 text-accent-text" />
+              <h3 className="mt-3 text-base font-bold text-foreground">
+                No dispatches match criteria
+              </h3>
+              <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
+                There are no updates matching the selected category, league, or region. Try adjusting your filters.
+              </p>
+              {hasActiveFilters && (
                 <button
                   type="button"
-                  onClick={() => fetchUpdates()}
-                  className="mt-4 inline-flex items-center gap-2 border border-white/20 bg-[#050B10] px-4 py-2 font-mono text-xs font-bold uppercase text-white hover:border-[#C6F10E] hover:text-[#C6F10E]"
+                  onClick={handleClearFilters}
+                  className="mt-5 rounded-full border border-border bg-muted/40 px-5 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
                 >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  RETRY
+                  Reset All Filters
                 </button>
-              </div>
-            ) : updates.length === 0 ? (
-              <div className="border border-white/10 bg-[#0A141C] p-12 text-center">
-                <Sparkles className="mx-auto h-8 w-8 text-[#C6F10E]" />
-                <h3 className="mt-3 font-mono text-base font-black uppercase text-white">
-                  NO DISPATCHES MATCH CRITERIA
-                </h3>
-                <p className="mx-auto mt-2 max-w-md text-xs text-[#93A3AF]">
-                  There are no updates matching the selected category, league, or region. Try adjusting your filters.
-                </p>
-                {hasActiveFilters && (
-                  <button
-                    type="button"
-                    onClick={handleClearFilters}
-                    className="mt-5 border border-[#C8102E] bg-[#C8102E] px-5 py-2 font-mono text-xs font-bold uppercase text-white hover:bg-[#E01334]"
-                  >
-                    RESET ALL FILTERS
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {updates.map((update) => (
-                  <UpdateCard key={update.id} update={update} language={language} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Pagination */}
-          {!loading && totalPages > 1 && (
-            <div className="mt-12 flex items-center justify-center gap-3 border-t border-white/10 pt-8 font-mono">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex items-center gap-1 border border-white/10 bg-[#0A141C] px-4 py-2 text-xs font-bold uppercase text-white transition hover:border-[#C6F10E] disabled:opacity-30 disabled:hover:border-white/10"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                PREV
-              </button>
-
-              <span className="px-3 text-xs text-[#93A3AF]">
-                PAGE <span className="font-bold text-white">{page}</span> OF{' '}
-                <span className="font-bold text-[#C6F10E]">{totalPages}</span>
-              </span>
-
-              <button
-                type="button"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="flex items-center gap-1 border border-white/10 bg-[#0A141C] px-4 py-2 text-xs font-bold uppercase text-white transition hover:border-[#C6F10E] disabled:opacity-30 disabled:hover:border-white/10"
-              >
-                NEXT
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {updates.map((update) => (
+                <UpdateCard key={update.id} update={update} language={language} />
+              ))}
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-3 border-t border-divider pt-6">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong disabled:opacity-30"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Prev
+            </button>
+
+            <span className="px-3 text-xs text-muted-foreground">
+              Page <span className="font-semibold text-foreground">{page}</span> of{' '}
+              <span className="font-semibold text-foreground">{totalPages}</span>
+            </span>
+
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong disabled:opacity-30"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 5. Featured Crews & Match Recaps Roster */}

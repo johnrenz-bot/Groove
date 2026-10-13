@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { DanceCommunityView } from '@/features/dance/components/DanceCommunityView';
+import React from 'react';
+import { DanceCommunityPageServer } from '@/features/dance/components/DanceCommunityPageServer';
 
 export const metadata: Metadata = {
   title: 'Dance Community — Competitions, Events, Crews | GroovePH',
@@ -17,10 +18,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=1200&q=80',
-        width: 1200,
-        height: 630,
-        alt: 'GroovePH Dance Community',
+        url: '/crews/brotherhood/team.jpg',
+        width: 1500,
+        height: 1000,
+        alt: 'GroovePH Dance Community — Verified Crew and League Coverage',
       },
     ],
   },
@@ -29,10 +30,14 @@ export const metadata: Metadata = {
     title: 'Dance Community — Competitions, Events, Crews | GroovePH',
     description:
       'Competitions, Events, Crews, Philippines & Worldwide. Real-time verified updates from international leagues and Philippine dance federations.',
-    images: ['https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=1200&q=80'],
+    images: ['/crews/brotherhood/team.jpg'],
   },
 };
 
 export default function DanceCommunityPage() {
-  return <DanceCommunityView />;
+  return (
+    <React.Suspense fallback={null}>
+      <DanceCommunityPageServer />
+    </React.Suspense>
+  );
 }

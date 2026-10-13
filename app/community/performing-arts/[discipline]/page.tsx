@@ -71,8 +71,10 @@ export default async function DisciplineRoute({
 }) {
   const { discipline } = await params;
   if (discipline === 'dance') {
-    const { DanceCommunityView } = await import('@/features/dance/components/DanceCommunityView');
-    return <DanceCommunityView />;
+    const { DanceCommunityPageServer } = await import(
+      '@/features/dance/components/DanceCommunityPageServer'
+    );
+    return <DanceCommunityPageServer />;
   }
 
   const record = DISCIPLINES.find((d) => d.id === discipline);

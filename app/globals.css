@@ -4821,3 +4821,44 @@ select.g-input option {
     transform: none;
   }
 }
+
+/* ------------------------------------------------------------------------------
+   Official League Logo Carousel — infinite marquee
+   The track duplicates the org list ([...orgs, ...orgs]) so a single
+   translateX(-50%) loops seamlessly. Pauses on hover/focus and is disabled
+   entirely under prefers-reduced-motion.
+   ------------------------------------------------------------------------------ */
+@keyframes dance-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.dance-marquee-wrap {
+  overflow: hidden;
+}
+
+/* Hover or keyboard focus inside the wrap pauses the marquee so a logo can be
+   held still to read or follow its link. */
+.dance-marquee-wrap:hover .dance-marquee-track,
+.dance-marquee-wrap:focus-within .dance-marquee-track {
+  animation-play-state: paused;
+}
+
+.dance-marquee-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: dance-marquee 30s linear infinite;
+  will-change: transform;
+}
+
+/* Reduced motion: no animation at all — logos simply sit in a row. */
+@media (prefers-reduced-motion: reduce) {
+  .dance-marquee-track {
+    animation: none;
+  }
+}
