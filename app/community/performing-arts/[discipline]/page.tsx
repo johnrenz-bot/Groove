@@ -20,11 +20,11 @@ import { DISCIPLINES, DISCIPLINE_IDS, getDiscipline } from '@/features/performin
  *   coach directory nobody sees.
  */
 export function generateStaticParams() {
-  return DISCIPLINE_IDS.map((id) => ({ discipline: id }));
+  return DISCIPLINE_IDS.filter((id) => id !== 'dance').map((id) => ({ discipline: id }));
 }
 
-/** Only the four real ids are routable; anything else is a 404, not a blank page. */
-export const dynamicParams = false;
+/** Only the real ids are routable; anything else is a 404, not a blank page. */
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
@@ -32,6 +32,22 @@ export async function generateMetadata({
   params: Promise<{ discipline: string }>;
 }): Promise<Metadata> {
   const { discipline } = await params;
+  if (discipline === 'dance') {
+    return {
+      title: 'Dance Community — Competitions, Events, Crews | GroovePH',
+      description:
+        'Official dance competitions, battle recaps, crew rosters, and verified updates from the Philippines and worldwide leagues.',
+      alternates: { canonical: '/community/performing-arts/dance' },
+      openGraph: {
+        title: 'Dance Community — Competitions, Events, Crews | GroovePH',
+        description:
+          'Official dance competitions, battle recaps, crew rosters, and verified updates from the Philippines and worldwide leagues.',
+        url: '/community/performing-arts/dance',
+        type: 'website',
+      },
+    };
+  }
+
   const record = getDiscipline(discipline);
   if (!record) return { title: 'Discipline not found' };
 
@@ -54,6 +70,11 @@ export default async function DisciplineRoute({
   params: Promise<{ discipline: string }>;
 }) {
   const { discipline } = await params;
+  if (discipline === 'dance') {
+    const { DanceCommunityView } = await import('@/features/dance/components/DanceCommunityView');
+    return <DanceCommunityView />;
+  }
+
   const record = DISCIPLINES.find((d) => d.id === discipline);
   if (!record) notFound();
 
