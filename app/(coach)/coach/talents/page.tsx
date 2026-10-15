@@ -1,12 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import CommunityFeed from '@/features/community/components/CommunityFeed';
+import { ShowcaseShell } from '@/features/showcase/components/ShowcaseShell';
 import { communityOf } from '@/features/community/utils/community';
 import { Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import { PageHeader } from '@/components/shared/SectionHeader';
 
+/**
+ * Coach Community Showcase.
+ *
+ * Presentation lives in `<ShowcaseShell />`, which the client showcase shares —
+ * same compact header, same music bar and modal, same two-column split, same
+ * talent selector, same feed. The only thing this page owns is the role: where a
+ * coach's community comes from, and what the tagline says.
+ */
 export default function CoachTalentsPage() {
   const [coachProfile, setCoachProfile] = useState<Profile | null>(null);
   /** The signed-in coach's discipline, source of their community. */
@@ -44,32 +51,16 @@ export default function CoachTalentsPage() {
   }, []);
 
   useEffect(() => {
-    fetchCoach();
+    void fetchCoach();
   }, [fetchCoach]);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <PageHeader
-        eyebrow="Coach Showcase & Community Hub · Bulacan"
-        title={
-          <>
-            Performing Arts Showcase &amp; <span className="text-accent-text">Community</span>
-          </>
-        }
-        description="Share choreography routines, rehearsal highlights, masterclass announcements, and engage with verified students and mentors in San Jose del Monte."
-      />
-
-      {loading ? (
-        <div className="space-y-5">
-          <div className="g-skeleton h-28 w-full rounded-[22px]" />
-          <div className="g-skeleton h-36 w-full rounded-[22px]" />
-        </div>
-      ) : (
-        <CommunityFeed
-          currentUser={coachProfile}
-          community={communityOf(coachProfile, myTalent)}
-        />
-      )}
-    </div>
+    <ShowcaseShell
+      role="coach"
+      eyebrow="Coach Showcase & Community Hub · Bulacan"
+      currentUser={coachProfile}
+      memberCommunity={communityOf(coachProfile, myTalent)}
+      loading={loading}
+    />
   );
 }

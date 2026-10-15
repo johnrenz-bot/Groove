@@ -14,6 +14,7 @@ export function StatCard({
   icon,
   accent = false,
   className = '',
+  accentBar,
 }: {
   value: React.ReactNode;
   label: string;
@@ -22,14 +23,18 @@ export function StatCard({
   /** Render the number in the accent color (used for landing stats) */
   accent?: boolean;
   className?: string;
+  /** Accent bar color for dashboard metric cards */
+  accentBar?: 'gold' | 'blue' | 'red' | 'green';
 }) {
+  const accentBarClass = accentBar ? `ph-accent-bar ph-accent-bar--${accentBar}` : '';
+
   return (
-    <GlassCard className={cn('flex flex-col gap-4 p-6 sm:p-7 group', className)}>
+    <GlassCard className={cn('ph-card flex flex-col gap-4 p-5 sm:p-6 group', accentBarClass, className)}>
       <div className="flex items-center gap-3">
         {icon && (
           <span
             aria-hidden="true"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--ph-border)] bg-[var(--ph-cream)] text-[var(--ph-navy-soft)] transition-transform duration-200 group-hover:scale-105"
           >
             {icon}
           </span>
@@ -39,16 +44,16 @@ export function StatCard({
             'min-w-0 font-bold tabular-nums tracking-[-0.03em]',
             typeof value === 'string' && value.length > 8
               ? 'text-lg sm:text-xl truncate'
-              : 'text-2xl sm:text-3xl xl:text-4xl',
-            accent ? 'text-accent-text' : 'text-foreground'
+              : 'text-2xl sm:text-3xl',
+            accent ? 'text-[var(--ph-blue)]' : 'text-[var(--ph-navy)]'
           )}
         >
           {value}
         </div>
       </div>
       <div>
-        <p className="text-sm font-semibold text-foreground">{label}</p>
-        {description && <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{description}</p>}
+        <p className="text-sm font-semibold text-[var(--ph-navy)]">{label}</p>
+        {description && <p className="mt-1 text-xs leading-relaxed text-[var(--ph-slate)]">{description}</p>}
       </div>
     </GlassCard>
   );

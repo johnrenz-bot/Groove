@@ -50,13 +50,31 @@ import {
   type ConversationAgreement,
 } from '../services/bookingAgreement';
 import { SessionAgreementCard } from './SessionAgreementCard';
+import { ConversationAgreements } from './ConversationAgreements';
 
 export function AgreementThread({
   currentUserId,
   partnerId,
+  mode = 'inline',
+  viewerRole = 'client',
 }: {
   currentUserId: string;
   partnerId: string;
+  /**
+   * How this thread presents the agreements.
+   *
+   *  - `inline`   one card per agreement, in date order, as it always was.
+   *  - `panelled` the rows are handed to <ConversationAgreements>, which groups
+   *               them into the current agreement and the previous ones.
+   *
+   * This is a PRESENTATION switch, not a data one: both modes render the same
+   * `rows`, from the same single query, under the same two realtime channels. A
+   * second fetch for the panelled view would double the subscriptions and let
+   * the two copies drift, which is the failure this container exists to stop.
+   */
+  mode?: 'inline' | 'panelled';
+  /** Which side the signed-in user is on; only used by the panelled layout. */
+  viewerRole?: 'client' | 'coach';
 }) {
   const [state, setState] = useState<{
     partnerId: string;
@@ -179,6 +197,21 @@ export function AgreementThread({
       void supabase.removeChannel(bookingsChannel);
     };
   }, [supabase, currentUserId, partnerId, load]);
+
+  /* The panelled layout owns its own loading AND its own empty state, so it is
+     checked FIRST — otherwise the inline skeleton below would be what a user sees
+     in the "Session Agreements" section, and the section would go blank (rather
+     than explaining itself) when a conversation has no agreements yet. */
+  if (mode === 'panelled') {
+    return (
+      <ConversationAgreements
+        rows={rows}
+        currentUserId={currentUserId}
+        viewerRole={viewerRole}
+        loading={showSkeleton}
+      />
+    );
+  }
 
   if (showSkeleton) {
     return (

@@ -43,6 +43,7 @@ export interface UserBadgeStatus {
   tasks_total: number;
   unlocked_at: string | null;
   is_unlocked: boolean;
+  badge_image_url: string | null;
 }
 
 /**

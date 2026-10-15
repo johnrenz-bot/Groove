@@ -70,18 +70,18 @@ export default function AdminPasscodePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white font-sans">
-      <div className="max-w-md w-full rounded-3xl border border-border bg-muted/90 p-8 text-center backdrop-blur-xl shadow-2xl">
-        <div className="h-16 w-16 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/40">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background text-foreground font-sans">
+      <div className="max-w-md w-full rounded-3xl border border-border bg-card p-8 text-center shadow-2xl">
+        <div className="h-16 w-16 bg-accent-soft text-accent-text rounded-full flex items-center justify-center mx-auto mb-4 border border-accent-border">
           <ShieldCheck className="h-8 w-8" />
         </div>
-        <h1 className="text-2xl font-bold text-white">Admin Verification</h1>
+        <h1 className="text-2xl font-bold text-foreground">Admin Verification</h1>
         <p className="text-muted-foreground text-xs mt-2">
           Please enter the 6-digit administrative security passcode to access the Master Control Panel.
         </p>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-danger/30/40 bg-danger/10 p-3 text-xs text-danger flex items-center gap-2 text-left">
+          <div className="mt-4 rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger flex items-center gap-2 text-left">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -98,7 +98,7 @@ export default function AdminPasscodePage() {
                 value={digit}
                 onChange={(e) => handleDigitChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
-                className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-muted border border-border text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
               />
             ))}
           </div>
@@ -106,7 +106,7 @@ export default function AdminPasscodePage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full h-11 rounded-xl bg-accent hover:bg-accent-hover text-accent-foreground font-semibold text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             <span>{loading ? 'Verifying...' : 'Authenticate'}</span>

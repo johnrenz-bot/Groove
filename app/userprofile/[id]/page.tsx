@@ -878,6 +878,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
           isOpen={aiOpen}
           onClose={() => setAiOpen(false)}
           coachContext={{
+            id: targetUser.id,
             fullName: displayName,
             role: 'Coach',
             talents: cp?.talents,
@@ -885,14 +886,8 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
             bio: targetUser.bio,
             serviceFee: cp?.service_fee,
             duration: cp?.duration,
-            /* `address_summary`, `contact` and `email` are intentionally NOT in
-               TARGET_PROFILE_COLUMNS, so they are always undefined here. They
-               were passed anyway, which made the assistant open on a coach's own
-               page with three blank fields and no indication why. `locationText`
-               is what the public page can actually know, so that is what it gets. */
-            address: locationText || undefined,
-            contact: undefined,
-            email: undefined,
+            location: locationText || undefined,
+            photoUrl: targetUser.photo_url || null,
           }}
         />
       )}

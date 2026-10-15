@@ -1,0 +1,68 @@
+import { MusicTrack } from '../types';
+
+export const CURATED_DANCE_TRACKS: MusicTrack[] = [
+  {
+    id: 'curated-1',
+    youtubeId: 'wkJF_L6fG0M',
+    title: 'Dance Rehearsal 8-Count Hip Hop Beat',
+    artist: 'Groove Practice Beats',
+    thumbnail: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=500&auto=format&fit=crop&q=60',
+    duration: '3:45',
+  },
+  {
+    id: 'curated-2',
+    youtubeId: 'jfKfPfyJRdk',
+    title: 'Lofi Chill Hip Hop Beats for Freestyle & Choreography',
+    artist: 'Lofi Girl',
+    thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=60',
+    duration: '2:40',
+  },
+  {
+    id: 'curated-3',
+    youtubeId: 'WPni755-Krg',
+    title: 'Contemporary Instrumental Piano & Cello',
+    artist: 'Performing Arts Studios',
+    thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=60',
+    duration: '4:15',
+  },
+  {
+    id: 'curated-4',
+    youtubeId: 'kJQP7kiw5Fk',
+    title: 'Luis Fonsi - Despacito (Latin Dance Rehearsal)',
+    artist: 'Luis Fonsi',
+    thumbnail: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&auto=format&fit=crop&q=60',
+    duration: '4:42',
+  },
+  {
+    id: 'curated-5',
+    youtubeId: '2Vv-BfVoq4g',
+    title: 'Ed Sheeran - Perfect (Lyrical & Contemporary Routine)',
+    artist: 'Ed Sheeran',
+    thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&auto=format&fit=crop&q=60',
+    duration: '4:23',
+  },
+  {
+    id: 'curated-6',
+    youtubeId: 'OPf0YbXqDm0',
+    title: 'Mark Ronson - Uptown Funk (High Energy Choreography)',
+    artist: 'Mark Ronson ft. Bruno Mars',
+    thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=60',
+    duration: '4:30',
+  },
+  {
+    id: 'curated-7',
+    youtubeId: 'fJ9rUzIMcZQ',
+    title: 'Queen - Bohemian Rhapsody (Vocal & Theater Rehearsal)',
+    artist: 'Queen',
+    thumbnail: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=500&auto=format&fit=crop&q=60',
+    duration: '5:55',
+  },
+  {
+    id: 'curated-8',
+    youtubeId: 'hT_nvWreIhg',
+    title: 'OneRepublic - Counting Stars (Acoustic Rhythm & Warm-up)',
+    artist: 'OneRepublic',
+    thumbnail: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=500&auto=format&fit=crop&q=60',
+    duration: '4:17',
+  },
+];

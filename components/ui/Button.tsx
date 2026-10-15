@@ -10,7 +10,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Pill (default, SaaS-minimalism signature) or 12px radius */
+  /** Pill (default) for chips and inline actions, or the 8px control radius. */
   pill?: boolean;
   loading?: boolean;
   icon?: React.ReactNode;
@@ -21,24 +21,36 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const SIZE_STYLES: Record<ButtonSize, string> = {
   sm: 'h-8 px-3.5 text-xs gap-1.5',
-  md: 'h-10 px-5 text-sm gap-2',
-  lg: 'h-12 px-7 text-[0.9375rem] gap-2.5',
+  md: 'h-10 px-4 text-sm gap-2',
+  lg: 'h-12 px-6 text-[0.9375rem] gap-2.5',
   icon: 'h-10 w-10 p-0',
 };
 
 /**
  * Every variant is token-driven — swapping `light` on <html> restyles all of
- * them. `primary` is the single Groove-orange accent; nothing else is colored.
+ * them. `primary` is Unity Blue and nothing else in the set introduces a hue;
+ * `danger` is the one exception and it is Relief Red.
+ *
+ * Destructive buttons paint `--danger-solid`, NOT `--danger`. In dark mode
+ * `--danger` is a lightened red chosen for AA *text* contrast, which would be
+ * unusable as a fill with a light label. `--danger-solid` is the brand red in
+ * both themes and carries cream at 5.6:1 either way.
+ *
+ * Hover is a 1px lift and a touch more shadow — present, not animated. Buttons
+ * do not scale on hover: a control that grows reads as a link, and this
+ * application has links.
  */
 const VARIANT_STYLES: Record<ButtonVariant, string> = {
   primary:
-    'bg-accent text-accent-foreground shadow-[var(--shadow-sm)] hover:bg-accent-hover hover:shadow-[var(--shadow-accent)] hover:-translate-y-0.5 active:translate-y-0',
+    'bg-accent text-accent-foreground shadow-[var(--shadow-sm)] hover:bg-accent-hover hover:shadow-[var(--shadow-accent)] hover:-translate-y-px active:translate-y-0',
   secondary:
-    'btn-glass text-foreground hover:-translate-y-0.5 active:translate-y-0',
+    'btn-glass text-foreground hover:-translate-y-px active:translate-y-0',
   outline:
-    'bg-transparent text-foreground border border-border hover:bg-muted hover:border-border-strong hover:-translate-y-0.5 active:translate-y-0',
-  ghost: 'bg-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:-translate-y-0.5 active:translate-y-0',
-  danger: 'bg-danger text-white hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0',
+    'bg-transparent text-foreground border border-border hover:bg-muted hover:border-border-strong hover:-translate-y-px active:translate-y-0',
+  ghost:
+    'bg-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:-translate-y-px active:translate-y-0',
+  danger:
+    'bg-[var(--danger-solid)] text-[var(--danger-foreground)] shadow-[var(--shadow-sm)] hover:brightness-110 hover:-translate-y-px active:translate-y-0',
   link: 'bg-transparent text-accent-text hover:underline underline-offset-4 px-0 h-auto',
 };
 
@@ -58,7 +70,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   },
   ref
 ) {
-  const radius = pill ? 'rounded-full' : 'rounded-xl';
+  const radius = pill ? 'rounded-full' : 'rounded-[8px]';
 
   return (
     <button

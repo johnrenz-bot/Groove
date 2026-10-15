@@ -1,0 +1,63 @@
+/* Scoped Groovey AI Design Styles (Claude-inspired, Theme-compliant) */
+
+/* Hide scrollbars across all browsers while preserving full scrolling capabilities */
+.groovey-root,
+.groovey-root * {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.groovey-root *::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+}
+
+.groovey-root .no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.groovey-root .no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Keyframe Animations */
+@keyframes grooveyFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.groovey-root .animate-groovey-in {
+  animation: grooveyFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes grooveyPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px var(--ring);
+  }
+  50% {
+    box-shadow: 0 0 22px var(--accent-border);
+  }
+}
+
+.groovey-root .animate-groovey-glow {
+  animation: grooveyPulseGlow 2.5s infinite ease-in-out;
+}
+
+/* Claude-style cursor blink for streaming */
+@keyframes grooveyBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.groovey-root .animate-groovey-blink {
+  animation: grooveyBlink 0.9s infinite ease-in-out;
+}

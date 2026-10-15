@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AppTopNav, type DashboardRole } from '@/components/shared/AppTopNav';
+import { AppHeader } from '@/components/shared/AppHeader';
 import type { NavGroup, NavItem, RoleNav } from '@/components/shared/navTypes';
 import { ADMIN_NAV, ADMIN_PORTAL_LABEL } from '@/components/admin/navigation';
 import { CLIENT_NAV, CLIENT_PORTAL_LABEL } from '@/components/client/navigation';
@@ -9,6 +10,9 @@ import { COACH_NAV, COACH_PORTAL_LABEL } from '@/components/coach/navigation';
 import { WelcomeModal } from '@/components/shared/WelcomeModal';
 import { LoadingScreen } from '@/components/shared/LoadingScreen';
 import { MaintenanceBanner } from '@/components/shared/MaintenanceBanner';
+
+import { ChatProvider, useOptionalChat, GrooveyFloatingAssistant } from '@/features/groovey';
+import { MusicPlayerProvider } from '@/features/music';
 
 /**
  * Each portal's own menu, by role.
@@ -39,13 +43,12 @@ const ROLE_HOME: Record<DashboardRole, string> = {
 /**
  * The dashboard shell.
  *
- * All three roles render the same <AppTopNav> with the same visual system; each
- * role supplies only its own menu. The admin console passes one inline link plus
- * three dropdown groups, the client and coach portals pass five inline links and
- * one Account dropdown — the header renders both shapes from the same tree.
+ * The member portals render the redesigned <Header> and admin renders the
+ * original <AppTopNav> — see the comment at the switch below for why they are
+ * not the same component.
  *
  * There is no sidebar. The header is the navigation for every role, at every
- * width: inline links and dropdowns from `lg` up, and one sheet below it.
+ * width: inline links and dropdowns from `lg` up, and one drawer below it.
  *
  * The layout is a plain column — header, optional banner, content — because
  * removing the rail removed the only reason this shell needed a two-column
@@ -73,35 +76,71 @@ export function DashboardLayout({
   showWelcomeModal?: boolean;
   showMaintenanceBanner?: boolean;
 }) {
-  // Each role supplies its own menu and this shell passes it straight through.
-  // The admin console used to be special-cased here with `isAdmin ? ADMIN_NAV…`,
-  // which silently discarded whatever `primary`/`groups` the caller passed —
-  // so the prop was decorative for that role and the two paths could drift.
-  // The role's own nav data is still what renders, just resolved from one place
-  // for all three portals; no route, label, or permission changes.
   const roleNav = navItems || groups ? { primary: navItems ?? [], groups: groups ?? [] } : ROLE_NAV[role];
+  const existingChat = useOptionalChat();
 
-  return (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+  /**
+   * WHICH HEADER, AND WHY THE SPLIT.
+   *
+   * The member portals (client, coach) render the redesigned <Header>. Admin
+   * still renders <AppTopNav>. The admin console has the largest menu in the app
+   * — one inline link and three dropdown groups covering verification,
+   * maintenance, transactions and audit — and none of it was in the redesign
+   * brief. Moving it would be a large, unrequested change to the one surface
+   * where a mistake is worst, so the old header stays exactly where it is and
+   * the two coexist.
+   *
+   * Both read the same design tokens and share `var(--nav-*)`, so they read as
+   * one product — they differ in arrangement, not in palette.
+   */
+  const useNewHeader = role === 'client' || role === 'coach';
+
+  const content = (
+    <div className="relative isolate min-h-screen font-sans text-foreground">
+      {/* No `bg-background` here by design: the page colour lives only on
+          <body>, so the fixed <PagePatterns /> layer (z-0, mounted once in the
+          root layout) stays visible through this transparent shell. The old
+          per-shell <PatternBackdrop /> was removed so it cannot double-render.
+          Cards, modals and panels keep their own opaque surfaces. */}
       <LoadingScreen minDuration={500} />
 
-      <AppTopNav
-        role={role}
-        primary={roleNav.primary}
-        groups={roleNav.groups}
-        portalLabel={portalLabel ?? ROLE_PORTAL_LABEL[role]}
-        homeHref={homeHref ?? ROLE_HOME[role]}
-      />
+      {useNewHeader ? (
+        <AppHeader role={role} homeHref={homeHref ?? ROLE_HOME[role]} />
+      ) : (
+        <AppTopNav
+          role={role}
+          primary={roleNav.primary}
+          groups={roleNav.groups}
+          portalLabel={portalLabel ?? ROLE_PORTAL_LABEL[role]}
+          homeHref={homeHref ?? ROLE_HOME[role]}
+          logoOnly={role !== 'admin'}
+        />
+      )}
 
       {showMaintenanceBanner && <MaintenanceBanner />}
 
-      <main className="flex-1 px-5 py-7 sm:px-8 sm:py-9">
+      <main className="relative z-10 flex-1 px-5 py-7 sm:px-8 sm:py-9">
         <div className="mx-auto w-full max-w-[1240px]">{children}</div>
       </main>
 
       {showWelcomeModal && <WelcomeModal role={role} />}
+
+      {/* Persistent Floating GrooveyAI Assistant — the ONE floating widget in
+          the app. Role-aware label: "Ask AI coach" for clients, "Ask AI
+          assistant" for coach/admin. Pages must NOT render their own copy
+          (the legacy GrooveyAIFab was removed for exactly this reason). */}
+      <GrooveyFloatingAssistant role={role === 'client' ? 'client' : 'coach'} />
+
+      {/* The floating music dock was removed. Music now lives entirely inside the
+          Community Showcase hub bar, and `MusicPlayerProvider` gates itself to the
+          Showcase routes via the pathname — so there is no second player UI and
+          nothing to render here. */}
     </div>
   );
+
+  const wrappedWithChat = existingChat ? content : <ChatProvider>{content}</ChatProvider>;
+
+  return <MusicPlayerProvider>{wrappedWithChat}</MusicPlayerProvider>;
 }
 
 export type { DashboardRole };

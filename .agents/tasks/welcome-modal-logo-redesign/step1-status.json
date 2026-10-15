@@ -1,0 +1,12 @@
+{
+  "done": true,
+  "filesChanged": [
+    "components/shared/AppTopNav.tsx",
+    "components/shared/Footer.tsx",
+    "components/shared/AuthLayout.tsx",
+    "components/shared/Navbar.tsx",
+    "components/shared/LoadingScreen.tsx",
+    "components/shared/PublicLayout.tsx"
+  ],
+  "lintErrors": "pre-existing only: 2 react-hooks/exhaustive-deps warnings in AppTopNav.tsx (lines 280, 286), 1 @typescript-eslint/no-unused-vars warning in Navbar.tsx (line 27). Zero errors, zero warnings introduced by these changes."
+}

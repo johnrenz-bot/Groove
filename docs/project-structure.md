@@ -98,7 +98,6 @@ app/
 │   ├── admin/
 │   │   ├── audit/route.ts            # GET — Admin audit log
 │   │   └── users/route.ts           # GET/PATCH — Admin user management
-│   ├── dance-events/route.ts        # GET — External dance events feed
 │   ├── studios/route.ts             # GET — OpenStreetMap studio locator
 │   └── tickets/route.ts             # POST — Public support ticket submission
 │
@@ -117,7 +116,6 @@ app/
 ├── messages/page.tsx               # /messages — Direct messaging (shared route)
 ├── contracts/
 │   └── [id]/page.tsx               # /contracts/:id — Agreement view/sign
-├── dance-events/page.tsx           # /dance-events — External events feed
 ├── userprofile/
 │   └── [id]/page.tsx               # /userprofile/:id — Public profile viewer
 │
@@ -175,9 +173,6 @@ components/
 │   ├── CommunityFeed.tsx            # Full community feed with filters
 │   ├── SignedMedia.tsx              # Secure media display (signed URLs)
 │   └── communityMedia.ts           # Media upload/display utilities
-│
-├── dance/                          # Dance events components
-│   └── DanceEventsFeed.tsx          # External events listing
 │
 ├── profile/                        # Profile management components
 │   ├── ProfileFormSections.tsx      # Profile edit form sections
@@ -286,8 +281,6 @@ lib/
 ├── utils.ts                        # Formatters (currency, date, time-ago), storage URL builder, genre parsers
 ├── bookingAgreement.ts             # Agreement loading and e-signature logic
 ├── community.ts                    # Community post utilities
-├── danceAccess.ts                  # Dance event access control
-├── danceEventSources.ts            # External dance event data sources
 ├── geo.ts                          # Haversine distance calculation
 ├── googleRegistration.ts           # Google OAuth registration flow handler
 ├── openrouter.ts                   # OpenRouter/DeepSeek AI client
@@ -295,7 +288,6 @@ lib/
 ├── presence.ts                     # Presence status definitions and display logic
 ├── profileFields.ts                # Profile field validation rules and formatters
 ├── profileFollows.ts               # Follow/unfollow actions and queries
-├── useDanceAccess.ts               # Hook for dance event access state
 └── verification.ts                 # Verification rules, document requirements, booking gate
 ```
 

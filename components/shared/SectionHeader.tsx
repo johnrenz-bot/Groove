@@ -2,9 +2,13 @@ import React from 'react';
 import { cn } from './cn';
 
 /**
- * The SaaS-minimalism section signature:
- * small uppercase accent EYEBROW -> large bold heading -> muted subtext.
+ * The editorial section signature:
+ * small uppercase accent EYEBROW -> serif heading -> muted subtext.
  * Centered with generous spacing by default.
+ *
+ * The heading is the one place on a public page that switches to the display
+ * serif. It is a single line of type doing a lot of work; giving it a different
+ * face is what makes the page read as composed rather than as a stack of boxes.
  */
 export function SectionHeader({
   eyebrow,
@@ -30,16 +34,22 @@ export function SectionHeader({
       )}
     >
       {eyebrow && <span className="g-eyebrow">{eyebrow}</span>}
-      <h2 className="text-3xl font-bold leading-[1.1] tracking-[-0.03em] text-foreground sm:text-4xl">
-        {title}
-      </h2>
-      {subtext && <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">{subtext}</p>}
+      <h2 className="g-display sm:text-[2.5rem]">{title}</h2>
+      {subtext && (
+        <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">{subtext}</p>
+      )}
       {children}
     </div>
   );
 }
 
-/** Compact page header for dashboards: eyebrow + title + description + action. */
+/**
+ * Compact page header for dashboards: eyebrow + title + description + action.
+ *
+ * The eyebrow used to be hand-rolled here AND `.g-eyebrow` existed one screen
+ * away, so the app shipped two pill styles for the same idea. It now uses
+ * `.g-eyebrow`, and the title uses the serif display face at the smaller scale.
+ */
 export function PageHeader({
   title,
   description,
@@ -54,16 +64,19 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <header className={cn('mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between', className)}>
+    <header
+      className={cn(
+        'mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between',
+        className
+      )}
+    >
       <div className="min-w-0">
-        {eyebrow && (
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-text">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="text-2xl font-bold tracking-[-0.03em] text-foreground sm:text-3xl">{title}</h1>
+        {eyebrow && <span className="g-eyebrow mb-3">{eyebrow}</span>}
+        <h1 className="g-title">{title}</h1>
         {description && (
-          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{description}</p>
+          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         )}
       </div>
       {action && <div className="flex shrink-0 items-center gap-3">{action}</div>}

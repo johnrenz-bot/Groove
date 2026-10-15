@@ -24,15 +24,24 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
  * Pill status badge. Colors come from status tokens so badges stay legible in
  * both themes; the mapping of variant -> semantic role lives here and nowhere
  * else in the app.
+ *
+ * Borders are `-/40` rather than `-/30`: in dark mode a `-soft` tint DEEPENS the
+ * card (see the note beside `--accent-soft` in globals.css), so the outline is
+ * doing most of the work of separating the chip from its surface.
+ *
+ * `approved`/`confirmed` and `completed`/`neutral` are deliberately paired. They
+ * are aliases, not oversights: both pairs carry one meaning — "this went well"
+ * and "nothing to say" — and the callers that distinguish them do so with the
+ * label text, not with a second shade.
  */
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  pending: 'bg-warning-soft text-warning border-warning/30',
-  scheduled: 'bg-info-soft text-info border-info/30',
-  approved: 'bg-success-soft text-success border-success/30',
-  confirmed: 'bg-success-soft text-success border-success/30',
+  pending: 'bg-warning-soft text-warning border-warning/40',
+  scheduled: 'bg-info-soft text-info border-info/40',
+  approved: 'bg-success-soft text-success border-success/40',
+  confirmed: 'bg-success-soft text-success border-success/40',
   completed: 'bg-muted text-muted-foreground border-border',
-  cancelled: 'bg-danger-soft text-danger border-danger/30',
-  suspended: 'bg-danger-soft text-danger border-danger/30',
+  cancelled: 'bg-danger-soft text-danger border-danger/40',
+  suspended: 'bg-danger-soft text-danger border-danger/40',
   neutral: 'bg-muted text-muted-foreground border-border',
   accent: 'bg-accent-soft text-accent-text border-accent-border font-semibold',
 };

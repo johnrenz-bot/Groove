@@ -1,0 +1,28 @@
+{
+  "project_type": "Next.js App Router (TypeScript) — single-tenant performing arts platform, always-dark public pages",
+  "language": "TypeScript / TSX",
+  "build_system": "Next.js 15 (App Router). No tailwind.config.* — Tailwind v4 @import via globals.css @theme block. Aliases: @/ -> tsconfig paths root. No explicit next.config read needed for image paths (already allowing unoptimized).",
+  "test_framework": "None detected — no jest/vitest config found.",
+  "build_command": "npm run build",
+  "test_command": "npm run lint  (no test runner; type-check is implicit in build)",
+  "verification_instructions": "1. Run `npm run lint` — must exit 0 with no errors. 2. Run `npm run build` — must complete successfully. Fix any TypeScript or lint errors before marking complete.",
+  "snapshot_or_generated_files": null,
+  "environment_constraints": "Public landing page (/) is locked to dark theme via THEME_INIT_SCRIPT in app/layout.tsx and dark-only-page CSS class in PublicLayout. New sections MUST stay dark-theme compatible. Philippine flag accent colors (#0038A8, #CE1126, #FCD116) are for SVG decorative elements only — never override CSS token --accent.",
+  "contribution_requirements": "Additive changes only. Do NOT delete existing sections, modify hero, touch any route outside app/page.tsx and components/shared/. No backend/DB/auth changes. Preserve existing section ORDER: Hero → Disciplines → Stats/Mission → Studios → How It Works → Features → CTA.",
+  "key_patterns": "1. All landing sections use g-section / g-section-alt + g-container CSS classes from globals.css. 2. Scroll reveals use <Reveal className='g-reveal-stagger'> wrapper (components/shared/Reveal.tsx) — already has prefers-reduced-motion guard. 3. Section headings use <SectionHeader> (components/shared/SectionHeader.tsx). 4. Feature cards use the .g-card .g-card-hover pattern (inline div). 5. Official logo: /image/Logo/GroovePH-Logo.png — ALREADY USED in PublicLayout navbar (PublicNavbar) and Footer. 6. g-eyebrow for small uppercase eyebrow labels. 7. 'use client' required for any component using useState/useEffect.",
+  "relevant_files": [
+    "app/page.tsx",
+    "app/globals.css",
+    "app/layout.tsx",
+    "components/shared/PublicLayout.tsx",
+    "components/shared/Footer.tsx",
+    "components/shared/SectionHeader.tsx",
+    "components/shared/Reveal.tsx",
+    "components/shared/StatCard.tsx",
+    "components/shared/GlassCard.tsx",
+    "components/shared/ImageCard.tsx",
+    "app/(client)/client/home/page.tsx",
+    "app/(coach)/coach/home/page.tsx"
+  ],
+  "directory_structure": "app/page.tsx = landing; app/(client)/client/* = authenticated client routes (home, talent, appointments, calendar, profile, groovey, performing-arts-philippines, about, settings); app/(coach)/coach/* = authenticated coach routes (home, talents, appointments, calendar, profile, about, settings, performing-arts-philippines); components/shared/ = shared UI; components/ui/ = Button, Modal, Card primitives; public/image/Logo/ = GroovePH-Logo.png + welcome-Logo.png"
+}

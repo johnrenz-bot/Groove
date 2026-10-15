@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Award, Sparkles, X, CheckCircle2, Circle, Share2, Download, Lock, AlertCircle } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
 import { Modal } from '@/components/ui/Modal';
@@ -31,6 +31,7 @@ interface AchievementsModalProps {
   onShare?: () => void;
   onDownload?: () => void;
   onTaskClick?: (url: string) => void;
+  badgeImageUrl: string;
 }
 
 /**
@@ -49,6 +50,7 @@ export function AchievementsModal({
   onShare,
   onDownload,
   onTaskClick,
+  badgeImageUrl,
 }: AchievementsModalProps) {
   const [animate, setAnimate] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -92,6 +94,15 @@ export function AchievementsModal({
 
   const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
+
+  const downloadBadge = useCallback((imageUrl: string) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = 'Groove-BADGE.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
 
   return (
     <Modal
@@ -175,6 +186,15 @@ export function AchievementsModal({
                 <CheckCircle2 className="absolute -bottom-2 -right-2 h-7 w-7 text-success drop-shadow-lg" aria-hidden="true" />
               )}
             </div>
+            {/* Badge image */}
+            {badgeImageUrl && (
+              <img
+                src={badgeImageUrl}
+                alt={`${badgeType} badge`}
+                className="absolute inset-0 shrink-0 rounded-2xl object-cover opacity-80"
+                style={{ borderRadius: '9999px' }}
+              />
+            )}
             <h3 className="text-xl font-bold tracking-tight text-foreground">{badgeType}</h3>
             <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
               {badgeDescription || `Complete all ${totalCount} tasks to earn the ${badgeType} badge.`}
@@ -310,28 +330,28 @@ export function AchievementsModal({
                       )}
                     </div>
                   </div>
-
-                  {/* Progress bar for partial progress */}
-                  {task.progress > 0 && task.progress < 100 && (
-                    <div className="mt-3 h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-warning transition-all duration-300"
-                        style={{ width: `${task.progress}%` }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Completion timestamp */}
-                  {task.completed && task.completedAt && (
-                    <p className="mt-2 text-[11px] text-subtle-foreground">
-                      Completed {new Date(task.completedAt).toLocaleDateString('en-PH', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
-                  )}
                 </div>
+
+                {/* Progress bar for partial progress */}
+                {task.progress > 0 && task.progress < 100 && (
+                  <div className="mt-3 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-warning transition-all duration-300"
+                      style={{ width: `${task.progress}%` }}
+                    />
+                  </div>
+                )}
+
+                {/* Completion timestamp */}
+                {task.completed && task.completedAt && (
+                  <p className="mt-2 text-[11px] text-subtle-foreground">
+                    Completed {new Date(task.completedAt).toLocaleDateString('en-PH', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                )}
               </article>
             ))}
           </div>

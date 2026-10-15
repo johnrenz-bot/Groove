@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { Button } from '@/components/ui/Button';
 import { Profile } from '@/lib/types';
 import { ROLE_META, type DashboardRole } from '@/components/shared/AppTopNav';
 
@@ -41,7 +42,7 @@ export function AppHeader({
           <Link href={meta.path} className="g-header-logo" aria-label="Groove dashboard">
             <span className="g-header-mark">
               <Image
-                src="/image/wc/logo.png"
+                src="/image/Logo/GroovePH-Logo.png"
                 alt=""
                 width={22}
                 height={22}
@@ -58,11 +59,11 @@ export function AppHeader({
         <div className="g-header-actions">
           {profile && <NotificationDropdown userId={profile.id} />}
           <ThemeToggle />
-          <Link
-            href={meta.path}
-            className="inline-flex h-9 items-center justify-center rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
-          >
-            Dashboard
+          {/* Routed through the shared <Button> so the "back to dashboard" action
+              cannot drift from every other primary control in the app. It used to
+              be a hand-rolled pill with its own height and padding. */}
+          <Link href={meta.path} className="inline-flex">
+            <Button size="sm">Dashboard</Button>
           </Link>
         </div>
       </div>

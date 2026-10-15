@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, X, RotateCcw, Filter, Users, Sparkles } from 'lucide-react';
-import CommunityFeed from '@/features/community/components/CommunityFeed';
+import { Search, X, RotateCcw } from 'lucide-react';
+import { ShowcaseShell } from '@/features/showcase/components/ShowcaseShell';
 import { communityOf } from '@/features/community/utils/community';
 import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
@@ -48,9 +48,8 @@ export default function ClientTalentPage() {
   const [selectedCoachForAI, setSelectedCoachForAI] = useState<FullCoach | null>(null);
   const [gateNotice, setGateNotice] = useState(false);
 
-  const fetchCoachesAndProfile = useCallback(async () => {
+  const loadCoachesAndProfile = useCallback(async () => {
     try {
-      setLoading(true);
       const supabase = createClient();
 
       const {
@@ -91,8 +90,46 @@ export default function ClientTalentPage() {
   }, []);
 
   useEffect(() => {
-    fetchCoachesAndProfile();
-  }, [fetchCoachesAndProfile]);
+    void loadCoachesAndProfile();
+  }, [loadCoachesAndProfile]);
+
+  /**
+   * Deep-link the tabs.
+   *
+   * The header's Dashboard menu has two distinct entries — "Showcase" and "Find
+   * Coaches" — and this route is BOTH of them: it is one page with two tabs.
+   * Without this, both links would open the same tab and the menu would be
+   * lying about where it takes you.
+   *
+   * A hash rather than a query param deliberately: `useSearchParams()` opts a
+   * client page out of static rendering unless it is wrapped in a Suspense
+   * boundary, and a nav change should not cost this route that. A hash needs no
+   * framework support at all.
+   */
+  useEffect(() => {
+    const applyHashAndParams = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'showcase') setActiveTab('community');
+      else if (hash === 'directory') setActiveTab('coaches');
+
+      const params = new URLSearchParams(window.location.search);
+      const talentParam = params.get('talent') || params.get('discipline');
+      if (talentParam) {
+        const match = DISCIPLINE_PRESETS.find(
+          (p) =>
+            p.id.toLowerCase() === talentParam.toLowerCase() ||
+            p.label.toLowerCase().includes(talentParam.toLowerCase())
+        );
+        if (match) {
+          setSelectedTalent(match.id);
+          setActiveTab('coaches');
+        }
+      }
+    };
+    applyHashAndParams();
+    window.addEventListener('hashchange', applyHashAndParams);
+    return () => window.removeEventListener('hashchange', applyHashAndParams);
+  }, []);
 
   // Filter coaches
   const filteredCoaches = coaches.filter((coach) => {
@@ -369,9 +406,15 @@ export default function ClientTalentPage() {
           )}
         </div>
       ) : (
-        <CommunityFeed
+        /* The Community Showcase tab shares the coach showcase's shell, so both
+           routes get the identical compact header, music bar, modal, two-column
+           split and talent selector. */
+        <ShowcaseShell
+          role="client"
+          eyebrow="Community Showcase · San Jose del Monte"
           currentUser={currentUser}
-          community={communityOf(currentUser, myTalent)}
+          memberCommunity={communityOf(currentUser, myTalent)}
+          loading={loading}
         />
       )}
 
@@ -382,7 +425,7 @@ export default function ClientTalentPage() {
           isOpen={!!selectedCoachForBooking}
           onClose={() => setSelectedCoachForBooking(null)}
           onSuccess={() => {
-            fetchCoachesAndProfile();
+            void loadCoachesAndProfile();
             setSelectedCoachForBooking(null);
           }}
         />
@@ -393,12 +436,14 @@ export default function ClientTalentPage() {
         <CoachAIAssistantModal
           coachContext={{
             id: selectedCoachForAI.id,
-            fullName: `${selectedCoachForAI.firstname} ${selectedCoachForAI.lastname}`,
+            fullName: `${selectedCoachForAI.firstname} ${selectedCoachForAI.lastname}`.trim(),
             talents: selectedCoachForAI.coach_profile?.talents || '',
             genres: selectedCoachForAI.coach_profile?.genres || '',
-            hourlyRate: selectedCoachForAI.coach_profile?.service_fee || 500,
+            serviceFee: selectedCoachForAI.coach_profile?.service_fee || null,
+            duration: selectedCoachForAI.coach_profile?.duration || '',
             bio: selectedCoachForAI.bio || '',
             location: selectedCoachForAI.city_name || 'San Jose del Monte, Bulacan',
+            photoUrl: selectedCoachForAI.photo_url || null,
           }}
           isOpen={!!selectedCoachForAI}
           onClose={() => setSelectedCoachForAI(null)}

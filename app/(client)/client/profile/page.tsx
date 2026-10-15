@@ -40,7 +40,7 @@ import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
 import { verificationStatusOf } from '@/features/verification/services/verification';
-import { AchievementSection } from '@/components/achievements/AchievementSection';
+import { BadgeCollection } from '@/components/badges/BadgeCollection';
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
 import {
   AddressSection,
@@ -59,7 +59,7 @@ import {
   normalizeContactForStorage,
   splitBirthdate,
 } from '@/lib/profileFields';
-import type { AddressData } from '@/components/auth/AddressSelector';
+import { composeStreetLine, type AddressData } from '@/components/auth/AddressSelector';
 
 const EMPTY_ADDRESS: AddressData = {
   region_code: '',
@@ -117,7 +117,7 @@ export default function ClientProfilePage() {
   const [authEmail, setAuthEmail] = useState<string>('');
 
   // Achievement hooks
-  const { achievements: clientAchievements, refetch: refetchClientAchievements } = useAchievements(
+  const { achievements: clientAchievements, loading: achievementsLoading, refetch: refetchClientAchievements } = useAchievements(
     profile?.id ?? null,
     'client'
   );
@@ -358,7 +358,7 @@ export default function ClientProfilePage() {
           province_name: address.province_name,
           city_name: address.city_name,
           barangay_name: address.barangay_name,
-          street: address.street || null,
+          street: composeStreetLine(address.street, address.subdivision) || null,
           postal_code: address.postal_code || null,
         })
         .eq('id', user.id);
@@ -528,11 +528,12 @@ export default function ClientProfilePage() {
       {/* Achievements - Full width section below profile header */}
       {profile && (
         <div className="mb-6">
-          <AchievementSection
-            tasks={clientAchievements.length > 0 ? clientAchievements : []}
+          <BadgeCollection
+            tasks={clientAchievements}
             badgeStatus={clientBadgeStatus}
             userId={profile.id}
             role="client"
+            loading={achievementsLoading}
             onRefresh={handleRefreshAchievements}
           />
         </div>

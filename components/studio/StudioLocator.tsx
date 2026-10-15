@@ -257,12 +257,12 @@ export function StudioLocator({
   );
 
   return (
-    <Card padding={padding} id={id} className={className}>
+    <Card padding={padding} id={id} className={`overflow-hidden${className ? ` ${className}` : ''}`}>
       <CardHeader icon={<MapPin className="h-4 w-4" />} title={title} subtitle={subtitle} />
 
       {/* Controls. Above the map, inside the same card, so the section keeps the
           shape it had as a plain map panel. */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-3 mt-1 flex flex-wrap items-center gap-2 gap-y-2">
         {/* Radius */}
         <div
           className="flex items-center gap-1 rounded-full border border-border bg-muted p-1"
@@ -310,7 +310,7 @@ export function StudioLocator({
           My Location
         </Button>
 
-        <p className="ml-auto text-xs text-muted-foreground" aria-live="polite">
+        <p className="ml-auto w-full text-xs text-muted-foreground sm:w-auto" aria-live="polite">
           Centre: <span className="font-semibold text-foreground">{centerLabel}</span> ·{' '}
           {nearby.length} within {radiusKm} km
         </p>
@@ -322,7 +322,27 @@ export function StudioLocator({
         </p>
       )}
 
-      <div className="relative aspect-[21/9] overflow-hidden rounded-2xl border border-border">
+      {/* The map surface.
+
+          Three things are deliberate here, and all three are containment rather
+          than cosmetics:
+
+          - An explicit height instead of `aspect-*`. An aspect ratio derives
+            this box's height from the width, so the card's height was never
+            known until the browser had resolved the whole grid — and in a grid
+            row that feeds straight back into how tall the row is. Because the
+            height is fixed from the first paint, the map, the "Loading
+            studios…" overlay and the empty/error states all occupy the same box,
+            so there is no layout shift to compensate for and no separate
+            dynamic-import fallback height to keep in sync.
+          - `isolate` creates a stacking context. Leaflet hard-codes its panes at
+            z-index 200-1000; without a containing context those values compete
+            with the sticky header, dropdowns and modals instead of with this
+            card.
+          - `overflow-hidden` clips the tile layer to the rounded box, so no map
+            pixels can paint outside the card.
+          */}
+      <div className="relative z-0 isolate overflow-hidden rounded-xl h-[320px] md:h-[400px]">
         {/* Always mounted. An earlier version gated this on an `onReady` flag,
             which is a deadlock: the flag is only set by the map this condition
             decides whether to render. */}
@@ -459,7 +479,7 @@ export function StudioLocator({
           the Leaflet attribution control, which can be collapsed. The curated
           and community rows are also labelled individually in the list. */}
       {!loading && !loadError && (
-        <p className="mt-3 text-[11px] text-subtle-foreground">
+        <p className="mt-4 border-t border-divider pt-3 text-[11px] text-subtle-foreground">
           Studio details from curated listings (coordinates from the Groove PH
           Google Maps reference) and{' '}
           <a

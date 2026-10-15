@@ -1,0 +1,7 @@
+{
+  "task_id": "task-dance-org-carousel",
+  "task_description": "Add an official Dance Organization Logo Carousel (infinite marquee, logos linking to official sites) to /community/performing-arts/dance, placed directly below the hero and above the latest-updates feed, preserving the existing GroovePH theme/navbar and the OrgLogoBar click-to-filter. Backed by a Supabase dance_orgs table (public SELECT, service-role writes), a server-side data-access function, a TypeScript logo sync script (npm run logos:sync) that fetches/validates/downloads verified logos to /public/logos/, a weekly Vercel cron merged into vercel.json, LOGO_SOURCES.md, and a final report.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

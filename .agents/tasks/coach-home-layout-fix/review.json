@@ -1,0 +1,8 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    "Dangling aria-labelledby when hideHeader={true} — BadgeCollection's <section> always carries aria-labelledby=\"badge-collection-heading\" but the element with that id is inside the conditionally-suppressed header block. On the dashboard this breaks the ARIA reference; screen readers cannot announce the section name. Fix: aria-labelledby={hideHeader ? undefined : 'badge-collection-heading'}.",
+    "BadgeMiniWidget refresh does not update badge display — BadgeMiniWidget.handleRefresh calls the refreshAchievements server action but does not re-trigger the useAchievements or useBadgeStatus hooks that supply data to BadgeCollection. The spinner plays but the displayed badges stay stale until full navigation. Fix: expose a refetch from the hooks and call it after refreshAchievements resolves, matching the pattern used on /client/profile and /coach/profile."
+  ],
+  "reviewDoc": "C:\\website\\GrooveSystem\\.agents\\tasks\\coach-home-layout-fix\\review.md"
+}

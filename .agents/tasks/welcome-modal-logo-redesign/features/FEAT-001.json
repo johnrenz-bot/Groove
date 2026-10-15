@@ -1,0 +1,37 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Redesign WelcomeModal (components/shared/WelcomeModal.tsx). Replace the existing card with the spec: 402×397px card (max-w-[402px], ~h-auto sizing from content), 24px radius, subtle accent border, theme-aware bg-card surface, and a soft amber box-shadow glow. Add amber spotlight clip-path gradient behind the logo, soft light pool beneath it. Swap logo to /image/Logo/welcome-Logo.png at ~124px tall. Centered copy with gold-highlighted name, specified description, italic gold quote. Gold pill 'Start my day →' button via existing Button variant='primary'. Preserve 'Don't show again today' checkbox + localStorage logic. Add gold circular × close button (top-right). Add 40-bar equalizer animation. Animate spotlight, logo pop-in, text fade-up, and bars on each opening. Respect prefers-reduced-motion. Full accessibility: role=dialog, aria-modal, focus trap, Escape close, visible focus indicators. Preserve ALL existing visibility/state logic exactly.",
+  "status": "pending",
+  "steps": [
+    "Read components/shared/WelcomeModal.tsx fully before making any edit — the existing visibility logic (controlledIsOpen branch, sessionStorage groove_welcome_pending, localStorage groove_welcome_dismissed_date, 300ms timer, handleClose, handleStart) must be preserved byte-for-byte.",
+    "Add the following @keyframes to app/globals.css (do NOT add them inline in the component): `wm-spotlight-pulse` (opacity 0.5→0.8→0.5, 3s ease-in-out infinite), `wm-logo-pop` (scale 0→1.06→1 with translateY, 0.5s ease-out), `wm-text-up` (opacity 0→1 + translateY 12px→0, 0.4s ease-out), `wm-eq-rise` (scaleY 0.15→1→0.15, 1.2s ease-in-out infinite). Also add `.wm-reduced` class that disables all four animations when `@media (prefers-reduced-motion: reduce)` fires. Name these keyframe CSS classes with `wm-` prefix to namespace them.",
+    "Rewrite the WelcomeModal JSX with the new structure. Keep all existing state/effects/handlers untouched above the return statement. New JSX structure: (a) Backdrop div: fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-md, onClick=handleClose, role=dialog, aria-modal=true, aria-labelledby='wm-title'. (b) Card div: relative w-full max-w-[402px] min-h-[397px] rounded-3xl border border-accent-border bg-card p-8 text-center shadow-[0_0_40px_-8px_var(--accent-soft)] focus:outline-none. Card gets ref for focus trap. (c) Amber spotlight: absolute -top-8 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-[radial-gradient(ellipse,var(--accent-soft)_0%,transparent_70%)] blur-2xl pointer-events-none animate-[wm-spotlight-pulse_3s_ease-in-out_infinite]. (d) Close button: absolute top-4 right-4 w-9 h-9 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-md hover:bg-accent-hover transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2, onClick=handleClose, aria-label='Close welcome modal'. (e) Logo section: centered, logo image 124px tall via className='h-[124px] w-auto object-contain animate-[wm-logo-pop_0.5s_ease-out_both]', with a light pool beneath: absolute -bottom-3 left-1/2 -translate-x-1/2 w-32 h-4 rounded-full bg-accent/10 blur-xl. (f) Text section: animate-[wm-text-up_0.4s_0.2s_ease-out_both]. h2 id='wm-title' 'Welcome back, ' + name span in text-accent-text. p with the exact description text. div with divider + italic p in text-accent-text for the quote. (g) Equalizer: 40 bars in a flex row, each 6px wide, 4px gap (use inline style gap or Tailwind gap-1), heights randomized 12–36px via inline style or CSS custom property, bg-accent-text opacity fading at both ends via a mask: linear-gradient(to right, transparent, white 15%, white 85%, transparent). Animate each bar with `wm-eq-rise` using staggered animation-delay (i * 30ms). (h) CTA section: Button variant='primary' size='lg' fullWidth (className='w-full') onClick=handleStart with text 'Start my day →' (use ArrowRight icon as trailingIcon). Checkbox label same as existing.",
+    "Add Escape key handler: useEffect that adds keydown listener, calls handleClose on Escape, cleans up on unmount. Add focus trap: on mount (isVisible true) focus the card div; trap Tab/Shift+Tab within focusable children of the card.",
+    "Verify the component compiles and the existing visibility logic is intact by running `npm run lint` from c:\\website\\GrooveSystem — zero new errors expected."
+  ],
+  "acceptance_criteria": [
+    "Card is 402px max-width, rounded-3xl (24px), border border-accent-border, bg-card, amber glow shadow",
+    "Amber spotlight gradient renders behind logo area; soft pool beneath logo",
+    "Logo image is /image/Logo/welcome-Logo.png at 124px tall, centered",
+    "Heading shows 'Welcome back, {name}' with name in text-accent-text",
+    "Description text matches spec exactly",
+    "Italic gold quote renders below a divider",
+    "Button reads 'Start my day →', gold pill (variant=primary), full width",
+    "Gold circular × close button at top-right",
+    "Checkbox 'Don't show again today' preserves existing localStorage logic",
+    "40 equalizer bars render with staggered animation",
+    "Spotlight, logo pop-in, text fade-up, and bars all animate on open",
+    "prefers-reduced-motion disables all animations",
+    "role=dialog, aria-modal=true, aria-labelledby='wm-title' present",
+    "Focus traps within the modal; Escape closes it",
+    "Existing visibility logic (controlledIsOpen, sessionStorage, localStorage, 300ms timer) is unchanged",
+    "`npm run lint` passes with zero new errors"
+  ],
+  "verification": [
+    "cd c:\\website\\GrooveSystem && npm run lint",
+    "cd c:\\website\\GrooveSystem && npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -26,7 +26,6 @@
 │  ├── /(coach)/coach/*          Authenticated coach portal               │
 │  ├── /admin/*                  Admin console (server-guarded)           │
 │  ├── /messages, /contracts/*   Shared authenticated pages               │
-│  ├── /dance-events             External events feed                     │
 │  └── /api/*                    Route Handlers (server-side)             │
 │                                                                         │
 │  Providers (root layout):                                               │
@@ -59,7 +58,6 @@ real-time subscriptions, canvas drawing, and map rendering.
 |---|---|
 | **Server Component** | Admin layout guard, public landing, legal pages |
 | **Client Component** | Dashboard pages with live data, messenger, community feed, booking modals, map, signature pad |
-| **Route Handler** | `/api/ai/coach-assistant`, `/api/studios`, `/api/tickets`, `/api/admin/*`, `/api/dance-events` |
 
 Pages use the `'use client'` directive at the top when they need browser APIs.
 Server components import from `@/lib/supabase/server` and client components from `@/lib/supabase/client`.
@@ -240,10 +238,7 @@ All colors are defined as CSS custom properties in `app/globals.css`, organized 
 
 ### 7.3 Dance Events Feed
 
-- **Endpoint**: `/api/dance-events/route.ts`
-- **Library**: `lib/danceEventSources.ts`
 - Aggregates dance event data from external sources
-- Displayed on the `/dance-events` page via `components/dance/DanceEventsFeed.tsx`
 
 ---
 

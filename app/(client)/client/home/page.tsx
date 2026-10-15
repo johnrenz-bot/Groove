@@ -6,31 +6,36 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Profile, FullCoach, Appointment, Announcement } from '@/lib/types';
 import { MaintenanceBanner } from '@/components/shared/MaintenanceBanner';
-import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
+import { formatCurrency, getInitials } from '@/lib/utils';
 import {
   Calendar,
-  Clock,
+  CalendarDays,
   Sparkles,
   MapPin,
-  ChevronRight,
-  ExternalLink,
-  X,
   CheckCircle,
   HelpCircle,
   BadgeCheck,
+  Bot,
+  MessageSquare,
 } from 'lucide-react';
 
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { PageHeader } from '@/components/shared/SectionHeader';
-import { StatCard } from '@/components/shared/StatCard';
-import { EmptyState } from '@/components/shared/EmptyState';
 import { StudioLocator } from '@/components/studio/StudioLocator';
+
+import { Greeting } from '@/components/dashboard/Greeting';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { HeroBanner } from '@/components/dashboard/HeroBanner';
+import { PanelCard } from '@/components/dashboard/PanelCard';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { SessionRow } from '@/components/dashboard/SessionRow';
+import { BadgeMiniWidget } from '@/components/dashboard/BadgeMiniWidget';
+import { SupportCallout } from '@/components/dashboard/SupportCallout';
 
 export default function ClientHomePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [user, setUser] = useState<Profile | null>(null);
   const [recommendedCoaches, setRecommendedCoaches] = useState<FullCoach[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
@@ -146,21 +151,21 @@ export default function ClientHomePage() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-6" role="status" aria-live="polite">
         <div className="space-y-3">
           <div className="g-skeleton h-3 w-32" />
           <div className="g-skeleton h-9 w-72 max-w-full" />
           <div className="g-skeleton h-4 w-96 max-w-full" />
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="g-skeleton h-32 rounded-2xl" />
+            <div key={i} className="g-skeleton h-32 rounded-[14px]" />
           ))}
         </div>
-        <div className="g-skeleton h-64 rounded-[20px]" />
+        <div className="g-skeleton h-[200px] rounded-[14px]" />
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          <div className="g-skeleton h-80 rounded-[20px] lg:col-span-2" />
-          <div className="g-skeleton h-80 rounded-[20px]" />
+          <div className="g-skeleton h-72 rounded-[14px] lg:col-span-2" />
+          <div className="g-skeleton h-72 rounded-[14px]" />
         </div>
       </div>
     );
@@ -169,300 +174,167 @@ export default function ClientHomePage() {
   if (!user) return null;
 
   return (
-    <>
-      <MaintenanceBanner />
+    <div className="relative min-h-screen">
+      <div className="relative z-10 mx-auto max-w-[1420px] space-y-6 px-5 py-7 sm:px-8 sm:py-9">
+        <MaintenanceBanner />
 
-      <div className="space-y-6 sm:space-y-8">
-        <PageHeader
-          eyebrow="Client Console · San Jose del Monte, Bulacan"
-          title={
-            <>
-              Welcome back, <span className="text-accent-text">{user.firstname}</span>
-            </>
-          }
-          description="Book verified coaches, organize rehearsal sessions, and review digital session contracts."
-          action={
-            <>
-              <Link
-                href="/client/talent"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold tracking-[-0.01em] text-accent-foreground shadow-[var(--shadow-sm)] transition hover:bg-accent-hover hover:shadow-[var(--shadow-accent)]"
-              >
-                <Sparkles className="h-4 w-4" aria-hidden="true" />
-                <span>Browse Coaches</span>
-              </Link>
-              <Button
-                type="button"
-                variant="outline"
-                icon={<HelpCircle className="h-4 w-4" />}
-                onClick={() => setShowTicketModal(true)}
-              >
-                Support
-              </Button>
-            </>
-          }
+        {/* Greeting */}
+        <Greeting
+          eyebrow={t('home.clientEyebrow', 'Client Control Terminal')}
+          role=""
+          firstName={user.firstname}
+          subtitle={t(
+            'home.clientSubtitle',
+            'Find coaches, book rehearsals, and track your performance journey in Bulacan.'
+          )}
         />
 
-        {/* Metric row */}
+        {/* Quick actions — single row */}
+        <QuickActions
+          actions={[
+            { label: t('home.quickShowcase', 'Showcase Feed'), href: '/client/talent', icon: <Sparkles className="h-4 w-4" />, variant: 'primary' },
+            { label: t('home.quickMessages', 'Messages'), href: '/messages', icon: <MessageSquare className="h-4 w-4" /> },
+            { label: t('home.quickCalendar', 'Calendar'), href: '/client/calendar', icon: <Calendar className="h-4 w-4" /> },
+            { label: t('home.quickBookings', 'Bookings'), href: '/client/appointments', icon: <CalendarDays className="h-4 w-4" /> },
+          ]}
+        />
+
+        {/* Stat cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
           <StatCard
-            value={upcomingAppointments.length}
-            label="Upcoming Sessions"
-            description="Scheduled appointments"
             icon={<Calendar className="h-5 w-5" />}
+            value={upcomingAppointments.length}
+            label={t('home.statBookings', 'Bookings')}
+            sub={t('home.statBookingsSub', 'View your sessions')}
+            accentColor="yellow"
+            href="/client/appointments"
           />
           <StatCard
+            icon={<BadgeCheck className="h-5 w-5" />}
             value={recommendedCoaches.length}
-            label="Verified Coaches"
-            description="Active in your region"
-            icon={<BadgeCheck className="h-5 w-5" />}
+            label={t('home.statCoaches', 'Coaches Nearby')}
+            sub={t('home.statCoachesSub', 'Available in SJDM')}
+            accentColor="blue"
+            href="/client/talent"
           />
           <StatCard
-            value="SJDM, Bulacan"
-            label="Platform Region"
-            description="Region III Hub"
             icon={<MapPin className="h-5 w-5" />}
+            value={t('home.statRegionValue', 'SJDM, Bulacan')}
+            label={t('home.statRegion', 'Platform Region')}
+            sub={t('home.statRegionSub', 'Region III')}
+            accentColor="red"
+            href="/client/about"
           />
           <StatCard
-            value={
-              <span className="flex items-center gap-2 text-2xl sm:text-3xl">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-success" aria-hidden="true" />
-                Verified Active
-              </span>
-            }
-            label="Account Status"
-            description={`#${user.custom_id || '0001'}`}
             icon={<BadgeCheck className="h-5 w-5" />}
+            value={t('home.statAccountValue', 'Verified Active')}
+            label={t('home.statAccount', 'Account Status')}
+            sub={`#${user.custom_id || '0001'}`}
+            accentColor="green"
+            href="/client/profile"
           />
         </div>
 
-        {/* Feature banner */}
-        <section className="relative flex h-[240px] items-center justify-center overflow-hidden rounded-[20px] border border-border bg-muted sm:h-[280px]">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover"
-          >
-            <source src="/media/Groove.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-background/70" aria-hidden="true" />
-
-          <div className="relative z-10 max-w-2xl px-6 text-center">
-            <span className="g-eyebrow">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              San Jose del Monte Coaching Hub
-            </span>
-            <h2 className="mt-4 text-xl font-bold tracking-[-0.02em] text-white sm:text-3xl">
-              Elevate your performing arts craft
-            </h2>
-            <p className="mt-2 text-xs leading-relaxed text-white/75 sm:text-sm">
-              Connect with top dance, vocal, theater, and instrument coaches. Secure your rehearsal
-              slots with verifiable digital agreements.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/client/talent"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-sm)] transition hover:bg-accent-hover"
-              >
-                <span>Browse All Coaches</span>
-              </Link>
-              <a
-                href="#studios"
-                className="inline-flex h-10 items-center justify-center rounded-full border border-white/25 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
-              >
-                Studio Locator
-              </a>
-            </div>
-          </div>
-
-          {/* Announcement card */}
-          {announcement && (
-            <div className="absolute bottom-3 right-3 z-20 hidden max-w-xs items-start gap-2.5 rounded-2xl border border-border bg-card/95 p-3.5 text-foreground shadow-[var(--shadow-lg)] backdrop-blur-md sm:flex">
-              <span
-                aria-hidden="true"
-                className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text"
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold">{announcement.title || 'Platform Notice'}</p>
-                <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
-                  {announcement.message}
-                </p>
-                {announcement.cta_url && (
-                  <Link
-                    href={announcement.cta_url}
-                    className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-accent-text underline-offset-4 hover:underline"
-                  >
-                    <span>{announcement.cta_label || 'Learn more'}</span>
-                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                  </Link>
-                )}
-              </div>
-            </div>
+        {/* Hero banner */}
+        <HeroBanner
+          eyebrow={t('home.heroClientEyebrow', 'Performer Workspace')}
+          title={t('home.heroClientTitle', 'Find your coach. Own the stage.')}
+          description={t(
+            'home.heroClientDesc',
+            'Book sessions, share your showcases, and grow with a community of performers in Bulacan.'
           )}
-        </section>
+          primaryCta={{ label: t('home.heroClientPrimary', 'Find a Coach'), href: '/client/talent' }}
+          secondaryCta={{ label: t('home.heroClientSecondary', 'My Schedule'), href: '/client/appointments' }}
+          image="/image/hero/client/hero.png"
+        />
 
-        {/* Dashboard grid */}
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
-          <div className="space-y-5 lg:col-span-2 lg:space-y-6">
-            {/* Recommended coaches */}
-            <Card padding="md">
-              <CardHeader
-                icon={<Sparkles className="h-4 w-4" />}
-                title="Recommended Coaches"
-                subtitle="Verified performing arts mentors matching your profile"
-                action={
-                  <Link
-                    href="/client/talent"
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground transition hover:text-accent-text"
-                  >
-                    <span>View directory</span>
-                    <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Link>
-                }
-              />
-
-              <CardContent>
-                <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                  {recommendedCoaches.slice(0, 4).map((coach) => (
-                    <button
-                      key={coach.id}
-                      type="button"
-                      onClick={() => setSelectedCoach(coach)}
-                      className="group flex items-center gap-3.5 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-accent-border hover:bg-muted"
-                    >
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted text-sm font-bold text-foreground transition group-hover:border-accent-border">
-                        {coach.photo_url ? (
-                          <img
-                            src={coach.photo_url}
-                            alt={coach.firstname}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          getInitials(coach.firstname, coach.lastname)
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-bold text-foreground transition group-hover:text-accent-text">
-                          {coach.firstname} {coach.lastname}
-                        </span>
-                        <span className="mt-0.5 block truncate text-[11px] capitalize text-muted-foreground">
-                          {coach.coach_profile?.talents || 'Performing Arts'}
-                        </span>
-                        <span className="mt-2 flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold tabular-nums text-accent-text">
-                            {formatCurrency(coach.coach_profile?.service_fee)}
-                          </span>
-                          <span className="text-[10px] text-subtle-foreground">
-                            {coach.coach_profile?.duration || '1 hr'}
-                          </span>
-                        </span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Support callout */}
-            <Card
-              padding="md"
-              className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
-            >
-              <div className="space-y-1.5">
-                <h3 className="text-sm font-bold text-foreground">Need Support or Have Feedback?</h3>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Our administration team is available to assist with studio listings, scheduling,
-                  and verified coaches.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="shrink-0"
-                onClick={() => setShowTicketModal(true)}
-              >
-                Submit Ticket
-              </Button>
-            </Card>
-          </div>
-
-          {/* Upcoming sessions */}
-          <Card padding="md" className="h-full">
-            <CardHeader
-              icon={<Calendar className="h-4 w-4" />}
-              title="Upcoming Sessions"
-              subtitle="Your booked rehearsals"
-              action={
-                <Link
-                  href="/client/appointments"
-                  className="text-xs font-semibold text-muted-foreground transition hover:text-accent-text"
+        {/* Lower section — two panels side by side */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
+          {/* Coaches panel */}
+          <PanelCard
+            icon={<BadgeCheck className="h-4 w-4" />}
+            title={t('home.coachesPanel', 'Coaches in San Jose del Monte')}
+            subtitle={t('home.coachesPanelSub', 'Local coaches open for mentorship')}
+            viewAllHref="/client/talent"
+            viewAllLabel={t('common.viewAll', 'View all')}
+          >
+            <div className="grid grid-cols-2 gap-3.5">
+              {recommendedCoaches.slice(0, 4).map((coach: FullCoach) => (
+                <button
+                  key={coach.id}
+                  type="button"
+                  onClick={() => setSelectedCoach(coach)}
+                  className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
                 >
-                  View all
-                </Link>
-              }
-            />
+                  <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
+                    {coach.photo_url ? (
+                      <img src={coach.photo_url} alt={coach.firstname} className="h-full w-full object-cover" />
+                    ) : (
+                      getInitials(coach.firstname, coach.lastname)
+                    )}
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
+                  </div>
+                  <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
+                    {coach.firstname} {coach.lastname}
+                  </p>
+                  <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                    {(coach as FullCoach).coach_profile?.talents || 'Coach'}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </PanelCard>
 
-            <div className="space-y-3">
-              {upcomingAppointments.length > 0 ? (
-                upcomingAppointments.map((appt) => {
-                  const badgeVariant =
-                    appt.status === 'confirmed'
-                      ? 'approved'
-                      : appt.status === 'pending'
-                        ? 'pending'
-                        : 'neutral';
+          {/* Upcoming sessions panel */}
+          <PanelCard
+            icon={<Calendar className="h-4 w-4" />}
+            title={t('home.sessionsPanel', 'Upcoming Sessions')}
+            subtitle={t('home.sessionsPanelSubClient', 'Your booked rehearsals')}
+            viewAllHref="/client/appointments"
+            viewAllLabel={t('common.viewAll', 'View all')}
+          >
+            <div className="space-y-2.5">
+              {upcomingAppointments.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">{t('home.noSessions', 'No upcoming sessions.')}</p>
+              ) : (
+                upcomingAppointments.slice(0, 4).map((appt) => {
+                  const d = new Date(appt.date);
+                  const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const coachName = appt.coach
+                    ? `${appt.coach.firstname} ${appt.coach.lastname}`
+                    : 'Coach Session';
 
                   return (
-                    <div
+                    <SessionRow
                       key={appt.id}
-                      className="space-y-2.5 rounded-2xl border border-border bg-card p-3.5 transition hover:border-border-strong"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-xs font-bold text-foreground">
-                          {appt.coach ? `${appt.coach.firstname} ${appt.coach.lastname}` : 'Coach Session'}
-                        </p>
-                        <Badge variant={badgeVariant} dot={true}>
-                          {appt.status}
-                        </Badge>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="h-3 w-3" aria-hidden="true" /> {formatDate(appt.date)}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="h-3 w-3" aria-hidden="true" /> {appt.start_time}
-                        </span>
-                      </div>
-                    </div>
+                      month={month}
+                      day={day}
+                      timeRange={`${appt.start_time} – ${appt.end_time}`}
+                      tag="Coaching"
+                      subtitle={`${(appt.coach as FullCoach)?.coach_profile?.talents || 'Dance'} · SJDM, Bulacan`}
+                      status={appt.status === 'confirmed' ? 'Confirmed' : appt.status === 'pending' ? 'Pending' : 'Cancelled'}
+                      showAgreementBadge={appt.status === 'pending'}
+                    />
                   );
                 })
-              ) : (
-                <EmptyState
-                  compact
-                  icon={<Calendar className="h-5 w-5" />}
-                  title="No upcoming sessions."
-                  description="Book a coach to schedule rehearsal."
-                  actionHref="/client/talent"
-                  action="Browse Coaches"
-                />
               )}
             </div>
-          </Card>
+          </PanelCard>
         </div>
 
-        {/* Studios locator. One shared component for both dashboards; it merges
-            curated listings with live OpenStreetMap results and draws a real
-            radius, which the static Google Maps embed it replaced could not. */}
+        {/* Studio locator */}
         <StudioLocator
           id="studios"
-          title="Rehearsal Studios Locator"
-          subtitle="Performing arts spaces in San Jose del Monte and Bulacan — curated listings plus community-sourced results"
+          title={t('home.studiosClientTitle', 'Rehearsal Studios Locator')}
+          subtitle={t(
+            'home.studiosClientSub',
+            'Performing arts spaces in San Jose del Monte and Bulacan — curated listings plus community-sourced results'
+          )}
         />
       </div>
+
+      {/* Floating Groovey AI is provided once by DashboardLayout — no page-level copy. */}
 
       {/* Quick Coach Modal */}
       {selectedCoach && (
@@ -493,7 +365,7 @@ export default function ClientHomePage() {
             <div className="flex w-full items-center justify-between gap-3">
               <Link
                 href={`/userprofile/${selectedCoach.id}`}
-                className="inline-flex h-9 items-center justify-center rounded-xl border border-border bg-card px-4 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
+                className="inline-flex h-9 items-center justify-center rounded-xl border border-border bg-card px-4 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
               >
                 Full Profile
               </Link>
@@ -509,7 +381,7 @@ export default function ClientHomePage() {
           }
         >
           <div className="space-y-4 text-xs">
-            <div className="rounded-2xl border border-border bg-muted/40 p-4 leading-relaxed text-muted-foreground">
+            <div className="rounded-2xl border border-border bg-muted p-4 leading-relaxed text-muted-foreground">
               {selectedCoach.bio ||
                 'Professional performing arts instructor dedicated to mentoring talents.'}
             </div>
@@ -589,7 +461,7 @@ export default function ClientHomePage() {
               />
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-divider">
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-border">
               <Button type="button" variant="outline" size="sm" onClick={() => setShowTicketModal(false)}>
                 Cancel
               </Button>
@@ -600,6 +472,6 @@ export default function ClientHomePage() {
           </form>
         )}
       </Modal>
-    </>
+    </div>
   );
 }

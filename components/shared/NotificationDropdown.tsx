@@ -9,6 +9,19 @@ import { Bell, ExternalLink, Inbox, CheckCheck, X } from 'lucide-react';
 
 interface NotificationDropdownProps {
   userId: string;
+  /**
+   * Controlled open state.
+   *
+   * The redesigned header owns one `openMenu` value for every surface in the bar
+   * so two of them cannot be open at once, and that needs the bell's state to
+   * live outside this component. It is OPTIONAL rather than required: the admin
+   * console's `AppTopNav` and the standalone `Navbar` still render this
+   * uncontrolled and manage their own open state exactly as before.
+   *
+   * Passing `onOpenChange` without `open` is harmless — it just reports.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -40,10 +53,55 @@ interface NotificationDropdownProps {
 
 const EXIT_MS = 120;
 
-export function NotificationDropdown({ userId }: NotificationDropdownProps) {
+export function NotificationDropdown({
+  userId,
+  open: openProp,
+  onOpenChange,
+}: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  /**
+   * Open state, controlled or not.
+   *
+   * The redesigned header owns ONE `openMenu` value for every surface in the bar
+   * so two of them cannot be open at once, and that needs the bell's state to
+   * live outside this component. It is OPTIONAL rather than required: the admin
+   * console's `AppTopNav` and the standalone `Navbar` still render this
+   * uncontrolled and manage their own open state exactly as before.
+   *
+   * `controlled` is decided ONCE from whether `open` was passed, never from its
+   * value — flipping between controlled and uncontrolled over a component's life
+   * is the one way to get this hybrid wrong, and a caller that passes `open`
+   * always passes a boolean. `setOpen` writes local state only when
+   * uncontrolled, and always reports to the parent, so a controlled parent stays
+   * the single source of truth and an uncontrolled one behaves as it always has.
+   */
+  const controlled = openProp !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlled ? openProp : uncontrolledOpen;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (!controlled) setUncontrolledOpen(next);
+      onOpenChange?.(next);
+    },
+    [controlled, onOpenChange]
+  );
+  /**
+   * One-shot nudge when something NEW arrives.
+   *
+   * Driven by the realtime INSERT handler above rather than by comparing
+   * `unreadCount` on every render: the initial fetch also sets that number, and
+   * a diffing effect would fire the nudge on first load, telling a returning
+   * user about notifications they were already shown an hour ago. The INSERT
+   * callback is the one place that means "this just happened".
+   *
+   * The attribute is cleared on a timeout rather than by the next render, so the
+   * CSS animation gets to restart — setting it to false and immediately true in
+   * the same tick would not retrigger the keyframes at all.
+   */
+  const [wiggle, setWiggle] = useState(false);
+  const wiggleTimer = useRef<number | null>(null);
   /** Drives the exit animation; see the note above. */
   const [closing, setClosing] = useState(false);
   const closeTimer = useRef<number | null>(null);
@@ -87,6 +145,9 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
             return [newNotif, ...prev];
           });
           setUnreadCount((c) => c + 1);
+          setWiggle(true);
+          if (wiggleTimer.current) window.clearTimeout(wiggleTimer.current);
+          wiggleTimer.current = window.setTimeout(() => setWiggle(false), 900);
         }
       )
       .subscribe();
@@ -101,8 +162,10 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
   // given, not whatever `closeTimer.current` happens to hold by then.
   useEffect(() => {
     const timerRef = closeTimer;
+    const wiggleRef = wiggleTimer;
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
+      if (wiggleRef.current) window.clearTimeout(wiggleRef.current);
     };
   }, []);
 
@@ -115,14 +178,16 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
     }, EXIT_MS);
     // `open` is intentionally not a dependency: the timer is cancelled and
     // restarted on every call, so the callback stays stable and the Escape
-    // listener below does not re-bind on each open/close.
-  }, []);
+    // listener below does not re-bind on each open/close. `setOpen` IS included
+    // — it closes over `controlled` and `onOpenChange`, and dropping it would
+    // pin this closure to the first render's parent.
+  }, [setOpen]);
 
   const show = useCallback(() => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
     setClosing(false);
     setOpen(true);
-  }, []);
+  }, [setOpen]);
 
   const markAsRead = async (id: string) => {
     const supabase = createClient();
@@ -166,6 +231,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
         type="button"
         onClick={() => (open ? close() : show())}
         className="g-topbar-action relative cursor-pointer"
+        data-wiggle={wiggle || undefined}
         aria-label={`Notifications (${unreadLabel})`}
         aria-expanded={open}
         aria-haspopup="dialog"

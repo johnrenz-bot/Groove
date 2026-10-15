@@ -83,7 +83,7 @@ export function LoadingScreen({
       aria-live="polite"
       aria-label="Loading Groove"
       className={cn(
-        'flex flex-col items-center justify-center bg-[#0b0d10] text-[#edeff3] transition-opacity duration-300 select-none',
+        'flex flex-col items-center justify-center bg-background text-foreground transition-opacity duration-300 select-none',
         fading ? 'pointer-events-none opacity-0' : 'opacity-100',
         fullScreen ? 'fixed inset-0 z-[999]' : 'min-h-[50vh] w-full py-16',
         className
@@ -99,7 +99,7 @@ export function LoadingScreen({
         {/* Prominent centered logo */}
         <div className="relative g-loading-logo transition-transform duration-300">
           <Image
-            src="/image/wc/logo.png"
+            src="/image/Logo/GroovePH-Logo.png"
             alt="Groove"
             width={160}
             height={50}
@@ -109,13 +109,13 @@ export function LoadingScreen({
         </div>
 
         {/* Minimal accent loading indicator */}
-        <div className="relative h-1 w-36 overflow-hidden rounded-full bg-white/10">
+        <div className="relative h-1 w-36 overflow-hidden rounded-full bg-muted border border-border">
           <div className="g-loading-bar-indicator absolute inset-y-0 w-1/2 rounded-full bg-accent" />
         </div>
 
         {/* Subtle status label */}
         {displayMessage && (
-          <p className="px-4 text-center text-[12px] font-medium tracking-[0.02em] text-[#9ba3ae] transition-opacity duration-200">
+          <p className="px-4 text-center text-[12px] font-medium tracking-[0.02em] text-muted-foreground transition-opacity duration-200">
             {displayMessage}
           </p>
         )}

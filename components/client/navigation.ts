@@ -6,6 +6,8 @@ import {
   MessageSquare,
   Info,
   Users,
+  Bot,
+  BookOpen,
 } from 'lucide-react';
 import type { RoleNav } from '@/components/shared/navTypes';
 
@@ -30,17 +32,33 @@ export const CLIENT_NAV: RoleNav = {
   primary: [
     { href: '/client/home', label: 'Dashboard', icon: Home },
     { href: '/client/talent', label: 'Find Coaches', icon: Sparkles },
+    { href: '/client/groovey', label: 'Groovey AI', icon: Bot },
     { href: '/client/appointments', label: 'Appointments', icon: Calendar },
     { href: '/client/calendar', label: 'Calendar', icon: CalendarDays },
-    { href: '/users', label: 'Users', icon: Users },
-    { href: '/messages', label: 'Messages', icon: MessageSquare },
+    // Reference material rather than a daily task, so it sits LAST in the row:
+    // a client reaches for the daily links first and only afterwards wants the
+    // cultural context. Kept as an inline link rather than buried in the "About"
+    // dropdown so it is one click away, which is what the brief asks for.
+    {
+      href: '/client/performing-arts-philippines',
+      label: 'Performing Arts',
+      icon: BookOpen,
+    },
   ],
   groups: [
+    {
+      label: 'Community',
+      icon: Users,
+      items: [
+        { href: '/users', label: 'Directory', icon: Users, description: 'Connect with artists, coaches & peers' },
+        { href: '/messages', label: 'Messages', icon: MessageSquare, description: 'Direct messaging and active chats' },
+      ],
+    },
     {
       label: 'About',
       icon: Info,
       items: [
-        { href: '/client/about', label: 'About Groove', icon: Info },
+        { href: '/client/about', label: 'About Groove', icon: Info, description: 'Platform mission, vision and guides' },
       ],
     },
   ],

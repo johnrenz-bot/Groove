@@ -646,6 +646,7 @@ export async function fetchActivityLog(limit = 50): Promise<AdminActivityEntry[]
 
 export interface PlatformSettings {
   theme: string;
+  platform_theme: string;
   theme_accent: string;
   theme_locked: string;
 }
@@ -662,6 +663,7 @@ export async function fetchPlatformSettings(): Promise<PlatformSettings> {
 
   return {
     theme: map.theme || 'dark',
+    platform_theme: map.platform_theme || map.theme || 'dark',
     theme_accent: map.theme_accent || 'gold',
     theme_locked: map.theme_locked || 'false',
   };

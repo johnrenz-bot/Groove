@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { MapPin, ShieldCheck, CheckCircle2, Lock, Building } from 'lucide-react';
+import React, { useEffect, useMemo } from 'react';
+import { MapPin, ShieldCheck, CheckCircle2, Lock, Building, Info, Navigation, Building2 } from 'lucide-react';
 
 export interface AddressData {
   region_code: string;
@@ -12,7 +12,23 @@ export interface AddressData {
   city_name: string;
   barangay_code: string;
   barangay_name: string;
+  /**
+   * Street / House No. / Building EXACTLY as typed in that field.
+   *
+   * This is deliberately the raw street line and never includes the
+   * subdivision. An earlier version folded `subdivision` into this field and
+   * also fed the result back down through `initialData`, which let the
+   * subdivision value bleed into the street input on every keystroke. Persist
+   * the combined line with `composeStreetLine()` where the database needs one.
+   */
   street: string;
+  /**
+   * Subdivision / Village EXACTLY as typed in that field.
+   *
+   * Optional so callers that only hold a combined address line — the profile
+   * forms, which hydrate from `profiles.street` — keep compiling unchanged.
+   */
+  subdivision?: string;
   postal_code: string;
   address_summary: string;
 }
@@ -28,6 +44,13 @@ interface AddressSelectorProps {
    * rendered here — otherwise a failed submit looks like nothing happened.
    */
   errors?: Partial<Record<'barangay' | 'street', string>>;
+  /**
+   * Namespace for the generated `id`/`name` attributes. Every control gets a
+   * unique id derived from it so the label→input and `aria-describedby`
+   * relationships stay unambiguous when more than one selector is on a page.
+   * `revealErrors()` in RegistrationFormFields relies on the `reg` default.
+   */
+  idPrefix?: string;
 }
 
 // Strict location restriction: San Jose del Monte, Bulacan, Philippines only
@@ -104,85 +127,148 @@ export const SJDM_LOCATION = {
   ],
 };
 
-export function AddressSelector({ initialData, onChange, required = true, errors }: AddressSelectorProps) {
-  const [selectedBarangay, setSelectedBarangay] = useState<string>(initialData?.barangay_name || '');
-  const [street, setStreet] = useState<string>(initialData?.street || '');
-  const [subdivision, setSubdivision] = useState<string>('');
-  const [postalCode, setPostalCode] = useState<string>(initialData?.postal_code || '3023');
+/** `profiles.street` is VARCHAR(160) and holds the street line + ", " + subdivision. */
+const MAX_STREET_LENGTH = 110;
+const MAX_SUBDIVISION_LENGTH = 48;
 
-  useEffect(() => {
-    if (initialData?.barangay_name) {
-      setSelectedBarangay(initialData.barangay_name);
-    }
-    if (initialData?.street) {
-      setStreet(initialData.street);
-    }
-    if (initialData?.postal_code) {
-      setPostalCode(initialData.postal_code);
-    }
-  }, [initialData]);
+import { getFeaturedLocations, hasSecondaryFeaturedLocation, type FeaturedLocation } from '@/lib/config/featuredLocations';
 
-  const emitAddress = (brgy: string, st: string, sub: string, pc: string) => {
-    const combinedStreet = [st, sub].filter(Boolean).join(', ');
-    const parts = [
-      combinedStreet,
-      brgy ? `Brgy. ${brgy}` : '',
-      SJDM_LOCATION.city_name,
-      SJDM_LOCATION.province_name,
-      SJDM_LOCATION.country,
-    ].filter(Boolean);
+/**
+ * Join the two free-text address lines into the single line that the
+ * `profiles.street` column and the address summary are built from.
+ *
+ * Exported so the registration pages persist exactly the same combined value
+ * the selector has always produced, while the form itself keeps the two
+ * fields apart. Keeping one definition here means the stored format cannot
+ * drift from the displayed one.
+ */
+export function composeStreetLine(street: string, subdivision?: string): string {
+  return [street, subdivision].filter(Boolean).join(', ');
+}
 
-    const summary = parts.join(', ') + (pc ? ` ${pc}` : '');
+/** The four values this component owns; the rest of the address is fixed. */
+interface AddressFields {
+  barangay: string;
+  street: string;
+  subdivision: string;
+  postal: string;
+}
 
-    onChange({
-      region_code: SJDM_LOCATION.region_code,
-      region_name: SJDM_LOCATION.region_name,
-      province_code: SJDM_LOCATION.province_code,
-      province_name: SJDM_LOCATION.province_name,
-      city_code: SJDM_LOCATION.city_code,
-      city_name: SJDM_LOCATION.city_name,
-      barangay_code: `${SJDM_LOCATION.city_code}-${brgy.replace(/\s+/g, '-').toLowerCase()}`,
-      barangay_name: brgy,
-      street: combinedStreet,
-      postal_code: pc,
-      address_summary: summary,
-    });
+/**
+ * Build the full AddressData payload from the four editable fields.
+ *
+ * Every field is read from its own key, so no value can be written into
+ * another field's slot regardless of what order the caller updates them in.
+ */
+function buildAddressData({ barangay, street, subdivision, postal }: AddressFields): AddressData {
+  const streetLine = composeStreetLine(street, subdivision);
+  const parts = [
+    streetLine,
+    barangay ? `Brgy. ${barangay}` : '',
+    SJDM_LOCATION.city_name,
+    SJDM_LOCATION.province_name,
+    SJDM_LOCATION.country,
+  ].filter(Boolean);
+
+  return {
+    region_code: SJDM_LOCATION.region_code,
+    region_name: SJDM_LOCATION.region_name,
+    province_code: SJDM_LOCATION.province_code,
+    province_name: SJDM_LOCATION.province_name,
+    city_code: SJDM_LOCATION.city_code,
+    city_name: SJDM_LOCATION.city_name,
+    // Empty until a barangay is chosen. The registration pages store the
+    // city-code prefix when this is blank, which is what the old
+    // "<city_code>-" placeholder produced anyway.
+    barangay_code: barangay
+      ? `${SJDM_LOCATION.city_code}-${barangay.replace(/\s+/g, '-').toLowerCase()}`
+      : '',
+    barangay_name: barangay,
+    street,
+    subdivision,
+    postal_code: postal,
+    address_summary: parts.join(', ') + (postal ? ` ${postal}` : ''),
+  };
+}
+
+export function AddressSelector({
+  initialData,
+  onChange,
+  required = true,
+  errors,
+  idPrefix = 'reg',
+}: AddressSelectorProps) {
+  /**
+   * Single source of truth.
+   *
+   * The component is fully controlled from `initialData` and keeps NO local
+   * copies of the field values. That is the fix for the field-corruption bug:
+   * with no mirror state there is no path for one field's value to be written
+   * into another field, and no effect that can push a derived value back over
+   * what the user typed.
+   */
+  const barangay = initialData?.barangay_name ?? '';
+  const street = initialData?.street ?? '';
+  const subdivision = initialData?.subdivision ?? '';
+  const postal = initialData?.postal_code || '3023';
+
+  const fields: AddressFields = { barangay, street, subdivision, postal };
+
+  /**
+   * Apply a single-field patch. Each handler touches exactly one key, so
+   * typing, pasting, editing or clearing one field cannot affect another.
+   */
+  const update = (patch: Partial<AddressFields>) => {
+    onChange(buildAddressData({ ...fields, ...patch }));
   };
 
-  // Sync initial setup
+  /**
+   * Seed the fixed region/province/city into the parent once on mount.
+   *
+   * Registration initialises its `address` state with empty codes and relies
+   * on this to supply the locked SJDM values. `[]` is deliberate and correct:
+   * the payload is derived purely from the props read at mount, and calling
+   * `onChange` again on a later render would either be a no-op or, worse,
+   * re-seed the form over the user's input. ESLint cannot see that reasoning
+   * because `onChange` is an inline arrow in the parent, hence the disable.
+   */
   useEffect(() => {
-    emitAddress(selectedBarangay, street, subdivision, postalCode);
+    onChange(buildAddressData({ barangay, street, subdivision, postal }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleBarangayChange = (brgy: string) => {
-    setSelectedBarangay(brgy);
-    emitAddress(brgy, street, subdivision, postalCode);
+  /* Stable id helpers — one unique id per control, derived from idPrefix. */
+  const ids = {
+    uid: `${idPrefix}-address`,
+    barangay: `${idPrefix}-barangay`,
+    street: `${idPrefix}-street`,
+    subdivision: `${idPrefix}-subdivision`,
+    postal: `${idPrefix}-postal`,
   };
 
-  const handleStreetChange = (st: string) => {
-    setStreet(st);
-    emitAddress(selectedBarangay, st, subdivision, postalCode);
-  };
+  const errorId = (key: string) => `${ids.uid}-${key}-error`;
+  const hintId = (key: string) => `${ids.uid}-${key}-hint`;
 
-  const handleSubdivisionChange = (sub: string) => {
-    setSubdivision(sub);
-    emitAddress(selectedBarangay, street, sub, postalCode);
-  };
-
-  const handlePostalChange = (pc: string) => {
-    setPostalCode(pc);
-    emitAddress(selectedBarangay, street, subdivision, pc);
-  };
-
-  // Fields use the shared design-system input primitives so they match every
-  // other form on the site and follow the theme automatically.
+  /* Fields use the shared design-system input primitives so they match every
+     other form on the site and follow the theme automatically. */
   const inputClasses = 'g-input';
   const selectClasses = 'g-input';
   const labelClasses = 'g-label';
 
+  const streetError = errors?.street;
+  const barangayError = errors?.barangay;
+
   return (
-    <div className="space-y-4 rounded-2xl border border-glass-border bg-card/60 p-4 sm:p-5 backdrop-blur-sm shadow-sm">
+    <div
+      className="space-y-5 rounded-2xl border border-glass-border bg-card/60 p-4 backdrop-blur-sm shadow-sm sm:p-5"
+      role="group"
+      aria-labelledby={`${ids.uid}-legend`}
+    >
+      <p id={`${ids.uid}-legend`} className="sr-only">
+        Service location within San Jose del Monte, Bulacan. Fields marked with an asterisk are
+        required.
+      </p>
+
       {/* Service Area Restriction Banner */}
       <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-muted/50 p-3.5 text-xs sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
@@ -192,25 +278,35 @@ export function AddressSelector({ initialData, onChange, required = true, errors
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-foreground">Service Area Verified</span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
-                <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
-                San Jose del Monte, Bulacan
-              </span>
+              {getFeaturedLocations().map((location, index) => (
+                <span
+                  key={location.cityName}
+                  className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success"
+                >
+                  {index > 0 && <span className="text-muted-foreground">+</span>}
+                  <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                  {location.displayName}
+                </span>
+              ))}
             </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Groove exclusively connects verified artists, coaches, and studios within San Jose del Monte.
+              {hasSecondaryFeaturedLocation()
+                ? 'Groove exclusively connects verified artists, coaches, and studios within San Jose del Monte and its featured partner locations.'
+                : 'Groove exclusively connects verified artists, coaches, and studios within San Jose del Monte.'}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2">
         {/* Country & Region (Locked) */}
         <div>
           <span className={labelClasses}>Country &amp; Region</span>
-          <div className="g-input-static justify-between bg-muted/60">
-            <span className="font-medium text-foreground/90">Philippines • Region III (Central Luzon)</span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="g-input-static justify-between gap-2 bg-muted/60">
+            <span className="truncate font-medium text-foreground/90">
+              Philippines • Region III (Central Luzon)
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Lock className="h-3 w-3" aria-hidden="true" />
               Fixed
             </span>
@@ -220,9 +316,11 @@ export function AddressSelector({ initialData, onChange, required = true, errors
         {/* Province & City (Locked) */}
         <div>
           <span className={labelClasses}>Province &amp; City</span>
-          <div className="g-input-static justify-between bg-muted/60">
-            <span className="font-medium text-foreground/90">Bulacan — San Jose del Monte</span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="g-input-static justify-between gap-2 bg-muted/60">
+            <span className="truncate font-medium text-foreground/90">
+              Bulacan — San Jose del Monte
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Lock className="h-3 w-3" aria-hidden="true" />
               Fixed
             </span>
@@ -231,35 +329,51 @@ export function AddressSelector({ initialData, onChange, required = true, errors
 
         {/* Barangay (Selectable) */}
         <div className="md:col-span-2">
-          <label className={labelClasses} htmlFor="reg-region-city">
-            Barangay in San Jose del Monte <span className="text-accent-text">*</span>
+          <label className={labelClasses} htmlFor={ids.barangay}>
+            Barangay in San Jose del Monte{' '}
+            <span className="text-accent-text" aria-hidden="true">
+              *
+            </span>
+            <span className="sr-only">(required)</span>
           </label>
           <select
-            id="reg-region-city"
-            value={selectedBarangay}
-            onChange={(e) => handleBarangayChange(e.target.value)}
+            id={ids.barangay}
+            name={`${idPrefix}-barangay`}
+            value={barangay}
+            onChange={(e) => update({ barangay: e.target.value })}
             required={required}
-            aria-invalid={errors?.barangay ? 'true' : undefined}
-            className={`${selectClasses} ${errors?.barangay ? 'border-danger' : ''}`}
+            aria-invalid={barangayError ? 'true' : undefined}
+            aria-describedby={barangayError ? errorId('barangay') : hintId('barangay')}
+            className={`${selectClasses} ${barangayError ? 'border-danger' : ''}`}
           >
-            <option value="">Select your Barangay ({SJDM_LOCATION.barangays.length} Barangays of SJDM)</option>
+            <option value="">
+              Select your Barangay ({SJDM_LOCATION.barangays.length} Barangays of SJDM)
+            </option>
             {SJDM_LOCATION.barangays.map((b) => (
               <option key={b} value={b}>
                 Brgy. {b}
               </option>
             ))}
           </select>
-          {errors?.barangay && (
-            <p className="g-field-error" role="alert">
-              {errors.barangay}
+          {barangayError ? (
+            <p id={errorId('barangay')} className="g-field-error" role="alert">
+              {barangayError}
+            </p>
+          ) : (
+            <p id={hintId('barangay')} className="g-field-hint">
+              Required — used to confirm coverage within the city.
             </p>
           )}
         </div>
 
         {/* Street / House No. / Building */}
-        <div>
-          <label className={labelClasses} htmlFor="reg-street">
-            Street / House No. / Building <span className="text-accent-text">*</span>
+        <div className="md:col-span-2">
+          <label className={labelClasses} htmlFor={ids.street}>
+            Street / House No. / Building{' '}
+            <span className="text-accent-text" aria-hidden="true">
+              *
+            </span>
+            <span className="sr-only">(required)</span>
           </label>
           <div className="relative">
             <MapPin
@@ -267,61 +381,118 @@ export function AddressSelector({ initialData, onChange, required = true, errors
               aria-hidden="true"
             />
             <input
-              id="reg-street"
+              id={ids.street}
+              name={`${idPrefix}-street`}
               type="text"
               value={street}
-              onChange={(e) => handleStreetChange(e.target.value)}
+              onChange={(e) => update({ street: e.target.value })}
               placeholder="e.g. Blk 12 Lot 3, Quirino Highway"
-              autoComplete="street-address"
+              /* Precise tokens so browser autofill fills THIS field only.
+                 `street-address` (the old value) invites the browser to write
+                 the whole address — subdivision included — into the street box. */
+              autoComplete="address-line1"
+              maxLength={MAX_STREET_LENGTH}
+              spellCheck={false}
+              enterKeyHint="next"
               required={required}
-              aria-invalid={errors?.street ? 'true' : undefined}
-              className={`${inputClasses} g-input-has-icon ${errors?.street ? 'border-danger' : ''}`}
+              aria-invalid={streetError ? 'true' : undefined}
+              aria-describedby={streetError ? errorId('street') : hintId('street')}
+              className={`${inputClasses} g-input-has-icon ${streetError ? 'border-danger' : ''}`}
             />
           </div>
-          {errors?.street && (
-            <p className="g-field-error" role="alert">
-              {errors.street}
+          {streetError ? (
+            <p id={errorId('street')} className="g-field-error" role="alert">
+              {streetError}
+            </p>
+          ) : (
+            <p id={hintId('street')} className="g-field-hint">
+              House number, street and building only — keep the village in the next field.
             </p>
           )}
         </div>
 
         {/* Subdivision / Village */}
-        <div>
-          <label className={labelClasses} htmlFor="reg-subdivision">
-            Subdivision / Village <span className="font-normal text-subtle-foreground">Optional</span>
-          </label>
-          <div className="relative">
+        <div className="md:col-span-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <label className={`${labelClasses} mb-0`} htmlFor={ids.subdivision}>
+              Subdivision / Village
+            </label>
+            <span className="g-pill mb-[0.4375rem] shrink-0 text-[10px]">Optional</span>
+          </div>
+          <div className="relative mt-1.5">
             <Building
               className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"
             />
             <input
-              id="reg-subdivision"
+              id={ids.subdivision}
+              name={`${idPrefix}-subdivision`}
               type="text"
               value={subdivision}
-              onChange={(e) => handleSubdivisionChange(e.target.value)}
+              onChange={(e) => update({ subdivision: e.target.value })}
               placeholder="e.g. Francisco Homes / Pleasant Hills"
+              /* Distinct from the street field so autofill cannot cross-write. */
+              autoComplete="address-line2"
+              maxLength={MAX_SUBDIVISION_LENGTH}
+              spellCheck={false}
+              enterKeyHint="next"
+              aria-describedby={hintId('subdivision')}
               className={`${inputClasses} g-input-has-icon`}
             />
           </div>
+          <p id={hintId('subdivision')} className="g-field-hint">
+            Saved separately from your street line and appended to it in your address summary.
+          </p>
         </div>
 
         {/* Postal Code */}
         <div className="md:col-span-2">
-          <label className={labelClasses} htmlFor="reg-postal">
-            Postal Code <span className="text-accent-text">*</span>
+          <label className={labelClasses} htmlFor={ids.postal}>
+            Postal Code{' '}
+            <span className="text-accent-text" aria-hidden="true">
+              *
+            </span>
+            <span className="sr-only">(required)</span>
           </label>
           <select
-            id="reg-postal"
-            value={postalCode}
-            onChange={(e) => handlePostalChange(e.target.value)}
+            id={ids.postal}
+            name={`${idPrefix}-postal`}
+            value={postal}
+            onChange={(e) => update({ postal: e.target.value })}
             required={required}
+            aria-describedby={hintId('postal')}
             className={selectClasses}
           >
-            <option value="3023">3023 — San Jose del Monte (Main)</option>
-            <option value="3024">3024 — Sapang Palay</option>
+            {SJDM_LOCATION.postal_codes.map((code) => (
+              <option key={code} value={code}>
+                {code} — {code === '3024' ? 'Sapang Palay' : 'San Jose del Monte (Main)'}
+              </option>
+            ))}
           </select>
+          <p id={hintId('postal')} className="g-field-hint">
+            {postal === '3024'
+              ? 'Zip code for the Sapang Palay area.'
+              : 'Default zip code for the city.'}
+          </p>
         </div>
+      </div>
+
+      {/* Live preview — shows the two lines are tracked independently and the
+          order they are combined in when the address summary is built. */}
+      <div className="flex items-start gap-3 rounded-xl border border-divider bg-muted/40 p-3.5 text-xs">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <div className="min-w-0">
+          <p className="font-semibold text-foreground">Your address will read as</p>
+          <p className="mt-1 break-words leading-relaxed text-muted-foreground">
+            {composeStreetLine(street, subdivision) || (
+              <span className="italic text-subtle-foreground">Street line — not entered yet</span>
+            )}
+            {barangay ? `, Brgy. ${barangay}` : ''}
+            {`, ${SJDM_LOCATION.city_name}, ${SJDM_LOCATION.province_name}`}
+            {postal ? ` ${postal}` : ''}
+          </p>
+        </div>
+        <Navigation className="ml-auto hidden h-4 w-4 shrink-0 text-subtle-foreground sm:block" aria-hidden="true" />
       </div>
     </div>
   );

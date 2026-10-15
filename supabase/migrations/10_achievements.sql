@@ -64,30 +64,32 @@ CREATE POLICY "Users can view own achievements" ON public.user_achievements
 -- ==============================================================================
 
 -- Coach Achievements (3 tasks for "Groove Coach" badge)
-INSERT INTO public.achievements (slug, role, title, description, icon, badge_name, badge_description, task_order) VALUES
-('coach_profile_complete', 'coach', 'Complete Your Coach Profile', 'Add your photo, bio, skills, genres, rates, and payment details', 'UserCheck', 'Groove Coach', 'Awarded to coaches who complete their profile, secure their first booking, and earn their first 5-star review.', 1),
-('coach_first_booking', 'coach', 'Secure Your First Booking', 'Get a client to book and confirm a session with you', 'CalendarCheck', 'Groove Coach', 'Awarded to coaches who complete their profile, secure their first booking, and earn their first 5-star review.', 2),
-('coach_first_five_star', 'coach', 'Earn a 5-Star Review', 'Receive a 5-star rating from a completed session', 'Star', 'Groove Coach', 'Awarded to coaches who complete their profile, secure their first booking, and earn their first 5-star review.', 3)
+INSERT INTO public.achievements (slug, role, title, description, icon, badge_name, badge_description, badge_image_url, task_order) VALUES
+('coach_profile_complete', 'coach', 'Complete Your Coach Profile', 'Add your photo, bio, skills, genres, rates, and payment details', 'UserCheck', 'Groove Coach', 'Awarded to coaches who complete their profile, secure their first booking, and earn their first 5-star review.', '/image/Groove-BADGE.svg', 1),
+('coach_first_booking', 'coach', 'Secure Your First Booking', 'Get a client to book and confirm a session with you', 'CalendarCheck', 'Groove Coach', 'Awarded to coaches who complete their profile, secure their first booking, and earn their first 5-star review.', '/image/Groove-BADGE.svg', 2),
+('coach_first_five_star', 'coach', 'Earn a 5-Star Review', 'Receive a 5-star rating from a completed session', 'Star', 'Groove Coach', 'Awarded to coaches who complete their profile, secure their first booking, and earn their first 5-star review.', '/image/Groove-BADGE.svg', 3)
 ON CONFLICT (slug) DO UPDATE SET
     title = EXCLUDED.title,
     description = EXCLUDED.description,
     icon = EXCLUDED.icon,
     badge_name = EXCLUDED.badge_name,
     badge_description = EXCLUDED.badge_description,
+    badge_image_url = EXCLUDED.badge_image_url,
     task_order = EXCLUDED.task_order,
     updated_at = NOW();
 
 -- Client Achievements (3 tasks for "Groove Active" badge)
-INSERT INTO public.achievements (slug, role, title, description, icon, badge_name, badge_description, task_order) VALUES
-('client_profile_complete', 'client', 'Complete Your Performer Profile', 'Add your photo, talent, and location details', 'UserCheck', 'Groove Active', 'Awarded to performers who complete their profile, book their first session, and share their experience.', 1),
-('client_first_booking', 'client', 'Book Your First Session', 'Book and confirm a session with a coach', 'CalendarCheck', 'Groove Active', 'Awarded to performers who complete their profile, book their first session, and share their experience.', 2),
-('client_first_review', 'client', 'Leave Your First Review', 'Share feedback after a completed session', 'MessageSquare', 'Groove Active', 'Awarded to performers who complete their profile, book their first session, and share their experience.', 3)
+INSERT INTO public.achievements (slug, role, title, description, icon, badge_name, badge_description, badge_image_url, task_order) VALUES
+('client_profile_complete', 'client', 'Complete Your Performer Profile', 'Add your photo, talent, and location details', 'UserCheck', 'Groove Active', 'Awarded to performers who complete their profile, book their first session, and share their experience.', '/image/Groove-BADGE.svg', 1),
+('client_first_booking', 'client', 'Book Your First Session', 'Book and confirm a session with a coach', 'CalendarCheck', 'Groove Active', 'Awarded to performers who complete their profile, book their first session, and share their experience.', '/image/Groove-BADGE.svg', 2),
+('client_first_review', 'client', 'Leave Your First Review', 'Share feedback after a completed session', 'MessageSquare', 'Groove Active', 'Awarded to performers who complete their profile, book their first session, and share their experience.', '/image/Groove-BADGE.svg', 3)
 ON CONFLICT (slug) DO UPDATE SET
     title = EXCLUDED.title,
     description = EXCLUDED.description,
     icon = EXCLUDED.icon,
     badge_name = EXCLUDED.badge_name,
     badge_description = EXCLUDED.badge_description,
+    badge_image_url = EXCLUDED.badge_image_url,
     task_order = EXCLUDED.task_order,
     updated_at = NOW();
 
@@ -151,7 +153,8 @@ RETURNS TABLE (
     tasks_completed INTEGER,
     tasks_total INTEGER,
     unlocked_at TIMESTAMPTZ,
-    is_unlocked BOOLEAN
+    is_unlocked BOOLEAN,
+    badge_image_url TEXT
 ) AS $$
 DECLARE
     v_role user_role;
@@ -173,11 +176,12 @@ BEGIN
         COUNT(CASE WHEN ua.completed_at IS NOT NULL THEN 1 END)::INTEGER,
         COUNT(*)::INTEGER,
         MAX(ua.completed_at),
-        public.has_user_earned_badge(p_user_id, v_role)
+        public.has_user_earned_badge(p_user_id, v_role),
+        a.badge_image_url
     FROM public.achievements a
     LEFT JOIN public.user_achievements ua ON ua.achievement_id = a.id AND ua.user_id = p_user_id
     WHERE a.role = v_role AND a.is_active = TRUE
-    GROUP BY a.badge_name, a.badge_description;
+    GROUP BY a.badge_name, a.badge_description, a.badge_image_url;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

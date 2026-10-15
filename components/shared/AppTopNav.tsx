@@ -6,8 +6,9 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
-import { useDanceAccess } from '@/features/dance/hooks/useDanceAccess';
 import { ThemeModeSelect } from '@/components/theme/ThemeModeSelect';
+import { LanguageSwitcher } from '@/components/header/LanguageSwitcher';
+import { translateAdminGroup, translateAdminLabel, useLanguage } from '@/lib/i18n/LanguageProvider';
 import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { PresenceDot, StatusSelect } from '@/components/shared/StatusSelect';
 import { usePresence } from '@/features/presence/hooks/usePresence';
@@ -147,6 +148,8 @@ export interface AppTopNavProps {
   portalLabel?: string;
   /** Where the brand logo links to. Defaults to the role's dashboard. */
   homeHref?: string;
+  /** When true, hides the 'Groove' wordmark — show the mark icon only. */
+  logoOnly?: boolean;
   /** Pre-resolved identity, when the parent layout already has it. */
   user?: Profile | null;
 }
@@ -243,14 +246,13 @@ function useScrolled(threshold = 8) {
 }
 
 /** Single source of truth for the nav entry the dance filter matches on. */
-const DANCE_EVENTS_HREF = '/dance-events';
-
 export function AppTopNav({
   role,
   primary: primaryProp = [],
   groups: groupsProp = [],
   portalLabel,
   homeHref,
+  logoOnly = false,
   user: propUser,
 }: AppTopNavProps) {
   const router = useRouter();
@@ -258,29 +260,34 @@ export function AppTopNav({
   const meta = ROLE_META[role];
   const pathname = usePathname();
 
-  /**
-   * Dance Events & News is shown only to Dance users and admins.
-   *
-   * Filtering HERE, at the destructure, is deliberate: `primary` and `groups`
-   * are consumed in four places (desktop header, the mobile sheet, the group
-   * dropdown and its items), so filtering once at the source covers all of them
-   * and cannot be forgotten at a later call site. A group left empty by the
-   * filter is dropped rather than rendered as an empty dropdown.
-   *
-   * This is a CONVENIENCE, not the control. lib/danceAccess.ts gates
-   * /api/dance-events and /dance-events server-side, so a user who somehow saw
-   * this link anyway would get a redirect and a 403 — never event data.
-   */
-  const { allowed: danceAllowed } = useDanceAccess();
-  const keep = (item: NavItem) => item.href !== DANCE_EVENTS_HREF || danceAllowed;
-
-  const primary = useMemo(() => primaryProp.filter(keep), [primaryProp, danceAllowed]);
+  // `primary` and `groups` are normalised here, once, rather than filtered at
+  // each of the four places that consume them (desktop bar, mobile sheet, group
+  // dropdown, dropdown items). Filtering at the source means a caller cannot
+  // forget a call site, and a group left empty is dropped rather than rendered
+  // as an empty dropdown. Admin labels also resolve through the dashboard
+  // dictionary here, so every consumer renders translated text for free.
+  const { t } = useLanguage();
+  const primary = useMemo(
+    () =>
+      primaryProp.map((item) => ({
+        ...item,
+        label: translateAdminLabel(t, item.href, item.label),
+      })),
+    [primaryProp, t]
+  );
   const groups = useMemo(
     () =>
       groupsProp
-        .map((g) => ({ ...g, items: g.items.filter(keep) }))
+        .map((g) => ({
+          ...g,
+          label: translateAdminGroup(t, g.label),
+          items: g.items.map((item) => ({
+            ...item,
+            label: translateAdminLabel(t, item.href, item.label),
+          })),
+        }))
         .filter((g) => g.items.length > 0),
-    [groupsProp, danceAllowed]
+    [groupsProp, t]
   );
 
   const [openGroup, setOpenGroup] = useState<string | null>(null);
@@ -575,17 +582,23 @@ export function AppTopNav({
           <Link href={brandHref} className="g-header-logo" aria-label={`Groove — ${portalLabel ?? meta.label}`}>
             <span className="g-header-mark">
               <Image
-                src="/image/wc/logo.png"
+                src="/image/Logo/GroovePH-Logo.png"
                 alt=""
                 width={22}
                 height={22}
                 className="h-[22px] w-[22px] object-contain"
               />
             </span>
-            <span className="g-header-wordmark">
-              <span className="g-header-name">Groove</span>
-              {portalLabel && <span className="g-header-role">{portalLabel}</span>}
-            </span>
+            {!logoOnly && (
+              <span className="g-header-wordmark">
+                <span className="g-header-name">Groove</span>
+                {portalLabel && (
+                  <span className="g-header-role">
+                    {role === 'admin' ? t('admin.console', portalLabel) : portalLabel}
+                  </span>
+                )}
+              </span>
+            )}
           </Link>
         </div>
 
@@ -661,7 +674,7 @@ export function AppTopNav({
                     setOpenGroup(null);
                   }
                 }}
-                aria-label={searchOpen ? 'Close search' : 'Search coaches and clients'}
+                aria-label={searchOpen ? t('common.close', 'Close search') : t('header.searchLabel', 'Search coaches and clients')}
                 aria-expanded={searchOpen}
                 className="inline-flex flex-shrink-0 cursor-pointer items-center justify-center"
               >
@@ -722,6 +735,7 @@ export function AppTopNav({
             )}
           </div>
 
+          {user && <LanguageSwitcher />}
           {user && <NotificationDropdown userId={user.id} />}
 
           {/* Account menu: identity, the role's account destinations, appearance,
@@ -738,7 +752,7 @@ export function AppTopNav({
                 setSearchOpen(false);
               }}
               className="g-header-account"
-              aria-label="Account menu"
+              aria-label={t('header.accountTitle', 'Account menu')}
               aria-expanded={accountOpen}
               aria-haspopup="menu"
             >
@@ -774,7 +788,7 @@ export function AppTopNav({
               // three-option radiogroup — which a menu cannot legally contain.
               // A labelled dialog is the honest role for a mixed popover, and
               // `useDismiss` already gives it Escape-to-close.
-              <div className="g-panel g-panel-account" role="dialog" aria-label="Account">
+              <div className="g-panel g-panel-account" role="dialog" aria-label={t('header.accountTitle', 'Account')}>
                 <div className="g-panel-head g-account-head">
                   {user?.photo_url ? (
                     <Image
@@ -806,15 +820,17 @@ export function AppTopNav({
                 <div className="g-panel-body">
                   <Link href={meta.profile} className="g-menu-item">
                     <User className="g-menu-item-icon" aria-hidden="true" />
-                    Profile
+                    {t('header.profile', 'Profile')}
                   </Link>
                   <Link href={meta.editProfile} className="g-menu-item">
                     <Pencil className="g-menu-item-icon" aria-hidden="true" />
-                    {meta.editProfileLabel}
+                    {role === 'coach'
+                      ? t('header.editCoachProfile', meta.editProfileLabel)
+                      : t('header.editClientProfile', meta.editProfileLabel)}
                   </Link>
                   <Link href={meta.settings} className="g-menu-item">
                     <Settings2 className="g-menu-item-icon" aria-hidden="true" />
-                    Account Settings
+                    {t('header.accountSettings', 'Account Settings')}
                   </Link>
                 </div>
 
@@ -824,7 +840,7 @@ export function AppTopNav({
                     navigation destination. */}
                 {canSetPresence && user && (
                   <div className="g-account-section">
-                    <p className="g-account-section-label">Status</p>
+                    <p className="g-account-section-label">{t('header.status', 'Status')}</p>
                     <div className="g-account-section-body">
                       <StatusSelect userId={user.id} fallbackStatus={user.status} />
                     </div>
@@ -834,7 +850,7 @@ export function AppTopNav({
                 {/* Appearance. The one control that used to sit loose in the
                     bar, now grouped with the other account-level preferences. */}
                 <div className="g-account-section">
-                  <p className="g-account-section-label">Appearance</p>
+                  <p className="g-account-section-label">{t('header.appearance', 'Appearance')}</p>
                   <div className="g-account-section-body">
                     <ThemeModeSelect />
                   </div>
@@ -850,6 +866,13 @@ export function AppTopNav({
                   </div>
                 </div>
 
+                <div className="g-account-section">
+                  <p className="g-account-section-label">Language / Wika</p>
+                  <div className="g-account-section-body">
+                    <LanguageSwitcher />
+                  </div>
+                </div>
+
                 <div className="g-panel-foot">
                   <button
                     type="button"
@@ -857,7 +880,7 @@ export function AppTopNav({
                     className="g-menu-item g-menu-item-danger"
                   >
                     <LogOut className="g-menu-item-icon" aria-hidden="true" />
-                    Sign Out
+                    {t('header.signOut', 'Sign Out')}
                   </button>
                 </div>
               </div>
@@ -873,16 +896,16 @@ export function AppTopNav({
             className="g-sheet"
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation"
+            aria-label={t('admin.navigation', 'Navigation')}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="g-sheet-head">
-              <span className="g-sheet-title">Menu</span>
+              <span className="g-sheet-title">{t('admin.menu', 'Menu')}</span>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
                 className="g-header-burger"
-                aria-label="Close navigation"
+                aria-label={t('admin.closeNav', 'Close navigation')}
               >
                 <X className="h-[18px] w-[18px]" />
               </button>
@@ -965,7 +988,7 @@ export function AppTopNav({
                 primary navigation surface on a phone — a control the user has
                 to close one panel to reach is a control they will not find. */}
             <div className="g-sheet-section">
-              <p className="g-sheet-label">Account</p>
+              <p className="g-sheet-label">{t('header.accountTitle', 'Account')}</p>
               <Link
                 href={meta.profile}
                 aria-current={isActive(meta.profile) ? 'page' : undefined}
@@ -973,7 +996,7 @@ export function AppTopNav({
                 className="g-sheet-link"
               >
                 <User className="g-sheet-link-icon" aria-hidden="true" />
-                Profile
+                {t('header.profile', 'Profile')}
               </Link>
               <Link
                 href={meta.editProfile}
@@ -982,7 +1005,9 @@ export function AppTopNav({
                 className="g-sheet-link"
               >
                 <Pencil className="g-sheet-link-icon" aria-hidden="true" />
-                {meta.editProfileLabel}
+                {role === 'coach'
+                  ? t('header.editCoachProfile', meta.editProfileLabel)
+                  : t('header.editClientProfile', meta.editProfileLabel)}
               </Link>
               <Link
                 href={meta.settings}
@@ -991,7 +1016,7 @@ export function AppTopNav({
                 className="g-sheet-link"
               >
                 <Settings2 className="g-sheet-link-icon" aria-hidden="true" />
-                Account Settings
+                {t('header.accountSettings', 'Account Settings')}
               </Link>
             </div>
 
@@ -999,20 +1024,25 @@ export function AppTopNav({
                     the account menu is not reachable at that width. */}
             {canSetPresence && user && (
               <div className="g-sheet-section">
-                <p className="g-sheet-label">Status</p>
+                <p className="g-sheet-label">{t('header.status', 'Status')}</p>
                 <StatusSelect userId={user.id} fallbackStatus={user.status} />
               </div>
             )}
 
             <div className="g-sheet-section">
-              <p className="g-sheet-label">Appearance</p>
+              <p className="g-sheet-label">{t('header.appearance', 'Appearance')}</p>
               <ThemeModeSelect />
+            </div>
+
+            <div className="g-sheet-section">
+              <p className="g-sheet-label">Language / Wika</p>
+              <LanguageSwitcher />
             </div>
 
             {/* Repeated in the sheet because that sheet is a phone's primary
                 surface — the account menu is not reachable at that width. */}
             <div className="g-sheet-section">
-              <p className="g-sheet-label">Sound</p>
+              <p className="g-sheet-label">{t('header.sound', 'Sound')}</p>
               <SoundToggle />
             </div>
 
@@ -1021,7 +1051,7 @@ export function AppTopNav({
             <div className="g-sheet-foot">
               <button type="button" onClick={handleLogout} className="g-sheet-link g-sheet-link--danger">
                 <LogOut className="g-sheet-link-icon" aria-hidden="true" />
-                Sign Out
+                {t('header.signOut', 'Sign Out')}
               </button>
             </div>
           </div>

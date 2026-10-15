@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
+import { PhilippineSunMark } from '@/features/dance/components/PhilippineSunMark';
 
 export interface ModalProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   open: boolean;
@@ -89,7 +90,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-3 backdrop-blur-md transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-[var(--overlay)] p-3 backdrop-blur-sm transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -101,15 +102,21 @@ export function Modal({
         aria-label={typeof title === 'string' ? title : undefined}
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl transition-all duration-200 sm:rounded-3xl animate-in fade-in zoom-in-95',
+          'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-[var(--shadow-lg)] transition-all duration-200 sm:rounded-2xl animate-in fade-in zoom-in-95',
           SIZES[size],
           className
         )}
         {...props}
       >
         {(title || showClose) && (
-          <header className="flex shrink-0 items-start justify-between gap-4 border-b border-divider bg-card px-6 py-4.5 sm:px-7">
-            <div className="min-w-0 flex-1">
+          <header className="relative flex shrink-0 items-start justify-between gap-4 overflow-hidden border-b border-divider bg-card px-6 py-4.5 sm:px-7">
+            {/* Philippine sun accent — gold, cropped top-right, faint enough
+                to never fight the title in either theme */}
+            <PhilippineSunMark
+              size={120}
+              className="absolute -right-8 -top-8 h-28 w-28 text-[#C9A24C] opacity-[0.14]"
+            />
+            <div className="relative min-w-0 flex-1">
               {title && (
                 <h2 id={titleId} className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl">
                   {title}

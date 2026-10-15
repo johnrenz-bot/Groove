@@ -41,7 +41,7 @@ import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
 import { verificationStatusOf } from '@/features/verification/services/verification';
-import { AchievementSection } from '@/components/achievements/AchievementSection';
+import { BadgeCollection } from '@/components/badges/BadgeCollection';
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
 import {
   AddressSection,
@@ -64,7 +64,7 @@ import {
   parseCoachGenresValue,
   splitBirthdate,
 } from '@/lib/profileFields';
-import type { AddressData } from '@/components/auth/AddressSelector';
+import { composeStreetLine, type AddressData } from '@/components/auth/AddressSelector';
 
 const EMPTY_ADDRESS: AddressData = {
   region_code: '',
@@ -135,7 +135,7 @@ export default function CoachProfilePage() {
   const [authEmail, setAuthEmail] = useState<string>('');
 
   // Achievement hooks
-  const { achievements: coachAchievements, refetch: refetchCoachAchievements } = useAchievements(
+  const { achievements: coachAchievements, loading: achievementsLoading, refetch: refetchCoachAchievements } = useAchievements(
     coach?.id ?? null,
     'coach'
   );
@@ -412,7 +412,7 @@ export default function CoachProfilePage() {
           province_name: address.province_name,
           city_name: address.city_name,
           barangay_name: address.barangay_name,
-          street: address.street || null,
+          street: composeStreetLine(address.street, address.subdivision) || null,
           postal_code: address.postal_code || null,
         })
         .eq('id', user.id);
@@ -604,11 +604,12 @@ export default function CoachProfilePage() {
       {/* Achievements - Full width section below profile header */}
       {coach && (
         <div className="mb-6">
-          <AchievementSection
-            tasks={coachAchievements.length > 0 ? coachAchievements : []}
+          <BadgeCollection
+            tasks={coachAchievements}
             badgeStatus={coachBadgeStatus}
             userId={coach.id}
             role="coach"
+            loading={achievementsLoading}
             onRefresh={handleRefreshAchievements}
           />
         </div>
