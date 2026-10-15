@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/image/wc/logo.png" alt="Groove Logo" width="240" />
+  <img src="public/icon-512.png" alt="Groove Logo" width="240" />
 </p>
 
 <h1 align="center">Groove — Performing Arts Platform</h1>
@@ -30,6 +30,52 @@ Detailed engineering guides and workflow specs are maintained in the [`docs/`](.
 - [Verification Workflow](./docs/verification-workflow.md)
 - [Admin Hardening](./docs/admin-hardening.md)
 - [Theme System](./docs/theme-system.md)
+
+---
+
+## Landing Page Redesign (2025)
+
+The public landing page (`/`) has been completely redesigned with a **real-data-first** approach:
+
+### Key Principles
+- **Zero fake data**: No invented names, testimonials, ratings, or statistics. All counts come from live Supabase queries.
+- **Server-first rendering**: Stats are fetched at build time (revalidated hourly) and passed to client components as props.
+- **Honest empty states**: If a count is 0 or a query fails, that stat is hidden rather than showing a fake number.
+- **No emojis**: All icons use Lucide React for consistency and accessibility.
+
+### Data Flow
+```
+app/page.tsx (Server Component)
+  → await getLandingStats()  // queries Supabase
+  → <Hero stats={stats} />   // passes data as props
+    → components/landing/Hero.tsx (Client Component)
+      → <HeroStatsClient stats={stats} />  // renders with real data + count-up animation
+```
+
+### New Landing Components (`components/landing/`)
+| Component | Purpose |
+|---|---|
+| `Hero.tsx` | Full-screen hero with background image, CTAs, trust badges, 3 feature cards, real stats strip |
+| `HeroStats.tsx` | Client component rendering live stats (coaches, studios, disciplines) with count-up animation |
+| `landingStats.ts` | Server utility: fetches real counts from Supabase (coaches, studios, disciplines) |
+| `Disciplines.tsx` | 4 discipline cards with consistent hover behavior (Dance, Vocal, Acting, Theater) |
+| `AudienceTabs.tsx` | Toggleable Performer/Coach feature lists with real lucide icons (no emojis) |
+| `HowItWorks.tsx` | 4-step timeline: Create profile → Find coach → Book & sign → Rehearse & perform |
+| `StudiosPreview.tsx` | Server component: fetches real studios/coaches from DB; shows honest empty states |
+| `FinalCta.tsx` | Brick-pattern banner with benefits grid and dual CTAs |
+
+### Removed
+- `Testimonials.tsx` — Entire "Community Voices" section removed (fake names, fake quotes, fake ratings)
+- All hardcoded fake data: "Maria Santos", "50 Coaches", "12 Studios", "1000 Sessions", "500+ performers", "98% satisfaction"
+
+### Spacing & Polish
+- Section padding: `py-24 md:py-32`
+- Heading to paragraph gap: `mb-6`
+- Paragraph to content gap: `mb-14`
+- Card grids: `gap-6 md:gap-8`
+- Card padding: `p-6 md:p-8`
+- Max width prose on body text, relaxed line-height
+- Trust badges: `gap-8`, larger text, no tiny uppercase crowding
 
 ---
 
@@ -96,6 +142,7 @@ GrooveSystem/
 │   │   ├── services/                 # communityService.ts
 │   │   └── utils/                    # community.ts, communityMedia.ts
 │   ├── dance/                        # Dance community page: verified league updates, org directory, crews and match recaps
+│   ├── landing/                      # Public landing page components (Hero, Disciplines, AudienceTabs, etc.)
 │   ├── presence/                     # Real-time user status (online, busy, away, offline)
 │   │   ├── components/               # PresenceBridge.tsx, StatusSelect.tsx
 │   │   ├── hooks/                    # usePresence.ts
