@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: 'Dance Community — Competitions, Events, Crews | GroovePH',
     description:
       'DANCE COMMUNITY — Competitions, Events, Crews, Philippines & Worldwide. Real-time verified updates from IDL, HHI, Red Bull Dance Your Style, STEEZY, and Philippine dance federations.',
-    url: '/community/performing-arts/dance',
+    url: '/comSmunity/performing-arts/dance',
     siteName: 'GroovePH',
     type: 'website',
     images: [

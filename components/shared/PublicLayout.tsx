@@ -44,7 +44,11 @@ export function PublicLayout({
   footerExtra?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+    /* No `bg-background` here by design (landing page included): the page
+       colour lives only on <body>, so the fixed <PagePatterns /> layer stays
+       visible through this transparent shell. Sections with their own
+       surfaces (hero image, footer, cards) keep them. */
+    <div className="flex min-h-screen flex-col font-sans text-foreground">
       <Header />
       <main className="flex-1">{children}</main>
       {showFooter && (

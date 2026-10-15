@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
+import { PhilippineSunMark } from '@/features/dance/components/PhilippineSunMark';
 
 export interface ModalProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   open: boolean;
@@ -108,8 +109,14 @@ export function Modal({
         {...props}
       >
         {(title || showClose) && (
-          <header className="flex shrink-0 items-start justify-between gap-4 border-b border-divider bg-card px-6 py-4.5 sm:px-7">
-            <div className="min-w-0 flex-1">
+          <header className="relative flex shrink-0 items-start justify-between gap-4 overflow-hidden border-b border-divider bg-card px-6 py-4.5 sm:px-7">
+            {/* Philippine sun accent — gold, cropped top-right, faint enough
+                to never fight the title in either theme */}
+            <PhilippineSunMark
+              size={120}
+              className="absolute -right-8 -top-8 h-28 w-28 text-[#C9A24C] opacity-[0.14]"
+            />
+            <div className="relative min-w-0 flex-1">
               {title && (
                 <h2 id={titleId} className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl">
                   {title}

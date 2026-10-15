@@ -22,13 +22,15 @@ import {
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { PageHeader } from '@/components/shared/SectionHeader';
 import { StudioLocator } from '@/components/studio/StudioLocator';
 
-import { HeroBanner } from '@/components/dashboard/HeroBanner';
-import { StatRow } from '@/components/dashboard/StatRow';
+import { Greeting } from '@/components/dashboard/Greeting';
 import { QuickActions } from '@/components/dashboard/QuickActions';
-import { UpcomingSessionsWidget } from '@/components/dashboard/UpcomingSessionsWidget';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { HeroBanner } from '@/components/dashboard/HeroBanner';
+import { PanelCard } from '@/components/dashboard/PanelCard';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { SessionRow } from '@/components/dashboard/SessionRow';
 import { BadgeMiniWidget } from '@/components/dashboard/BadgeMiniWidget';
 import { SupportCallout } from '@/components/dashboard/SupportCallout';
 
@@ -55,21 +57,21 @@ function MiniCalendar() {
   return (
     <Card padding="none" className="overflow-hidden">
       <CardHeader
-        className="mb-0 border-b border-divider px-5 pb-4"
+        className="mb-0 border-b border-border px-5 pb-4"
         icon={<CalendarIcon className="h-4 w-4" />}
         title={`${monthName} ${year}`}
         action={
           <Link
             href="/coach/calendar"
             aria-label="Open calendar"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:border-accent-border hover:bg-muted hover:text-foreground"
           >
             <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         }
       />
       <div className="p-5">
-        <div className="grid grid-cols-7 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground">
+        <div className="grid grid-cols-7 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
             <span key={idx}>{d}</span>
           ))}
@@ -124,7 +126,7 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
         <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
           <Link
             href={`/messages?user=${user.id}`}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
           >
             Message
           </Link>
@@ -138,7 +140,7 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
       }
     >
       <div className="space-y-3 py-1">
-        <div className="space-y-2 rounded-2xl border border-border bg-muted/60 p-4">
+        <div className="space-y-2 rounded-2xl border border-border bg-muted p-4">
           <p className="flex items-start gap-2 text-xs text-muted-foreground">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
             <span>{user.city_name || user.address_summary || 'San Jose del Monte, Bulacan'}</span>
@@ -210,7 +212,7 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {error && (
-            <div className="rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+            <div className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
               {error}
             </div>
           )}
@@ -245,21 +247,11 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
             />
           </div>
 
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-divider">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-            >
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-border">
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              loading={loading}
-            >
+            <Button type="submit" variant="primary" size="sm" loading={loading}>
               Send Ticket
             </Button>
           </div>
@@ -271,6 +263,7 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
 
 export default function CoachHomePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [coach, setCoach] = useState<Profile | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [recommendedUsers, setRecommendedUsers] = useState<Profile[]>([]);
@@ -355,13 +348,13 @@ export default function CoachHomePage() {
         </div>
         <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="g-skeleton h-32 rounded-[20px]" />
+            <div key={i} className="g-skeleton h-32 rounded-[14px]" />
           ))}
         </div>
-        <div className="g-skeleton h-[200px] rounded-[20px]" />
+        <div className="g-skeleton h-[200px] rounded-[14px]" />
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          <div className="g-skeleton h-72 rounded-[20px] lg:col-span-2" />
-          <div className="g-skeleton h-72 rounded-[20px]" />
+          <div className="g-skeleton h-72 rounded-[14px] lg:col-span-2" />
+          <div className="g-skeleton h-72 rounded-[14px]" />
         </div>
         <p className="text-xs text-muted-foreground">Loading your coach terminal...</p>
       </div>
@@ -369,126 +362,103 @@ export default function CoachHomePage() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* Page header */}
-      <PageHeader
-        eyebrow="Coach Control Terminal"
-        title={
-          <>
-            {getGreeting()},{' '}
-            <span className="text-accent-text">Coach {coach.firstname}</span>
-          </>
-        }
-        description="Manage appointments, organize rehearsal sessions, and review performer requests in Bulacan."
-        action={
-          <div className="flex flex-wrap items-center gap-2.5">
-            <Link
-              href="/coach/talents"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold tracking-[-0.01em] text-accent-foreground shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
-            >
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-              <span>Showcase Feed</span>
-            </Link>
-            <Link
-              href="/messages"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-semibold tracking-[-0.01em] text-foreground transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-muted"
-            >
-              <Send className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Messages</span>
-            </Link>
-          </div>
-        }
-      />
+    <div className="relative min-h-screen">
+      <div className="relative z-10 mx-auto max-w-[1420px] space-y-6 px-5 py-7 sm:px-8 sm:py-9">
+        {/* Greeting */}
+        <Greeting
+          eyebrow={t('home.coachEyebrow', 'Coach Control Terminal')}
+          role={t('home.roleCoach', 'Coach')}
+          firstName={coach.firstname}
+          subtitle={t(
+            'home.coachSubtitle',
+            'Manage your appointments, organize rehearsal sessions, and review performer requests in Bulacan.'
+          )}
+        />
 
-      {/* Quick actions */}
-      <QuickActions
-        actions={[
-          { label: 'Showcase Feed', href: '/coach/talents', icon: <Sparkles className="h-4 w-4" />, variant: 'primary' },
-          { label: 'Messages', href: '/messages', icon: <Send className="h-4 w-4" /> },
-          { label: 'Calendar', href: '/coach/calendar', icon: <CalendarIcon className="h-4 w-4" /> },
-          { label: 'Appointments', href: '/coach/appointments', icon: <CalendarDays className="h-4 w-4" /> },
-        ]}
-      />
+        {/* Quick actions — single row */}
+        <QuickActions
+          actions={[
+            { label: t('home.quickShowcase', 'Showcase Feed'), href: '/coach/talents', icon: <Sparkles className="h-4 w-4" />, variant: 'primary' },
+            { label: t('home.quickMessages', 'Messages'), href: '/messages', icon: <Send className="h-4 w-4" /> },
+            { label: t('home.quickCalendar', 'Calendar'), href: '/coach/calendar', icon: <CalendarIcon className="h-4 w-4" /> },
+            { label: t('home.quickAppointments', 'Appointments'), href: '/coach/appointments', icon: <CalendarDays className="h-4 w-4" /> },
+          ]}
+        />
 
-      {/* Stat row */}
-      <StatRow
-        stats={[
-          {
-            value: appointments.length,
-            label: 'Appointments',
-            description: 'Total session records',
-            icon: <CalendarIcon className="h-5 w-5" />,
-          },
-          {
-            value: recommendedUsers.length,
-            label: 'Students in SJDM',
-            description: 'Registered performers',
-            icon: <Users className="h-5 w-5" />,
-          },
-          {
-            value: <span className="text-2xl sm:text-3xl">SJDM, Bulacan</span>,
-            label: 'Platform Region',
-            description: 'Region III',
-            icon: <MapPin className="h-5 w-5" />,
-          },
-          {
-            value: (
-              <span className="flex items-center gap-2 text-xl sm:text-2xl">
-                <span className="h-2.5 w-2.5 rounded-full bg-success" aria-hidden="true" />
-                Verified Active
-              </span>
-            ),
-            label: 'Coach Status',
-            description: `#${coach.custom_id || '0001'}`,
-            icon: <CheckCircle2 className="h-5 w-5" />,
-          },
-        ]}
-      />
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+          <StatCard
+            icon={<CalendarIcon className="h-5 w-5" />}
+            value={appointments.length}
+            label={t('home.statAppointments', 'Appointments')}
+            sub={t('home.statAppointmentsSub', 'View upcoming requests')}
+            accentColor="yellow"
+            href="/coach/appointments"
+          />
+          <StatCard
+            icon={<Users className="h-5 w-5" />}
+            value={recommendedUsers.length}
+            label={t('home.statStudents', 'Students in SJDM')}
+            sub={t('home.statStudentsSub', 'Registered performers')}
+            accentColor="blue"
+            href="/coach/talents"
+          />
+          <StatCard
+            icon={<MapPin className="h-5 w-5" />}
+            value={t('home.statRegionValue', 'SJDM, Bulacan')}
+            label={t('home.statRegion', 'Platform Region')}
+            sub={t('home.statRegionSub', 'Region III')}
+            accentColor="red"
+            href="/coach/about"
+          />
+          <StatCard
+            icon={<CheckCircle2 className="h-5 w-5" />}
+            value={t('home.statAccountValue', 'Verified Active')}
+            label={t('home.statCoachStatus', 'Coach Status')}
+            sub={`#${coach.custom_id || '0001'}`}
+            accentColor="green"
+            href="/coach/profile"
+          />
+        </div>
 
-      {/* Hero banner */}
-      <HeroBanner
-        eyebrow="Coach Instructor Workspace"
-        headline="Inspire the next generation of performers"
-        subline="Track session confirmations, negotiate digital coaching contracts, and connect with talents in Bulacan."
-        primaryCta={{ label: 'Community Showcase', href: '/coach/talents' }}
-        secondaryCta={{ label: 'Manage Schedule', href: '/coach/appointments' }}
-        announcement={announcement}
-      />
+        {/* Hero banner */}
+        <HeroBanner
+          eyebrow={t('home.heroCoachEyebrow', 'Coach Instructor for Workspace')}
+          title={t('home.heroCoachTitle', 'Inspire the next generation of performers')}
+          description={t(
+            'home.heroCoachDesc',
+            'Track sessions, manage contracts, and connect with talents in Bulacan.'
+          )}
+          primaryCta={{ label: t('home.heroCoachPrimary', 'Community Showcase'), href: '/coach/talents' }}
+          secondaryCta={{ label: t('home.heroCoachSecondary', 'Manage Schedule'), href: '/coach/appointments' }}
+          image="/image/hero/hero.png"
+        />
 
-      {/* Main grid — the same shape /client/home uses: a three-track grid whose
-          left track stacks the content cards and whose right track stacks the
-          session list and the calendar.
-
-          `items-start` is load-bearing. The grid default is `stretch`, which
-          hands each track its sibling's row height; a percentage height inside
-          a stretched track then resolves against the row instead of against the
-          card's own content, which is what previously grew "Upcoming Sessions"
-          past the bottom of the grid and let the studios section paint over
-          everything that overflowed out of it. */}
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          {/* Students card */}
-          <Card padding="none">
-            <CardHeader
-              className="mb-0 px-5 pb-4 sm:px-6 sm:pb-5"
-              icon={<Users className="h-4 w-4" />}
-              title="Students in San Jose del Monte"
-              subtitle="Local performers looking for mentorship"
-            />
-            <div className="grid grid-cols-2 gap-3.5 px-5 pb-6 sm:px-6">
+        {/* Lower section — two panels side by side */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
+          {/* Students panel */}
+          <PanelCard
+            icon={<Users className="h-4 w-4" />}
+            title={t('home.studentsPanel', 'Students in San Jose del Monte')}
+            subtitle={`${recommendedUsers.length} active performer · Working for more`}
+            viewAllHref="/coach/talents"
+            viewAllLabel={t('common.viewAll', 'View all')}
+          >
+            <div className="grid grid-cols-2 gap-3.5">
               {recommendedUsers.slice(0, 4).map((user) => (
                 <button
                   key={user.id}
                   type="button"
                   onClick={() => setSelectedUser(user)}
-                  className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted/60"
+                  className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
                 >
-                  <div className="mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
+                  <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
                     {user.photo_url ? (
                       <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
                     ) : (
                       getInitials(user.firstname, user.lastname)
                     )}
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
                   </div>
                   <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
                     {user.firstname} {user.lastname}
@@ -499,31 +469,58 @@ export default function CoachHomePage() {
                 </button>
               ))}
             </div>
-          </Card>
+          </PanelCard>
 
-          <BadgeMiniWidget userId={coach.id} role="coach" />
-
-          <SupportCallout onSubmitTicket={() => setShowTicket(true)} />
-        </div>
-
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-1">
-          <UpcomingSessionsWidget
-            appointments={appointments}
-            perspective="coach"
+          {/* Upcoming sessions panel */}
+          <PanelCard
+            icon={<CalendarIcon className="h-4 w-4" />}
+            title={t('home.sessionsPanel', 'Upcoming Sessions')}
+            subtitle={t('home.sessionsPanelSubCoach', 'Your scheduled rehearsals')}
             viewAllHref="/coach/appointments"
-          />
-          <MiniCalendar />
+            viewAllLabel={t('common.viewAll', 'View all')}
+          >
+            <div className="space-y-2.5">
+              {appointments.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">{t('home.noSessions', 'No upcoming sessions.')}</p>
+              ) : (
+                appointments.slice(0, 4).map((appt) => {
+                  const d = new Date(appt.date);
+                  const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const clientName = (appt as unknown as { client?: { firstname?: string; lastname?: string } }).client
+                    ? `${(appt as unknown as { client?: { firstname?: string; lastname?: string } }).client!.firstname ?? ''} ${(appt as unknown as { client?: { firstname?: string; lastname?: string } }).client!.lastname ?? ''}`.trim()
+                    : appt.name ?? 'Student';
+
+                  return (
+                    <SessionRow
+                      key={appt.id}
+                      month={month}
+                      day={day}
+                      timeRange={`${appt.start_time} – ${appt.end_time}`}
+                      tag="Rehearsal"
+                      subtitle={`Dance · SJDM, Bulacan`}
+                      status={appt.status === 'confirmed' ? 'Confirmed' : appt.status === 'pending' ? 'Pending' : 'Cancelled'}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </PanelCard>
         </div>
+
+        {/* Studios locator */}
+        <section aria-label={t('home.studiosCoachTitle', 'Rehearsal Studios Directory')}>
+          <StudioLocator
+            title={t('home.studiosCoachTitle', 'Rehearsal Studios Directory')}
+            subtitle={t(
+              'home.studiosCoachSub',
+              'Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results'
+            )}
+          />
+        </section>
       </div>
 
-      {/* Studios locator — its own full-width section, matching /client/home,
-          where the locator is a direct child of the page's vertical stack. */}
-      <section aria-label="Rehearsal Studios Directory">
-        <StudioLocator
-          title="Rehearsal Studios Directory"
-          subtitle="Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results"
-        />
-      </section>
+      {/* Floating Groovey AI is provided once by DashboardLayout — no page-level copy. */}
 
       {selectedUser && <ProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
       {showTicket && <TicketModal coach={coach} onClose={() => setShowTicket(false)} />}

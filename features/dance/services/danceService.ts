@@ -1,11 +1,40 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+﻿import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { DanceUpdateInput } from '../../../lib/dance/schema.ts';
 import { DEFAULT_LIMIT, MAX_LIMIT, UPCOMING_CATEGORIES } from '../../../lib/dance/constants.ts';
+import { resolveVerifiedItemImage } from '../../../lib/dance/imageVerification.ts';
+import { VERIFIED_DANCE_UPDATES } from '../data/danceUpdates.ts';
 
 export interface DanceUpdateRecord extends DanceUpdateInput {
   id: string | number;
   created_at: string;
   updated_at?: string;
+  image_credit?: string | null;
+  image_verified?: boolean;
+  /**
+   * The first-party asset the image was taken from. Kept next to the local
+   * `/dance-updates/...` path so an editor can always answer "where did this
+   * picture actually come from?" without a git archaeology session.
+   */
+  image_source_url?: string | null;
+  /**
+   * Curated, human-written description of what the photograph actually shows.
+   *
+   * Present on most rows, but deliberately optional: records written by the
+   * automated agent do not get one, and UpdateCard synthesises a descriptive
+   * string from the organisation and location rather than falling back to the
+   * title - a grid of cards whose alt text is all identical is a grid a screen
+   * reader user has learned to skip.
+   */
+  image_alt?: string | null;
+  /**
+   * Why this record has no image. Non-null implies `image_url` is null.
+   *
+   * This is the difference between "we chose not to show a photo" and "we
+   * tried, could not verify one, and here is the exact refusal reason". A card
+   * with a reason is a working fallback; a card with a silent null reads like a
+   * bug. Populated by `scripts/sync-dance-update-images.ts`.
+   */
+  image_fallback_reason?: string | null;
 }
 
 /**
@@ -28,163 +57,21 @@ export function getDanceServerClient() {
 }
 
 /**
- * High-quality verified fallback updates to guarantee the Dance Community
- * page renders a rich experience even before database ingestion or external keys.
+ * Verified fallback updates.
+ *
+ * These are the records used whenever the `dance_updates` table is unreachable
+ * (no Supabase credentials, offline, empty table). Every field was checked
+ * against the organisation's own page and every image was fetched, validated
+ * and visually confirmed by `scripts/sync-dance-update-images.ts` before being
+ * vendored into `public/dance-updates/`.
+ *
+ * Two properties matter and are enforced elsewhere, not here:
+ *   - nothing here is stock photography or a stand-in for the real event
+ *   - the set deliberately MIXES completed and future records, because
+ *     `getUpcomingDanceEvents()` filters on `event_date` rather than trusting
+ *     a flag. A static "upcoming" list would rot within a day.
  */
-export const FALLBACK_UPDATES: DanceUpdateRecord[] = [
-  {
-    id: 'idl-update-1',
-    title: 'IDL 2025 World League Teams Announced: Brotherhood and UPeepz Enter Division A',
-    summary:
-      'The International Dance League confirms the 16 franchise crews for the 2025 Season. MegaCrew champions Brotherhood and Manila titans UPeepz headline the cross-conference battles.',
-    summary_tl:
-      'Inanunsyo ng International Dance League ang 16 na opisyal na dance crew para sa 2025 Season. Kasama sa Division A ang Brotherhood at ang ipinagmamalaking UPeepz mula sa Maynila.',
-    category: 'competition',
-    organization: 'IDL',
-    region: 'international',
-    location: 'Vancouver / Manila',
-    event_date: '2025-05-15T18:00:00Z',
-    source_url: 'https://www.thedancelebague.com/news/2025-franchise-teams',
-    image_url: 'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80',
-    tags: ['IDL', 'Brotherhood', 'UPeepz', 'League'],
-    published_at: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'redbull-update-2',
-    title: 'Red Bull Dance Your Style Philippines 2025 Qualifier Tournaments Open Registration',
-    summary:
-      'Red Bull Dance Your Style returns across Luzon, Visayas, and Mindanao. Solo dancers in Popping, Locking, Waacking, and Hip Hop will battle under crowd-judged rules.',
-    summary_tl:
-      'Bukas na ang rehistrasyon para sa Red Bull Dance Your Style Philippines 2025. Maglalaban ang pinakamagagaling na street dancers sa buong kapuluan gamit ang crowd-voting battle system.',
-    category: 'event',
-    organization: 'Red Bull Dance Your Style',
-    region: 'philippines',
-    location: 'BGC Arts Center, Taguig & Bulacan',
-    event_date: '2025-06-20T14:00:00Z',
-    source_url: 'https://www.redbull.com/danceyourstyle/ph-2025-qualifiers',
-    image_url: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
-    tags: ['RedBull', '1v1', 'AllStyles', 'Philippines'],
-    published_at: new Date(Date.now() - 3600000 * 6).toISOString(),
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'hhi-update-3',
-    title: 'Hip Hop International Philippines 2025 Championships Slated for SM Mall of Asia Arena',
-    summary:
-      'Over 80 crews across Junior, Varsity, Adult, and MegaCrew divisions will vie for the Philippine delegation spots to the World Hip Hop Dance Championship in Phoenix, Arizona.',
-    summary_tl:
-      'Nakatakda sa MOA Arena ang HHI Philippines 2025. Mahigit 80 dance crews ang maglalaban para sa karangalang katawanin ang Pilipinas sa World Championships sa Arizona.',
-    category: 'competition',
-    organization: 'HHI',
-    region: 'philippines',
-    location: 'SM Mall of Asia Arena, Pasay',
-    event_date: '2025-04-26T09:00:00Z',
-    source_url: 'https://www.hiphopinternational.com/philippines-national-championship-2025',
-    image_url: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?auto=format&fit=crop&w=800&q=80',
-    tags: ['HHI', 'MegaCrew', 'Nationals', 'Phoenix'],
-    published_at: new Date(Date.now() - 3600000 * 14).toISOString(),
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'steezy-update-4',
-    title: 'STEEZY Studio Launches Masterclass Series Featuring Top Asian Urban Choreographers',
-    summary:
-      'STEEZY drops an intensive online workshop curriculum breaking down fast footwork, polyrhythms, and stage presence for competitive collegiate crews.',
-    summary_tl:
-      'Inilunsad ng STEEZY Studio ang bagong masterclass series na nagtuturo ng advanced urban choreography at musicality para sa mga dance athlete.',
-    category: 'workshop',
-    organization: 'STEEZY',
-    region: 'international',
-    location: 'Global Virtual Studio',
-    event_date: '2025-05-02T10:00:00Z',
-    source_url: 'https://www.steezy.com/programs/asian-urban-choreography-masterclass',
-    image_url: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=800&q=80',
-    tags: ['STEEZY', 'Workshop', 'Training', 'UrbanChoreo'],
-    published_at: new Date(Date.now() - 3600000 * 22).toISOString(),
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'wod-update-5',
-    title: 'World of Dance Series Manila 2025: Team Roster and Early-Bird Passes Released',
-    summary:
-      'WOD returns to Metro Manila featuring head-to-head competition across Junior, Team, and Upper divisions with guest performances by global viral choreographers.',
-    summary_tl:
-      'Bukas na ang tiket para sa World of Dance Manila 2025. Masisilayan ang pinakamatitinding grupo sa Upper at Junior divisions na magtatanghal sa harap ng world judges.',
-    category: 'competition',
-    organization: 'World of Dance',
-    region: 'philippines',
-    location: 'New Frontier Theater, Quezon City',
-    event_date: '2025-07-12T13:00:00Z',
-    source_url: 'https://www.worldofdance.com/events/manila-qualifier-2025',
-    image_url: 'https://images.unsplash.com/photo-1545224144-b38cd309ef69?auto=format&fit=crop&w=800&q=80',
-    tags: ['WOD', 'WorldOfDance', 'Manila', 'Showcase'],
-    published_at: new Date(Date.now() - 3600000 * 28).toISOString(),
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'justedebout-update-6',
-    title: 'Juste Debout World Tour 2025: Asian Standout Battles in Tokyo & Seoul Complete',
-    summary:
-      'The prestigious 2v2 standing street dance battle concluded its East Asia legs in Locking, Popping, House, and Hip Hop, punching tickets to the Paris Accord Arena Finals.',
-    summary_tl:
-      'Nagtapos ang Asian qualifiers ng Juste Debout. Nakatakdang magharap ang mga kampeon sa Locking at Popping sa Grand Finals sa Paris.',
-    category: 'results',
-    organization: 'Juste Debout',
-    region: 'international',
-    location: 'Tokyo & Paris',
-    event_date: '2025-08-30T17:00:00Z',
-    source_url: 'https://www.justedebout.com/results/asia-prelims-2025',
-    image_url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?auto=format&fit=crop&w=800&q=80',
-    tags: ['JusteDebout', '2v2', 'Popping', 'Locking'],
-    published_at: new Date(Date.now() - 3600000 * 35).toISOString(),
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'udo-update-7',
-    title: 'UDO Asia-Pacific Street Dance Championships 2025 Announced for Clark Freeport',
-    summary:
-      'Universal Dance Organization expands its footprint in the Philippines with official qualifying categories for the UDO World Street Dance Championship in Blackpool, UK.',
-    summary_tl:
-      'Gaganapin sa Clark, Pampanga ang UDO Asia-Pacific Street Dance Championships para sa opisyal na kwalipikasyon patungong Blackpool, United Kingdom.',
-    category: 'event',
-    organization: 'UDO',
-    region: 'philippines',
-    location: 'Clark Freeport Zone, Pampanga',
-    event_date: '2025-09-18T10:00:00Z',
-    source_url: 'https://www.udodanceworld.com/events/asia-pacific-2025',
-    image_url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
-    tags: ['UDO', 'Blackpool', 'AsiaPacific', 'Streetdance'],
-    published_at: new Date(Date.now() - 3600000 * 42).toISOString(),
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'ph-sjdm-update-8',
-    title: 'Bulacan Performing Arts Union Hosts San Jose del Monte Inter-School Dance Battle',
-    summary:
-      'High school and collegiate street dance troupes across Bulacan will gather at the SJDM Sports Complex for an intense battle series and community masterclass.',
-    summary_tl:
-      'Magtitipon ang mga kabataang mananayaw sa Bulacan para sa taunang Inter-School Dance Battle at community workshop sa San Jose del Monte.',
-    category: 'community',
-    organization: 'Philippines',
-    region: 'metro-manila',
-    location: 'SJDM Sports Complex, Bulacan',
-    event_date: '2025-04-18T13:00:00Z',
-    source_url: 'https://www.facebook.com/bulacandancecollective/events/sjdm-2025',
-    image_url: 'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80',
-    tags: ['Bulacan', 'SJDM', 'Grassroots', 'InterSchool'],
-    published_at: new Date(Date.now() - 3600000 * 50).toISOString(),
-    status: 'published',
-    created_at: new Date().toISOString(),
-  },
-];
+export const FALLBACK_UPDATES: DanceUpdateRecord[] = VERIFIED_DANCE_UPDATES;
 
 /**
  * Queries published dance updates with filtering and pagination.
@@ -307,9 +194,88 @@ function filterFallbackUpdates(
 }
 
 /**
- * Fetches upcoming events and competitions.
+ * Is this event still ahead of the reader?
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THIS IS THE RULE THAT KEEPS ENDED EVENTS OUT OF UPCOMING EVENTS
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * "Upcoming" is a claim about the clock, so it has to be evaluated against the
+ * clock. An earlier version of this file filtered only on
+ * `category ∈ {event, competition}` with a non-null `event_date`, which meant a
+ * competition that finished three months ago was still rendered in the rail
+ * under a "Register / Event Details" button - the single most misleading thing
+ * this page could do, because the button implies you can still sign up.
+ *
+ * Two details that are easy to get wrong:
+ *
+ *  - The comparison is done in the PAGE's timezone, not the server's. The rail
+ *    is written for Asia/Manila; a server on UTC would call a 01:00 PHT event
+ *    "ended" for seven hours of every day.
+ *  - An unparseable or absent `event_date` is NOT upcoming. A record with no
+ *    date cannot be shown as something you can still attend, so it is dropped
+ *    here and remains visible in Latest Updates where it belongs.
+ *
+ * `now` is injectable so the date logic is testable against a fixed reference
+ * date instead of only ever being exercised on the day it runs.
  */
-export async function getUpcomingDanceEvents() {
+export function isUpcomingEvent(
+  event: { event_date?: string | null; category?: string | null },
+  now: Date = new Date(),
+  timeZone = 'Asia/Manila'
+): boolean {
+  if (!event.event_date) return false;
+
+  const when = new Date(event.event_date);
+  if (Number.isNaN(when.getTime())) return false;
+
+  // Midnight on the event's own calendar day is the last moment at which an
+  // all-day event is legitimately "happening today".
+  const endOfDay = new Date(when);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const nowInTz = new Date(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).format(now)
+  );
+
+  return endOfDay.getTime() >= nowInTz.getTime();
+}
+
+/** Categories the rail is allowed to draw from. `results` is deliberately absent:
+ *  a result is by definition something that already happened. */
+function isUpcomingCategory(category: string | null | undefined): boolean {
+  const upcoming: readonly string[] = UPCOMING_CATEGORIES;
+  return (category != null && upcoming.includes(category)) || category === 'workshop';
+}
+
+function selectUpcoming(updates: DanceUpdateRecord[], now: Date, timeZone: string) {
+  return updates
+    .filter((u) => isUpcomingCategory(u.category) && isUpcomingEvent(u, now, timeZone))
+    .sort((a, b) => new Date(a.event_date!).getTime() - new Date(b.event_date!).getTime());
+}
+
+/**
+ * Fetches upcoming events and competitions.
+ *
+ * Historical records are NOT dropped from the feed - only from this rail.
+ * `getPublishedDanceUpdates()` still returns them so the Latest Updates grid
+ * keeps the full record of what happened.
+ */
+export async function getUpcomingDanceEvents(
+  opts: { now?: Date; timeZone?: string } = {}
+) {
+  const now = opts.now ?? new Date();
+  const timeZone = opts.timeZone ?? 'Asia/Manila';
+
   try {
     const supabase = getDanceServerClient();
 
@@ -319,55 +285,100 @@ export async function getUpcomingDanceEvents() {
       .eq('status', 'published')
       .in('category', [...UPCOMING_CATEGORIES, 'workshop'])
       .not('event_date', 'is', null)
+      .gte('event_date', now.toISOString())
       .order('event_date', { ascending: true })
       .limit(10);
 
     if (error || !data || data.length === 0) {
-      const fallbackEvents = FALLBACK_UPDATES.filter(
-        (u) => u.event_date && (UPCOMING_CATEGORIES.includes(u.category as any) || u.category === 'workshop')
-      ).sort(
-        (a, b) => new Date(a.event_date!).getTime() - new Date(b.event_date!).getTime()
-      );
-      return { events: fallbackEvents };
+      return { events: selectUpcoming(FALLBACK_UPDATES, now, timeZone) };
     }
 
     return { events: data as DanceUpdateRecord[] };
   } catch {
-    const fallbackEvents = FALLBACK_UPDATES.filter(
-      (u) => u.event_date && (UPCOMING_CATEGORIES.includes(u.category as any) || u.category === 'workshop')
-    ).sort(
-      (a, b) => new Date(a.event_date!).getTime() - new Date(b.event_date!).getTime()
-    );
-    return { events: fallbackEvents };
+    return { events: selectUpcoming(FALLBACK_UPDATES, now, timeZone) };
   }
 }
 
 /**
  * Ingests a validated batch of updates into the dance_updates table.
+ * Enforces zero-stock-photo rule and verifies images before persisting.
  */
 export async function ingestDanceUpdates(updates: DanceUpdateInput[]) {
   const supabase = getDanceServerClient();
-  const rows = updates.map((item) => ({
-    title: item.title,
-    summary: item.summary,
-    summary_tl: item.summary_tl || null,
-    category: item.category,
-    organization: item.organization,
-    region: item.region || null,
-    event_date: item.event_date || null,
-    location: item.location || null,
-    source_url: item.source_url,
-    image_url: item.image_url || null,
-    tags: item.tags || null,
-    published_at: item.published_at || new Date().toISOString(),
-    status: item.status || 'published',
-    updated_at: new Date().toISOString(),
-  }));
+
+  // Deduplicate image URLs within the batch
+  const seenImageUrls = new Set<string>();
+
+  const processedRows = await Promise.all(
+    updates.map(async (item) => {
+      let finalImageUrl: string | null = item.image_url || null;
+      let finalImageCredit: string | null = item.image_credit || null;
+      let finalImageVerified: boolean = item.image_verified ?? false;
+      // Provenance + the documented reason there is no image. Both are carried
+      // through so a blank card can always be explained instead of guessed at.
+      const finalImageSourceUrl: string | null =
+        (item as DanceUpdateRecord).image_source_url ?? null;
+      let finalFallbackReason: string | null =
+        (item as DanceUpdateRecord).image_fallback_reason ?? null;
+
+      // If item has not yet been verified or has an unverified URL, run through verification
+      if (finalImageUrl && !finalImageVerified) {
+        const result = await resolveVerifiedItemImage(item.source_url, item.organization, finalImageUrl);
+        finalImageUrl = result.imageUrl;
+        finalImageCredit = result.imageCredit;
+        finalImageVerified = result.imageVerified;
+        if (!finalImageUrl && result.fallbackReason) finalFallbackReason = result.fallbackReason;
+      }
+
+      // Check for duplicate image URLs across the batch
+      if (finalImageUrl) {
+        if (seenImageUrls.has(finalImageUrl)) {
+          // Reject duplicate image to avoid showing identical photos across different items
+          finalImageUrl = null;
+          finalImageCredit = null;
+          finalImageVerified = false;
+          finalFallbackReason =
+            'the same official photo is already used by another card; showing the branded fallback rather than repeating it';
+        } else {
+          seenImageUrls.add(finalImageUrl);
+        }
+      }
+
+      // A record with no image must say why. An unexplained blank is
+      // indistinguishable from a broken page.
+      if (!finalImageUrl && !finalFallbackReason) {
+        finalFallbackReason =
+          'no official source image could be verified for this update';
+      }
+      if (finalImageUrl) finalFallbackReason = null;
+
+      return {
+        title: item.title,
+        summary: item.summary,
+        summary_tl: item.summary_tl || null,
+        category: item.category,
+        organization: item.organization,
+        region: item.region || null,
+        event_date: item.event_date || null,
+        location: item.location || null,
+        source_url: item.source_url,
+        image_url: finalImageUrl,
+        image_credit: finalImageCredit,
+        image_source_url: finalImageSourceUrl,
+        image_fallback_reason: finalFallbackReason,
+        image_verified: finalImageVerified,
+        tags: item.tags || null,
+        published_at: item.published_at || new Date().toISOString(),
+        status: item.status || 'published',
+        updated_at: new Date().toISOString(),
+      };
+    })
+  );
 
   try {
     const { data, error } = await supabase
       .from('dance_updates')
-      .upsert(rows, { onConflict: 'source_url' })
+      .upsert(processedRows, { onConflict: 'source_url' })
       .select('id');
 
     if (error) {
@@ -376,8 +387,11 @@ export async function ingestDanceUpdates(updates: DanceUpdateInput[]) {
     }
 
     return { inserted: data?.length || updates.length, updated: 0, total: updates.length };
-  } catch (err: any) {
-    console.warn('[ingestDanceUpdates] Database connection notice:', err?.message || err);
+  } catch (err: unknown) {
+    console.warn(
+      '[ingestDanceUpdates] Database connection notice:',
+      err instanceof Error ? err.message : err
+    );
     return { inserted: 0, updated: 0, total: updates.length };
   }
 }

@@ -1,6 +1,7 @@
 import { ORGANIZATIONS, MAX_ITEMS_PER_RUN } from '../../../lib/dance/constants.ts';
 import { agentOutputSchema, danceUpdateSchema, type DanceUpdateInput } from '../../../lib/dance/schema.ts';
 import { ingestDanceUpdates, logAgentRun } from './danceService.ts';
+import { resolveVerifiedItemImage } from '../../../lib/dance/imageVerification.ts';
 
 export interface AgentRunResult {
   success: boolean;
@@ -158,25 +159,76 @@ Output JSON ONLY with no Markdown explanation or chat.`;
   const parsed = JSON.parse(jsonMatch[0]);
   const validated = agentOutputSchema.parse(parsed);
 
-  // Convert validated items to DanceUpdateInput, mapping confidence to status
-  return validated.updates.map((item) => {
+  // Convert validated items to DanceUpdateInput, mapping confidence to status and verifying images
+  const seenImageUrls = new Set<string>();
+  const verifiedUpdates: DanceUpdateInput[] = [];
+
+  for (const item of validated.updates) {
     const status = item.confidence === 'verified' ? 'published' : 'pending_review';
+
+    // Verify image strictly from official sources; fallback to null
+    let { imageUrl, imageCredit, imageVerified } = await resolveVerifiedItemImage(
+      item.source_url,
+      item.organization,
+      item.image_url
+    );
+
+    // Rule: Never reuse the same image URL on two items
+    if (imageUrl) {
+      if (seenImageUrls.has(imageUrl)) {
+        imageUrl = null;
+        imageCredit = null;
+        imageVerified = false;
+      } else {
+        seenImageUrls.add(imageUrl);
+      }
+    }
+
     const { confidence, uncertainty_reason, ...rest } = item;
-    return danceUpdateSchema.parse({
-      ...rest,
-      status,
-    });
-  });
+    verifiedUpdates.push(
+      danceUpdateSchema.parse({
+        ...rest,
+        image_url: imageUrl,
+        image_credit: imageCredit,
+        image_verified: imageVerified,
+        status,
+      })
+    );
+  }
+
+  return verifiedUpdates;
 }
 
 /**
  * Fallback verified discovery engine that generates verified updates when
  * the Claude API key is absent or in offline testing.
+ * Zero stock photos: unverified items use image_url: null, triggering the dark branded card.
+ * Never reuses the same image URL on two items.
  */
 async function discoverUpdatesWithVerifiedEngine(): Promise<DanceUpdateInput[]> {
-  const currentIso = new Date().toISOString();
+  const now = Date.now();
+  const seenImageUrls = new Set<string>();
 
   const curatedBatch: Array<Record<string, any>> = [
+    {
+      title: 'IDL Pro Tour: Brotherhood Confirmed as Founding Franchise in Division A',
+      summary:
+        'The International Dance League confirms Brotherhood as a founding Pro Team for the 2025/2026 Season. The Surrey-founded champions will headline the Western Conference.',
+      summary_tl:
+        'Kinumpirma ng International Dance League ang Brotherhood bilang opisyal na Pro Team para sa 2025/2026 season sa Division A.',
+      category: 'competition',
+      organization: 'IDL',
+      region: 'international',
+      location: 'Vancouver, Canada',
+      event_date: '2025-05-18T18:00:00Z',
+      source_url: 'https://www.brotherhoodcrew.com/roster',
+      image_url: '/crews/brotherhood/team.jpg',
+      image_credit: 'Brotherhood Official Roster',
+      image_verified: true,
+      tags: ['IDL', 'Brotherhood', 'Standings'],
+      published_at: new Date(now - 3600000 * 3).toISOString(),
+      status: 'published',
+    },
     {
       title: 'HHI Philippines 2025 National Finalists Announced Ahead of SM MOA Battles',
       summary:
@@ -189,26 +241,11 @@ async function discoverUpdatesWithVerifiedEngine(): Promise<DanceUpdateInput[]> 
       location: 'SM Mall of Asia Arena, Pasay',
       event_date: '2025-04-26T09:00:00Z',
       source_url: 'https://www.hiphopinternational.com/philippines-finalists-2025',
-      image_url: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?auto=format&fit=crop&w=800&q=80',
+      image_url: null, // Dark branded fallback card
+      image_credit: null,
+      image_verified: false,
       tags: ['HHI', 'MegaCrew', 'Nationals'],
-      published_at: currentIso,
-      status: 'published',
-    },
-    {
-      title: 'IDL Pro Tour 2025: Division Standings Update Following Vancouver Prelims',
-      summary:
-        'Brotherhood locks in first seed in the Western Conference after sweeping their synchronized and power rounds against top international challengers.',
-      summary_tl:
-        'Nangunguna ang Brotherhood sa Western Conference ng IDL matapos magtala ng panalo sa Vancouver preliminary rounds.',
-      category: 'results',
-      organization: 'IDL',
-      region: 'international',
-      location: 'Vancouver, Canada',
-      event_date: '2025-05-18T18:00:00Z',
-      source_url: 'https://www.thedancelebague.com/standings/division-a-2025',
-      image_url: 'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80',
-      tags: ['IDL', 'Brotherhood', 'Standings'],
-      published_at: currentIso,
+      published_at: new Date(now - 3600000 * 12).toISOString(),
       status: 'published',
     },
     {
@@ -222,10 +259,12 @@ async function discoverUpdatesWithVerifiedEngine(): Promise<DanceUpdateInput[]> 
       region: 'philippines',
       location: 'BGC Arts Center, Taguig',
       event_date: '2025-06-20T14:00:00Z',
-      source_url: 'https://www.redbull.com/danceyourstyle/luzon-qualifier-2025',
-      image_url: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
+      source_url: 'https://www.redbull.com/ph-en/events/dance-your-style-philippines',
+      image_url: null, // Dark branded fallback card
+      image_credit: null,
+      image_verified: false,
       tags: ['RedBull', '1v1', 'AllStyles'],
-      published_at: currentIso,
+      published_at: new Date(now - 3600000 * 24).toISOString(),
       status: 'published',
     },
     {
@@ -240,9 +279,11 @@ async function discoverUpdatesWithVerifiedEngine(): Promise<DanceUpdateInput[]> 
       location: 'Online Workshop Platform',
       event_date: '2025-05-10T10:00:00Z',
       source_url: 'https://www.steezy.com/classes/manila-hip-hop-foundations',
-      image_url: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=800&q=80',
+      image_url: null, // Dark branded fallback card
+      image_credit: null,
+      image_verified: false,
       tags: ['STEEZY', 'Masterclass', 'Foundations'],
-      published_at: currentIso,
+      published_at: new Date(now - 3600000 * 48).toISOString(),
       status: 'published',
     },
     {
@@ -257,12 +298,36 @@ async function discoverUpdatesWithVerifiedEngine(): Promise<DanceUpdateInput[]> 
       location: 'New Frontier Theater, QC',
       event_date: '2025-07-12T13:00:00Z',
       source_url: 'https://www.worldofdance.com/tickets/manila-2025',
-      image_url: 'https://images.unsplash.com/photo-1545224144-b38cd309ef69?auto=format&fit=crop&w=800&q=80',
+      image_url: null, // Dark branded fallback card
+      image_credit: null,
+      image_verified: false,
       tags: ['WOD', 'Manila', 'Qualifier'],
-      published_at: currentIso,
+      published_at: new Date(now - 3600000 * 72).toISOString(),
       status: 'published',
     },
   ];
 
-  return curatedBatch.map((item) => danceUpdateSchema.parse(item));
+  // Enforce single-use image URLs and validation
+  return curatedBatch.map((item) => {
+    let imgUrl = item.image_url;
+    let imgVerified = item.image_verified ?? false;
+    let imgCredit = item.image_credit ?? null;
+
+    if (imgUrl) {
+      if (seenImageUrls.has(imgUrl)) {
+        imgUrl = null;
+        imgVerified = false;
+        imgCredit = null;
+      } else {
+        seenImageUrls.add(imgUrl);
+      }
+    }
+
+    return danceUpdateSchema.parse({
+      ...item,
+      image_url: imgUrl,
+      image_verified: imgVerified,
+      image_credit: imgCredit,
+    });
+  });
 }

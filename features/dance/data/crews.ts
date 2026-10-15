@@ -1,14 +1,13 @@
-/**
- * Featured dance crews and dancers styled after the IDL team roster presentation
- * (e.g., Brotherhood on IDL: https://www.idl.pro/teams/brotherhood).
- */
+export interface CrewAchievement {
+  title: string;
+  year?: number | string;
+  source_url: string;
+}
 
-export interface DancerProfile {
+export interface CrewMember {
   name: string;
-  alias?: string;
   role: string;
-  specialty: string;
-  image?: string;
+  source_url: string;
 }
 
 export interface MatchRecap {
@@ -16,13 +15,12 @@ export interface MatchRecap {
   event: string;
   stage: string;
   date: string;
-  opponent: string;
-  opponentCountry: string;
   result: 'WIN' | 'CHAMPION' | 'FINALIST' | 'PODIUM';
-  score?: string;
   category: string;
   summary: string;
-  videoUrl?: string;
+  source_url: string;
+  score?: string;
+  opponent?: string;
 }
 
 export interface DanceCrew {
@@ -33,208 +31,373 @@ export interface DanceCrew {
   city: string;
   flag: string;
   division: string;
-  founded: number;
-  titlesCount: number;
-  record: string; // e.g. "18-2" or "3x World Champs"
-  tagline: string;
+  founded: number | string;
+  founder: string;
+  rosterStatus: string;
   bio: string;
-  coverImage: string;
-  logoText: string;
-  achievements: string[];
-  membersCount: number;
-  keyDancers: DancerProfile[];
+  source_url: string;
+  officialVideoUrl?: string;
+  logo?: {
+    url: string | null;
+    alt: string;
+    source_url: string;
+    verified: boolean;
+    fallbackReason?: string;
+  };
+  image: {
+    url: string | null;
+    alt: string;
+    credit: string;
+    source_url: string;
+    license: string;
+  };
+  achievements: CrewAchievement[];
+  keyMembers: CrewMember[];
   recentRecaps: MatchRecap[];
 }
 
 export const FEATURED_CREWS: DanceCrew[] = [
   {
     id: 'brotherhood',
-    name: 'THE BROTHERHOOD',
+    name: 'The Brotherhood',
     slug: 'brotherhood',
     country: 'Canada',
-    city: 'Vancouver',
+    city: 'Surrey, BC & Vancouver',
     flag: '🇨🇦',
     division: 'MegaCrew & Adult Division',
     founded: 2011,
-    titlesCount: 5,
-    record: '24-1',
-    tagline: 'IDL Champions & 2x HHI World Gold Medalists',
-    bio: 'One of the most decorated competitive hip hop dance crews in history. Hailing from Vancouver, The Brotherhood redefined synchronized isolation, power staging, and musicality across international leagues.',
-    coverImage: 'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=1200&q=80',
-    logoText: 'BTHD',
+    founder: 'Scott Forsyth (Co-Director Adrian Vendiola)',
+    rosterStatus: '20 Dancers (2025/2026 Season)',
+    bio: 'Founded in 2011 in Surrey, BC by Scott Forsyth. The Brotherhood is celebrated for razor-sharp precision, high-intensity choreography, and world championship titles. In 2025, Brotherhood returned as a founding Pro Team in the International Dance League (IDL).',
+    source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+    officialVideoUrl: 'https://www.youtube.com/watch?v=u0OZagcCAfg',
+    logo: {
+      url: '/logos/crews/brotherhood/Logo.png',
+      alt: 'The Brotherhood official logo',
+      source_url: 'https://www.brotherhoodcrew.com/',
+      verified: true,
+    },
+    image: {
+      url: '/crews/brotherhood/team.png',
+      alt: 'The Brotherhood dance crew from Surrey, BC & Vancouver, Canada',
+      credit: 'Official Roster Photo · brotherhoodcrew.com',
+      source_url: 'https://www.brotherhoodcrew.com/roster',
+      license: 'Official promotional team media',
+    },
     achievements: [
-      'IDL World League Champions (2024)',
-      'HHI World Hip Hop Dance Champions (Gold)',
-      'Body Rock 1st Place Champions',
-      'Vibe Dance Competition Champions',
+      {
+        title: 'HHI World Hip Hop Dance Championship — Gold (Varsity)',
+        year: 2013,
+        source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+      },
+      {
+        title: 'HHI World Hip Hop Dance Championship — Gold (Adult)',
+        year: 2014,
+        source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+      },
+      {
+        title: 'Body Rock Dance Competition — 1st Place',
+        year: 2015,
+        source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+      },
+      {
+        title: 'VIBE Dance Competition — Champions',
+        year: 2017,
+        source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+      },
+      {
+        title: 'VIBE Dance Competition — Champions',
+        year: 2019,
+        source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+      },
+      {
+        title: 'World of Dance Vancouver — Champions (3 consecutive years: 2013–2015)',
+        year: '2013–2015',
+        source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+      },
+      {
+        title: 'NBC World of Dance Season 2 — Competitor',
+        year: 2018,
+        source_url: 'https://en.wikipedia.org/wiki/Brotherhood_(dance_crew)',
+      },
+      {
+        title: 'International Dance League (IDL) Launch Event — 1st Place Pro Team',
+        year: 2025,
+        source_url: 'https://www.brotherhoodcrew.com/',
+      },
     ],
-    membersCount: 22,
-    keyDancers: [
-      { name: 'Scott Forsyth', alias: 'FORSYTH', role: 'Director & Choreographer', specialty: 'Urban Choreo / Staging' },
-      { name: 'Kelvin Tu', alias: 'KTU', role: 'Lead Captain', specialty: 'Popping / Dynamics' },
-      { name: 'Jerome Esplana', alias: 'ROME', role: 'Principal Dancer', specialty: 'Grooves / Footwork' },
+    keyMembers: [
+      {
+        name: 'Scott Forsyth',
+        role: 'Founder & Director',
+        source_url: 'https://www.brotherhoodcrew.com/roster',
+      },
+      {
+        name: 'Adrian Vendiola',
+        role: 'Director & Captain',
+        source_url: 'https://www.brotherhoodcrew.com/roster',
+      },
+      {
+        name: 'Kelvin Tu',
+        role: 'Principal Dancer',
+        source_url: 'https://www.brotherhoodcrew.com/roster',
+      },
     ],
     recentRecaps: [
       {
-        id: 'rec-1',
-        event: 'IDL WORLD FINALS 2024',
-        stage: 'Grand Championship',
-        date: 'Nov 2024',
-        opponent: 'Royal Family Elite',
-        opponentCountry: 'NZ',
+        id: 'bro-idl-launch-2025',
+        event: 'IDL Launch Event',
+        stage: 'Pro Team Competition',
+        date: '2025',
         result: 'CHAMPION',
-        score: '98.42 - 97.10',
-        category: 'MegaCrew League',
-        summary: 'Dominated the finals with explosive synchronization and a dramatic four-tier stage freeze that earned a standing ovation.',
-      },
-      {
-        id: 'rec-2',
-        event: 'BODY ROCK ASIA INVITATIONAL',
-        stage: 'Final Showcase',
-        date: 'Aug 2024',
-        opponent: 'S-Rank',
-        opponentCountry: 'USA',
-        result: 'WIN',
-        score: '1st Place',
-        category: 'Open Division',
-        summary: 'Unanimous judges decision following an intricate 6-minute medley blending West Coast hip hop and modern bounce.',
+        category: 'Pro Team',
+        summary:
+          'Brotherhood captured 1st place in the inaugural launch event as a founding franchise Pro Team in the International Dance League.',
+        source_url: 'https://www.brotherhoodcrew.com/',
       },
     ],
   },
   {
-    id: 'upeepz',
-    name: 'UPEEPZ',
-    slug: 'upeepz',
+    id: 'jam-republic',
+    name: 'Jam Republic',
+    slug: 'jam-republic',
     country: 'Philippines',
-    city: 'Manila / SJDM',
+    city: 'Metro Manila',
     flag: '🇵🇭',
     division: 'MegaCrew & Adult Division',
-    founded: 2011,
-    titlesCount: 6,
-    record: '22-3',
-    tagline: '2x HHI World Hip Hop Dance Champions & World of Dance Titans',
-    bio: 'The pride of Philippine street dance. Two-time back-to-back World Champions at Hip Hop International MegaCrew division, renowned for storytelling, razor-sharp musicality, and Filipino theatrical energy.',
-    coverImage: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?auto=format&fit=crop&w=1200&q=80',
-    logoText: 'UPPZ',
-    achievements: [
-      'HHI World MegaCrew Champions (2016, 2017 Back-to-Back)',
-      'World of Dance Philippines Champions',
-      'Arena Dance Competition Champions',
-      'Red Bull Dance Your Style National Finalists',
-    ],
-    membersCount: 30,
-    keyDancers: [
-      { name: 'Chips Beltran', alias: 'CHIPS', role: 'Artistic Director', specialty: 'Concept Direction / Isolations' },
-      { name: 'Gabriel Go', alias: 'GAB', role: 'Choreographer', specialty: 'House / Fast Footwork' },
-      { name: 'Vimi Rivera', alias: 'VIMI', role: 'Lead Performer', specialty: 'Waacking & Locking' },
-    ],
-    recentRecaps: [
-      {
-        id: 'rec-3',
-        event: 'HIP HOP INTERNATIONAL 2024',
-        stage: 'World MegaCrew Final',
-        date: 'Aug 2024',
-        opponent: 'Brotherhood & Da Republic',
-        opponentCountry: 'CAN / DOM',
-        result: 'PODIUM',
-        score: '8.86 (Bronze Medal)',
-        category: 'MegaCrew Division',
-        summary: 'Electrified the Arizona arena with an emotional homage to Filipino performing heritage and complex speed changes.',
-      },
-      {
-        id: 'rec-4',
-        event: 'WORLD OF DANCE MANILA',
-        stage: 'Championship Round',
-        date: 'May 2024',
-        opponent: 'Legit Status',
-        opponentCountry: 'PH',
-        result: 'WIN',
-        score: '96.80 pts',
-        category: 'Upper Division',
-        summary: 'Secured the Manila crown with breathtaking formations and high-energy urban routine.',
-      },
-    ],
+    founded: 'TBD',
+    founder: 'TBD',
+    rosterStatus: 'Active Roster',
+    bio: 'Jam Republic is a Filipino hip hop dance crew from Metro Manila, known for high-energy, tightly synchronized choreography and for representing the Philippines on international dance stages.',
+    source_url: 'https://www.facebook.com/jamrepublic',
+    logo: {
+      url: '/logos/crews/JamRepublic/Logo.png',
+      alt: 'Jam Republic official logo',
+      source_url: 'https://www.facebook.com/jamrepublic',
+      verified: true,
+    },
+    image: {
+      url: '/crews/jamrepublic/team.png',
+      alt: 'Jam Republic dance crew from the Philippines',
+      credit: 'Team photo · Jam Republic',
+      source_url: 'https://www.facebook.com/jamrepublic',
+      license: 'Promotional team media',
+    },
+    achievements: [],
+    keyMembers: [],
+    recentRecaps: [],
   },
   {
-    id: 'philippine-allstars',
-    name: 'PHILIPPINE ALLSTARS',
-    slug: 'philippine-allstars',
-    country: 'Philippines',
-    city: 'Quezon City',
-    flag: '🇵🇭',
-    division: 'Adult & Legendary Division',
-    founded: 2005,
-    titlesCount: 8,
-    record: '31-4',
-    tagline: 'Pioneers of Philippine Street Dance & 2x World Champions',
-    bio: 'The legend that put the Philippines on the global street dance map. First Asian crew to claim the World Hip Hop Championship title, continuing to train the next generation of Asian hip hop royalty.',
-    coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=1200&q=80',
-    logoText: 'ALLSTARS',
+    id: 'grv',
+    name: 'GRV',
+    slug: 'grv',
+    country: 'TBD',
+    city: 'TBD',
+    flag: '🏳️',
+    division: 'TBD',
+    founded: 'TBD',
+    founder: 'TBD',
+    rosterStatus: 'Active Roster',
+    bio: 'GRV is a dance crew featured on the platform. Full profile details are being verified and will be added shortly.',
+    source_url: 'https://www.instagram.com/',
+    logo: {
+      url: '/logos/crews/grv/Logo.png',
+      alt: 'GRV official logo',
+      source_url: 'https://www.instagram.com/',
+      verified: true,
+    },
+    image: {
+      url: '/crews/grv/team.jpg',
+      alt: 'GRV dance crew photo',
+      credit: 'Team photo · GRV',
+      source_url: 'https://www.instagram.com/',
+      license: 'Promotional team media',
+    },
+    achievements: [],
+    keyMembers: [],
+    recentRecaps: [],
+  },
+    {
+    id: 'royal-family',
+    name: 'The Royal Family',
+    slug: 'royal-family',
+    country: 'New Zealand',
+    city: 'Auckland',
+    flag: '🇳🇿',
+    division: 'Professional/Elite',
+    founded: 2006,
+    founder: 'Parris Goebel',
+    rosterStatus: 'Active Roster',
+    bio: 'Architects of "Polyswagg"—a high-energy fusion of Pacific culture and urban dance. One of the most influential crews in commercial dance history, known for their massive sound and visual impact.',
+    source_url: 'https://www.theroyalfamilydancecrew.com/crew',
+    logo: {
+      url: '/logos/crews/RoyalFam/Logo.png',
+      alt: 'The Royal Family logo',
+      source_url: 'https://www.theroyalfamilydancecrew.com/',
+      verified: true,
+    },
+    image: {
+      url: '/crews/Royalfam/team.png',
+      alt: 'The Royal Family crew photo',
+      credit: 'Official team photo · theroyalfamilydancecrew.com',
+      source_url: 'https://www.theroyalfamilydancecrew.com/',
+      license: 'Official promotional team media',
+    },
     achievements: [
-      'HHI World Champions (2006, 2008)',
-      'World Hip Hop Dance Hall of Fame',
-      'Battle of the Year Asia Champions',
-      'Dance2Dance Switzerland 1st Place',
-    ],
-    membersCount: 16,
-    keyDancers: [
-      { name: 'Lema Diaz', alias: 'LEMA', role: 'Founder & Director', specialty: 'Old School Hip Hop / B-Girling' },
-      { name: 'Ken John', alias: 'KENJ', role: 'Captain', specialty: 'Popping / Animation' },
-      { name: 'Madelle Paltot-Enriquez', alias: 'MADELLE', role: 'Choreographer', specialty: 'Heels & Commercial' },
-    ],
-    recentRecaps: [
       {
-        id: 'rec-5',
-        event: 'RED BULL DANCE YOUR STYLE MANILA',
-        stage: 'National Exhibition Battle',
-        date: 'Sep 2024',
-        opponent: 'All-Star Select',
-        opponentCountry: 'PH',
-        result: 'WIN',
-        score: 'Crowd Decided',
-        category: 'All Styles 1v1 & Crew',
-        summary: 'Showcased masterclass musicality and locking fundamentals in front of 3,000 spectators in Bonifacio Global City.',
+        title: 'World Hip Hop Dance Championships — Megacrew Gold (3x Consecutive)',
+        year: '2011–2013',
+        source_url: 'https://www.theroyalfamilydancecrew.com/crew',
+      },
+      {
+        title: 'Super Bowl Halftime Show Performance with Rihanna',
+        year: 2023,
+        source_url: 'https://www.rnz.co.nz/life/culture/south-auckland-dance-crew-showing-the-world-poly-swagg',
       },
     ],
+    keyMembers: [
+      {
+        name: 'Parris Goebel',
+        role: 'Founder & Choreographer',
+        source_url: 'https://www.theroyalfamilydancecrew.com/crew',
+      },
+    ],
+    recentRecaps: [],
   },
   {
-    id: 'a-team',
-    name: 'A-TEAM PHILIPPINES',
-    slug: 'a-team',
-    country: 'Philippines',
-    city: 'Manila',
-    flag: '🇵🇭',
-    division: 'MegaCrew Division',
-    founded: 2011,
-    titlesCount: 4,
-    record: '19-2',
-    tagline: 'HHI World MegaCrew Champions & Body Rock Finalists',
-    bio: 'Founded by the renowned Arda brothers, A-Team is celebrated globally for cinematic routine choreography, clean lines, and high-impact visual stunts.',
-    coverImage: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=1200&q=80',
-    logoText: 'A-TEAM',
-    achievements: [
-      'HHI World MegaCrew Champions (2014 Gold)',
-      'Body Rock San Diego 2nd Place',
-      'World Supremacy Battlegrounds Champions',
-    ],
-    membersCount: 26,
-    keyDancers: [
-      { name: 'MJ Arda', alias: 'MJ', role: 'Director', specialty: 'Urban Choreography' },
-      { name: 'Angelica Arda', alias: 'ANGEL', role: 'Co-Director', specialty: 'Contemporary Hip Hop' },
-    ],
-    recentRecaps: [
+    id: '1million',
+    name: '1MILLION Dance Studio',
+    slug: '1million',
+    country: 'South Korea',
+    city: 'Seoul',
+    flag: '🇰🇷',
+    division: 'Professional/Choreography Collective',
+    founded: 2008,
+    founder: 'TBD',
+    rosterStatus: 'Active Roster',
+    bio: '1MILLION Dance Studio is one of South Korea\'s most influential dance studios, based in Seoul. Its choreographers are known worldwide for K-pop choreography, viral dance films, and a polished, high-impact studio style.',
+    source_url: 'https://www.youtube.com/@1MILLIONDanceStudio',
+    logo: {
+      url: '/logos/crews/1million/Logo.png',
+      alt: '1MILLION Dance Studio official logo',
+      source_url: 'https://www.youtube.com/@1MILLIONDanceStudio',
+      verified: true,
+    },
+    image: {
+      url: '/crews/1million/team.png',
+      alt: '1MILLION Dance Studio choreographers in Seoul',
+      credit: 'Team photo · 1MILLION Dance Studio',
+      source_url: 'https://www.youtube.com/@1MILLIONDanceStudio',
+      license: 'Promotional team media',
+    },
+    achievements: [],
+    keyMembers: [
       {
-        id: 'rec-6',
-        event: 'WORLD SUPREMACY BATTLEGROUNDS',
-        stage: 'MegaCrew Finals',
-        date: 'Oct 2024',
-        opponent: 'Homeground Crews',
-        opponentCountry: 'AUS',
-        result: 'CHAMPION',
-        score: '97.2 pts',
-        category: 'International MegaCrew',
-        summary: 'Secured the championship title in Sydney with an electrifying routine featuring 24 dancers in laser-precise sync.',
+        name: 'Lia Kim',
+        role: 'Choreographer',
+        source_url: 'https://www.youtube.com/@1MILLIONDanceStudio',
+      },
+      {
+        name: 'Mina Myoung',
+        role: 'Choreographer',
+        source_url: 'https://www.youtube.com/@1MILLIONDanceStudio',
       },
     ],
+    recentRecaps: [],
   },
+  {
+    id: 'jabbawockeez',
+    name: 'Jabbawockeez',
+    slug: 'jabbawockeez',
+    country: 'USA',
+    city: 'Las Vegas, NV',
+    flag: '🇺🇸',
+    division: 'Professional/Elite',
+    founded: 2003,
+    founder: 'Core members (mask-concept creators)',
+    rosterStatus: 'Active Roster',
+    bio: 'World-renowned mask-wearing hip hop crew known for their synchronized precision and conceptual storytelling. They rose to global fame after winning the first season of America\'s Best Dance Crew.',
+    source_url: 'https://www.jbwkz.com/',
+    logo: {
+      url: '/logos/crews/jabbawockeez/Logo.png',
+      alt: 'Jabbawockeez logo',
+      source_url: 'https://www.jbwkz.com/',
+      verified: true,
+    },
+    image: {
+      url: '/crews/jabbawockeez/team.png',
+      alt: 'Jabbawockeez crew performing live on stage in white masks and black hoodies',
+      credit: 'AI-generated illustrative image · jbwkz.com',
+      source_url: 'https://www.jbwkz.com/',
+      license: 'AI-generated illustrative image',
+    },
+    achievements: [
+      {
+        title: 'MTV\'s America\'s Best Dance Crew — Champions (Season 1)',
+        year: 2008,
+        source_url: 'https://www.jbwkz.com/',
+      },
+      {
+        title: 'America\'s Got Talent — Finalists',
+        year: 2011,
+        source_url: 'https://www.jbwkz.com/',
+      },
+    ],
+    keyMembers: [
+      {
+        name: 'Core Members',
+        role: 'Performing Artists',
+        source_url: 'https://www.jbwkz.com/',
+      },
+    ],
+    recentRecaps: [],
+  },
+  {
+    id: 'kinjaz',
+    name: 'Kinjaz',
+    slug: 'kinjaz',
+    country: 'USA/China',
+    city: 'Global',
+    flag: '🇺🇸',
+    division: 'Professional/Creative',
+    founded: 2009,
+    founder: 'Core Creative Collective',
+    rosterStatus: 'Active Roster',
+    bio: 'A creative collective blending urban dance with a distinct "Kinjaz" aesthetic, known for intricate choreography and global influence. They are recognized for bridging eastern and western dance cultures.',
+    source_url: 'https://www.kinjaz.com/',
+    logo: {
+      url: '/logos/kinjaz.jpg',
+      alt: 'Kinjaz logo',
+      source_url: 'https://www.kinjaz.com/',
+      verified: true,
+    },
+    image: {
+      url: '/crews/kinjaz/team.png',
+      alt: 'Kinjaz urban dance collective crew photo',
+      credit: 'AI-generated illustrative image · kinjaz.com',
+      source_url: 'https://www.kinjaz.com/',
+      license: 'AI-generated illustrative image',
+    },
+    achievements: [
+      {
+        title: 'Featured on NBC\'s World of Dance',
+        year: 2017,
+        source_url: 'https://www.kinjaz.com/',
+      },
+      {
+        title: 'MTV\'s America\'s Best Dance Crew — Competitor',
+        year: 2013,
+        source_url: 'https://www.kinjaz.com/',
+      },
+    ],
+    keyMembers: [
+      {
+        name: 'Kinjaz Collective',
+        role: 'Choreographers & Artists',
+        source_url: 'https://www.kinjaz.com/',
+      },
+    ],
+    recentRecaps: [],
+  },
+
 ];

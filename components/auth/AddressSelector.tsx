@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { MapPin, ShieldCheck, CheckCircle2, Lock, Building, Info, Navigation } from 'lucide-react';
+import React, { useEffect, useMemo } from 'react';
+import { MapPin, ShieldCheck, CheckCircle2, Lock, Building, Info, Navigation, Building2 } from 'lucide-react';
 
 export interface AddressData {
   region_code: string;
@@ -130,6 +130,8 @@ export const SJDM_LOCATION = {
 /** `profiles.street` is VARCHAR(160) and holds the street line + ", " + subdivision. */
 const MAX_STREET_LENGTH = 110;
 const MAX_SUBDIVISION_LENGTH = 48;
+
+import { getFeaturedLocations, hasSecondaryFeaturedLocation, type FeaturedLocation } from '@/lib/config/featuredLocations';
 
 /**
  * Join the two free-text address lines into the single line that the
@@ -276,14 +278,21 @@ export function AddressSelector({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-foreground">Service Area Verified</span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
-                <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
-                San Jose del Monte, Bulacan
-              </span>
+              {getFeaturedLocations().map((location, index) => (
+                <span
+                  key={location.cityName}
+                  className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success"
+                >
+                  {index > 0 && <span className="text-muted-foreground">+</span>}
+                  <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                  {location.displayName}
+                </span>
+              ))}
             </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Groove exclusively connects verified artists, coaches, and studios within San Jose del
-              Monte.
+              {hasSecondaryFeaturedLocation()
+                ? 'Groove exclusively connects verified artists, coaches, and studios within San Jose del Monte and its featured partner locations.'
+                : 'Groove exclusively connects verified artists, coaches, and studios within San Jose del Monte.'}
             </p>
           </div>
         </div>

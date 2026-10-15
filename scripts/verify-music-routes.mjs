@@ -64,7 +64,6 @@ const blocked = [
   '/coach',
   '/client',
   '/coach/talents-archive',
-  '/dance-events',
   '/userprofile/abc',
 ];
 for (const path of blocked) {

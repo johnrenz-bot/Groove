@@ -117,145 +117,27 @@ export function getDiscipline(id: string): Discipline | undefined {
 }
 
 /**
- * Does this coach belong to this discipline?
+ * REMOVED WITH THE DISCIPLINE PAGE — and why
+ * ---------------------------------------------------------------------------
+ * `PLACEHOLDER_CLASSES`, `ClassSession` and `coachMatchesDiscipline` all lived
+ * here to serve `DisciplinePage`, which rendered a full coach grid plus an
+ * "Upcoming classes" list on the singing, acting and theater routes.
  *
- * `talents` may be a plain string, a comma-separated legacy value, or a JSON
- * array — `lib/utils.ts` `parseGenres` normalises the last of those. Coercing
- * to a string before searching means an array does not stringify to
- * `["Singing","Dance"]` and accidentally miss on a naive exact match.
+ * The classes list was nine invented sessions: a "Sample Coach", made-up seat
+ * counts, and dates that led nowhere, behind a one-line disclaimer. On a page
+ * that also showed real coaches, that list read as a real schedule. It was the
+ * single most misleading thing in the feature, so when those routes became
+ * "Coming Soon" pages the fabricated dataset was deleted rather than parked —
+ * a placeholder schedule left in the repo is one import away from being
+ * published again.
+ *
+ * `match` stays on every discipline record: it is what classifies a coach for
+ * the community and directory filters, which are live. `coachMatchesDiscipline`
+ * moves there when a discipline page returns; nothing imports it today, so it is
+ * gone rather than exported unused.
+ *
+ * There is still no classes table in the schema. `supabase/schema.sql` has
+ * appointments (one coach, one client, one agreed slot) and nothing that
+ * represents an open class with many attendees. When that table lands, the
+ * schedule section can be built against real rows.
  */
-export function coachMatchesDiscipline(talents: string | null | undefined, match: string[]): boolean {
-  if (!talents) return false;
-  const value = String(talents).toLowerCase();
-  return match.some((term) => value.includes(term));
-}
-
-/* ----------------------------------------------------------------------------
-   UPCOMING CLASSES — PLACEHOLDER DATA.
- *
-   There is no classes table in this schema. `supabase/schema.sql` has
-   appointments (one coach, one client, one agreed slot) and nothing that
-   represents an open class with many attendees. The brief asked for an "upcoming
-   classes" section and to "use placeholders where data is missing", so this is
-   that: a fixed, obviously-fictional sample schedule used to show the section's
-   shape, not a claim that these classes exist.
-
-   It is labelled as a sample in the UI, and every "Book now" routes to the
-   coach directory rather than pretending to open a booking flow for a class that
-   does not exist. When a real classes table lands, replace `PLACEHOLDER_CLASSES`
-   with a query and delete `isPlaceholder` from the props.
-   ---------------------------------------------------------------------------- */
-export interface ClassSession {
-  id: string;
-  discipline: DisciplineId;
-  title: string;
-  coach: string;
-  /** ISO date. */
-  date: string;
-  time: string;
-  duration: string;
-  location: string;
-  seats: number;
-}
-
-export const PLACEHOLDER_CLASSES: ClassSession[] = [
-  {
-    id: 'sample-dance-1',
-    discipline: 'dance',
-    title: 'Contemporary Foundations — Open Class',
-    coach: 'Sample Coach',
-    date: '2026-11-07',
-    time: '10:00',
-    duration: '2 hours',
-    location: 'San Jose del Monte',
-    seats: 12,
-  },
-  {
-    id: 'sample-dance-2',
-    discipline: 'dance',
-    title: 'Hip-Hop Crew Rehearsal',
-    coach: 'Sample Coach',
-    date: '2026-11-12',
-    time: '16:00',
-    duration: '90 minutes',
-    location: 'Online',
-    seats: 8,
-  },
-  {
-    id: 'sample-dance-3',
-    discipline: 'dance',
-    title: 'Ballet I — First Position',
-    coach: 'Sample Coach',
-    date: '2026-11-15',
-    time: '09:00',
-    duration: '60 minutes',
-    location: 'San Jose del Monte',
-    seats: 15,
-  },
-  {
-    id: 'sample-singing-1',
-    discipline: 'singing',
-    title: 'Breath & Belting — Vocal Technique',
-    coach: 'Sample Coach',
-    date: '2026-11-08',
-    time: '14:00',
-    duration: '90 minutes',
-    location: 'Online',
-    seats: 10,
-  },
-  {
-    id: 'sample-singing-2',
-    discipline: 'singing',
-    title: 'Harmony Workshop — Two-Part Singing',
-    coach: 'Sample Coach',
-    date: '2026-11-14',
-    time: '10:30',
-    duration: '2 hours',
-    location: 'San Jose del Monte',
-    seats: 14,
-  },
-  {
-    id: 'sample-acting-1',
-    discipline: 'acting',
-    title: 'Scene Study — Two-Hander',
-    coach: 'Sample Coach',
-    date: '2026-11-09',
-    time: '13:00',
-    duration: '2 hours',
-    location: 'Online',
-    seats: 8,
-  },
-  {
-    id: 'sample-acting-2',
-    discipline: 'acting',
-    title: 'Monologue Lab — Audition Pieces',
-    coach: 'Sample Coach',
-    date: '2026-11-16',
-    time: '15:00',
-    duration: '90 minutes',
-    location: 'San Jose del Monte',
-    seats: 10,
-  },
-  {
-    id: 'sample-theater-1',
-    discipline: 'theater',
-    title: 'Musical Number Blocking',
-    coach: 'Sample Coach',
-    date: '2026-11-10',
-    time: '18:00',
-    duration: '3 hours',
-    location: 'San Jose del Monte',
-    seats: 20,
-  },
-  {
-    id: 'sample-theater-2',
-    discipline: 'theater',
-    title: 'Triple-Threat Intensive — Audition Prep',
-    coach: 'Sample Coach',
-    date: '2026-11-17',
-    time: '09:30',
-    duration: '4 hours',
-    location: 'Online',
-    seats: 12,
-  },
-];

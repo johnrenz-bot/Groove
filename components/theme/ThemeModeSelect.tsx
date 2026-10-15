@@ -3,6 +3,7 @@
 import React from 'react';
 import { Laptop, Moon, Sun } from 'lucide-react';
 import { useTheme, type ThemeMode } from './ThemeProvider';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 /**
  * The Dark / Light / System chooser.
@@ -22,18 +23,19 @@ import { useTheme, type ThemeMode } from './ThemeProvider';
  * A radiogroup rather than three buttons: exactly one is always active, so the
  * arrow-key and roving-tabindex semantics of a radio set are the honest match.
  */
-const OPTIONS: { value: ThemeMode; label: string; Icon: typeof Moon }[] = [
-  { value: 'light', label: 'Light', Icon: Sun },
-  { value: 'dark', label: 'Dark', Icon: Moon },
-  { value: 'system', label: 'System', Icon: Laptop },
-];
-
 export function ThemeModeSelect() {
   const { mode, setThemeMode } = useTheme();
+  const { t } = useLanguage();
+
+  const options: Array<{ value: ThemeMode; label: string; Icon: typeof Moon }> = [
+    { value: 'light', label: t('header.themeLight', 'Light'), Icon: Sun },
+    { value: 'dark', label: t('header.themeDark', 'Dark'), Icon: Moon },
+    { value: 'system', label: t('header.themeSystem', 'System'), Icon: Laptop },
+  ];
 
   return (
-    <div className="g-theme-picker" role="radiogroup" aria-label="Colour theme">
-      {OPTIONS.map(({ value, label, Icon }) => {
+    <div className="g-theme-picker" role="radiogroup" aria-label={t('header.themeLabel', 'Colour theme')}>
+      {options.map(({ value, label, Icon }) => {
         const active = mode === value;
         return (
           <button

@@ -18,27 +18,24 @@ import type { Profile } from '@/lib/types';
 import { ROLE_META } from '@/components/shared/AppTopNav';
 import { PresenceDot, StatusSelect } from '@/components/shared/StatusSelect';
 import { ThemeModeSelect } from '@/components/theme/ThemeModeSelect';
+import { useLanguage, translateIn, dashboardLanguage } from '@/lib/i18n/LanguageProvider';
 import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { usePresence } from '@/features/presence/hooks/usePresence';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { greetingFor, showsIdentityPill } from '@/lib/header/accountPill';
+export { greetingFor, showsIdentityPill };
 import type { NavRole } from './navConfig';
 
 /**
- * Time-of-day greeting. A coach is addressed as "Coach {name}" because that is
- * the role they are performing in this session; a client is greeted as a
- * returning visitor, because for them this is a place they visit rather than a
- * job they log into.
+ * `greetingFor` and `showsIdentityPill` live in `lib/header/accountPill.ts` so
+ * that `scripts/verify-header-contract.ts` can assert them under plain Node,
+ * which cannot load a `.tsx` module. They are re-exported here because this has
+ * always been where consumers have imported them from.
  *
- * Rendered from a ticking hour rather than read once, so a session left open
- * across lunchtime updates itself instead of saying "Good evening" at 11am.
+ *   `showsIdentityPill` decides whether the account trigger shows the name and
+ *   role line beside the avatar. It is `coach` only: a client's trigger is the
+ *   avatar, its presence dot and the caret, and nothing else.
  */
-function greetingFor(role: NavRole, firstname: string, hour: number): string {
-  if (role === 'coach') {
-    const part = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    return `${part}, Coach ${firstname}`;
-  }
-  return `Welcome back, ${firstname}`;
-}
-
 /**
  * The account cluster: identity pill + its panel.
  *
@@ -90,6 +87,7 @@ export function UserMenu({
   // `user` is briefly null the hook count would change and React would discard
   // the component's state.
   const myPresence = usePresence(user?.id, user?.status);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const interval = setInterval(() => setHour(new Date().getHours()), 60000);
@@ -117,6 +115,25 @@ export function UserMenu({
   const displayName = user.firstname || 'Artist';
   const avatar = user.photo_url;
 
+  /**
+   * CLIENTS GET THE AVATAR ALONE.
+   *
+   * `showsIdentityPill` holds the rule (see its doc comment): coach keeps the
+   * name and role line, client does not. The panel below opens on the same click
+   * either way and still leads with the full name, email, role badge and
+   * greeting, so nothing is lost. Below `sm` this pill already collapsed to the
+   * avatar for everyone, which is the same thing a desktop client now sees.
+   *
+   * Because the visible text is gone for clients, the trigger carries an
+   * `aria-label`. Without it the button is announced as "button", which is the
+   * one control in the bar a screen-reader user cannot identify.
+   */
+  const showIdentityText = showsIdentityPill(role);
+  const fullName = `${user.firstname} ${user.lastname}`.trim() || displayName;
+  const triggerLabel = t('header.accountOf', `Account menu for ${fullName}`, {
+    name: showIdentityText ? fullName : `${fullName} (${meta.label})`,
+  });
+
   return (
     <div className="relative">
       <button
@@ -126,7 +143,8 @@ export function UserMenu({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        className="hx-account"
+        aria-label={triggerLabel}
+        className={`hx-account${showIdentityText ? '' : ' hx-account--avatar-only'}`}
       >
         {/* Positioning context for the presence dot. The dot itself is a static
             inline span (`.g-presence-dot`), so without `hx-presence` on the
@@ -136,16 +154,25 @@ export function UserMenu({
           {avatar ? (
             <Image src={avatar} alt="" width={34} height={34} className="hx-avatar-img" />
           ) : (
-            <span className="hx-avatar">{getInitials(user.firstname, user.lastname)}</span>
+            /* Initials fallback. A client with no `photo_url` still gets a real,
+               visible identity here rather than a broken image or an empty
+               circle — and the same fallback is repeated, larger, in the panel. */
+            <span className="hx-avatar" aria-hidden="true">
+              {getInitials(user.firstname, user.lastname)}
+            </span>
           )}
           <span className="hx-presence">
             <PresenceDot status={myPresence} size="sm" />
           </span>
         </span>
-        <span className="hx-account-meta">
-          <span className="hx-account-name">{displayName}</span>
-          <span className="hx-account-sub">{meta.label}</span>
-        </span>
+
+        {showIdentityText && (
+          <span className="hx-account-meta">
+            <span className="hx-account-name">{displayName}</span>
+            <span className="hx-account-sub">{meta.label}</span>
+          </span>
+        )}
+
         <ChevronDown className="hx-caret" aria-hidden="true" />
       </button>
 
@@ -153,7 +180,7 @@ export function UserMenu({
         <div
           id={menuId}
           role="dialog"
-          aria-label="Account"
+          aria-label={t('header.accountTitle', 'Account')}
           className="hx-panel hx-panel--account"
         >
           <div className="hx-panel-head">
@@ -184,41 +211,50 @@ export function UserMenu({
           <div className="hx-panel-body">
             <Link href={meta.profile} className="hx-menu-item" onClick={onNavigate}>
               <User className="hx-menu-item-icon" aria-hidden="true" />
-              Profile
+              {t('header.profile', 'Profile')}
             </Link>
             <Link href={meta.editProfile} className="hx-menu-item" onClick={onNavigate}>
               <Pencil className="hx-menu-item-icon" aria-hidden="true" />
-              {meta.editProfileLabel}
+              {role === 'coach'
+                ? t('header.editCoachProfile', meta.editProfileLabel)
+                : t('header.editClientProfile', meta.editProfileLabel)}
             </Link>
             <Link href={meta.settings} className="hx-menu-item" onClick={onNavigate}>
               <Settings2 className="hx-menu-item-icon" aria-hidden="true" />
-              Account Settings
+              {t('header.accountSettings', 'Account Settings')}
             </Link>
             <SwitchRoleItem role={role} onNavigate={onNavigate} />
           </div>
 
-          {/* Status, Appearance and Sound are account-level preferences about how
+          {/* Status, Language, Appearance and Sound are account-level preferences about how
               this member is reachable and how the app behaves for them — the same
               class of thing as the theme chooser, not a destination. They are
               grouped here rather than in the nav for that reason, and they are
               REPEATED in the drawer because on a phone the drawer is the
               primary surface and this panel is not reachable there. */}
           <div className="hx-account-section">
-            <p className="hx-account-section-label">Status</p>
+            <p className="hx-account-section-label">{t('header.status', 'Status')}</p>
             <div className="hx-account-section-body">
               <StatusSelect userId={user.id} fallbackStatus={user.status} />
             </div>
           </div>
 
+            <div className="hx-account-section">
+              <p className="hx-account-section-label">Language / Wika</p>
+              <div className="hx-account-section-body">
+                <LanguageSwitcher />
+              </div>
+            </div>
+
           <div className="hx-account-section">
-            <p className="hx-account-section-label">Appearance</p>
+            <p className="hx-account-section-label">{t('header.appearance', 'Appearance')}</p>
             <div className="hx-account-section-body">
               <ThemeModeSelect />
             </div>
           </div>
 
           <div className="hx-account-section">
-            <p className="hx-account-section-label">Sound</p>
+            <p className="hx-account-section-label">{t('header.sound', 'Sound')}</p>
             <div className="hx-account-section-body">
               <SoundToggle />
             </div>
@@ -227,7 +263,7 @@ export function UserMenu({
           <div className="hx-panel-foot">
             <button type="button" onClick={onLogout} className="hx-menu-item hx-menu-item--danger">
               <LogOut className="hx-menu-item-icon" aria-hidden="true" />
-              Sign Out
+              {t('header.signOut', 'Sign Out')}
             </button>
           </div>
         </div>
@@ -298,10 +334,16 @@ function SwitchRoleItem({ role, onNavigate }: { role: NavRole; onNavigate?: () =
   return (
     <Link href={target.path} className="hx-menu-item" onClick={onNavigate}>
       <Repeat2 className="hx-menu-item-icon" aria-hidden="true" />
-      Switch to {target.label}
+      <SwitchRoleLabel role={role} fallback={target.label} />
     </Link>
   );
 }
 
-export { greetingFor };
+function SwitchRoleLabel({ role, fallback }: { role: NavRole; fallback: string }) {
+  const { t } = useLanguage();
+  return (
+    <>{role === 'coach' ? t('header.switchToClient', fallback) : t('header.switchToCoach', fallback)}</>
+  );
+}
+
 export default UserMenu;

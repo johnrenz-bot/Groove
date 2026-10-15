@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Flame, Trophy, Swords, Calendar } from 'lucide-react';
+import { Trophy, Calendar, ExternalLink } from 'lucide-react';
 import type { MatchRecap } from '../data/crews';
+import { ReportIssueLink } from './ReportIssueLink';
+import { cn } from '@/components/shared/cn';
 
 interface MatchRecapsSectionProps {
   recaps: MatchRecap[];
@@ -13,17 +15,17 @@ export function MatchRecapsSection({ recaps, crewName }: MatchRecapsSectionProps
   if (!recaps || recaps.length === 0) return null;
 
   return (
-    <div className="border border-white/10 bg-[#0A141C] p-6">
-      {/* Sports Match Recaps Title */}
-      <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
+    <div className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
+      {/* Title */}
+      <div className="mb-4 flex items-center justify-between border-b border-divider pb-3">
         <div className="flex items-center gap-2">
-          <Flame className="h-4 w-4 text-[#C8102E]" />
-          <h4 className="font-mono text-xs font-black uppercase tracking-widest text-white">
-            MATCH RECAPS & BATTLE BREAKDOWN
+          <Trophy className="h-4 w-4 text-accent-text" />
+          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Official Match Recaps &amp; Battle Breakdown
           </h4>
         </div>
-        <span className="font-mono text-[10px] uppercase text-[#C6F10E]">
-          OFFICIAL SCORECARDS
+        <span className="text-[10px] font-medium text-muted-foreground">
+          Verified Records
         </span>
       </div>
 
@@ -35,50 +37,69 @@ export function MatchRecapsSection({ recaps, crewName }: MatchRecapsSectionProps
           return (
             <div
               key={recap.id}
-              className="border-l-4 border-[#C8102E] bg-[#050B10] p-4 transition-all hover:border-[#C6F10E]"
+              className="rounded-xl border border-border bg-muted/20 p-4 transition-all hover:border-border-strong"
             >
               {/* Event Name & Date */}
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-mono text-xs font-black uppercase tracking-wider text-[#C6F10E]">
+                <span className="text-xs font-bold text-foreground">
                   {recap.event}
                 </span>
-                <span className="flex items-center gap-1 font-mono text-[10px] text-[#93A3AF]">
+                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Calendar className="h-3 w-3" />
                   {recap.date} · {recap.stage}
                 </span>
               </div>
 
-              {/* Head-to-Head Banner */}
-              <div className="mt-2 flex items-center justify-between border-t border-b border-white/5 py-2">
-                <div className="flex items-center gap-2 font-mono text-sm font-black uppercase text-white">
+              {/* Head-to-Head & Results Banner */}
+              <div className="mt-2.5 flex items-center justify-between border-b border-t border-divider/60 py-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
                   <span>{crewName}</span>
-                  <span className="text-xs text-[#C8102E]">VS</span>
-                  <span className="text-white/80">{recap.opponent} ({recap.opponentCountry})</span>
+                  {recap.opponent && (
+                    <>
+                      <span className="text-[10px] text-muted-foreground">VS</span>
+                      <span className="text-muted-foreground">{recap.opponent}</span>
+                    </>
+                  )}
                 </div>
 
-                {/* Score & Verdict Tag */}
+                {/* Result Tag (Small accent) */}
                 <div className="flex items-center gap-2">
                   {recap.score && (
-                    <span className="font-mono text-xs font-bold text-[#93A3AF]">
+                    <span className="text-xs font-semibold text-muted-foreground">
                       {recap.score}
                     </span>
                   )}
                   <span
-                    className={`px-2 py-0.5 font-mono text-[10px] font-black uppercase ${
+                    className={cn(
+                      'rounded-full border px-2.5 py-0.5 text-[10px] font-bold',
                       isChamp || isWin
-                        ? 'bg-[#C6F10E] text-[#050B10]'
-                        : 'bg-[#C8102E] text-white'
-                    }`}
+                        ? 'border-success/40 bg-success-soft text-success'
+                        : 'border-warning/40 bg-warning-soft text-warning'
+                    )}
                   >
                     {recap.result}
                   </span>
                 </div>
               </div>
 
-              {/* Editorial Summary */}
-              <p className="mt-2 text-xs leading-relaxed text-[#93A3AF]">
+              {/* Summary */}
+              <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
                 {recap.summary}
               </p>
+
+              {/* Source Link */}
+              <div className="mt-3 flex flex-wrap items-center justify-end gap-3">
+                <ReportIssueLink itemTitle={`${crewName} — ${recap.event}`} itemId={recap.id} kind="Result" />
+                <a
+                  href={recap.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md text-[11px] font-semibold text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                >
+                  <span>Verification Source</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
             </div>
           );
         })}

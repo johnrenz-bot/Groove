@@ -107,14 +107,28 @@ export default function ClientTalentPage() {
    * framework support at all.
    */
   useEffect(() => {
-    const applyHash = () => {
+    const applyHashAndParams = () => {
       const hash = window.location.hash.replace('#', '');
       if (hash === 'showcase') setActiveTab('community');
       else if (hash === 'directory') setActiveTab('coaches');
+
+      const params = new URLSearchParams(window.location.search);
+      const talentParam = params.get('talent') || params.get('discipline');
+      if (talentParam) {
+        const match = DISCIPLINE_PRESETS.find(
+          (p) =>
+            p.id.toLowerCase() === talentParam.toLowerCase() ||
+            p.label.toLowerCase().includes(talentParam.toLowerCase())
+        );
+        if (match) {
+          setSelectedTalent(match.id);
+          setActiveTab('coaches');
+        }
+      }
     };
-    applyHash();
-    window.addEventListener('hashchange', applyHash);
-    return () => window.removeEventListener('hashchange', applyHash);
+    applyHashAndParams();
+    window.addEventListener('hashchange', applyHashAndParams);
+    return () => window.removeEventListener('hashchange', applyHashAndParams);
   }, []);
 
   // Filter coaches

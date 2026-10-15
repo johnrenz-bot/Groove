@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AppTopNav, type DashboardRole } from '@/components/shared/AppTopNav';
-import { Header } from '@/components/header/Header';
+import { AppHeader } from '@/components/shared/AppHeader';
 import type { NavGroup, NavItem, RoleNav } from '@/components/shared/navTypes';
 import { ADMIN_NAV, ADMIN_PORTAL_LABEL } from '@/components/admin/navigation';
 import { CLIENT_NAV, CLIENT_PORTAL_LABEL } from '@/components/client/navigation';
@@ -96,17 +96,16 @@ export function DashboardLayout({
   const useNewHeader = role === 'client' || role === 'coach';
 
   const content = (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground relative">
+    <div className="relative isolate min-h-screen font-sans text-foreground">
+      {/* No `bg-background` here by design: the page colour lives only on
+          <body>, so the fixed <PagePatterns /> layer (z-0, mounted once in the
+          root layout) stays visible through this transparent shell. The old
+          per-shell <PatternBackdrop /> was removed so it cannot double-render.
+          Cards, modals and panels keep their own opaque surfaces. */}
       <LoadingScreen minDuration={500} />
 
       {useNewHeader ? (
-        /* `role` is not passed: the header reads it from `<SessionProvider>`,
-           which resolves `profiles.role` — the same authoritative column the
-           Supabase middleware gates on. Passing the route group's role here
-           would let the bar disagree with the router, and a coach handed
-           "client" by a layout would see the wrong menu. `homeHref` stays as an
-           override for the one case a portal needs a different landing route. */
-        <Header homeHref={homeHref ?? ROLE_HOME[role]} />
+        <AppHeader role={role} homeHref={homeHref ?? ROLE_HOME[role]} />
       ) : (
         <AppTopNav
           role={role}
@@ -120,14 +119,17 @@ export function DashboardLayout({
 
       {showMaintenanceBanner && <MaintenanceBanner />}
 
-      <main className="flex-1 px-5 py-7 sm:px-8 sm:py-9">
+      <main className="relative z-10 flex-1 px-5 py-7 sm:px-8 sm:py-9">
         <div className="mx-auto w-full max-w-[1240px]">{children}</div>
       </main>
 
       {showWelcomeModal && <WelcomeModal role={role} />}
 
-      {/* Persistent Floating GrooveyAI Assistant */}
-      <GrooveyFloatingAssistant />
+      {/* Persistent Floating GrooveyAI Assistant — the ONE floating widget in
+          the app. Role-aware label: "Ask AI coach" for clients, "Ask AI
+          assistant" for coach/admin. Pages must NOT render their own copy
+          (the legacy GrooveyAIFab was removed for exactly this reason). */}
+      <GrooveyFloatingAssistant role={role === 'client' ? 'client' : 'coach'} />
 
       {/* The floating music dock was removed. Music now lives entirely inside the
           Community Showcase hub bar, and `MusicPlayerProvider` gates itself to the

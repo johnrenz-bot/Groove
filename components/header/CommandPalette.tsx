@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CornerDownLeft, Search, UserRound } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
@@ -8,12 +8,11 @@ import { cn } from '@/components/shared/cn';
 import { getInitials } from '@/lib/utils';
 import { useUserSearch } from '@/components/shared/useUserSearch';
 import {
-  descriptionFor,
   hrefFor,
-  labelFor,
   leavesForRole,
   type NavRole,
 } from './navConfig';
+import { translateIn, translateNavLeaf, useLanguage, dashboardLanguage } from '@/lib/i18n/LanguageProvider';
 
 type Row =
   | {
@@ -41,28 +40,24 @@ type Row =
 export function CommandPalette({
   open,
   role,
-  danceAllowed,
   onClose,
 }: {
   open: boolean;
   role: NavRole;
-  danceAllowed: boolean;
   onClose: () => void;
 }) {
   // The body is a separate component so the palette is BORN blank every time it
   // opens. Clearing `query` from an effect on the open transition would be a
   // cascading render on every open, and would still show the previous query for
   // one frame.
-  return open ? <PaletteBody role={role} danceAllowed={danceAllowed} onClose={onClose} /> : null;
+  return open ? <PaletteBody role={role} onClose={onClose} /> : null;
 }
 
 function PaletteBody({
   role,
-  danceAllowed,
   onClose,
 }: {
   role: NavRole;
-  danceAllowed: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -72,47 +67,49 @@ function PaletteBody({
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const people = useUserSearch();
+  const { language } = useLanguage();
+  // Guests (landing / public) stay English-only by design.
+  const lang = dashboardLanguage(role, language);
+  const t = (key: string, fallback?: string) => translateIn(lang, key, fallback);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const navRows = useMemo(
-    () =>
-      leavesForRole(role, { danceAllowed }).map(({ leaf }) => {
-        const label = labelFor(leaf, role);
-        const description = descriptionFor(leaf, role);
-        return {
-          kind: 'page' as const,
-          id: leaf.id,
-          label,
-          description,
-          href: hrefFor(leaf, role),
-          icon: leaf.icon,
-          // Searching "coach" should find "Find Coaches" even though the word
-          // appears in its description and keywords, not its label.
-          haystack: [label, description, ...(leaf.keywords ?? [])].join(' ').toLowerCase(),
-        };
-      }),
-    [role, danceAllowed]
-  );
+  // Plain computations, no manual memo: the leaf list is tiny (~15 entries)
+  // and people results are already bounded by the search hook. (A manual
+  // useMemo here trips the React Compiler's preserve-manual-memoization
+  // check once the language is a dependency — the compiler memoizes this
+  // component itself.)
+  const navRows = leavesForRole(role).map(({ leaf }) => {
+    const { label, description } = translateNavLeaf(lang, leaf, role);
+    return {
+      kind: 'page' as const,
+      id: leaf.id,
+      label,
+      description,
+      href: hrefFor(leaf, role),
+      icon: leaf.icon,
+      // Searching "coach" should find "Find Coaches" even though the word
+      // appears in its description and keywords, not its label.
+      haystack: [label, description, ...(leaf.keywords ?? [])].join(' ').toLowerCase(),
+    };
+  });
 
-  const rows = useMemo<Row[]>(() => {
-    const q = query.trim().toLowerCase();
-    const pages = q
-      ? navRows.filter((row) => row.haystack.includes(q)).slice(0, 6)
-      : navRows.slice(0, 6);
-    const matchedPeople = people.isSearchable
-      ? people.results.map((person) => ({
-          kind: 'person' as const,
-          id: person.id,
-          label: `${person.firstname} ${person.lastname}`.trim(),
-          description: [person.role, person.city_name].filter(Boolean).join(' · ') || undefined,
-          href: `/userprofile/${person.id}`,
-        }))
-      : [];
-    return [...pages, ...matchedPeople];
-  }, [query, navRows, people.isSearchable, people.results]);
+  const q = query.trim().toLowerCase();
+  const pages = q
+    ? navRows.filter((row) => row.haystack.includes(q)).slice(0, 6)
+    : navRows.slice(0, 6);
+  const matchedPeople = people.isSearchable
+    ? people.results.map((person) => ({
+        kind: 'person' as const,
+        id: person.id,
+        label: `${person.firstname} ${person.lastname}`.trim(),
+        description: [person.role, person.city_name].filter(Boolean).join(' · ') || undefined,
+        href: `/userprofile/${person.id}`,
+      }))
+    : [];
+  const rows: Row[] = [...pages, ...matchedPeople];
 
   /**
    * Any edit invalidates the highlight — the highlighted row is no longer the
@@ -167,8 +164,8 @@ function PaletteBody({
           value={query}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Search pages and people…"
-          aria-label="Search pages and people"
+          placeholder={t('palette.placeholder', 'Search pages and people…')}
+          aria-label={t('palette.placeholder', 'Search pages and people')}
           aria-expanded={true}
           aria-controls="hx-cmdk-list"
           aria-activedescendant={rows[activeIndex] ? `hx-cmdk-${rows[activeIndex].id}` : undefined}
@@ -190,16 +187,16 @@ function PaletteBody({
         {rows.length === 0 && (
           <p className="hx-cmdk-empty">
             {query.trim()
-              ? `Nothing matches “${query.trim()}”.`
+              ? t('palette.noResults', 'No matches. Try a different word.')
               : people.status === 'loading'
-                ? 'Searching…'
-                : 'Type to search pages and people.'}
+                ? t('common.loading', 'Loading…')
+                : t('palette.placeholder', 'Search pages and people…')}
           </p>
         )}
 
         {hasPages && (
           <>
-            <p className="hx-cmdk-group">Pages</p>
+            <p className="hx-cmdk-group">{t('palette.pages', 'Pages')}</p>
             {/* `index` is the position in the FLAT `rows` list, not within this
                 group — the highlight is shared with the people rows below, so
                 both groups must agree on what is "current". */}
@@ -222,7 +219,7 @@ function PaletteBody({
           <>
             <p className="hx-cmdk-group">
               <UserRound className="h-3 w-3" aria-hidden="true" />
-              People
+              {t('palette.people', 'People')}
             </p>
             {rows.map((row, index) =>
               row.kind === 'person' ? (
@@ -243,13 +240,13 @@ function PaletteBody({
       <div className="hx-cmdk-foot">
         <span>
           <kbd className="hx-cmdk-kbd">↑</kbd>
-          <kbd className="hx-cmdk-kbd">↓</kbd> to navigate
+          <kbd className="hx-cmdk-kbd">↓</kbd> {t('palette.navigate', 'to navigate')}
         </span>
         <span>
           <kbd className="hx-cmdk-kbd">
             <CornerDownLeft className="h-3 w-3" aria-hidden="true" />
           </kbd>
-          to open
+          {t('palette.openHint', 'to open')}
         </span>
       </div>
     </Modal>

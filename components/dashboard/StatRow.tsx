@@ -6,6 +6,7 @@ export interface StatRowItem {
   label: string;
   description?: string;
   icon: React.ReactNode;
+  accentBar?: 'gold' | 'blue' | 'red' | 'green';
 }
 
 export interface StatRowProps {
@@ -18,7 +19,7 @@ export function StatRow({ stats, loading = false }: StatRowProps) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="g-skeleton h-32 rounded-[20px]" aria-hidden />
+          <div key={i} className="g-skeleton h-32 rounded-[var(--ph-radius-lg)]" aria-hidden />
         ))}
       </div>
     );
@@ -33,6 +34,7 @@ export function StatRow({ stats, loading = false }: StatRowProps) {
           label={s.label}
           description={s.description}
           icon={s.icon}
+          accentBar={s.accentBar}
         />
       ))}
     </div>

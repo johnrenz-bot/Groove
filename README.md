@@ -78,7 +78,6 @@ GrooveSystem/
 │   ├── api/                          # Server Route Handlers (/api/ai, /api/studios, /api/tickets, /api/admin)
 │   ├── auth/callback/                # OAuth & Supabase session exchange callback
 │   ├── contracts/[id]/               # Digital contract view and sign route
-│   ├── dance-events/                 # External dance events directory page
 │   ├── login/, register/*            # Authentication routes (dark-mode enforced)
 │   ├── messages/                     # Direct messaging page
 │   ├── userprofile/[id]/             # Public coach and client showcase profile
@@ -96,10 +95,7 @@ GrooveSystem/
 │   │   ├── components/               # CommunityFeed.tsx, SignedMedia.tsx
 │   │   ├── services/                 # communityService.ts
 │   │   └── utils/                    # community.ts, communityMedia.ts
-│   ├── dance/                        # Dance events feed, access gates, and external sources
-│   │   ├── components/               # DanceEventsFeed.tsx
-│   │   ├── hooks/                    # useDanceAccess.ts
-│   │   └── services/                 # danceAccess.ts, danceEventSources.ts
+│   ├── dance/                        # Dance community page: verified league updates, org directory, crews and match recaps
 │   ├── presence/                     # Real-time user status (online, busy, away, offline)
 │   │   ├── components/               # PresenceBridge.tsx, StatusSelect.tsx
 │   │   ├── hooks/                    # usePresence.ts

@@ -113,6 +113,22 @@
   --ph-blue: #0038A8;
   --ph-red: #CE1126;
   --ph-yellow: #FCD116;
+  /* Crew Dossier Design Tokens — specific to the Featured Crews section.
+     These are distinct from the global brand tokens to match the reference design. */
+  --crew-bg-page: #0A0A0A;
+  --crew-bg-card: #101010;
+  --crew-bg-tile: #151515;
+  --crew-bg-row: #131313;
+  --crew-border: #2A2823;
+  --crew-border-hover: #8F7335;
+  --crew-bg-hover: #1A160D;
+  --crew-bg-row-hover: #17140D;
+  --crew-text-primary: #F3EEDF;
+  --crew-text-body: #CFC9BA;
+  --crew-text-muted: #A39B87;
+  --crew-accent-gold: #D4B366;
+  --crew-chip-hover-bg: rgba(143, 115, 53, 0.22);
+  --crew-chip-hover-text: #E2C887;
 }
 
 /* ------------------------------------------------------------------------------
@@ -234,6 +250,98 @@
   --layer: var(--muted);
   --brand-soft: var(--accent-soft);
   --shadow: var(--shadow-sm);
+
+  /* Shared corner-pattern decoration (<PagePatterns />, mounted once in the
+     root layout for Landing/Client/Coach/Admin). NOTE: this codebase has no
+     `.dark` class on <html> — dark is the `:root` default and light is `.light` — so
+     the dark values live on `:root` and the light overrides below. Subtle by
+     design: never competes with text, cards or buttons. */
+  --pattern-color: #c9a24a;
+  --pattern-opacity: 0.2;
+  --pattern-opacity-sun: 0.25;
+}
+
+/* ------------------------------------------------------------------------------
+   `.dark` — forced-dark scope for Landing + auth pages.
+
+   The ThemeProvider toggles `.light` on <html>; there is intentionally no
+   global `.dark` class. This scope lets a SUBTREE opt into the dark palette
+   (wrapping the landing page and the auth routes) WITHOUT touching
+   localStorage or the <html> class — so the saved Light/Dark/System choice
+   is untouched and the dashboards keep switching normally. Values are the
+   same dark defaults as `:root` above; keep the two in sync.
+   ------------------------------------------------------------------------------ */
+.dark {
+  color-scheme: dark;
+
+  --background: #000000;
+  --surface: #171717;
+  --elevated: #171717;
+  --card: #171717;
+  --card-foreground: #f7f0e1;
+
+  --foreground: #f7f0e1;
+  --muted: #1c1c1c;
+  --muted-foreground: #a8a093;
+  --subtle-foreground: #948c7e;
+
+  --border: #353535;
+  --border-strong: #6b6b6b;
+  --divider: #353535;
+  --input: #707070;
+
+  --accent: #f7f0e1;
+  --accent-hover: #e4dcc9;
+  --accent-foreground: #000000;
+  --accent-text: #f7f0e1;
+  --accent-soft: rgba(247, 240, 225, 0.1);
+  --accent-border: rgba(247, 240, 225, 0.28);
+
+  --ring: rgba(247, 240, 225, 0.55);
+  --overlay: rgba(0, 0, 0, 0.74);
+
+  --danger: #e58c93;
+  --danger-soft: rgba(174, 49, 58, 0.26);
+  --danger-solid: #ae313a;
+  --danger-foreground: #f7f0e1;
+
+  --success: #6fbf93;
+  --success-soft: rgba(46, 107, 79, 0.26);
+  --warning: #d9a94a;
+  --warning-soft: rgba(138, 93, 8, 0.26);
+  --info: #7fb0d0;
+  --info-soft: rgba(61, 106, 130, 0.26);
+
+  --brand-sunburst: #f4be4d;
+  --brand-sunburst-fg: #353535;
+  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
+  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
+  --shadow-accent: 0 8px 24px -10px rgba(247, 240, 225, 0.16);
+
+  --glass-bg: rgba(23, 23, 23, 0.82);
+  --glass-border: rgba(247, 240, 225, 0.12);
+  --glass-border-hover: rgba(247, 240, 225, 0.36);
+  --glass-blur: 16px;
+  --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  --glass-highlight: rgba(247, 240, 225, 0.05);
+  --vignette-color: rgba(247, 240, 225, 0.025);
+
+  --fg: var(--foreground);
+  --fg-2: var(--muted-foreground);
+  --fg-3: var(--subtle-foreground);
+  --layer: var(--muted);
+  --brand-soft: var(--accent-soft);
+  --shadow: var(--shadow-sm);
+
+  /* Dark pattern strength + dark select chevron, even on a light page. */
+  --pattern-color: #c9a24a;
+  --pattern-opacity: 0.2;
+  --pattern-opacity-sun: 0.25;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8a093' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 /* ------------------------------------------------------------------------------
@@ -314,6 +422,11 @@
   --glass-shadow: 0 16px 40px -20px rgba(53, 53, 53, 0.18);
   --glass-highlight: rgba(255, 255, 255, 0.8);
   --vignette-color: rgba(53, 53, 53, 0.03);
+
+  /* Corner patterns on cream: same gold, lower opacity (subtle). */
+  --pattern-color: #c9a24a;
+  --pattern-opacity: 0.15;
+  --pattern-opacity-sun: 0.2;
 }
 
 /* ------------------------------------------------------------------------------
@@ -383,6 +496,11 @@
   --glass-shadow: 0 16px 40px -20px rgba(53, 53, 53, 0.16);
   --glass-highlight: rgba(255, 255, 255, 0.7);
   --vignette-color: rgba(53, 53, 53, 0.04);
+
+  /* Same cream-page treatment as `.light` (see above). */
+  --pattern-color: #c9a24a;
+  --pattern-opacity: 0.15;
+  --pattern-opacity-sun: 0.2;
 }
 
 /* ------------------------------------------------------------------------------
@@ -1518,6 +1636,275 @@ select.g-input {
 select.g-input option {
   background-color: var(--card);
   color: var(--foreground);
+}
+
+/* ------------------------------------------------------------------------------
+   PHILIPPINE DASHBOARD — ivory palette & decorative motifs
+
+   A warm, elegant dashboard surface inspired by Philippine textile traditions.
+   These tokens are scoped to dashboard pages via the `.ph-dashboard` class on
+   the outermost wrapper, so the landing page and auth screens remain untouched.
+
+   Palette:
+     --ph-ivory        #FAF6ED  page background
+     --ph-cream        #F5EFE3  subtle section variation
+     --ph-card         #FFFFFF  card surfaces
+     --ph-navy         #1B2A4A  primary text, headings
+     --ph-navy-soft    #3D4F6E  secondary text
+     --ph-slate        #6B7A8D  muted supporting text
+     --ph-border       #E8DFCE  thin warm-beige borders
+     --ph-gold         #C9A84C  Philippine gold accent
+     --ph-blue         #2F4E8C  Unity Blue (flag)
+     --ph-red          #AE313A  Relief Red (flag)
+     --ph-green        #3D9970  success/verified
+
+   Decorative motifs (CSS-only, no image dependencies):
+     .ph-banig         subtle woven geometric pattern (edges/corners)
+     .ph-sun           Philippine sun SVG motif
+     .ph-accent-bar    narrow vertical accent bar for metric cards
+   ------------------------------------------------------------------------------ */
+
+.ph-dashboard {
+  --ph-ivory: #FAF6ED;
+  --ph-cream: #F5EFE3;
+  --ph-card: #FFFFFF;
+  --ph-navy: #1B2A4A;
+  --ph-navy-soft: #3D4F6E;
+  --ph-slate: #6B7A8D;
+  --ph-border: #E8DFCE;
+  --ph-gold: #C9A84C;
+  --ph-blue: #2F4E8C;
+  --ph-red: #AE313A;
+  --ph-green: #3D9970;
+  --ph-shadow-sm: 0 1px 3px rgba(27, 42, 74, 0.06);
+  --ph-shadow-md: 0 4px 12px rgba(27, 42, 74, 0.08);
+  --ph-shadow-lg: 0 8px 24px rgba(27, 42, 74, 0.1);
+  --ph-shadow-xl: 0 12px 32px rgba(27, 42, 74, 0.12);
+  --ph-radius-sm: 8px;
+  --ph-radius-md: 12px;
+  --ph-radius-lg: 16px;
+  --ph-radius-xl: 20px;
+}
+
+/* Dashboard pages: no background color on wrapper — the PhilippineBackdrop
+   provides the visual surface. The wrapper is a transparent relative parent. */
+.ph-dashboard {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Banig woven pattern — subtle geometric texture for edges and corners */
+.ph-banig-pattern {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(27, 42, 74, 0.015) 2px,
+      rgba(27, 42, 74, 0.015) 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 2px,
+      rgba(27, 42, 74, 0.015) 2px,
+      rgba(27, 42, 74, 0.015) 4px
+    );
+  background-size: 8px 8px;
+}
+
+/* Dashboard card — white/ivory with warm border and soft shadow */
+.ph-card {
+  background: var(--ph-card);
+  border: 1px solid var(--ph-border);
+  border-radius: var(--ph-radius-lg);
+  box-shadow: var(--ph-shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.ph-card-hover:hover {
+  box-shadow: var(--ph-shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Metric card accent bar — narrow vertical strip on the left edge */
+.ph-accent-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.ph-accent-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: var(--ph-radius-sm) 0 0 var(--ph-radius-sm);
+}
+
+.ph-accent-bar--gold::before { background: var(--ph-gold); }
+.ph-accent-bar--blue::before { background: var(--ph-blue); }
+.ph-accent-bar--red::before { background: var(--ph-red); }
+.ph-accent-bar--green::before { background: var(--ph-green); }
+
+/* Dashboard section title */
+.ph-section-title {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ph-navy);
+  letter-spacing: -0.02em;
+}
+
+/* Dashboard eyebrow label */
+.ph-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--ph-border);
+  background: var(--ph-card);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ph-navy-soft);
+}
+
+/* Dashboard primary button */
+.ph-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 999px;
+  background: var(--ph-navy);
+  color: #FFFFFF;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(27, 42, 74, 0.15);
+}
+
+.ph-btn-primary:hover {
+  background: var(--ph-navy-soft);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 42, 74, 0.2);
+}
+
+.ph-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(27, 42, 74, 0.15);
+}
+
+.ph-btn-primary:focus-visible {
+  outline: 2px solid var(--ph-gold);
+  outline-offset: 2px;
+}
+
+/* Dashboard secondary button */
+.ph-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 999px;
+  background: var(--ph-card);
+  color: var(--ph-navy);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border: 1px solid var(--ph-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ph-btn-secondary:hover {
+  border-color: var(--ph-gold);
+  background: var(--ph-cream);
+  transform: translateY(-1px);
+  box-shadow: var(--ph-shadow-sm);
+}
+
+.ph-btn-secondary:focus-visible {
+  outline: 2px solid var(--ph-gold);
+  outline-offset: 2px;
+}
+
+/* Dashboard link */
+.ph-link {
+  color: var(--ph-blue);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.ph-link:hover {
+  color: var(--ph-navy);
+  text-decoration: underline;
+}
+
+/* Philippine sun decorative motif */
+.ph-sun {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ph-gold);
+  opacity: 0.7;
+}
+
+/* Hero banner overlay for cinematic effect */
+.ph-hero-overlay {
+  background: linear-gradient(
+    105deg,
+    rgba(27, 42, 74, 0.82) 0%,
+    rgba(27, 42, 74, 0.55) 40%,
+    rgba(27, 42, 74, 0.15) 70%,
+    transparent 100%
+  );
+}
+
+/* Script phrase — "Art • Discipline • Community" */
+.ph-script-phrase {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .ph-card,
+  .ph-btn-primary,
+  .ph-btn-secondary,
+  .ph-link {
+    transition: none;
+  }
+
+  .ph-btn-primary:hover,
+  .ph-btn-secondary:hover {
+    transform: none;
+  }
+}
+
+/* Coach dashboard decorative layer — hides artwork on small screens */
+@media (max-width: 767px) {
+  .ph-script-phrase {
+    display: none !important;
+  }
+
+  /* Reduce banig pattern coverage on mobile */
+  .ph-dashboard .ph-banig-pattern {
+    opacity: 0.02 !important;
+  }
 }
 
 /* ------------------------------------------------------------------------------
@@ -3470,20 +3857,18 @@ select.g-input option {
   position: sticky;
   top: 0;
   z-index: 40;
-  /* SOLID, always.
-     This bar used to be fully transparent at rest and only gained a background
-     once the page had scrolled, which meant the navigation had no surface at all
-     for the entire first screenful. It is now near-solid from the first paint,
-     with the hairline always present: this is a boundary, and a boundary that
-     only sometimes exists is not one. */
-  background-color: color-mix(in srgb, var(--background) 92%, transparent);
+  /* Semi-transparent so the pattern backdrop shows through.
+     Uses the theme-aware --background token so the header adapts to dark/light. */
+  background-color: color-mix(in srgb, var(--background) 75%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--hx-hairline);
   transition:
     background-color var(--nav-dur) var(--nav-ease),
     box-shadow var(--nav-dur) var(--nav-ease);
 }
 .hx-header[data-scrolled] {
-  background-color: color-mix(in srgb, var(--background) 97%, transparent);
+  background-color: color-mix(in srgb, var(--background) 88%, transparent);
   box-shadow: var(--shadow-header);
 }
 
@@ -3795,6 +4180,44 @@ select.g-input option {
 [aria-expanded='true'] > .hx-caret,
 .hx-caret[data-open] {
   transform: rotate(180deg);
+}
+
+/* The chevron on a NAV DROPDOWN TRIGGER.
+   A previous version of the header omitted it entirely, on the grounds that at
+   0.875rem / 0.6 opacity it read as a stray mark beside the longest label in the
+   row ("Community") rather than as an affordance. The size was the problem, not
+   the affordance: a dropdown trigger with no indicator is indistinguishable from
+   a link, and `aria-haspopup` is invisible to everyone not using a screen
+   reader. So the glyph is smaller, dimmer at rest, aligned to the cap height,
+   and given real emphasis on hover, focus and when the panel is open. */
+.hx-link-caret {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  flex-shrink: 0;
+  margin-left: -0.0625rem;
+  opacity: 0.45;
+  transition:
+    transform 200ms var(--nav-ease),
+    opacity 160ms ease;
+}
+/* Nudged down 1px: a 11px chevron centred on the text box reads as sitting high
+   next to 14px type, because the glyph's visual mass is above its bounding box. */
+.hx-link--trigger .hx-link-caret {
+  transform: translateY(1px);
+}
+.hx-link--trigger:hover .hx-link-caret,
+.hx-link--trigger:focus-visible .hx-link-caret,
+.hx-link--trigger[data-active='true'] .hx-link-caret {
+  opacity: 0.85;
+}
+/* Specificity is deliberate: `.hx-link--trigger .hx-link-caret` above is
+   (0,2,0), the same as a bare `[aria-expanded='true'] > .hx-link-caret`, so
+   which one won would depend on nothing more than source order. Qualifying on
+   the trigger as well makes this (0,3,0) and the rotation is guaranteed
+   regardless of how the sheet is ordered or layered. */
+.hx-link--trigger[aria-expanded='true'] > .hx-link-caret {
+  opacity: 0.9;
+  transform: translateY(1px) rotate(180deg);
 }
 
 /* --- Panels ---------------------------------------------------------------- */
@@ -4187,6 +4610,16 @@ select.g-input option {
   color: var(--muted-foreground);
   white-space: nowrap;
 }
+/* Avatar-only trigger — the client's account pill.
+   The identity text is not rendered for clients at all (see `UserMenu`), so this
+   only has to balance the paddings: with no name beside it, the pill's left
+   padding would read as a gap and the hover pill would sit visibly off-centre
+   from the avatar. */
+.hx-account--avatar-only {
+  gap: 0.375rem;
+  padding-left: 0.25rem;
+}
+
 /* Below `sm` the name and role go and the pill collapses to the avatar — the
    drawer reintroduces the full identity, so nothing is actually lost. */
 @media (max-width: 639px) {
@@ -4793,6 +5226,7 @@ select.g-input option {
   .hx-pill,
   .hx-link,
   .hx-caret,
+  .hx-link-caret,
   .hx-panel,
   .hx-panel-item,
   .hx-panel-item-icon,
@@ -4861,4 +5295,167 @@ select.g-input option {
   .dance-marquee-track {
     animation: none;
   }
+}
+
+/* ===== GroovePH pattern backdrop: CSS only (SVG shapes inlined as masks) ===== */
+:root {
+  --gp-gold: 196 160 90;
+  --gp-brick: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2040%2024'%3E%3Cg%20fill='black'%3E%3Crect%20x='0'%20y='0'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='20'%20y='0'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='-10'%20y='12'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='10'%20y='12'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='30'%20y='12'%20width='18'%20height='10'%20rx='1.5'/%3E%3C/g%3E%3C/svg%3E");
+  --gp-chevron: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20280%20560'%3E%3Cg%20fill='none'%20stroke='black'%20stroke-width='7'%3E%3Cpolyline%20points='0,5.0%20250,280%200,555.0'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,5.0%20250,280%200,555.0'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3Cpolyline%20points='0,42.4%20216,280%200,517.6'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,42.4%20216,280%200,517.6'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3Cpolyline%20points='0,79.8%20182,280%200,480.2'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,79.8%20182,280%200,480.2'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3Cpolyline%20points='0,117.2%20148,280%200,442.8'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,117.2%20148,280%200,442.8'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3C/g%3E%3C/svg%3E");
+  --gp-sun: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20200%20200'%3E%3Cg%20fill='black'%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%280%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%2822.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%2845%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%2867.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%2890%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28112.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28135%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28157.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28180%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28202.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28225%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28247.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28270%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28292.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28315%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28337.5%20100%20100%29'/%3E%3Cpath%20fill-rule='evenodd'%20d='M74,100a26,26%200%201,0%2052,0a26,26%200%201,0%20-52,0Z%20M100.00,85.00%20L103.82,94.74%20L114.27,95.36%20L106.18,102.01%20L108.82,112.14%20L100.00,106.50%20L91.18,112.14%20L93.82,102.01%20L85.73,95.36%20L96.18,94.74Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.gp-backdrop { position:absolute; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+
+/* left: nested brick chevrons */
+.gp-chevrons {
+  position:absolute; left:-50px; top:110px; width:280px; height:560px;
+  background: rgb(var(--gp-gold) / .30);
+  -webkit-mask: var(--gp-chevron) center/100% 100% no-repeat;
+          mask: var(--gp-chevron) center/100% 100% no-repeat;
+}
+
+/* right: diagonal bands of brick tiles */
+.gp-bands {
+  position:absolute; top:0; right:0; width:min(46vw,640px); height:640px; overflow:hidden;
+  -webkit-mask-image: linear-gradient(to left,#000 40%,transparent);
+          mask-image: linear-gradient(to left,#000 40%,transparent);
+}
+.gp-band {
+  position:absolute; top:-20px; width:1100px; height:48px;
+  transform-origin:0 0; transform:rotate(45deg);
+  background: rgb(var(--gp-gold) / .30);
+  -webkit-mask: var(--gp-brick) 0 0/40px 24px repeat;
+          mask: var(--gp-brick) 0 0/40px 24px repeat;
+}
+.gp-band:nth-child(1) { left:150px; }
+.gp-band:nth-child(2) { left:252px; opacity:.85; }
+.gp-band:nth-child(3) { left:354px; opacity:.7; }
+
+/* top-right: sun */
+.gp-sun {
+  position:absolute; top:110px; right:3vw; width:160px; height:160px;
+  background: rgb(var(--gp-gold) / .45);
+  -webkit-mask: var(--gp-sun) center/contain no-repeat;
+          mask: var(--gp-sun) center/contain no-repeat;
+}
+@media (max-width:900px) { .gp-sun { display:none } .gp-chevrons { opacity:.6 } }
+
+/* ------------------------------------------------------------------------------
+   PagePatterns — the ONE shared four-corner decoration for Landing, Client,
+   Coach and Admin (components/layout/PagePatterns.tsx, mounted once in
+   app/layout.tsx).
+
+   Artwork reuses the `--gp-brick` / `--gp-chevron` / `--gp-sun` data-URI masks
+   above, so the tiles and rays are resolution-independent, add zero image
+   requests and use no blur filters. Colour comes from `--pattern-color` /
+   `--pattern-opacity`, defined per theme on `:root` / `.light` — the patterns
+   follow the Light/Dark/System switch with no JS and no flicker.
+
+   Geometry (position + responsive scale) lives in the component via Tailwind
+   (`origin-*`, `scale-[0.45] md:scale-[0.7] lg:scale-100`); only the artwork
+   (size, mask, flip) lives here. The vertical flips use `transform`, which
+   composes with Tailwind v4's `scale` property instead of clobbering it.
+   ------------------------------------------------------------------------------ */
+.page-patterns {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.page-patterns .pp-corner { position: absolute; }
+.page-patterns .pp-art { display: block; }
+
+/* Top-left: large brick chevrons (~350 x ~550 desktop, cropped by left edge) */
+.pp-pos-tl { left: -60px; top: 150px; }
+.pp-chevron {
+  width: 350px; height: 550px;
+  background-color: var(--pattern-color);
+  opacity: var(--pattern-opacity);
+  -webkit-mask: var(--gp-chevron) center / 100% 100% no-repeat;
+          mask: var(--gp-chevron) center / 100% 100% no-repeat;
+}
+
+/* Top-right: large diagonal brick bands (~560 wide, cropped by top-right) */
+.pp-pos-tr-bands { top: 0; right: 0; width: min(44vw, 560px); height: 560px; overflow: hidden; }
+.pp-bands { position: relative; width: 100%; height: 100%; opacity: var(--pattern-opacity); }
+.pp-pos-tr-bands .pp-bands {
+  -webkit-mask-image: linear-gradient(to left, #000 40%, transparent);
+          mask-image: linear-gradient(to left, #000 40%, transparent);
+}
+.pp-band {
+  position: absolute; top: -20px; width: 1100px; height: 48px;
+  transform-origin: 0 0; transform: rotate(45deg);
+  background-color: var(--pattern-color);
+  -webkit-mask: var(--gp-brick) 0 0 / 40px 24px repeat;
+          mask: var(--gp-brick) 0 0 / 40px 24px repeat;
+}
+.pp-bands .pp-band:nth-child(1) { left: 150px; }
+.pp-bands .pp-band:nth-child(2) { left: 252px; opacity: .85; }
+.pp-bands .pp-band:nth-child(3) { left: 354px; opacity: .7; }
+.pp-bands-sm .pp-band:nth-child(1) { left: 150px; }
+.pp-bands-sm .pp-band:nth-child(2) { left: 252px; opacity: .85; }
+.pp-bands-sm .pp-band:nth-child(3) { left: 354px; opacity: .7; }
+
+/* Top-right: sunburst star (~140px, cropped by top-right corner) */
+.pp-pos-tr-sun { top: 100px; right: 3vw; }
+.pp-sun {
+  width: 140px; height: 140px;
+  background-color: var(--pattern-color);
+  opacity: var(--pattern-opacity-sun);
+  -webkit-mask: var(--gp-sun) center / contain no-repeat;
+          mask: var(--gp-sun) center / contain no-repeat;
+}
+
+/* Bottom-left: same chevron mask, flipped vertically and ~280px — a rhyme
+   of the top-left, not a copy. Cropped by the left/bottom edge. */
+.pp-pos-bl { left: -40px; bottom: 80px; }
+.pp-chevron-sm {
+  width: 280px; height: 440px;
+  background-color: var(--pattern-color);
+  opacity: var(--pattern-opacity);
+  -webkit-mask: var(--gp-chevron) center / 100% 100% no-repeat;
+          mask: var(--gp-chevron) center / 100% 100% no-repeat;
+}
+
+/* Bottom-right: same diagonal bands, flipped vertically so the page balances */
+.pp-pos-br-bands { bottom: 0; right: 0; width: min(36vw, 420px); height: 420px; overflow: hidden; }
+.pp-bands-sm { position: relative; width: 100%; height: 100%; opacity: var(--pattern-opacity); }
+.pp-pos-br-bands .pp-bands-sm {
+  -webkit-mask-image: linear-gradient(to left, #000 45%, transparent);
+          mask-image: linear-gradient(to left, #000 45%, transparent);
+}
+.pp-flip-y { transform: scaleY(-1); }
+
+/* Bottom-right: smaller sunburst (~100px) */
+.pp-pos-br-sun { bottom: 170px; right: 5vw; }
+.pp-sun-sm {
+  width: 100px; height: 100px;
+  background-color: var(--pattern-color);
+  opacity: var(--pattern-opacity-sun);
+  -webkit-mask: var(--gp-sun) center / contain no-repeat;
+          mask: var(--gp-sun) center / contain no-repeat;
+}
+
+/* Small screens: suns are the first thing to go so text stays readable */
+@media (max-width: 900px) { .pp-hide-below-900 { display: none; } }
+@media (max-width: 767px) { .pp-hide-below-768 { display: none; } }
+
+/* Dimmed contexts: dense admin tables + the landing hero */
+.page-patterns[data-dim='strong'] .pp-art,
+.page-patterns[data-dim='strong'] .pp-bands,
+.page-patterns[data-dim='strong'] .pp-bands-sm { opacity: 0.08; }
+.page-patterns[data-dim='soft'] .pp-art,
+.page-patterns[data-dim='soft'] .pp-bands,
+.page-patterns[data-dim='soft'] .pp-bands-sm { opacity: 0.12; }
+
+/* Print views: no decoration */
+@media print { .page-patterns { display: none !important; } }
+
+/* No animation ships today; if a sunburst rotation is added later, this
+   keeps it still for reduced-motion users. */
+@media (prefers-reduced-motion: reduce) {
+  .page-patterns .pp-art { animation: none !important; }
 }

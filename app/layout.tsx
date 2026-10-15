@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter, Source_Serif_4 } from 'next/font/google';
+import { Inter, Source_Serif_4, Mr_De_Haviland } from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 import { SessionProvider } from '@/components/header/SessionProvider';
+import { PagePatterns } from '@/components/layout/PagePatterns';
 import { PlatformThemeSync } from '@/components/theme/PlatformThemeSync';
 import { RouteThemeEnforcer } from '@/components/theme/RouteThemeEnforcer';
 import { AppLoadingSplash } from '@/components/shared/AppLoadingSplash';
@@ -27,6 +28,17 @@ const serif = Source_Serif_4({
   weight: ['400', '600', '700'],
   style: ['normal', 'italic'],
   variable: '--font-serif',
+});
+
+/**
+ * Script face for the "Art • Discipline • Community" tagline.
+ * Used only in the Greeting component.
+ */
+const script = Mr_De_Haviland({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: '400',
+  variable: '--font-script',
 });
 
 export const metadata: Metadata = {
@@ -130,13 +142,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${serif.variable}`}
+      className={`${inter.variable} ${serif.variable} ${script.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <ThemeProvider>
+      <body className="isolate min-h-screen bg-background font-sans text-foreground antialiased">
+        <LanguageProvider>
           {/* The session lives HERE, above every route, not inside the /coach and
               /client groups. It used to be read separately by each header, which
               is how a signed-in user ended up looking signed out on any page
@@ -155,9 +167,15 @@ export default function RootLayout({
                 listener would leave some routes silent and some clicks doubled.
                 Renders nothing. */}
             <ClickSoundBridge />
-            {children}
+            {/* The one shared four-corner decoration for Landing, Client, Coach
+                and Admin: fixed at z-0, behind everything. The page background
+                colour lives ONLY on <body> (see globals.css), every full-page
+                wrapper below is transparent, and all page content sits in the
+                `relative z-10` layer after this — see components/layout/PagePatterns.tsx. */}
+            <PagePatterns />
+            <div className="relative z-10">{children}</div>
           </SessionProvider>
-        </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

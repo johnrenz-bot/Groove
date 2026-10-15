@@ -8,7 +8,6 @@ import {
   Info,
   MessageSquare,
   Mic,
-  Radio,
   Sparkles,
   Theater,
   Users,
@@ -61,12 +60,6 @@ export interface NavLeaf {
   hrefByRole?: Partial<Record<NavRole, string>>;
   /** Extra search terms for the command palette, beyond label + description. */
   keywords?: string[];
-  /**
-   * `/dance-events` is gated server-side by `lib/danceAccess.ts`, so the link
-   * must not be rendered to a user who cannot open it. Filtered at the source
-   * in the header, the same way the old header filtered it.
-   */
-  danceAccessOnly?: boolean;
 }
 
 /**
@@ -246,19 +239,7 @@ export const NAV: NavSection[] = [
         roles: ['client', 'coach', 'guest'],
         keywords: ['philippines', 'heritage', 'organisations', 'resources'],
       },
-      {
-        // Dance-gated. `lib/danceAccess.ts` 403s this for everyone else, so the
-        // header filters it out rather than offering a link that bounces.
-        id: 'dance-events',
-        icon: Radio,
-        label: 'Dance Events',
-        href: '/dance-events',
-        description: 'Competitions, workshops & results',
-        roles: ['client', 'coach', 'guest'],
-        keywords: ['competition', 'workshop', 'schedule', 'news'],
-        danceAccessOnly: true,
-      },
-    ],
+      ],
   },
   {
     id: 'about',
@@ -288,7 +269,7 @@ export const NAV: NavSection[] = [
  * is needed. No scroll library, no JS.
  */
 export const LANDING_ANCHORS: Array<{ id: string; label: string }> = [
-  { id: 'talent', label: 'Disciplines' },
+  { id: 'disciplines', label: 'Disciplines' },
   { id: 'studios', label: 'Studios' },
   { id: 'coaches', label: 'Coaches' },
   { id: 'how', label: 'How it works' },
@@ -316,9 +297,7 @@ export function hrefFor(item: NavLeaf, role: NavRole): string {
 }
 
 /**
- * The bar, the drawer and the palette all render from this. `danceAllowed` is
- * threaded in rather than read here because this module stays pure — it is
- * imported by server components too.
+ * The bar, the drawer and the palette all render from this.
  *
  * `hideOnLanding` filters out the entries marked for the landing page. Because
  * this is the ONE filter every consumer shares, the desktop bar, the mobile
@@ -327,17 +306,14 @@ export function hrefFor(item: NavLeaf, role: NavRole): string {
  */
 export function sectionsForRole(
   role: NavRole,
-  options: { danceAllowed?: boolean; hideOnLanding?: boolean } = {}
+  options: { hideOnLanding?: boolean } = {}
 ): NavSection[] {
-  const { danceAllowed = false, hideOnLanding = false } = options;
+  const { hideOnLanding = false } = options;
   return NAV.map((section) => {
     if (!section.roles.includes(role)) return null;
     if (hideOnLanding && section.hideOnLanding) return null;
     if (!section.items) return section;
-    const items = section.items.filter(
-      (leaf) =>
-        leaf.roles.includes(role) && (!leaf.danceAccessOnly || danceAllowed)
-    );
+    const items = section.items.filter((leaf) => leaf.roles.includes(role));
     // A section left with nothing in it is dropped rather than rendered as an
     // empty dropdown. This is what makes `roles` safe to edit casually.
     if (items.length === 0) return null;
@@ -348,7 +324,7 @@ export function sectionsForRole(
 /** One flat list of every destination — the command palette's index. */
 export function leavesForRole(
   role: NavRole,
-  options: { danceAllowed?: boolean; hideOnLanding?: boolean } = {}
+  options: { hideOnLanding?: boolean } = {}
 ): Array<{ leaf: NavLeaf; section: NavSection }> {
   return sectionsForRole(role, options).flatMap((section) =>
     (section.items ?? []).map((leaf) => ({ leaf, section }))

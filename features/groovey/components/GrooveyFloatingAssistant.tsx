@@ -52,9 +52,16 @@ const STARTER_PROMPTS = [
 
 const DISCIPLINES: DisciplineType[] = ['Singing', 'Dance', 'Acting', 'Theater', 'Auditions', 'General'];
 
-export const GrooveyFloatingAssistant: React.FC = () => {
+export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> = ({ role }) => {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Role drives the launcher label: clients get "Ask AI coach", coaches (and
+  // admin, which shares the coach shell treatment) get "Ask AI assistant".
+  // Falls back to the URL when no explicit prop is passed.
+  const resolvedRole: 'client' | 'coach' =
+    role ?? (pathname?.startsWith('/coach') ? 'coach' : 'client');
+  const launcherLabel = resolvedRole === 'client' ? 'Ask AI coach' : 'Ask AI assistant';
 
   const {
     currentConversation,
@@ -153,7 +160,7 @@ export const GrooveyFloatingAssistant: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            aria-label="Open Groovey AI assistant"
+            aria-label={resolvedRole === 'client' ? 'Open Groovey AI coach' : 'Open Groovey AI assistant'}
             aria-expanded={isOpen}
             className={cn(
               'group relative flex items-center gap-2.5 rounded-full border border-accent-border/80 bg-card px-4 py-2.5 text-foreground shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:border-accent active:scale-95 cursor-pointer select-none',
@@ -198,7 +205,7 @@ export const GrooveyFloatingAssistant: React.FC = () => {
                 </span>
               </span>
               <span className="text-[10px] text-muted-foreground font-medium">
-                {isGenerating ? 'Coaching live…' : 'Ask AI coach'}
+                {isGenerating ? 'Coaching live…' : launcherLabel}
               </span>
             </div>
           </button>

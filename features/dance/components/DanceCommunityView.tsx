@@ -3,24 +3,28 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { DanceCommunityHero } from './DanceCommunityHero';
+import { SectionHeader } from './SectionHeader';
 import { OrgLogoBar } from './OrgLogoBar';
 import { UpdatesFilterBar } from './UpdatesFilterBar';
 import { UpdateCard } from './UpdateCard';
-import { UpcomingEventsSection } from './UpcomingEventsSection';
+import { UpcomingEventsSection, type EventTimeframe } from './UpcomingEventsSection';
 import { FeaturedCrewsRoster } from './FeaturedCrewsRoster';
 import { DanceUpdatesSkeletonGrid } from './DanceSkeletons';
 import type { DanceUpdateRecord } from '../services/danceService';
+import { isUpcomingEvent } from '../services/danceService';
 import { ORGANIZATIONS } from '@/lib/dance/constants';
 import type { DanceOrg } from '@/lib/dance/types';
+import { VERIFIED_DANCE_ORGS } from '../data/danceOrgs';
 import { OrgLogoCarouselClient } from './OrgLogoCarouselClient';
 import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
   AlertCircle,
-  Sparkles,
+  SearchX,
   ChevronRight as ChevronRightSmall,
 } from 'lucide-react';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 /**
  * Breadcrumb for the dance community page.
@@ -64,7 +68,7 @@ interface DanceCommunityViewProps {
   initialOrgs?: DanceOrg[];
 }
 
-export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
+export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceCommunityViewProps) {
   // Filter States
   const [region, setRegion] = useState<string>('all');
   const [category, setCategory] = useState<string>('all');
@@ -76,6 +80,8 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
   // Data States
   const [updates, setUpdates] = useState<DanceUpdateRecord[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<DanceUpdateRecord[]>([]);
+  const [pastEvents, setPastEvents] = useState<DanceUpdateRecord[]>([]);
+  const [eventTimeframe, setEventTimeframe] = useState<EventTimeframe>('upcoming');
   const [total, setTotal] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
@@ -172,7 +178,10 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
     }
   }, [region, category, selectedOrg, searchQuery, page]);
 
-  // Fetch Upcoming Events
+  // Fetch Upcoming Events + derive past events from the same verified feed.
+  // Past is computed with the shared `isUpcomingEvent` rule (today stays
+  // visible until end-of-day in Asia/Manila; missing/invalid dates are never
+  // treated as upcoming), so the rail and the card badges cannot disagree.
   const fetchUpcomingEvents = useCallback(async () => {
     setEventsLoading(true);
     try {
@@ -185,6 +194,24 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
       console.error('Failed to fetch upcoming events:', err);
     } finally {
       setEventsLoading(false);
+    }
+
+    try {
+      const res = await fetch('/api/dance/updates?limit=50');
+      if (res.ok) {
+        const data = await res.json();
+        const all: DanceUpdateRecord[] = data.updates || [];
+        const past = all.filter((u) => {
+          if (!u.event_date) return false;
+          const when = new Date(u.event_date);
+          if (Number.isNaN(when.getTime())) return false;
+          if (!['event', 'competition', 'workshop'].includes(u.category)) return false;
+          return !isUpcomingEvent(u);
+        });
+        setPastEvents(past);
+      }
+    } catch (err) {
+      console.error('Failed to derive past events:', err);
     }
   }, []);
 
@@ -230,7 +257,7 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
   const federationsCount = useMemo(() => ORGANIZATIONS.length, []);
 
   return (
-    <div className="space-y-0 pb-12">
+    <div className="space-y-10 pb-12 sm:space-y-12">
       {/* 0. Breadcrumb: Community / Performing Arts / Dance */}
       <Breadcrumb />
 
@@ -243,29 +270,47 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
       />
 
       {/* 1b. Official League Logo Carousel */}
-      <OrgLogoCarouselClient orgs={initialOrgs ?? []} />
+      <OrgLogoCarouselClient
+        orgs={initialOrgs && initialOrgs.length > 0 ? initialOrgs : VERIFIED_DANCE_ORGS}
+      />
+      <p className="mx-auto -mt-6 max-w-3xl text-center text-[11px] leading-relaxed text-muted-foreground">
+        Logos, names, and trademarks belong to their respective owners. Groove is an independent
+        directory and is not affiliated with or endorsed by these organizations.
+      </p>
 
       {/* 2. Organization Logo Filter Bar */}
       <OrgLogoBar selectedOrg={selectedOrg} onSelectOrg={handleSelectOrg} />
 
-      {/* 3. Upcoming Events Showcase Carousel / Grid */}
-      <UpcomingEventsSection events={upcomingEvents} loading={eventsLoading} />
+      {/* 3. Upcoming / Past Events Showcase Grid */}
+      <UpcomingEventsSection
+        events={upcomingEvents}
+        pastEvents={pastEvents}
+        loading={eventsLoading}
+        timeframe={eventTimeframe}
+        onTimeframeChange={setEventTimeframe}
+        selectedOrg={selectedOrg}
+        onClearFilters={handleClearFilters}
+      />
 
       {/* 4. Latest Updates Section */}
-      <section id="latest-updates" className="scroll-mt-24 py-8">
-        {/* Section Heading */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <span className="g-eyebrow mb-2">Real-Time Discovery &amp; Reporting</span>
-            <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+      <section id="latest-updates" aria-labelledby="latest-updates-title" className="scroll-mt-24">
+        <SectionHeader
+          eyebrow="Real-Time Discovery & Reporting"
+          title={
+            <span id="latest-updates-title">
               Latest <span className="font-normal italic text-muted-foreground">Updates</span>
-            </h2>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Showing <span className="font-semibold text-foreground">{updates.length}</span> of{' '}
-            <span className="font-semibold text-accent-text">{total}</span> verified dispatches
-          </div>
-        </div>
+            </span>
+          }
+          meta={
+            <p>
+              Showing <span className="font-semibold text-foreground">{updates.length}</span> of{' '}
+              <span className="font-semibold text-accent-text">{total}</span> verified dispatches
+            </p>
+          }
+        />
+        <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+          Compiled from public sources. Always check the official source for final details.
+        </p>
 
         {/* Filters Bar */}
         <div className="mt-6">
@@ -284,43 +329,46 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
         </div>
 
         {/* Updates Feed Grid */}
-        <div className="mt-6">
+        <div className="mt-6" aria-live="polite" aria-busy={loading}>
           {loading ? (
             <DanceUpdatesSkeletonGrid count={6} />
           ) : error ? (
-            <div className="rounded-2xl border border-danger/40 bg-card p-8 text-center shadow-sm">
-              <AlertCircle className="mx-auto h-8 w-8 text-danger" />
+            <div
+              role="alert"
+              className="rounded-2xl border border-danger/40 bg-card p-8 text-center shadow-sm sm:p-10"
+            >
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-danger/30 bg-danger-soft text-danger">
+                <AlertCircle className="h-5 w-5" aria-hidden="true" />
+              </span>
               <p className="mt-3 text-sm font-semibold text-foreground">{error}</p>
               <button
                 type="button"
                 onClick={() => fetchUpdates()}
-                className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2 text-xs font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
                 Retry
               </button>
             </div>
           ) : updates.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-sm">
-              <Sparkles className="mx-auto h-8 w-8 text-accent-text" />
-              <h3 className="mt-3 text-base font-bold text-foreground">
-                No dispatches match criteria
-              </h3>
-              <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
-                There are no updates matching the selected category, league, or region. Try adjusting your filters.
-              </p>
-              {hasActiveFilters && (
-                <button
-                  type="button"
-                  onClick={handleClearFilters}
-                  className="mt-5 rounded-full border border-border bg-muted/40 px-5 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
-                >
-                  Reset All Filters
-                </button>
-              )}
-            </div>
+            <EmptyState
+              icon={<SearchX className="h-5 w-5" aria-hidden="true" />}
+              title="No dispatches match these filters"
+              description="There are no updates matching the selected category, league, or region. Try adjusting your filters."
+              action={
+                hasActiveFilters ? (
+                  <button
+                    type="button"
+                    onClick={handleClearFilters}
+                    className="inline-flex items-center justify-center rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground shadow-sm transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                  >
+                    Reset all filters
+                  </button>
+                ) : undefined
+              }
+            />
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
               {updates.map((update) => (
                 <UpdateCard key={update.id} update={update} language={language} />
               ))}
@@ -330,18 +378,19 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="mt-10 flex items-center justify-center gap-3 border-t border-divider pt-6">
+          <nav aria-label="Updates pages" className="mt-10 flex items-center justify-center gap-3 border-t border-divider pt-6">
             <button
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong disabled:opacity-30"
+              aria-label="Previous page"
+              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted disabled:pointer-events-none disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               Prev
             </button>
 
-            <span className="px-3 text-xs text-muted-foreground">
+            <span className="px-3 text-xs tabular-nums text-muted-foreground" aria-current="page">
               Page <span className="font-semibold text-foreground">{page}</span> of{' '}
               <span className="font-semibold text-foreground">{totalPages}</span>
             </span>
@@ -350,17 +399,26 @@ export function DanceCommunityView({ initialOrgs }: DanceCommunityViewProps) {
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong disabled:opacity-30"
+              aria-label="Next page"
+              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted disabled:pointer-events-none disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               Next
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
-          </div>
+          </nav>
         )}
       </section>
 
       {/* 5. Featured Crews & Match Recaps Roster */}
       <FeaturedCrewsRoster />
+
+      {/* Page attribution footer — not a duplicate of the site footer */}
+      <footer aria-label="Dance community attribution" className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-6">
+        <p className="mx-auto max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+          Logos, names, and trademarks belong to their respective owners. Groove is an independent
+          directory and is not affiliated with or endorsed by these organizations.
+        </p>
+      </footer>
     </div>
   );
 }

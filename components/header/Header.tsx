@@ -6,15 +6,16 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LogIn, Menu, Search, UserPlus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
-import { useDanceAccess } from '@/features/dance/hooks/useDanceAccess';
 import { ROLE_META } from '@/components/shared/AppTopNav';
 import { AnimatedLogo } from './AnimatedLogo';
 import { NavDropdown, isRouteActive } from './NavDropdown';
 import { UserMenu } from './UserMenu';
 import { MobileDrawer } from './MobileDrawer';
 import { CommandPalette } from './CommandPalette';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { useSlidingIndicator } from './useSlidingIndicator';
 import { useSession } from './SessionProvider';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { LANDING_ANCHORS, sectionsForRole } from './navConfig';
 
 /**
@@ -41,8 +42,8 @@ import { LANDING_ANCHORS, sectionsForRole } from './navConfig';
  *
  * NOTHING IS REMOVED
  *   Status, Appearance and Sound still live in the account menu AND the drawer;
- *   `/dance-events` is still filtered by the same `useDanceAccess` gate; the
- *   Performing Arts PH hub is still linked from Community.
+ *   the Performing Arts PH hub is still linked from Community; the four
+ *   discipline pages still appear under Community.
  */
 /**
  * Every dismissable surface in the bar, by id.
@@ -57,6 +58,7 @@ export function Header({ homeHref }: { homeHref?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const { status, profile, role } = useSession();
+  const { t } = useLanguage();
 
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -99,7 +101,6 @@ export function Header({ homeHref }: { homeHref?: string }) {
     return () => document.removeEventListener('mousedown', onPointerDown);
   }, [openMenu, closeMenus]);
 
-  const { allowed: danceAllowed } = useDanceAccess();
   const user = profile;
 
   const resolving = status === 'loading';
@@ -123,8 +124,8 @@ export function Header({ homeHref }: { homeHref?: string }) {
   const isLanding = pathname === '/';
 
   const sections = useMemo(
-    () => sectionsForRole(role, { danceAllowed, hideOnLanding: isLanding }),
-    [role, danceAllowed, isLanding]
+    () => sectionsForRole(role, { hideOnLanding: isLanding }),
+    [role, isLanding]
   );
 
   const activeSectionId = useMemo(
@@ -232,7 +233,7 @@ export function Header({ homeHref }: { homeHref?: string }) {
               type="button"
               onClick={() => setDrawerOpen(true)}
               className="hx-burger"
-              aria-label="Open navigation"
+              aria-label={t('header.openNav', 'Open navigation')}
               aria-expanded={drawerOpen}
             >
               <Menu className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -291,6 +292,9 @@ export function Header({ homeHref }: { homeHref?: string }) {
               <HeaderSkeleton />
             ) : user ? (
               <>
+                {/* Dashboard-only language switcher. Guests (landing, public,
+                    auth pages) never see it — those pages stay English-only. */}
+                <LanguageSwitcher />
                 <button
                   type="button"
                   onClick={() => {
@@ -301,11 +305,11 @@ export function Header({ homeHref }: { homeHref?: string }) {
                     setPaletteOpen(true);
                   }}
                   className="hx-search-btn"
-                  aria-label="Search pages and people"
+                  aria-label={t('header.searchLabel', 'Search pages and people')}
                   aria-haspopup="dialog"
                   aria-expanded={paletteOpen}
                 >                  <Search className="h-[18px] w-[18px]" aria-hidden="true" />
-                  <span className="hx-search-text">Search</span>
+                  <span className="hx-search-text">{t('header.search', 'Search')}</span>
                   <kbd className="hx-search-kbd">⌘K</kbd>
                 </button>
 
@@ -352,12 +356,7 @@ export function Header({ homeHref }: { homeHref?: string }) {
         pathname={pathname}
         onLogout={handleLogout}
       />
-      <CommandPalette
-        open={paletteOpen}
-        role={role}
-        danceAllowed={danceAllowed}
-        onClose={() => setPaletteOpen(false)}
-      />
+      <CommandPalette open={paletteOpen} role={role} onClose={() => setPaletteOpen(false)} />
     </>
   );
 }

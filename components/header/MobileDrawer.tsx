@@ -12,13 +12,13 @@ import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { usePresence } from '@/features/presence/hooks/usePresence';
 import { greetingFor } from './UserMenu';
 import {
-  descriptionFor,
   hrefFor,
   isDropdown,
-  labelFor,
   type NavRole,
   type NavSection,
 } from './navConfig';
+import { translateIn, translateNavLeaf, useLanguage, dashboardLanguage } from '@/lib/i18n/LanguageProvider';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 /**
  * The sub-1024px navigation.
@@ -125,6 +125,98 @@ export function MobileDrawer({
   );
 }
 
+/**
+ * The section list, shared by the signed-in and signed-out branches.
+ *
+ * Both roles see the same destinations — the difference between them is the
+ * account card and the preference controls above and below, not the navigation.
+ * Rendering the list twice is what let the guest copy drift into
+ * `href ?? '#'`, which silently turned every dropdown into a dead link.
+ *
+ * A section with `items` becomes an accordion with a caret; one without becomes
+ * a plain link to its own `href`.
+ */
+function DrawerSections({
+  sections,
+  role,
+  pathname,
+  openIds,
+  onToggle,
+  onNavigate,
+}: {
+  sections: NavSection[];
+  role: NavRole;
+  pathname: string;
+  openIds: string[];
+  onToggle: (id: string) => void;
+  onNavigate: () => void;
+}) {
+  const { language } = useLanguage();
+  const t = (key: string, fallback?: string) =>
+    translateIn(dashboardLanguage(role, language), key, fallback);
+  const leafLang = dashboardLanguage(role, language);
+  return (
+    <>
+      {sections.map((section) =>
+        isDropdown(section) ? (
+          <div key={section.id} className="hx-drawer-section">
+            <button
+              type="button"
+              onClick={() => onToggle(section.id)}
+              aria-expanded={openIds.includes(section.id)}
+              aria-controls={`hx-drawer-${section.id}`}
+              className="hx-drawer-link hx-drawer-link--toggle"
+            >
+              <section.icon className="hx-drawer-link-icon" aria-hidden="true" />
+              {t(`nav.${section.id}`, section.label)}
+              <ChevronDown
+                className="hx-caret"
+                data-open={openIds.includes(section.id) || undefined}
+                aria-hidden="true"
+              />
+            </button>
+
+            <div
+              id={`hx-drawer-${section.id}`}
+              hidden={!openIds.includes(section.id)}
+              className="hx-drawer-sub"
+            >
+              {section.heading && <p className="hx-drawer-subheading">{t('nav.communityHeading', section.heading)}</p>}
+              {section.items?.map((item) => {
+                const href = hrefFor(item, role);
+                const { label, description } = translateNavLeaf(leafLang, item, role);
+                const active = pathname === href.split('#')[0];
+                return (
+                  <Link
+                    key={item.id}
+                    href={href}
+                    onClick={onNavigate}
+                    aria-current={active ? 'page' : undefined}
+                    className="hx-drawer-sublink"
+                  >
+                    <item.icon className="hx-drawer-sublink-icon" aria-hidden="true" />
+                    <span>
+                      <span className="hx-drawer-sublink-label">{label}</span>
+                      {description && <span className="hx-drawer-sublink-desc">{description}</span>}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div key={section.id} className="hx-drawer-section">
+            <Link href={section.href ?? '#'} onClick={onNavigate} className="hx-drawer-link">
+              <section.icon className="hx-drawer-link-icon" aria-hidden="true" />
+              {t(`nav.${section.id}`, section.label)}
+            </Link>
+          </div>
+        )
+      )}
+    </>
+  );
+}
+
 function DrawerBody({
   sections,
   role,
@@ -150,6 +242,7 @@ function DrawerBody({
   // Presence is read from the shared realtime store so this dot and the one in
   // the account menu always agree.
   const myPresence = usePresence(user?.id, user?.status);
+  const { t } = useLanguage();
 
   const toggle = (id: string) =>
     setOpenIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -185,80 +278,30 @@ function DrawerBody({
           </div>
 
           <nav aria-label="Main">
-            {sections.map((section) =>
-              isDropdown(section) ? (
-                <div key={section.id} className="hx-drawer-section">
-                  <button
-                    type="button"
-                    onClick={() => toggle(section.id)}
-                    aria-expanded={openIds.includes(section.id)}
-                    aria-controls={`hx-drawer-${section.id}`}
-                    className="hx-drawer-link hx-drawer-link--toggle"
-                  >
-                    <section.icon className="hx-drawer-link-icon" aria-hidden="true" />
-                    {section.label}
-                    <ChevronDown
-                      className="hx-caret"
-                      data-open={openIds.includes(section.id) || undefined}
-                      aria-hidden="true"
-                    />
-                  </button>
-
-                  <div
-                    id={`hx-drawer-${section.id}`}
-                    hidden={!openIds.includes(section.id)}
-                    className="hx-drawer-sub"
-                  >
-                    {section.heading && <p className="hx-drawer-subheading">{section.heading}</p>}
-                    {section.items?.map((item) => {
-                      const href = hrefFor(item, role);
-                      const description = descriptionFor(item, role);
-                      const active = pathname === href.split('#')[0];
-                      return (
-                        <Link
-                          key={item.id}
-                          href={href}
-                          onClick={onClose}
-                          aria-current={active ? 'page' : undefined}
-                          className="hx-drawer-sublink"
-                        >
-                          <item.icon className="hx-drawer-sublink-icon" aria-hidden="true" />
-                          <span>
-                            <span className="hx-drawer-sublink-label">{labelFor(item, role)}</span>
-                            {description && (
-                              <span className="hx-drawer-sublink-desc">{description}</span>
-                            )}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div key={section.id} className="hx-drawer-section">
-                  <Link
-                    href={section.href ?? '#'}
-                    onClick={onClose}
-                    className="hx-drawer-link"
-                  >
-                    <section.icon className="hx-drawer-link-icon" aria-hidden="true" />
-                    {section.label}
-                  </Link>
-                </div>
-              )
-            )}
+            <DrawerSections
+              sections={sections}
+              role={role}
+              pathname={pathname}
+              openIds={openIds}
+              onToggle={toggle}
+              onNavigate={onClose}
+            />
           </nav>
 
           <div className="hx-drawer-section">
-            <p className="hx-drawer-label">Status</p>
+            <p className="hx-drawer-label">{t('header.status', 'Status')}</p>
             <StatusSelect userId={user.id} fallbackStatus={user.status} />
           </div>
           <div className="hx-drawer-section">
-            <p className="hx-drawer-label">Appearance</p>
+            <p className="hx-drawer-label">Language / Wika</p>
+            <LanguageSwitcher />
+          </div>
+          <div className="hx-drawer-section">
+            <p className="hx-drawer-label">{t('header.appearance', 'Appearance')}</p>
             <ThemeModeSelect />
           </div>
           <div className="hx-drawer-section">
-            <p className="hx-drawer-label">Sound</p>
+            <p className="hx-drawer-label">{t('header.sound', 'Sound')}</p>
             <SoundToggle />
           </div>
           <div className="hx-drawer-section">
@@ -268,21 +311,34 @@ function DrawerBody({
               className="hx-drawer-link hx-drawer-link--danger"
             >
               <LogOut className="hx-drawer-link-icon" aria-hidden="true" />
-              Sign Out
+              {t('header.signOut', 'Sign Out')}
             </button>
           </div>
         </>
       ) : (
         <>
+          {/*
+            SAME RENDERER AS THE SIGNED-IN BRANCH, ON PURPOSE.
+
+            This branch used to map `sections` straight to
+            `<Link href={section.href ?? '#'}>`. For a guest, `Community` is a
+            DROPDOWN, so `section.href` is undefined and every one of its five
+            destinations rendered as a link to `#` — five items that all scrolled
+            the top of the drawer and looked broken. A signed-in user saw the
+            accordion below; a guest saw five dead links. Rendering both roles
+            through `DrawerSections` makes the difference impossible to
+            reintroduce, and it is the only reason this is a shared component
+            rather than a second copy of the block.
+          */}
           <nav aria-label="Main">
-            {sections.map((section) => (
-              <div key={section.id} className="hx-drawer-section">
-                <Link href={section.href ?? '#'} onClick={onClose} className="hx-drawer-link">
-                  <section.icon className="hx-drawer-link-icon" aria-hidden="true" />
-                  {section.label}
-                </Link>
-              </div>
-            ))}
+            <DrawerSections
+              sections={sections}
+              role={role}
+              pathname={pathname}
+              openIds={openIds}
+              onToggle={toggle}
+              onNavigate={onClose}
+            />
           </nav>
           <div className="hx-drawer-section hx-drawer-auth">
             <Link href="/login" onClick={onClose} className="hx-drawer-auth-link">

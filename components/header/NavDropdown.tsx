@@ -2,17 +2,16 @@
 
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import {
-  descriptionFor,
   hrefFor,
   isDropdown,
-  labelFor,
   type NavLeaf,
   type NavRole,
   type NavSection,
 } from './navConfig';
+import { translateIn, translateNavLeaf, useLanguage, dashboardLanguage } from '@/lib/i18n/LanguageProvider';
 
 /** Matches the 160ms panel transition in globals.css. */
 const EXIT_MS = 160;
@@ -101,6 +100,11 @@ export function NavDropdown({
 
   const items = (section.items ?? []) as NavLeaf[];
   const dropdown = isDropdown(section);
+  const { language } = useLanguage();
+  // Guests (landing / public / auth) stay English-only by design.
+  const lang = dashboardLanguage(role, language);
+  const t = (key: string, fallback?: string) => translateIn(lang, key, fallback);
+  const sectionLabel = t(`nav.${section.id}`, section.label);
 
   const clearTimers = useCallback(() => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
@@ -221,7 +225,7 @@ export function NavDropdown({
         onClick={onNavigate}
       >
         <section.icon className="hx-link-icon" aria-hidden="true" />
-        {section.label}
+        {sectionLabel}
       </Link>
     );
   }
@@ -266,33 +270,37 @@ export function NavDropdown({
         className="hx-link hx-link--trigger"
       >
         <section.icon className="hx-link-icon" aria-hidden="true" />
-        {section.label}
-        {/* No chevron. It was a 0.875rem glyph with a 0.6-opacity stroke sitting
-            6px from the label, and at this type size it read as a stray mark
-            rather than as an affordance — most visibly beside "Community",
-            whose label is already the longest in the row. `aria-haspopup` and
-            `aria-expanded` still announce that the trigger opens something, and
-            the hover/active fills carry the affordance visually. */}
+        {sectionLabel}
+        {/* The affordance that says "this opens something". It was removed in an
+            earlier revision because the old 0.875rem / 0.6-opacity glyph read as
+            a stray mark beside "Community", the longest label in the row. The
+            size was the fault, not the idea: `aria-haspopup` announces this to a
+            screen reader and to nobody else, and to a sighted user a trigger
+            without a caret is indistinguishable from a link. `.hx-link-caret` is
+            smaller, dimmer at rest, optically aligned, and rotates off
+            `[aria-expanded='true']`, so it reads correctly for mouse and keyboard
+            without a second copy of the state. */}
+        <ChevronDown className="hx-link-caret" aria-hidden="true" />
       </button>
 
       {mounted && (
         <div
           id={menuId}
           role="menu"
-          aria-label={section.label}
+          aria-label={sectionLabel}
           data-state={open ? 'open' : 'closed'}
           onKeyDown={onPanelKeyDown}
           className="hx-panel"
         >
           {section.heading && (
             <p className="hx-panel-heading" aria-hidden="true">
-              {section.heading}
+              {t('nav.communityHeading', section.heading)}
             </p>
           )}
           <div className="hx-panel-body">
             {items.map((item, index) => {
               const href = hrefFor(item, role);
-              const description = descriptionFor(item, role);
+              const { label, description } = translateNavLeaf(lang, item, role);
               return (
                 <Link
                   key={item.id}
@@ -313,7 +321,7 @@ export function NavDropdown({
                     <item.icon className="h-4 w-4" />
                   </span>
                   <span className="hx-panel-item-text">
-                    <span className="hx-panel-item-label">{labelFor(item, role)}</span>
+                    <span className="hx-panel-item-label">{label}</span>
                     {description && (
                       <span className="hx-panel-item-desc">{description}</span>
                     )}

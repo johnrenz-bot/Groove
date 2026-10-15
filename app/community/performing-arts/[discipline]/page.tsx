@@ -1,17 +1,15 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { DisciplinePage } from '@/features/performing-arts/components/DisciplinePage';
+import { ComingSoonPage } from '@/features/performing-arts/components/ComingSoonPage';
 import { DISCIPLINES, DISCIPLINE_IDS, getDiscipline } from '@/features/performing-arts/data/disciplines';
 
 /**
  * One route, four pages: /community/performing-arts/{dance,singing,acting,theater}.
  *
- * A dynamic segment rather than four folders. The four pages differ only in
- * which record `DISCIPLINES` they render — the hero, the coach grid and the
- * classes list are identical — so a segment with `generateStaticParams` gives the
- * same four URLs with one implementation and one place to edit.
- *
- * Adding a fifth discipline is now one entry in `data/disciplines.ts`.
+ * A dynamic segment rather than four folders. Dance renders its own community
+ * page; the other three render `ComingSoonPage`. Both are driven by the same
+ * `DISCIPLINES` record, so the icon, title and description cannot drift between
+ * the routes and adding a discipline is one entry in `data/disciplines.ts`.
  *
  * PUBLIC, NOT GATED
  *   The Supabase middleware classifies anything it does not recognise as
@@ -80,5 +78,5 @@ export default async function DisciplineRoute({
   const record = DISCIPLINES.find((d) => d.id === discipline);
   if (!record) notFound();
 
-  return <DisciplinePage discipline={record.id} />;
+  return <ComingSoonPage discipline={record.id} />;
 }

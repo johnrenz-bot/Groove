@@ -93,10 +93,14 @@ const isoTimestamp = z
   );
 
 /**
- * The canonical update shape. Shared by ingestion, the agent, moderation and
- * seeding.
+ * The canonical update SHAPE, without cross-field rules.
+ *
+ * Exported separately from `danceUpdateSchema` because `.omit()` only works on
+ * a plain object schema — see `checkImagePair` for why the refinement lives
+ * outside. Use this for `.extend()` / `.omit()`; use `danceUpdateSchema` to
+ * validate a whole record.
  */
-export const danceUpdateSchema = z.object({
+export const danceUpdateFieldsSchema = z.object({
   title: z
     .string()
     .trim()
@@ -134,7 +138,44 @@ export const danceUpdateSchema = z.object({
    */
   source_url: httpsUrl,
 
-  image_url: httpsUrl.nullable().optional(),
+  image_url: z
+    .string()
+    .trim()
+    .max(MAX.url)
+    .refine(
+      (value) => value.startsWith('/') || new URL(value).protocol === 'https:',
+      'Must be an https:// URL or a local /path'
+    )
+    .nullable()
+    .optional(),
+  image_credit: z.string().trim().max(160).nullable().optional(),
+  image_verified: z.boolean().default(false).optional(),
+
+  /**
+   * The first-party asset a vendored `/dance-updates/...` image came from.
+   *
+   * Kept separate from `image_url` on purpose: `image_url` is what the browser
+   * loads, this is what a human needs to check the licence. Collapsing them
+   * would mean re-crawling the web to answer a question an editor should be
+   * able to answer from the row.
+   */
+  image_source_url: httpsUrl.nullable().optional(),
+
+  /**
+   * What the photo depicts. Capped at 280 like every other prose field so the
+   * card's three-line layout is not surprised by a paragraph-length alt.
+   */
+  image_alt: z.string().trim().max(280).nullable().optional(),
+
+  /**
+   * Why this record has no image.
+   *
+   * Cross-field invariant, enforced by `superRefine` below: non-null means
+   * `image_url` IS null, and vice versa. Without that, a stale reason can
+   * outlive the image it explained and the card starts claiming an image is
+   * missing when one is right there.
+   */
+  image_fallback_reason: z.string().trim().max(280).nullable().optional(),
 
   tags: z.array(z.string().trim().min(1).max(MAX.tag)).max(MAX.tags).nullable().optional(),
 
@@ -143,6 +184,63 @@ export const danceUpdateSchema = z.object({
 
   status: z.enum(STATUSES).default('pending_review'),
 });
+
+/**
+ * Cross-field rule: the image and its fallback reason must agree.
+ *
+ * Kept as a plain function rather than baked into `danceUpdateSchema` as a
+ * `.superRefine()` because `.superRefine()` wraps the schema in a ZodEffects,
+ * and `agentOutputSchema` below needs `.omit({ status })` on the base object —
+ * which throws at module-evaluation time on an effects-wrapped schema. Splitting
+ * them keeps `.omit()` working and puts the check somewhere both callers can
+ * reach it.
+ *
+ *   has image  -> must NOT carry a reason
+ *   no image   -> MUST carry a reason
+ *
+ * The second direction is the important one. A row with no image and no
+ * explanation is indistinguishable from a bug: the reader sees a blank card and
+ * cannot tell whether GroovePH tried, skipped, or failed.
+ */
+export function checkImagePair(
+  row: { image_url?: string | null; image_fallback_reason?: string | null },
+  ctx?: { addIssue: (issue: { code: 'custom'; path: (string | number)[]; message: string }) => void }
+): void {
+  const hasImage = typeof row.image_url === 'string' && row.image_url.length > 0;
+  const hasReason =
+    typeof row.image_fallback_reason === 'string' && row.image_fallback_reason.length > 0;
+
+  if (hasImage && hasReason) {
+    ctx?.addIssue({
+      code: 'custom',
+      path: ['image_fallback_reason'],
+      message: 'Cannot explain a missing image on a row that has one',
+    });
+  }
+  if (!hasImage && !hasReason) {
+    ctx?.addIssue({
+      code: 'custom',
+      path: ['image_fallback_reason'],
+      message:
+        'image_url is empty, so image_fallback_reason must say why no official image could be used',
+    });
+  }
+}
+
+/**
+ * The validated shape, with the cross-field image rule applied.
+ * This is what the ingest route parses with.
+ */
+export const danceUpdateSchema = danceUpdateFieldsSchema.superRefine((row, ctx) =>
+  checkImagePair(row, {
+    addIssue: (issue) =>
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: issue.path,
+        message: issue.message,
+      }),
+  })
+);
 
 export type DanceUpdateInput = z.infer<typeof danceUpdateSchema>;
 
@@ -186,7 +284,7 @@ export type UpdatesQuery = z.infer<typeof updatesQuerySchema>;
 export const agentOutputSchema = z.object({
   updates: z
     .array(
-      danceUpdateSchema
+      danceUpdateFieldsSchema
         .omit({ status: true })
         .extend({
           /**

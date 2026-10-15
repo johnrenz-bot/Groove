@@ -44,7 +44,7 @@ export function AuthLayout({
   title,
   subtext,
   eyebrow,
-  image = '/image/login/bright.jpeg',
+  image = '/image/bg/hero-theater.jpg',
   imageAlt = 'Groove performing arts community',
   quote,
   maxWidth = 'sm:max-w-[460px]',
@@ -113,11 +113,10 @@ export function AuthLayout({
 
   if (centered) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-background">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[380px] w-[600px] rounded-full bg-accent/8 blur-[100px]"
-        />
+      /* Transparent shell: the (auth) layout forces `.dark` and this AuthBackdrop
+         paints the dimmed theater behind the form. */
+      <div className="relative flex min-h-screen flex-col">
+        <AuthBackdrop />
         <div className="px-5 pt-6 sm:px-8">{topBar}</div>
         <div className="flex flex-1 items-center justify-center px-5 py-10">
           <div className={cn('w-full', maxWidth)}>
@@ -138,12 +137,8 @@ export function AuthLayout({
      card is capped so line lengths stay readable. */
   if (wide) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-background">
-        {/* Ambient atmospheric backdrop glow */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[800px] max-w-full rounded-full bg-accent/8 blur-[120px]"
-        />
+      <div className="relative flex min-h-screen flex-col">
+        <AuthBackdrop />
         <div className="px-5 pt-6 sm:px-8">{topBar}</div>
         <main className="flex-1 px-4 py-8 sm:px-8 sm:py-12">
           <div className="mx-auto w-full max-w-4xl">
@@ -158,7 +153,8 @@ export function AuthLayout({
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background lg:grid lg:grid-cols-2">
+    <div className="relative flex min-h-screen flex-col lg:grid lg:grid-cols-2">
+      <AuthBackdrop />
       {/* Form column */}
       <div className="relative flex flex-col justify-between px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
         {/* Subtle ambient radial glow in Unity Blue */}
@@ -222,6 +218,32 @@ export function AuthLayout({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Dimmed theater backdrop shared by every auth mode.
+ *
+ * `absolute inset-0 -z-10` inside AuthLayout's `relative` shell: it paints
+ * above the transparent shell but below all form content (cards keep their
+ * own opaque `bg-card` surface). The whole auth subtree sits in the `.dark`
+ * scope from app/(auth)/layout.tsx, so the near-black overlay gradient only
+ * deepens an already-dark canvas and every token-built control (g-input,
+ * Button, links, FormError, focus rings) renders its dark, AA-safe values.
+ */
+function AuthBackdrop() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <Image
+        src="/image/bg/hero-theater.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover opacity-40"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/90" />
     </div>
   );
 }
