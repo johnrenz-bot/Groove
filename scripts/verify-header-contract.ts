@@ -17,12 +17,13 @@
  *   report rather than claimed.
  */
 
-import { showsIdentityPill, greetingFor } from '../lib/header/accountPill.ts';
+import { greetingFor } from '../lib/header/accountPill.ts';
 import {
   NAV,
   leavesForRole,
   sectionsForRole,
   isDropdown,
+  hrefFor,
   type NavRole,
 } from '../components/header/navConfig.ts';
 
@@ -64,9 +65,17 @@ for (const role of ['guest', 'client', 'coach'] as NavRole[]) {
 
 // ── 3. Role-specific navigation is still role-specific ─────────────────────
 console.log('\n-- role differences preserved --');
-const guestHrefs = leavesForRole('guest').map(({ leaf }) => leaf.href);
-const clientHrefs = leavesForRole('client').map(({ leaf }) => leaf.href);
-const coachHrefs = leavesForRole('coach').map(({ leaf }) => leaf.href);
+const guestHrefs = leavesForRole('guest').map(({ leaf }) => hrefFor(leaf, 'guest'));
+const clientHrefs = leavesForRole('client').map(({ leaf }) => hrefFor(leaf, 'client'));
+const coachHrefs = leavesForRole('coach').map(({ leaf }) => hrefFor(leaf, 'coach'));
+
+// FIXED: these three read `leaf.href` — the FALLBACK value — rather than
+// `hrefFor(leaf, role)`, which is what the header actually renders. One leaf
+// ("Bookings") carries `href: '/client/appointments'` plus
+// `hrefByRole: { coach: '/coach/appointments' }`, so the coach assertion below
+// was reading the client's fallback and failing against correct config. The
+// per-role override is the whole point of the `hrefByRole` field, so the check
+// has to resolve it.
 
 check('guests see no Dashboard destinations', guestHrefs.filter((h) => h.startsWith('/client/') || h.startsWith('/coach/')), []);
 check('guests do see Community', guestHrefs.some((h) => h.startsWith('/community/')), true);
@@ -76,13 +85,7 @@ check('clients and coaches do not share the appointments route', clientHrefs.inc
 check('Groovey stays client-only', coachHrefs.includes('/client/groovey'), false);
 check('Find Coaches stays client-only', coachHrefs.includes('/client/talent#directory'), false);
 
-// ── 4. The account pill rule ───────────────────────────────────────────────
-console.log('\n-- account pill (avatar-only for clients) --');
-check('client trigger is avatar only', showsIdentityPill('client'), false);
-check('coach trigger keeps the name pill', showsIdentityPill('coach'), true);
-check('guest has no pill at all (UserMenu returns null first)', showsIdentityPill('guest'), false);
-
-// ── 5. Greeting is still role-aware ────────────────────────────────────────
+// ── 4. The greeting is still role-aware ────────────────────────────────────
 console.log('\n-- greeting --');
 check('coach is addressed as Coach', greetingFor('coach', 'Ria', 9), 'Good morning, Coach Ria');
 check('coach afternoon', greetingFor('coach', 'Ria', 14), 'Good afternoon, Coach Ria');

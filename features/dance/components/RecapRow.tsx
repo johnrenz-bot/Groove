@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
@@ -24,9 +24,9 @@ export function RecapRow({ recap, crewName, isLatest, showViewAll, totalRecaps, 
       <button
         type="button"
         onClick={onViewAll}
-        className="w-full rounded-xl border border-dashed border-[#2A2823] bg-[#131313] px-4 py-3 text-center transition-all duration-200 hover:border-[#8F7335] hover:bg-[#1A160D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+        className="w-full rounded-xl border border-dashed crew-bd bg-[var(--crew-bg-row)] px-4 py-3 text-center transition-all duration-200 hover:crew-bd-hover hover:bg-[var(--crew-bg-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
       >
-        <span className="text-sm font-medium text-[#A39B87]">
+        <span className="text-sm font-medium text-[var(--crew-text-muted)]">
           Show all {totalRecaps} recaps
         </span>
       </button>
@@ -38,26 +38,26 @@ export function RecapRow({ recap, crewName, isLatest, showViewAll, totalRecaps, 
       className={cn(
         'rounded-xl border p-4 transition-all duration-200',
         isLatest
-          ? 'border-[#2A2823] bg-[#151515] hover:border-[#8F7335] hover:bg-[#1A160D] hover:-translate-y-1'
-          : 'border-[#2A2823] bg-[#131313] hover:border-[#6E5A2C] hover:bg-[#17140D]'
+          ? 'crew-bd bg-[var(--crew-bg-tile)] hover:crew-bd-hover hover:bg-[var(--crew-bg-hover)] hover:-translate-y-1'
+          : 'crew-bd bg-[var(--crew-bg-row)] hover:crew-bd-accent hover:bg-[var(--crew-bg-row-hover)]'
       )}
     >
       {/* Event Name & Date */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <span className="text-sm font-semibold text-[#F3EEDF]">{recap.event}</span>
-        <span className="flex items-center gap-1 text-[11px] text-[#A39B87]">
+        <span className="text-sm font-semibold text-[var(--crew-text-primary)]">{recap.event}</span>
+        <span className="flex items-center gap-1 text-[11px] text-[var(--crew-text-muted)]">
           {recap.date} · {recap.stage}
         </span>
       </div>
 
       {/* Head-to-Head & Results Banner */}
-      <div className="flex items-center justify-between border-y border-[#2A2823] py-2.5 mb-2.5">
-        <div className="flex items-center gap-2 text-xs font-semibold text-[#F3EEDF]">
+      <div className="flex items-center justify-between border-y crew-bd py-2.5 mb-2.5">
+        <div className="flex items-center gap-2 text-xs font-semibold text-[var(--crew-text-primary)]">
           <span>{crewName}</span>
           {recap.opponent && (
             <>
-              <span className="text-[10px] text-[#A39B87]">VS</span>
-              <span className="text-[#A39B87]">{recap.opponent}</span>
+              <span className="text-[10px] text-[var(--crew-text-muted)]">VS</span>
+              <span className="text-[var(--crew-text-muted)]">{recap.opponent}</span>
             </>
           )}
         </div>
@@ -65,14 +65,14 @@ export function RecapRow({ recap, crewName, isLatest, showViewAll, totalRecaps, 
         {/* Result Tag */}
         <div className="flex items-center gap-2">
           {recap.score && (
-            <span className="text-xs font-semibold text-[#A39B87]">{recap.score}</span>
+            <span className="text-xs font-semibold text-[var(--crew-text-muted)]">{recap.score}</span>
           )}
           <span
             className={cn(
               'rounded-full border px-2.5 py-0.5 text-[10px] font-bold',
               isChampion || isWin
-                ? 'border-[#6FBF93]/40 bg-[#6FBF93]/15 text-[#6FBF93]'
-                : 'border-[#D9A94A]/40 bg-[#D9A94A]/15 text-[#D9A94A]'
+                ? 'border-[color:var(--success)]/40 bg-[var(--success)]/15 text-[var(--success)]'
+                : 'border-[color:var(--warning)]/40 bg-[var(--warning)]/15 text-[var(--warning)]'
             )}
           >
             {recap.result}
@@ -81,7 +81,7 @@ export function RecapRow({ recap, crewName, isLatest, showViewAll, totalRecaps, 
       </div>
 
       {/* Summary */}
-      <p className="text-sm leading-relaxed text-[#CFC9BA] mb-3 whitespace-normal break-words">
+      <p className="text-sm leading-relaxed text-[var(--crew-text-body)] mb-3 whitespace-normal break-words">
         {recap.summary}
       </p>
 
@@ -91,13 +91,13 @@ export function RecapRow({ recap, crewName, isLatest, showViewAll, totalRecaps, 
           itemTitle={`${crewName} — ${recap.event}`}
           itemId={recap.id}
           kind="Result"
-          className="text-[11px] font-medium text-[#A39B87] hover:text-[#F3EEDF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+          className="text-[11px] font-medium text-[var(--crew-text-muted)] hover:text-[var(--crew-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
         />
         <a
           href={recap.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md text-[11px] font-semibold text-[#D4B366] hover:text-[#E2C887] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+          className="inline-flex items-center gap-1 rounded-md text-[11px] font-semibold text-[var(--crew-accent-gold)] hover:text-[var(--crew-chip-hover-text)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
           aria-label={`View verification source for ${recap.event}`}
         >
           <span>Verification Source</span>

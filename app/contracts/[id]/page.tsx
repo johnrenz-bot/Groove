@@ -9,7 +9,7 @@ import {
   Shield,
   Loader2,
 } from 'lucide-react';
-import { AppHeader } from '@/components/shared/Navbar';
+import { SiteHeader } from '@/components/layout/SiteHeader';
 import SignaturePadModal from '@/components/shared/SignaturePadModal';
 import { Agreement, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
@@ -194,10 +194,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="min-h-screen bg-background pb-16 text-foreground">
-      <AppHeader
-        userRole={currentUser?.role === 'coach' ? 'coach' : 'client'}
-        userProfile={currentUser}
-      />
+      <SiteHeader />
 
       {/* ── Document. A ~70ch measure keeps the clauses readable. ── */}
       <main className="mx-auto max-w-3xl px-4 pt-8 md:px-8 md:pt-10">

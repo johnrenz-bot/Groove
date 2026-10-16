@@ -181,8 +181,13 @@ function LoginForm() {
   return (
     <div className="groove-auth">
       <AuthLayout
+        /* Two fields do not need a 460px column alone in a wide viewport, and
+           this is the one auth route where the photograph is worth showing at
+           full height. `split` collapses to the normal single column below
+           `lg`, so mobile is unchanged. */
+        split
         eyebrow={
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#F5B52E]/40 bg-[#F5B52E]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#F5B52E]">
+          <span className="au-eyebrow">
             <Sparkles className="h-3 w-3" aria-hidden="true" />
             Member Access
           </span>
@@ -295,13 +300,14 @@ function LoginForm() {
             </label>
           </div>
 
-          {/* One primary action, visually separated from the fields above it. */}
+          {/* One primary action, separated from the fields above it. `variant`
+              is left at `primary` so the button follows the theme in both
+              directions — the old fixed-gold class could not. */}
           <div className="border-t border-divider pt-5">
             <Button
               type="submit"
               size="lg"
-              pill={false}
-              className="gl-btn-gold h-12 w-full rounded-lg text-sm font-bold tracking-wide"
+              className="w-full"
               loading={loading}
               trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
             >

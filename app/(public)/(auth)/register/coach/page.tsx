@@ -603,7 +603,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
         }
       >
         <div className="mb-7 flex justify-center">
-          <span className="g-eyebrow">
+          <span className="au-eyebrow">
             <Award className="h-3 w-3" aria-hidden="true" />
             Coach &amp; Choreographer Registration
           </span>

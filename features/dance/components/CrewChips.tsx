@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Globe, Flag } from 'lucide-react';
@@ -90,7 +90,7 @@ export function CrewChips({
         aria-label="Filter crews by region"
         className="flex items-center justify-between mb-4"
       >
-        <div className="inline-flex items-center gap-1 rounded-full bg-[#151515] border border-[#2A2823] p-1">
+        <div className="inline-flex items-center gap-1 rounded-full bg-[var(--crew-bg-tile)] border crew-bd p-1">
           {regionOptions.map(({ value, label, icon: Icon }) => (
             <button
               key={value}
@@ -98,10 +98,10 @@ export function CrewChips({
               onClick={() => onRegionFilterChange(value as 'all' | 'ph' | 'intl')}
               aria-pressed={regionFilter === value}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]',
+                'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]',
                 regionFilter === value
-                  ? 'bg-[#D4B366] text-[#0A0A0A] shadow-sm'
-                  : 'text-[#A39B87] hover:bg-[#1A160D] hover:text-[#F3EEDF] hover:border-[#8F7335]'
+                  ? 'bg-[var(--crew-accent-gold)] text-[var(--crew-bg-page)] shadow-sm'
+                  : 'text-[var(--crew-text-muted)] hover:bg-[var(--crew-bg-hover)] hover:text-[var(--crew-text-primary)] hover:crew-bd-hover'
               )}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -119,7 +119,7 @@ export function CrewChips({
       >
         {/* Left fade */}
         <div
-          className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[#0A0A0A] to-transparent z-10"
+          className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[var(--crew-bg-page)] to-transparent z-10"
           aria-hidden="true"
         />
 
@@ -151,10 +151,10 @@ export function CrewChips({
                 onClick={() => onSelectCrew(crew)}
                 onKeyDown={(e) => handleKeyDown(e, crew, index)}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 min-h-[44px] text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] snap-start',
+                  'inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 min-h-[44px] text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)] snap-start',
                   isSelected
-                    ? 'bg-[#D4B366] text-[#0A0A0A] shadow-sm ring-1 ring-[#D4B366]'
-                    : 'bg-[#151515] text-[#CFC9BA] border border-[#2A2823] hover:bg-[#1A160D] hover:border-[#8F7335] hover:text-[#F3EEDF]'
+                    ? 'bg-[var(--crew-accent-gold)] text-[var(--crew-bg-page)] shadow-sm ring-1 ring-[color:var(--crew-accent-gold)]'
+                    : 'bg-[var(--crew-bg-tile)] text-[var(--crew-text-body)] border crew-bd hover:bg-[var(--crew-bg-hover)] hover:crew-bd-hover hover:text-[var(--crew-text-primary)]'
                 )}
                 style={{ scrollSnapAlign: 'center' }}
               >
@@ -162,12 +162,12 @@ export function CrewChips({
                   <img
                     src={crew.logo.url}
                     alt=""
-                    className="h-4 w-4 rounded-full object-cover ring-1 ring-[#2A2823]"
+                    className="h-4 w-4 rounded-full object-cover ring-1 ring-[color:var(--crew-border)]"
                     aria-hidden="true"
                   />
                 ) : (
                   <span
-                    className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-[#2A2823] text-[#D4B366] text-[10px] font-bold"
+                    className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-[var(--crew-border)] text-[var(--crew-accent-gold)] text-[10px] font-bold"
                     aria-hidden="true"
                   >
                     {initials}
@@ -181,7 +181,7 @@ export function CrewChips({
 
         {/* Right fade */}
         <div
-          className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#0A0A0A] to-transparent z-10"
+          className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[var(--crew-bg-page)] to-transparent z-10"
           aria-hidden="true"
         />
       </div>
@@ -192,7 +192,7 @@ export function CrewChips({
           type="button"
           onClick={scrollLeft}
           aria-label="Scroll crews left"
-          className="rounded-full p-2 bg-[#151515] border border-[#2A2823] text-[#A39B87] hover:bg-[#1A160D] hover:border-[#8F7335] hover:text-[#F3EEDF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366]"
+          className="rounded-full p-2 bg-[var(--crew-bg-tile)] border crew-bd text-[var(--crew-text-muted)] hover:bg-[var(--crew-bg-hover)] hover:crew-bd-hover hover:text-[var(--crew-text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)]"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -200,7 +200,7 @@ export function CrewChips({
           type="button"
           onClick={scrollRight}
           aria-label="Scroll crews right"
-          className="rounded-full p-2 bg-[#151515] border border-[#2A2823] text-[#A39B87] hover:bg-[#1A160D] hover:border-[#8F7335] hover:text-[#F3EEDF] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366]"
+          className="rounded-full p-2 bg-[var(--crew-bg-tile)] border crew-bd text-[var(--crew-text-muted)] hover:bg-[var(--crew-bg-hover)] hover:crew-bd-hover hover:text-[var(--crew-text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)]"
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>

@@ -151,15 +151,17 @@ function FormSectionHeader({
 }) {
   return (
     <div className="flex items-start gap-3.5 pb-1">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border/40 bg-accent-soft text-accent-text shadow-sm">
+      {/* Hairline tile rather than a raised one: on a form this long a shadowed
+          badge per section reads as a control, and none of these are controls. */}
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
       <div>
-        <h3 id={id} className="text-sm sm:text-base font-bold text-foreground">
+        <h3 id={id} className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
           {title}
         </h3>
         {description && (
-          <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{description}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{description}</p>
         )}
       </div>
     </div>
@@ -497,16 +499,17 @@ export function RegistrationFormFields({
       </div>
 
       {/* Tells the user up front which fields are mandatory, so the asterisks
-          below do not have to be decoded one at a time. */}
-      <p className="-mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-        <span aria-hidden="true" className="text-accent-text">
+          below do not have to be decoded one at a time. Set as a quiet note
+          panel rather than loose caption text — on a form this long the reader
+          needs a landmark for "what the asterisks mean". */}
+      <p className="-mt-3 au-note">
+        <span aria-hidden="true" className="font-semibold text-accent-text">
           *
         </span>
-        <span>Required field</span>
-        <span aria-hidden="true" className="text-subtle-foreground">
-          &mdash;
+        <span>
+          <span className="font-medium text-foreground">Required field</span> &mdash;
+          everything else is optional.
         </span>
-        <span>Everything else is optional.</span>
       </p>
 
       {/* ── Section 1: Personal Information ── */}
@@ -982,9 +985,8 @@ export function RegistrationFormFields({
           <Button
             type="submit"
             size="lg"
-            pill={false}
             loading={loading}
-            className="w-full h-12 text-sm font-bold tracking-wide shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-accent)]"
+            className="w-full"
             trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
           >
             {loading

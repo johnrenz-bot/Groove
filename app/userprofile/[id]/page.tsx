@@ -18,7 +18,7 @@ import {
   Cake,
   UserRound,
 } from 'lucide-react';
-import { AppHeader } from '@/components/shared/Navbar';
+import { SiteHeader } from '@/components/layout/SiteHeader';
 import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
 import { FullCoach, Profile, Feedback, CommunityPost } from '@/lib/types';
@@ -388,10 +388,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
 
   return (
     <div className="min-h-screen bg-background pb-16 text-foreground">
-      <AppHeader
-        userRole={currentUser?.role === 'coach' ? 'coach' : 'client'}
-        userProfile={currentUser}
-      />
+      <SiteHeader />
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 pt-8 md:px-8 md:pt-10">
         <button

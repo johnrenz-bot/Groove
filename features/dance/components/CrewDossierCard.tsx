@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
@@ -91,7 +91,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
       id={`crew-panel-${crew.id}`}
       role="tabpanel"
       aria-labelledby={`crew-tab-${crew.id}`}
-      className="rounded-3xl border border-[#2A2823] bg-[#101010] p-7"
+      className="rounded-3xl border crew-bd bg-[var(--crew-bg-card)] p-7"
     >
       <div className="grid grid-cols-1 gap-7 lg:grid-cols-[460px_1fr]">
         {/* LEFT COLUMN */}
@@ -135,14 +135,14 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
               </>
             ) : (
               // Gradient fallback with monogram
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#1A160D] via-[#101010] to-[#0A0A0A] p-8 text-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[var(--crew-bg-hover)] via-[var(--crew-bg-card)] to-[var(--crew-bg-page)] p-8 text-center">
                 <span
                   aria-hidden="true"
-                  className="flex h-24 w-24 items-center justify-center rounded-full bg-[#151515] text-3xl font-black tracking-tight text-[#D4B366] ring-2 ring-[#D4B366]/30"
+                  className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--crew-bg-tile)] text-3xl font-black tracking-tight text-[var(--crew-accent-gold)] ring-2 ring-[color:var(--crew-accent-gold)]/30"
                 >
                   {getInitials(crew.name)}
                 </span>
-                <span className="mt-4 text-[10px] font-bold uppercase tracking-widest text-[#A39B87]">
+                <span className="mt-4 text-[10px] font-bold uppercase tracking-widest text-[var(--crew-text-muted)]">
                   {divisionMissing ? 'Division TBD' : crew.division}
                 </span>
               </div>
@@ -153,33 +153,33 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
               {/* Division + Location pills */}
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 {!divisionMissing && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F3EEDF] text-[#0A0A0A] px-3 py-1 text-[11px] font-semibold shadow-sm">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--crew-text-primary)] text-[var(--crew-bg-page)] px-3 py-1 text-[11px] font-semibold shadow-sm">
                     {crew.division}
                   </span>
                 )}
                 {!cityMissing && !countryMissing && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#151515]/80 backdrop-blur-sm border border-[#2A2823] px-3 py-1 text-[11px] font-medium text-[#CFC9BA]">
-                    <MapPin className="h-3 w-3 text-[#A39B87]" aria-hidden="true" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--crew-bg-tile)]/80 backdrop-blur-sm border crew-bd px-3 py-1 text-[11px] font-medium text-[var(--crew-text-body)]">
+                    <MapPin className="h-3 w-3 text-[var(--crew-text-muted)]" aria-hidden="true" />
                     <span>{crew.city}, {crew.country}</span>
                   </span>
                 )}
               </div>
 
               {/* Crew name in large serif */}
-              <h3 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[#F3EEDF] leading-tight">
+              <h3 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[var(--crew-text-primary)] leading-tight">
                 {crew.name}
               </h3>
 
               {/* Photo credit line + Source link */}
               {hasImage && crew.image.credit && (
-                <div className="mt-2 flex items-center justify-between text-[10px] text-[#A39B87]">
+                <div className="mt-2 flex items-center justify-between text-[10px] text-[var(--crew-text-muted)]">
                   <span className="truncate max-w-[280px]">Credit: {crew.image.credit}</span>
                   {crew.image.source_url && (
                     <a
                       href={crew.image.source_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 text-[#D4B366] hover:text-[#E2C887] inline-flex items-center gap-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+                      className="shrink-0 text-[var(--crew-accent-gold)] hover:text-[var(--crew-chip-hover-text)] inline-flex items-center gap-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
                     >
                       Source <ExternalLink className="h-2.5 w-2.5" aria-hidden="true" />
                     </a>
@@ -203,7 +203,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
         <div className="flex flex-col gap-6">
           {/* Description */}
           <div>
-            <p className="text-sm leading-relaxed text-[#CFC9BA] whitespace-normal break-words">
+            <p className="text-sm leading-relaxed text-[var(--crew-text-body)] whitespace-normal break-words">
               {crew.bio}
             </p>
           </div>
@@ -236,8 +236,8 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
           {/* Top Certified Titles */}
           {(topThree.length > 0 || crew.achievements.length > 0) && (
             <div>
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#F3EEDF] mb-3">
-                <Award className="h-4 w-4 text-[#D4B366]" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--crew-text-primary)] mb-3">
+                <Award className="h-4 w-4 text-[var(--crew-accent-gold)]" aria-hidden="true" />
                 <span>Top Certified Titles</span>
               </div>
 
@@ -262,13 +262,13 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                 </div>
               ) : (
                 // No achievements at all
-                <div className="rounded-xl border border-[#2A2823] bg-[#131313] p-6 text-center">
-                  <Award className="h-8 w-8 mx-auto mb-3 text-[#A39B87]/50" aria-hidden="true" />
-                  <p className="text-sm text-[#A39B87] mb-3">No certified titles on record yet</p>
+                <div className="rounded-xl border crew-bd bg-[var(--crew-bg-row)] p-6 text-center">
+                  <Award className="h-8 w-8 mx-auto mb-3 text-[var(--crew-text-muted)]/50" aria-hidden="true" />
+                  <p className="text-sm text-[var(--crew-text-muted)] mb-3">No certified titles on record yet</p>
                   <button
                     type="button"
                     onClick={() => handleSuggestUpdate('Titles')}
-                    className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-[#D4B366] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+                    className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-[var(--crew-accent-gold)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
                     aria-label={`Suggest a verified result for ${crew.name}`}
                   >
                     Suggest a verified result
@@ -279,10 +279,10 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
               {/* More Titles Section */}
               {showMoreTitles && (
                 <div className="mt-6">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#A39B87] mb-3">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--crew-text-muted)] mb-3">
                     <span>More Titles</span>
                     {moreTitles.length > 8 && !showAllTitles && (
-                      <span className="text-[#D4B366]">(+{moreTitles.length - 6} more)</span>
+                      <span className="text-[var(--crew-accent-gold)]">(+{moreTitles.length - 6} more)</span>
                     )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -304,9 +304,9 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                     <button
                       type="button"
                       onClick={() => setShowAllTitles(true)}
-                      className="mt-3 w-full rounded-xl border border-dashed border-[#2A2823] bg-[#131313] px-4 py-3 text-center transition-all duration-200 hover:border-[#8F7335] hover:bg-[#1A160D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+                      className="mt-3 w-full rounded-xl border border-dashed crew-bd bg-[var(--crew-bg-row)] px-4 py-3 text-center transition-all duration-200 hover:crew-bd-hover hover:bg-[var(--crew-bg-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
                     >
-                      <span className="text-sm font-medium text-[#A39B87]">
+                      <span className="text-sm font-medium text-[var(--crew-text-muted)]">
                         Show all {moreTitles.length} titles
                       </span>
                     </button>
@@ -315,9 +315,9 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                     <button
                       type="button"
                       onClick={() => setShowAllTitles(false)}
-                      className="mt-3 w-full rounded-xl border border-dashed border-[#2A2823] bg-[#131313] px-4 py-3 text-center transition-all duration-200 hover:border-[#8F7335] hover:bg-[#1A160D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+                      className="mt-3 w-full rounded-xl border border-dashed crew-bd bg-[var(--crew-bg-row)] px-4 py-3 text-center transition-all duration-200 hover:crew-bd-hover hover:bg-[var(--crew-bg-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
                     >
-                      <span className="text-sm font-medium text-[#A39B87]">
+                      <span className="text-sm font-medium text-[var(--crew-text-muted)]">
                         Show fewer
                       </span>
                     </button>
@@ -330,8 +330,8 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
           {/* Recap Row */}
           {hasRecaps && (
             <div>
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#F3EEDF] mb-3">
-                <Award className="h-4 w-4 text-[#D4B366]" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--crew-text-primary)] mb-3">
+                <Award className="h-4 w-4 text-[var(--crew-accent-gold)]" aria-hidden="true" />
                 <span>Official Match Recaps</span>
               </div>
               <div className="space-y-3">
@@ -362,9 +362,9 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                   <button
                     type="button"
                     onClick={() => setShowAllRecaps(false)}
-                    className="w-full rounded-xl border border-dashed border-[#2A2823] bg-[#131313] px-4 py-3 text-center transition-all duration-200 hover:border-[#8F7335] hover:bg-[#1A160D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+                    className="w-full rounded-xl border border-dashed crew-bd bg-[var(--crew-bg-row)] px-4 py-3 text-center transition-all duration-200 hover:crew-bd-hover hover:bg-[var(--crew-bg-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
                   >
-                    <span className="text-sm font-medium text-[#A39B87]">
+                    <span className="text-sm font-medium text-[var(--crew-text-muted)]">
                       Show fewer
                     </span>
                   </button>
@@ -374,8 +374,8 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
           )}
 
           {/* Footer */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#2A2823] pt-4">
-            <p className="text-[11px] text-[#A39B87]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t crew-bd pt-4">
+            <p className="text-[11px] text-[var(--crew-text-muted)]">
               Facts corroborated against official federation records
             </p>
             <div className="flex items-center gap-3">
@@ -383,13 +383,13 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                 itemTitle={crew.name}
                 itemId={crew.id}
                 kind="Crew"
-                className="text-[11px] font-medium text-[#A39B87] hover:text-[#F3EEDF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+                className="text-[11px] font-medium text-[var(--crew-text-muted)] hover:text-[var(--crew-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
               />
               <a
                 href={crew.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-[#D4B366] hover:text-[#E2C887] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4B366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+                className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-[var(--crew-accent-gold)] hover:text-[var(--crew-chip-hover-text)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"
                 aria-label={`View crew dossier source for ${crew.name}`}
               >
                 <span>Crew dossier source</span>

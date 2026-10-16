@@ -2,21 +2,17 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Music, Drama, Theater, Sparkles } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
-import { useScrollReveal } from '@/components/shared/useScrollReveal';
+import { Check } from 'lucide-react';
 
-interface DisciplineCardProps {
-  title: string;
-  tagline: string;
-  image: string;
-  description: string;
-  highlights: string[];
-  icon: React.ReactNode;
-  index: number;
-}
-
+/**
+ * The four disciplines, as a four-up card grid.
+ *
+ * The previous version hid the description and the highlights behind a hover
+ * reveal. That reads as clever on a desktop with a mouse and as nothing at all
+ * on touch, and it put real content behind a state a keyboard user could only
+ * reach by guessing — so every card now shows the same information at rest and
+ * the image simply breathes on hover.
+ */
 const disciplines = [
   {
     title: 'Dance & Choreography',
@@ -30,7 +26,6 @@ const disciplines = [
       'Technique Refinement',
       'Audition Coaching',
     ],
-    icon: <Music className="h-5 w-5" />,
   },
   {
     title: 'Vocal Performance & Coaching',
@@ -44,7 +39,6 @@ const disciplines = [
       'Stage Presence & Mic Technique',
       'Harmony & Arrangement',
     ],
-    icon: <Sparkles className="h-5 w-5" />,
   },
   {
     title: 'Acting & Stage Craft',
@@ -58,7 +52,6 @@ const disciplines = [
       'Monologue Coaching',
       'Camera & Screen Techniques',
     ],
-    icon: <Drama className="h-5 w-5" />,
   },
   {
     title: 'Theater & Production',
@@ -72,113 +65,55 @@ const disciplines = [
       'Collaborative Ensembles',
       'Live Show Discipline',
     ],
-    icon: <Theater className="h-5 w-5" />,
   },
 ];
 
-function DisciplineCard({ title, tagline, image, description, highlights, icon, index }: DisciplineCardProps) {
-  const { ref, isVisible } = useScrollReveal({ threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      className="group"
-    >
-      <div className={cn(
-        'g-card relative aspect-[4/3] overflow-hidden rounded-2xl',
-        'transition-all duration-500 hover:shadow-[0_0_40px_rgba(201,162,74,0.3)]'
-      )}>
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 border border-white/10 rounded-2xl" />
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-[#C9A24A]/10 via-transparent to-transparent" />
-
-        <div className="absolute inset-x-0 bottom-0 p-6">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm">
-            {icon}
-          </div>
-          <h3 className="text-lg font-bold tracking-tight text-white">
-            {title}
-          </h3>
-          <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-white/70">
-            {tagline}
-          </p>
-
-          <div className="mt-4 grid grid-rows-[0fr] transition-all duration-500 group-hover:grid-rows-[1fr]">
-            <div className="overflow-hidden">
-              <p className="pt-3 text-sm leading-relaxed text-white/90">
-                {description}
-              </p>
-              <ul className="mt-4 space-y-2">
-                {highlights.map((h) => (
-                  <motion.li
-                    key={h}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="flex items-center gap-2 text-xs text-white/80"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                    {h}
-                  </motion.li>
-                ))}
-              </ul>
-              <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-white/90">
-                <span>Find coaches</span>
-                <motion.span
-                  initial={{ x: 0 }}
-                  animate={{ x: 4 }}
-                  transition={{ delay: 0.2 }}
-                  className="inline-block"
-                >
-                  →
-                </motion.span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export function Disciplines() {
   return (
-    <section id="disciplines" className="g-section mx-auto max-w-7xl scroll-mt-20 px-5 py-24 sm:px-8 sm:py-32">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center max-w-3xl mx-auto mb-16"
-      >
-        <p className="gl-hero-badge inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm mb-6">
-          <span className="gl-dot relative h-2 w-2 rounded-full bg-[#C9A24A]" aria-hidden="true">
-            <motion.span className="absolute inset-0 rounded-full bg-[#C9A24A] animate-ping opacity-75" />
-          </span>
-          <Sparkles className="h-3.5 w-3.5 text-[#C9A24A]" aria-hidden="true" />
-          Disciplines
-        </p>
-        <h2 className="font-serif text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-          Every performing art has a home here
-        </h2>
-        <p className="mt-4 max-w-xl mx-auto text-base leading-relaxed text-white/60 sm:text-lg">
-          From hip-hop to ballet, vocal coaching to stage direction — find the right discipline and the right people to grow with.
-        </p>
-      </motion.div>
+    <section id="disciplines" className="ld-section" aria-labelledby="disciplines-heading">
+      <div className="ld-wrap">
+        {/* Section head: eyebrow, heading, lead — one measure, centred. */}
+        <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
+          <p className="ld-eyebrow">Disciplines</p>
+          <h2 id="disciplines-heading" className="ld-h2">
+            Every performing art has a home here
+          </h2>
+          <p className="ld-p">
+            From hip-hop to ballet, vocal coaching to stage direction — find the right
+            discipline and the right people to grow with.
+          </p>
+        </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {disciplines.map((discipline, index) => (
-          <DisciplineCard key={discipline.title} {...discipline} index={index} />
-        ))}
+        <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {disciplines.map((discipline) => (
+            <li key={discipline.title} className="h-full">
+              <article className="ld-media h-full">
+                <Image
+                  src={discipline.image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="ld-media__img"
+                />
+                <span className="ld-media__scrim" aria-hidden="true" />
+
+                <div className="ld-media__body">
+                  <h3 className="ld-h3">{discipline.title}</h3>
+                  <p className="ld-tagline">{discipline.tagline}</p>
+                  <p className="ld-copy mt-2">{discipline.description}</p>
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
+                    {discipline.highlights.map((highlight) => (
+                      <li key={highlight} className="ld-pill-glass inline-flex items-center gap-1.5 px-2.5 py-1">
+                        <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+                        {highlight}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

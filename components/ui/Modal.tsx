@@ -90,7 +90,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-[var(--overlay)] p-3 backdrop-blur-sm transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
+      className="g-modal-overlay fixed inset-0 z-[70] flex items-center justify-center bg-[var(--overlay)] p-3 backdrop-blur-sm transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -102,7 +102,11 @@ export function Modal({
         aria-label={typeof title === 'string' ? title : undefined}
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-[var(--shadow-lg)] transition-all duration-200 sm:rounded-2xl animate-in fade-in zoom-in-95',
+          /* `g-modal-panel` carries the mobile bottom-sheet treatment, which is
+             why this is a named class and not a pile of responsive utilities:
+             the sheet shape needs a `::before` handle and a max-height in
+             `dvh`, neither of which is expressible as a Tailwind class here. */
+          'g-modal-panel relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-[var(--shadow-lg)] transition-all duration-200 sm:rounded-2xl animate-in fade-in zoom-in-95',
           SIZES[size],
           className
         )}

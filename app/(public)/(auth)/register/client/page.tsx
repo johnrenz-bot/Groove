@@ -295,7 +295,7 @@ export default function ClientRegistrationPage() {
     <AuthLayout
       wide
       eyebrow={
-        <span className="g-eyebrow">
+        <span className="au-eyebrow">
           <Sparkles className="h-3 w-3" aria-hidden="true" />
           Client / Performer Registration
         </span>

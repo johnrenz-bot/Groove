@@ -39,6 +39,17 @@ function YoutubeIcon({ className }: { className?: string }) {
   );
 }
 
+/**
+ * The site footer.
+ *
+ * Rendered on every public route, so it is built entirely from the theme tokens
+ * rather than from fixed white/gold values. `className` decides the chrome —
+ * `.groove-landing .ld-footer` adds the bordered band treatment on the landing
+ * page; other public routes keep the plain edge.
+ *
+ * Every link, address and social handle below is unchanged from the previous
+ * version; only the type scale, the spacing and the palette are different.
+ */
 export function Footer({
   className = '',
   children,
@@ -57,6 +68,11 @@ export function Footer({
     { label: 'Studio Locator', href: '#studios' },
     { label: 'Showcase Feed', href: '/client/talent#showcase' },
     { label: 'Groovey AI', href: '/client/groovey' },
+    /* Help & FAQ sits here rather than in a new column: every footer column is
+       a fixed slot in a five-track grid, and a sixth column would have to be
+       padded with links that do not resolve. It is also the natural neighbour
+       of "For Performers" / "For Coaches", which are the questions it answers. */
+    { label: 'Help & FAQ', href: '/faq' },
   ];
 
   const disciplinesLinks = [
@@ -82,23 +98,23 @@ export function Footer({
     { label: 'Community Guidelines', href: '/guidelines' },
   ];
 
-  return (
-    <footer className={cn('relative border-t border-white/10 bg-black/50', className)}>
-      {/* Brick-tile pattern strip at top */}
-      <div
-        className="absolute inset-x-0 top-0 h-1 opacity-20"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23C9A24A' stroke-width='0.5' stroke-opacity='0.5'/%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px',
-        }}
-        aria-hidden="true"
-      />
+  const socials = [
+    { label: 'Facebook', href: 'https://facebook.com/grooveph', Icon: FacebookIcon },
+    { label: 'Instagram', href: 'https://instagram.com/grooveph', Icon: InstagramIcon },
+    { label: 'Twitter', href: 'https://twitter.com/grooveph', Icon: TwitterIcon },
+    { label: 'YouTube', href: 'https://youtube.com/grooveph', Icon: YoutubeIcon },
+  ];
 
-      <div className="g-container py-12">
-        <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr]">
-          {/* Brand & Contact */}
-          <div className="space-y-6">
-            <Link href="/" className="block" aria-label="Groove home">
+  const columnClass =
+    'flex flex-col gap-2.5 text-sm';
+
+  return (
+    <footer className={cn('relative', className)}>
+      <div className="ld-wrap py-14">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_repeat(4,1fr)]">
+          {/* Brand & contact */}
+          <div className="flex flex-col gap-5">
+            <Link href="/" className="w-fit" aria-label="Groove home">
               <Image
                 src="/image/Logo/GroovePH-Logo.png"
                 alt="Groove"
@@ -107,77 +123,59 @@ export function Footer({
                 className="h-8 w-auto object-contain"
               />
             </Link>
-            <p className="text-sm text-white/60 leading-relaxed max-w-xs">
-              The performing arts platform for San Jose del Monte.
-              Find coaches, book rehearsals, sign contracts, and grow your craft — all in one place.
+            <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+              The performing arts platform for San Jose del Monte. Find coaches, book
+              rehearsals, sign contracts, and grow your craft — all in one place.
             </p>
 
-            <div className="space-y-3 pt-4 border-t border-white/10">
-              <div className="flex items-center gap-3 text-sm text-white/60">
-                <MapPin className="h-4 w-4 text-[#C9A24A] shrink-0" aria-hidden="true" />
-                <span>San Jose del Monte, Bulacan, Philippines</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-white/60">
-                <Phone className="h-4 w-4 text-[#C9A24A] shrink-0" aria-hidden="true" />
-                <a href="tel:+639123456789" className="hover:text-white transition-colors">+63 912 345 6789</a>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-white/60">
-                <Mail className="h-4 w-4 text-[#C9A24A] shrink-0" aria-hidden="true" />
-                <a href="mailto:Groove1152000@gmail.com" className="hover:text-white transition-colors">Groove1152000@gmail.com</a>
-              </div>
-            </div>
+            <address className="not-italic">
+              <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent-text)]" aria-hidden="true" />
+                  <span>San Jose del Monte, Bulacan, Philippines</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Phone className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent-text)]" aria-hidden="true" />
+                  <a href="tel:+639123456789" className="hover:text-foreground">
+                    +63 912 345 6789
+                  </a>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent-text)]" aria-hidden="true" />
+                  <a href="mailto:Groove1152000@gmail.com" className="hover:text-foreground">
+                    Groove1152000@gmail.com
+                  </a>
+                </li>
+              </ul>
+            </address>
 
-            {/* Social icons */}
-            <div className="flex items-center gap-3 pt-2">
-              <a
-                href="https://facebook.com/grooveph"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/60 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-              >
-                <FacebookIcon className="h-4 w-4" />
-              </a>
-              <a
-                href="https://instagram.com/grooveph"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/60 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-              >
-                <InstagramIcon className="h-4 w-4" />
-              </a>
-              <a
-                href="https://twitter.com/grooveph"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Twitter"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/60 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-              >
-                <TwitterIcon className="h-4 w-4" />
-              </a>
-              <a
-                href="https://youtube.com/grooveph"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/60 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-              >
-                <YoutubeIcon className="h-4 w-4" />
-              </a>
-            </div>
+            <ul className="flex items-center gap-2">
+              {socials.map(({ label, href, Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Platform */}
-          <nav aria-label="Platform">
-            <h4 className="font-semibold text-white mb-4">Platform</h4>
-            <ul className="space-y-3">
+          <nav aria-label="Platform" className={columnClass}>
+            {/* `h3`, not `h4`: the page's last heading before the footer is the
+                closing CTA's `h2`, so `h4` here skipped a level and failed the
+                heading-order audit. The columns are not nested under anything
+                deeper than the footer itself. */}
+            <h3 className="mb-1 text-[13px] font-semibold text-foreground">Platform</h3>
+            <ul className="flex flex-col gap-2.5 text-muted-foreground">
               {platformLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-white/60 transition-colors hover:text-white hover:text-[#C9A24A]"
-                  >
+                  <Link href={link.href} className="hover:text-foreground">
                     {link.label}
                   </Link>
                 </li>
@@ -185,16 +183,12 @@ export function Footer({
             </ul>
           </nav>
 
-          {/* Disciplines */}
-          <nav aria-label="Disciplines">
-            <h4 className="font-semibold text-white mb-4">Disciplines</h4>
-            <ul className="space-y-3">
+          <nav aria-label="Disciplines" className={columnClass}>
+            <h3 className="mb-1 text-[13px] font-semibold text-foreground">Disciplines</h3>
+            <ul className="flex flex-col gap-2.5 text-muted-foreground">
               {disciplinesLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-white/60 transition-colors hover:text-white hover:text-[#C9A24A]"
-                  >
+                  <Link href={link.href} className="hover:text-foreground">
                     {link.label}
                   </Link>
                 </li>
@@ -202,16 +196,12 @@ export function Footer({
             </ul>
           </nav>
 
-          {/* Company */}
-          <nav aria-label="Company">
-            <h4 className="font-semibold text-white mb-4">Company</h4>
-            <ul className="space-y-3">
+          <nav aria-label="Company" className={columnClass}>
+            <h3 className="mb-1 text-[13px] font-semibold text-foreground">Company</h3>
+            <ul className="flex flex-col gap-2.5 text-muted-foreground">
               {companyLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-white/60 transition-colors hover:text-white hover:text-[#C9A24A]"
-                  >
+                  <Link href={link.href} className="hover:text-foreground">
                     {link.label}
                   </Link>
                 </li>
@@ -219,16 +209,12 @@ export function Footer({
             </ul>
           </nav>
 
-          {/* Legal */}
-          <nav aria-label="Legal">
-            <h4 className="font-semibold text-white mb-4">Legal</h4>
-            <ul className="space-y-3">
+          <nav aria-label="Legal" className={columnClass}>
+            <h3 className="mb-1 text-[13px] font-semibold text-foreground">Legal</h3>
+            <ul className="flex flex-col gap-2.5 text-muted-foreground">
               {legalLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-white/60 transition-colors hover:text-white hover:text-[#C9A24A]"
-                  >
+                  <Link href={link.href} className="hover:text-foreground">
                     {link.label}
                   </Link>
                 </li>
@@ -240,19 +226,18 @@ export function Footer({
         {children}
 
         {/* Copyright & attribution */}
-        <div className="mt-10 border-t border-white/10 pt-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-center text-[11px] leading-relaxed text-white/40">
-              &copy; {year} Groove System. All rights reserved.
-            </p>
-            <p className="text-center text-[11px] leading-relaxed text-white/30">
-              Art &middot; Discipline &middot; Community
-            </p>
-            <p className="text-center text-[11px] leading-relaxed text-white/30">
-              Logos, names, and trademarks belong to their respective owners. Groove is an
-              independent directory and is not affiliated with or endorsed by these organizations.
-            </p>
-          </div>
+        <div className="ld-footer-rule mt-12 flex flex-col items-center justify-between gap-3 pt-8 text-center sm:flex-row">
+          <p className="text-[12px] text-[var(--subtle-foreground)]">
+            &copy; {year} Groove System. All rights reserved.
+          </p>
+          <p className="text-[12px] text-[var(--subtle-foreground)]">
+            Art &middot; Discipline &middot; Community
+          </p>
+          <p className="max-w-md text-[11px] leading-relaxed text-[var(--subtle-foreground)]">
+            Logos, names, and trademarks belong to their respective owners. Groove is an
+            independent directory and is not affiliated with or endorsed by these
+            organizations.
+          </p>
         </div>
       </div>
     </footer>

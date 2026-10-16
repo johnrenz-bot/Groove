@@ -111,7 +111,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
       className={`group relative flex flex-col overflow-hidden rounded-[22px] border transition-all duration-700 ease-out-expo ${
         isPastEvent
           ? 'border-neutral-700 bg-[#111] group-hover:border-neutral-500 group-focus-within:border-neutral-500 data-[expanded]:border-neutral-500'
-          : 'border-[#2B2820] bg-[#111] group-hover:border-[#E6C77A] group-focus-within:border-[#E6C77A] data-[expanded]:border-[#E6C77A]'
+          : 'crew-bd bg-[var(--crew-bg-panel)] group-hover:crew-bd-gold group-focus-within:crew-bd-gold data-[expanded]:crew-bd-gold'
       } ${reducedMotion ? 'transition-none' : ''} ${
         isTouchDevice && isExpanded ? 'ring-1 ring-[#E6C77A]' : ''
       }`}
@@ -142,16 +142,31 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
           />
         ) : (
-          // Styled gradient fallback - never reuse another event's image
+          // Styled gradient fallback - never reuse another event's image.
+          //
+          // This is the ONE part of the card that is NOT photograph: with no
+          // image to sit under, it becomes the card's visible plane, so it has
+          // to follow the theme or a light page shows a black box. Tokenised;
+          // the card's real scrim below stays literal because it always paints
+          // over imagery.
           <div
-            className={`absolute inset-0 bg-gradient-to-br from-neutral-900/80 via-neutral-950 to-neutral-900 ${
+            className={`absolute inset-0 bg-gradient-to-br from-[var(--crew-bg-panel)] via-[var(--crew-bg-tile)] to-[var(--crew-bg-row)] ${
               isPastEvent ? 'grayscale-[60%]' : ''
             }`}
             aria-hidden="true"
           />
         )}
 
-        {/* Dark gradient overlay: rest = 45%→92% black, hover/focus = 60%→97% black */}
+        {/* Dark gradient overlay: rest = 45%→92% black, hover/focus = 60%→97% black.
+
+            LITERALLY BLACK ON PURPOSE, AND IT STAYS THAT WAY IN LIGHT MODE.
+            This scrim always paints over an event photograph, and every ink in
+            this card — the badge, the category pill, the body copy, the gold
+            region tag, the two buttons — is chosen to sit on near-black at the
+            bottom of that photo. Swapping them to the light-theme tokens would
+            put dark text on a black scrim. The card is a photo surface, not a
+            themed panel; only its outer border and the no-image fallback above
+            are theme-aware. */}
         <div
           className={`absolute inset-0 pointer-events-none transition-opacity duration-700 ease-out-expo ${
             reducedMotion ? 'transition-none' : ''
@@ -300,7 +315,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
               href={update.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 min-h-[44px] text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111] ${
+              className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 min-h-[44px] text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-panel)] ${
                 isPastEvent
                   ? 'bg-neutral-700 text-neutral-200 border border-neutral-600 hover:bg-neutral-600'
                   : 'bg-[#E6C77A] text-[#111] hover:bg-[#F4BE4D] shadow-lg shadow-[#E6C77A]/30'
@@ -316,7 +331,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
               href={update.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 min-h-[44px] text-xs font-semibold text-[#D8D2C4] border border-white/20 hover:border-white/40 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111]"
+              className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 min-h-[44px] text-xs font-semibold text-[#D8D2C4] border border-white/20 hover:border-white/40 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-panel)]"
               aria-label={`View official source for ${update.title}`}
             >
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -336,7 +351,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
               itemTitle={update.title}
               itemId={update.id}
               kind="Update"
-              className="text-[11px] font-medium text-neutral-500 hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111]"
+              className="text-[11px] font-medium text-neutral-500 hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-panel)]"
             />
           </div>
         </div>
@@ -345,7 +360,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
         {isTouchDevice && !isExpanded && (
           <button
             type="button"
-            className="absolute inset-0 z-30 bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111]"
+            className="absolute inset-0 z-30 bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-panel)]"
             onClick={() => setIsExpanded(true)}
             aria-expanded={false}
             aria-controls="card-details"
@@ -359,7 +374,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
         {isTouchDevice && isExpanded && (
           <button
             type="button"
-            className="absolute top-3 right-3 z-30 rounded-full p-1.5 bg-black/50 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111]"
+            className="absolute top-3 right-3 z-30 rounded-full p-1.5 bg-black/50 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-panel)]"
             onClick={() => setIsExpanded(false)}
             aria-expanded={true}
             aria-label={`Collapse details for ${update.title}`}

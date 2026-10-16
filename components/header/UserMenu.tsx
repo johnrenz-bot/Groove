@@ -15,26 +15,28 @@ import {
 
 import { getInitials } from '@/lib/utils';
 import type { Profile } from '@/lib/types';
-import { ROLE_META } from '@/components/shared/AppTopNav';
+import { ROLE_META } from '@/components/header/roleMeta';
 import { PresenceDot, StatusSelect } from '@/components/shared/StatusSelect';
 import { ThemeModeSelect } from '@/components/theme/ThemeModeSelect';
-import { useLanguage, translateIn, dashboardLanguage } from '@/lib/i18n/LanguageProvider';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { usePresence } from '@/features/presence/hooks/usePresence';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { greetingFor, showsIdentityPill } from '@/lib/header/accountPill';
-export { greetingFor, showsIdentityPill };
+import { greetingFor } from '@/lib/header/accountPill';
+export { greetingFor };
 import type { NavRole } from './navConfig';
 
 /**
- * `greetingFor` and `showsIdentityPill` live in `lib/header/accountPill.ts` so
- * that `scripts/verify-header-contract.ts` can assert them under plain Node,
- * which cannot load a `.tsx` module. They are re-exported here because this has
- * always been where consumers have imported them from.
+ * `greetingFor` lives in `lib/header/accountPill.ts` so that
+ * `scripts/verify-header-contract.ts` can assert it under plain Node, which
+ * cannot load a `.tsx` module. It is re-exported here because that has always
+ * been where consumers have imported it from.
  *
- *   `showsIdentityPill` decides whether the account trigger shows the name and
- *   role line beside the avatar. It is `coach` only: a client's trigger is the
- *   avatar, its presence dot and the caret, and nothing else.
+ * Its sibling `showsIdentityPill` used to live beside it and decided whether
+ * the trigger showed the name and role line. It is gone: the trigger is now
+ * avatar + dot + chevron for every role, unconditionally, so there was no rule
+ * left to keep and a dead predicate that still answered "yes for coach" would
+ * have been a trap for the next person to touch this file.
  */
 /**
  * The account cluster: identity pill + its panel.
@@ -76,6 +78,19 @@ export function UserMenu({
 }) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [hour, setHour] = useState(() => new Date().getHours());
+  /**
+   * WHEN THE PHOTO FAILS.
+   *
+   * `user.photo_url` being null is only half the failure mode: the column can
+   * hold a path that 404s, or a private Supabase Storage object whose signed URL
+   * has expired. Either way the trigger must not show a broken-image glyph, so
+   * the image element reports its own failure and the initials take over.
+   *
+   * Declared here, with the other hooks, rather than next to the JSX that uses
+   * it: this component returns early when there is no session, and a hook
+   * declared after an early return changes the hook count between renders.
+   */
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const menuId = useId();
 
   // Presence is read from the shared realtime store rather than fetched here, so
@@ -114,25 +129,22 @@ export function UserMenu({
   const meta = ROLE_META[role === 'guest' ? 'client' : role];
   const displayName = user.firstname || 'Artist';
   const avatar = user.photo_url;
+  const showAvatarImage = Boolean(avatar) && !avatarFailed;
 
   /**
-   * CLIENTS GET THE AVATAR ALONE.
+   * The trigger is AVATAR + DOT + CHEVRON and nothing else.
    *
-   * `showsIdentityPill` holds the rule (see its doc comment): coach keeps the
-   * name and role line, client does not. The panel below opens on the same click
-   * either way and still leads with the full name, email, role badge and
-   * greeting, so nothing is lost. Below `sm` this pill already collapsed to the
-   * avatar for everyone, which is the same thing a desktop client now sees.
+   * The name and role line used to render beside the avatar. They made the one
+   * control in the bar whose width depends on the length of a person's name, so
+   * a long name pushed the bar wider and the nav with it — which is what moved
+   * navigation sideways between pages. Removing the text makes the cluster a
+   * fixed 2.25rem hit target, identical to Search and the bell.
    *
-   * Because the visible text is gone for clients, the trigger carries an
-   * `aria-label`. Without it the button is announced as "button", which is the
-   * one control in the bar a screen-reader user cannot identify.
+   * Nothing is lost: the panel below opens on the same click and leads with the
+   * full name, email, role badge and greeting, and the trigger carries an
+   * `aria-label` so it is still a control a screen-reader user can name.
    */
-  const showIdentityText = showsIdentityPill(role);
-  const fullName = `${user.firstname} ${user.lastname}`.trim() || displayName;
-  const triggerLabel = t('header.accountOf', `Account menu for ${fullName}`, {
-    name: showIdentityText ? fullName : `${fullName} (${meta.label})`,
-  });
+  const triggerLabel = t('header.openAccountMenu', 'Open account menu');
 
   return (
     <div className="relative">
@@ -140,23 +152,31 @@ export function UserMenu({
         ref={triggerRef}
         type="button"
         onClick={() => (open ? onClose() : onOpen())}
-        aria-haspopup="dialog"
+        aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         aria-label={triggerLabel}
-        className={`hx-account${showIdentityText ? '' : ' hx-account--avatar-only'}`}
+        className="hx-account"
       >
         {/* Positioning context for the presence dot. The dot itself is a static
             inline span (`.g-presence-dot`), so without `hx-presence` on the
             wrapper it would sit BESIDE the avatar instead of on its corner —
             which is exactly the overlap this pill used to have. */}
         <span className="hx-avatar-wrap">
-          {avatar ? (
-            <Image src={avatar} alt="" width={34} height={34} className="hx-avatar-img" />
+          {showAvatarImage ? (
+            <Image
+              src={avatar as string}
+              alt=""
+              width={34}
+              height={34}
+              className="hx-avatar-img"
+              onError={() => setAvatarFailed(true)}
+            />
           ) : (
-            /* Initials fallback. A client with no `photo_url` still gets a real,
-               visible identity here rather than a broken image or an empty
-               circle — and the same fallback is repeated, larger, in the panel. */
+            /* Initials fallback. A member with no `photo_url`, or with one that
+               fails to load, still gets a real, visible identity here rather
+               than a broken image or an empty circle — and the same fallback is
+               repeated, larger, in the panel. */
             <span className="hx-avatar" aria-hidden="true">
               {getInitials(user.firstname, user.lastname)}
             </span>
@@ -166,13 +186,8 @@ export function UserMenu({
           </span>
         </span>
 
-        {showIdentityText && (
-          <span className="hx-account-meta">
-            <span className="hx-account-name">{displayName}</span>
-            <span className="hx-account-sub">{meta.label}</span>
-          </span>
-        )}
-
+        {/* `.hx-caret` rotates 180° off `[aria-expanded='true']`, so the chevron
+            tracks the panel for pointer and keyboard alike with no extra state. */}
         <ChevronDown className="hx-caret" aria-hidden="true" />
       </button>
 
@@ -184,8 +199,15 @@ export function UserMenu({
           className="hx-panel hx-panel--account"
         >
           <div className="hx-panel-head">
-            {avatar ? (
-              <Image src={avatar} alt="" width={40} height={40} className="hx-account-avatar-img" />
+            {showAvatarImage ? (
+              <Image
+                src={avatar as string}
+                alt=""
+                width={40}
+                height={40}
+                className="hx-account-avatar-img"
+                onError={() => setAvatarFailed(true)}
+              />
             ) : (
               <span className="hx-account-avatar">
                 {getInitials(user.firstname, user.lastname)}

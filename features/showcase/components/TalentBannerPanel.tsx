@@ -7,7 +7,7 @@
  * sits ABOVE the feed, because on a narrow screen the two-column split is
  * meaningless and the selector has to be reachable before the composer.
  *
- * The top offset accounts for the sticky app header (`.g-header` is 4.25rem), so
+ * The top offset accounts for the sticky app header (`--hx-header-h`, 4.5rem), so
  * the panel parks just below it instead of sliding underneath.
  */
 

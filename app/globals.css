@@ -113,22 +113,46 @@
   --ph-blue: #0038A8;
   --ph-red: #CE1126;
   --ph-yellow: #FCD116;
-  /* Crew Dossier Design Tokens — specific to the Featured Crews section.
-     These are distinct from the global brand tokens to match the reference design. */
+  /* Crew Dossier Design Tokens — specific to the Featured Crews / Latest
+     Updates sections of the dance community page. Distinct from the global brand
+     tokens to match the reference design.
+
+     These are now a full THEME-AWARE palette: the dark values below are
+     unchanged (so dark mode renders exactly as before), and the `.light` block
+     further down redefines every one of them for light mode. That single
+     token swap is what lets the whole section follow the global theme —
+     previously each value was written as a literal hex in the JSX
+     (`bg-[#101010]`), so the section could never leave dark.
+
+     Every component in this section reads these tokens and nothing else. */
   --crew-bg-page: #0A0A0A;
   --crew-bg-card: #101010;
+  --crew-bg-panel: #111;   /* UpdateCard surface — a shade above the card */
   --crew-bg-tile: #151515;
   --crew-bg-row: #131313;
   --crew-border: #2A2823;
+  --crew-border-subtle: #2B2820;
   --crew-border-hover: #8F7335;
+  --crew-border-accent: #6E5A2C;
   --crew-bg-hover: #1A160D;
   --crew-bg-row-hover: #17140D;
   --crew-text-primary: #F3EEDF;
   --crew-text-body: #CFC9BA;
+  --crew-text-soft: #D8D2C4;
   --crew-text-muted: #A39B87;
   --crew-accent-gold: #D4B366;
+  --crew-accent-gold-hover: #E6C77A;
+  --crew-accent-gold-strong: #F4BE4D;
+  /* Text and icon colour ON a gold fill. Never white: white on #D4B366 is
+     ~1.9:1 and fails AA outright. */
+  --crew-on-gold: #111;
   --crew-chip-hover-bg: rgba(143, 115, 53, 0.22);
   --crew-chip-hover-text: #E2C887;
+  /* Photo/video overlays. These sit ON imagery, not on a theme surface, so they
+     stay dark in both themes — a cream scrim would wash the photograph out.
+     Only the text on them changes (see `.crew-scrim-text`). */
+  --crew-scrim-bg: rgba(0, 0, 0, 0.6);
+  --crew-scrim-bg-hover: rgba(0, 0, 0, 0.78);
 }
 
 /* ------------------------------------------------------------------------------
@@ -427,6 +451,44 @@
   --pattern-color: #c9a24a;
   --pattern-opacity: 0.15;
   --pattern-opacity-sun: 0.2;
+
+  /* Crew Dossier tokens — light. Mirrors the `:root` block one-for-one, so the
+     dance page's Featured Crews and Latest Updates sections follow the same
+     global Light/Dark switch as the rest of the app.
+
+     The gold needs care here. `--crew-accent-gold` is #D4B366 on black in dark
+     mode (8.4:1), but on white that same gold is ~1.9:1 and unreadable, so the
+     light override darkens it to a bronze that clears AA on every surface below
+     while staying recognisably the same Groove gold. Fills that were gold in
+     dark keep a gold fill in light; only the ink ON them changes. */
+  --crew-bg-page: #f3ede0;
+  --crew-bg-card: #fffefb;
+  --crew-bg-panel: #fffefb;
+  --crew-bg-tile: #f8f4ea;
+  --crew-bg-row: #fbf8f1;
+  --crew-border: #e0d8c6;
+  --crew-border-subtle: #ece5d5;
+  --crew-border-hover: #b39247;
+  --crew-border-accent: #ddca9a;
+  --crew-bg-hover: #f6f0df;
+  --crew-bg-row-hover: #f7f1e2;
+  --crew-text-primary: #201d17;  /* 15.8:1 on --crew-bg-card */
+  --crew-text-body: #46412f;    /* 8.8:1  on --crew-bg-card */
+  --crew-text-soft: #4f4a3d;
+  --crew-text-muted: #6d6656;   /* 5.2:1  on --crew-bg-card */
+  /* #8A6A1F was the first value here and it measured 4.32:1 against the
+     cream ink of a selected chip — under AA for 12px label text. #80601B is
+     the same bronze hue, darkened to clear 4.5:1 on both of its jobs:
+     5.8:1 as text on --crew-bg-card, and 5.0:1 as a fill under
+     --crew-bg-page ink. */
+  --crew-accent-gold: #80601b;  /* 5.8:1 on --crew-bg-card */
+  --crew-accent-gold-hover: #6a5015;
+  --crew-accent-gold-strong: #8f6a10;
+  --crew-on-gold: #1c1609;
+  --crew-chip-hover-bg: rgba(138, 106, 31, 0.12);
+  --crew-chip-hover-text: #5f4a14;
+  --crew-scrim-bg: rgba(20, 16, 8, 0.6);
+  --crew-scrim-bg-hover: rgba(20, 16, 8, 0.78);
 }
 
 /* ------------------------------------------------------------------------------
@@ -3872,41 +3934,91 @@ select.g-input option {
   box-shadow: var(--shadow-header);
 }
 
-/* Three zones, not flex. The brand is fixed, the nav takes what it needs and may
-   shrink, and the account cluster is pinned right. Flex let the middle zone win
-   and squeeze the account menu — the one control a user must never lose. */
+/* THREE EQUAL THIRDS, not `auto 1fr auto`.
+
+   This is the fix for nav links that shift horizontally between pages and
+   between roles. With `auto 1fr auto` the centre track is only whatever the
+   brand and the action cluster leave over, so widening the account block — or
+   adding a nav item, or switching between the two auth links and the full
+   signed-in cluster — moved the first nav item sideways. With `1fr auto 1fr` the
+   nav is sized by its own content and sits in the container's true centre, so
+   its x-position is a property of the container rather than of what else
+   happens to be in the bar.
+
+   THE TRACKS ARE `minmax(0, 1fr)`, NOT `1fr`. A bare `1fr` is `minmax(auto, 1fr)`
+   — its `auto` minimum is the item's MIN-CONTENT width, so the brand lockup and
+   the action cluster each set a floor for their own track. Below ~1024px those
+   two floors plus the nav exceed the container, the grid overflows it, and the
+   action cluster stops being flush right: measured at a 375px viewport it ended
+   at x=210 with the container edge at x=360. `justify-self: end` then anchored
+   the account panel's right edge to 210, which put a 312px panel at -102..210 —
+   most of it off the left of the screen. `minmax(0, …)` lets the tracks divide
+   the space they actually have, which is the whole point of `justify-self`.
+
+   The brand and the action cluster are start/end-aligned inside their own
+   tracks, so they keep their edges while the middle is free to be centred. */
 .hx-header-inner {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 0.75rem;
   height: var(--hx-header-h);
+  /* The container's own inline inset, named. Anything anchored to the bar's
+     right edge — the account panel — measures its available width from this, and
+     a hard-coded gutter cannot: at a 320px viewport the account trigger's right
+     edge sits 20px in, not the 16px a `1rem` gutter assumed, so a panel sized
+     `100vw - 2rem` reached 3px past the LEFT edge of the screen. */
+  --hx-gutter: 1.25rem;
   /* MUST match the page content: every page wrapper in this app is
      `max-w-[1240px] px-5 sm:px-8`. A header at a different inset from the
      content it floats over reads as a permanent misalignment, which is the most
      visible way a header can look broken. */
   max-width: 1240px;
   margin-inline: auto;
-  padding-inline: 1.25rem;
+  padding-inline: var(--hx-gutter);
 }
 @media (min-width: 640px) {
   .hx-header-inner {
     gap: 1.25rem;
-    padding-inline: 2rem;
+    --hx-gutter: 2rem;
   }
 }
 .hx-header-brand {
   display: flex;
   align-items: center;
+  justify-self: start;
+  /* EXPLICIT column, not auto-placement. The nav is `display: none` below
+     `lg`, which removes it from the grid entirely — and auto-placement then put
+     the THIRD child (`.hx-header-actions`) into the SECOND track, the `auto` one
+     meant for the nav. `justify-self: end` then aligned it to that track's right
+     edge instead of the container's: at a 375px viewport the cluster ended at
+     x=210 with the container's content edge at x=340, and a 312px account panel
+     right-aligned to it ran off the left of the screen. Naming the column keeps
+     the action cluster in the third track whether or not the nav exists. */
+  grid-column: 1;
   gap: 0.5rem;
   min-width: 0;
+  /* The brand is the one zone that must never be squeezed: it holds the logo
+     lockup, and letting it shrink is what made the wordmark collide with the
+     nav's first link. It is allowed to overflow its track instead, because the
+     track is a whole third of a 1240px container and the lockup is ~160px. */
+  flex-shrink: 0;
 }
 .hx-header-actions {
   display: flex;
   align-items: center;
+  justify-self: end;
   justify-content: flex-end;
+  grid-column: 3;
+  /* One gap for the whole cluster, so Search, Bell and the account trigger are
+     evenly spaced. `.hx-header-actions > *` is `flex-shrink: 0` below, which is
+     what stops the cluster from compressing when the nav is wide. */
   gap: 0.375rem;
   min-width: 0;
+  flex-shrink: 0;
+}
+.hx-header-actions > * {
+  flex-shrink: 0;
 }
 
 /* --- Brand ---------------------------------------------------------------- */
@@ -4055,12 +4167,23 @@ select.g-input option {
   display: none;
   align-items: center;
   justify-content: center;
+  /* Same reason as the other two zones: the nav is the element that disappears
+     at small widths, and the action cluster must keep its own column when it
+     does. See `.hx-header-brand`. */
+  grid-column: 2;
   gap: 0.125rem;
   min-width: 0;
   /* MUST NOT be `overflow: hidden`. Every panel hangs BELOW this row, which is
      only as tall as the triggers, so clipping would leave each menu present in
      the DOM and invisible on screen — it looked like the buttons did nothing. */
   overflow: visible;
+}
+/* Nav triggers never compress. Without this they are the only flex children in
+   the bar that CAN shrink, so on a narrower desktop the row squeezed the labels
+   instead of giving up the space around them — which is what the overlap in the
+   screenshots was: a link's padding collapsing into its neighbour's. */
+.hx-header-nav > * {
+  flex-shrink: 0;
 }
 @media (min-width: 1024px) {
   .hx-header-nav {
@@ -4514,31 +4637,61 @@ select.g-input option {
   }
 }
 
-/* --- Account pill ---------------------------------------------------------- */
+/* --- Account trigger --------------------------------------------------------
 
+   Same HEIGHT, border and radius as Search and the bell — 2.25rem, 1px
+   `--border`, 9999px — but NOT the same fixed 2.25rem WIDTH.
+
+   It used to be a bare 36px circle holding a 34px avatar, a 4px gap and a 14px
+   chevron: 52px of content in a 36px box, so the chevron was pushed against the
+   avatar and the presence dot was clipped by the trigger's own edge. A circle
+   cannot hold three elements. So the trigger is a PILL of the same height and
+   border — which is what "matches the Search and Bell buttons" has to mean when
+   the thing inside it is 32px wide plus a 14px chevron.
+
+   Fixed width again, for the same reason as before: nothing in the bar's width
+   may depend on user data, or the centred nav moves sideways between pages. */
 .hx-account {
   display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
-  height: 2.75rem;
-  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
-  border: 1px solid transparent;
+  /* The gap BETWEEN avatar and chevron. The avatar's own breathing room is the
+     padding below, so the two never share one number and drift apart. */
+  gap: 0.375rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  /* Asymmetric on purpose: 4px around the avatar (which carries a presence dot
+     that overhangs its corner by 2px and needs room to hang), 7px past the
+     chevron, which is optically centred in the pill and needs less. */
+  padding: 0 0.4375rem 0 0.25rem;
+  border: 1px solid var(--border);
   border-radius: 9999px;
-  background: transparent;
-  color: var(--foreground);
+  background-color: var(--card);
+  color: var(--muted-foreground);
   font-family: inherit;
   cursor: pointer;
   transition:
     background-color 160ms ease,
+    color 160ms ease,
     border-color 160ms ease;
 }
 .hx-account:hover {
   background-color: var(--muted);
-  border-color: var(--hx-hairline);
+  border-color: var(--border-strong);
+  color: var(--foreground);
 }
 .hx-account:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* 32px inside the 36px pill, scoped to the trigger. `.hx-avatar` and
+   `.hx-avatar-img` are shared with the mobile drawer, which is a full-width
+   surface with room to breathe and sizes its own avatar at 2.75rem — a global
+   change here would have silently shrunk that too. */
+.hx-account .hx-avatar,
+.hx-account .hx-avatar-img {
+  width: 2rem;
+  height: 2rem;
 }
 .hx-avatar-wrap,
 .hx-drawer-avatar-wrap {
@@ -4548,9 +4701,13 @@ select.g-input option {
 }
 /* The presence dot is a plain static inline span (`.g-presence-dot`), so it
    needs an absolutely-positioned wrapper or it renders BESIDE the avatar
-   instead of on its corner — which is the overlap this pill had. The ring is
-   cut in the header's own surface colour so the dot reads as a badge riding the
-   avatar rather than as a second avatar. */
+   instead of on its corner — which is exactly the overlap this pill used to have.
+   The ring is cut in the header's own surface colour so the dot reads as a badge
+   riding the avatar rather than as a second avatar.
+
+   It overhangs by 2px on each axis, which is why the trigger carries 4px of
+   left padding above: at 0 the dot's ring sat exactly on the trigger's border
+   and was cut in half by it. */
 .hx-presence {
   position: absolute;
   right: -2px;
@@ -4559,6 +4716,9 @@ select.g-input option {
   border-radius: 9999px;
   box-shadow: 0 0 0 2px var(--hx-surface-avatar);
   line-height: 0;
+  /* Above the avatar and above the dot's own negative offsets, so neither is
+     painted out by a sibling. */
+  z-index: 1;
 }
 .hx-avatar,
 .hx-drawer-avatar {
@@ -4585,51 +4745,94 @@ select.g-input option {
   border-radius: 9999px;
   object-fit: cover;
 }
-.hx-account-meta {
+
+/* The chevron on the account trigger. `[aria-expanded='true'] > .hx-caret` above
+   already flips it, so the rotation follows the panel for pointer and keyboard
+   alike with no extra state. Dimmed at rest and at full strength when open, so
+   the trigger reads as "there is something behind this" without being loud. */
+.hx-account .hx-caret {
+  width: 0.875rem;
+  height: 0.875rem;
+  /* Cancels the parent's `align-items: center` for a replaced element, whose
+     intrinsic baseline sits a pixel or two low and made the chevron look
+     nudged down inside the pill. */
   display: block;
-  min-width: 0;
-  text-align: left;
+  margin-top: 1px;
+  opacity: 0.55;
 }
-.hx-account-name {
-  display: block;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 9rem;
-}
-.hx-account-sub {
-  display: block;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 1.3;
-  color: var(--muted-foreground);
-  white-space: nowrap;
-}
-/* Avatar-only trigger — the client's account pill.
-   The identity text is not rendered for clients at all (see `UserMenu`), so this
-   only has to balance the paddings: with no name beside it, the pill's left
-   padding would read as a gap and the hover pill would sit visibly off-centre
-   from the avatar. */
-.hx-account--avatar-only {
-  gap: 0.375rem;
-  padding-left: 0.25rem;
+.hx-account:hover .hx-caret,
+.hx-account[aria-expanded='true'] .hx-caret {
+  opacity: 0.9;
 }
 
-/* Below `sm` the name and role go and the pill collapses to the avatar — the
-   drawer reintroduces the full identity, so nothing is actually lost. */
-@media (max-width: 639px) {
-  .hx-account-meta {
-    display: none;
-  }
-}
+/* `.hx-account-meta` / `-name` / `-sub` are gone: they styled the name + role
+   pair the trigger used to render, and nothing renders them any more — the
+   identity now lives only in the account panel and in the drawer
+   (`hx-drawer-identity`), both of which have their own rules. Left in place they
+   would have been a dead second source of truth for how a member's name should
+   look. */
 
+/* The account panel.
+
+   `right: 0` (inherited from `.hx-panel`) is what aligns its right edge with the
+   trigger's, but a 19.5rem panel pinned to the right edge of a 480px phone runs
+   off the left of the screen. `max-width` caps it against the viewport, and the
+   identity text breaks rather than overflowing, so a long name or address cannot
+   push the panel wider than the screen.
+
+   `max-height` + `overflow-y` are what keep Sign Out reachable on a short screen.
+   The panel is one long column of identity + three links + four preference
+   sections; without a ceiling, the last two — Appearance, Sound and Sign Out —
+   fell below the fold on a laptop in landscape and the only way to reach them
+   was to close the panel and use the drawer. It scrolls instead. */
 .hx-panel--account {
-  min-width: 19.5rem;
+  /* BOTH bounds use `--hx-gutter`, the container's own inset, because this panel
+     is right-aligned to a trigger that sits one gutter in from the viewport
+     edge. Capping against a literal `100vw - 2rem` instead was 4px short on a
+     320px screen and pushed the panel past the left edge — the case a gutter
+     token exists to prevent. */
+  min-width: min(19.5rem, calc(100vw - 2 * var(--hx-gutter, 1rem)));
+  max-width: calc(100vw - 2 * var(--hx-gutter, 1rem));
+  max-height: calc(100vh - var(--hx-header-h) - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* The panel's own token set, re-pointed once here rather than at each use:
+     inside a panel the presence dot and the avatar ring sit on the panel, not on
+     the translucent bar. */
+  box-shadow: var(--shadow-panel);
+}
+
+/* THE IDENTITY BLOCK.
+
+   It was a row of text sitting on the same surface as the links above and below
+   it, separated from them by 2px of flex gap — so it read as one more item with
+   no title rather than as "who you are". It gets its own padding, its own quiet
+   fill and a hairline under it, which is the only structural change the panel
+   needed. Scoped to `.hx-panel--account` because `.hx-panel-head` is shared with
+   the nav dropdowns, where there is no identity row to separate. */
+.hx-panel--account .hx-panel-head {
+  gap: 0.75rem;
+  margin: 0.125rem 0.125rem 0.375rem;
+  padding: 0.875rem;
+  border: 1px solid var(--hx-hairline);
+  border-radius: 0.625rem;
+  background-color: var(--muted);
+}
+
+/* Link stack: a touch more air than the nav dropdowns' 2px, because these are
+   primary destinations rather than a long index list. */
+.hx-panel--account .hx-panel-body {
+  gap: 2px;
+  padding-top: 0.125rem;
+}
+
+/* A 36px hit target on every row. `.hx-menu-item` pads to ~34px with its current
+   0.875rem type, which is inside the 24px minimum but well short of the 44px
+   comfortable target on a touch screen — and these rows are the only way to
+   reach the account settings, the theme and sign out. */
+.hx-panel--account .hx-menu-item {
+  min-height: 2.25rem;
+  align-items: center;
 }
 .hx-panel-head {
   display: flex;
@@ -4666,11 +4869,20 @@ select.g-input option {
 }
 .hx-account-email {
   margin: 0;
+  min-width: 0;
   font-size: 0.75rem;
   color: var(--muted-foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* NOT `white-space: nowrap`. An address with no spaces in it has no break
+     opportunity, and a nowrap line ignores `overflow-wrap` entirely — so a long
+     address widened the panel past its own `min-width` and ran it off the side
+     of a narrow screen. Wrapping costs a second line at worst and keeps the
+     whole address readable, which is what the user opened this panel for. */
+  overflow-wrap: anywhere;
+}
+/* Same reason for a long name: `hx-account-fullname` is a single line with no
+   ellipsis, so without a break opportunity it is the other half of the overflow. */
+.hx-account-fullname {
+  overflow-wrap: anywhere;
 }
 .hx-account-badge {
   display: inline-flex;
@@ -4734,9 +4946,16 @@ select.g-input option {
   color: var(--danger);
 }
 
+/* The preference blocks inside the account panel. Scoped so the nav dropdowns,
+   which also render an `.hx-account-section`-shaped row in places, keep their
+   own rhythm. The top padding is larger than the bottom so the block's label
+   sits closer to the control it titles than to the divider above it. */
 .hx-account-section {
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem 0.875rem;
   border-top: 1px solid var(--hx-hairline);
+}
+.hx-panel--account .hx-account-section:first-of-type {
+  margin-top: 0.375rem;
 }
 .hx-account-section-label {
   margin: 0 0 0.375rem;
@@ -4871,12 +5090,23 @@ select.g-input option {
 .hx-drawer {
   display: flex;
   flex-direction: column;
-  width: min(22rem, 88vw);
-  height: 100%;
-  /* Solid. Same reasoning as the panels: a sheet that covers the page must not
-     be a window onto it. */
+  width: min(21rem, 84vw);
+  /* INSET, NOT FLUSH. The sheet used to run the full height of the viewport and
+     butt against the left edge with a single right-hand border, which reads as a
+     docked rail rather than as a panel floating over the page. A small margin
+     on every side plus a 24px radius is what makes it an overlay: the page stays
+     visible around it, which is the cue that tapping the backdrop will dismiss
+     it. */
+  height: auto;
+  margin: 0.5rem;
+  max-height: calc(100vh - 1rem);
+  /* `dvh` tracks the collapsing address bar on a phone, so the sheet never ends
+     up taller than the space it has. `vh` is the fallback for older engines. */
+  max-height: calc(100dvh - 1rem);
+  overflow: hidden;
+  border: 1px solid var(--hx-hairline);
+  border-radius: 1.5rem;
   background-color: var(--hx-surface);
-  border-right: 1px solid var(--hx-hairline);
   box-shadow: var(--shadow-panel);
   animation: hx-drawer-in 260ms var(--nav-ease) both;
 }
@@ -4885,16 +5115,58 @@ select.g-input option {
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  height: var(--hx-header-h);
-  padding-inline: 1.25rem;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 1rem;
   border-bottom: 1px solid var(--hx-hairline);
 }
+/* Brand lockup: mascot mark + wordmark + the portal label as a subtitle. This is
+   what tells someone who opened a sheet with no chrome on screen where they
+   are; the old header said only "MENU" in uppercase, which named the surface
+   but not the place. */
+.hx-drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+.hx-drawer-brand-mark {
+  display: flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--hx-hairline);
+  border-radius: 0.75rem;
+  background-color: var(--muted);
+}
+.hx-drawer-brand-mark img {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+}
+.hx-drawer-brand-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
 .hx-drawer-title {
-  font-size: 0.75rem;
+  display: block;
+  font-size: 0.9375rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+.hx-drawer-subtitle {
+  display: block;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
+  /* A long portal label truncates rather than pushing the close button off the
+     edge of the sheet. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .hx-drawer-close {
   display: inline-flex;
@@ -4902,24 +5174,61 @@ select.g-input option {
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
+  flex-shrink: 0;
   border: 0;
-  border-radius: 0.5rem;
-  background: transparent;
+  border-radius: 9999px;
+  background-color: var(--muted);
   color: var(--foreground);
   cursor: pointer;
 }
 .hx-drawer-close:hover {
-  background-color: var(--muted);
+  background-color: var(--hx-surface-hover);
 }
 .hx-drawer-close:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* THE SCROLLING MIDDLE.
+
+   `.hx-drawer-body` used to be the single scroll container and held the identity
+   card, the navigation AND the preference controls — so on a short screen the
+   navigation was the part that scrolled out of view while the account card stayed
+   glued to the top, which is the opposite of what the sheet is for. The list now
+   scrolls between a fixed head and a fixed foot, so the destinations and the
+   account controls are both always reachable. */
+.hx-drawer-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem 0.5rem 1rem;
+}
 .hx-drawer-body {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: 1rem 0.75rem 2rem;
+}
+
+/* THE FIXED BOTTOM.
+
+   Status, Language / Wika, Appearance, Sound and Sign Out live here for a signed-in
+   member; the sign-in links for a guest. `flex-shrink: 0` is what stops the
+   scroll area stealing its height, and the safe-area inset is what keeps the
+   Sign Out row clear of the home indicator on a notched phone. */
+.hx-drawer-foot {
+  flex-shrink: 0;
+  max-height: 45%;
+  overflow-y: auto;
+  padding: 0.75rem;
+  border-top: 1px solid var(--hx-hairline);
+  background-color: var(--hx-surface);
+}
+@supports (padding: max(0px)) {
+  .hx-drawer-foot {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 .hx-drawer-identity {
   display: flex;
@@ -5011,7 +5320,21 @@ select.g-input option {
   outline-offset: -2px;
 }
 .hx-drawer-sublink[aria-current='page'] {
+  /* Fill AND a hairline. Fill alone was too quiet against the sheet to read as
+     "you are here" on a phone at arm's length. */
   background-color: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+/* Nested rows must be able to shrink, or a long label pushes the chevron and the
+   icon past the right edge of the sheet instead of wrapping. */
+.hx-drawer-sublink,
+.hx-drawer-link {
+  min-width: 0;
+}
+.hx-drawer-sublink-label,
+.hx-drawer-sublink-desc {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .hx-drawer-sublink-icon {
   width: 1.125rem;
@@ -5458,4 +5781,1878 @@ select.g-input option {
    keeps it still for reduced-motion users. */
 @media (prefers-reduced-motion: reduce) {
   .page-patterns .pp-art { animation: none !important; }
+}
+
+/* ==============================================================================
+   LANDING PAGE — dedicated utility layer.
+
+   All classes here are scoped to the public landing shell. They never touch
+   dashboard pages and are NEVER referenced by component library files, so
+   changing one of these values only needs a landing-page re-render.
+   ============================================================================== */
+
+/* Alternating dark-surface band — one step off the page surface (#000).
+   Used by "How it Works" and other sections that need visual separation
+   from the adjacent white-on-black sections. */
+.gl-band {
+  background-color: #0b0b0b;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Pulsing dot for the hero badge. Identical ring scale to the hero badge's
+   own inline `animate-ping` but expressed as a class so it can be reused
+   across section headers without repeating a Framer motion definition. */
+.gl-dot {
+  position: relative;
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  background-color: #c9a24a;
+  flex-shrink: 0;
+}
+.gl-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: #c9a24a;
+  opacity: 0.75;
+  animation: gl-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes gl-ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-dot::after { animation: none; }
+}
+
+/* Hero badge pill — the small "GROOVE · PERFORMING ARTS PLATFORM" line.
+   Used in hero section and section subheaders across landing components. */
+.gl-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 0.375rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Gold CTA button — the primary landing page action (Explore disciplines,
+   Get started free). Fixed at 48px height, full pill. */
+.gl-btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  background-color: #c9a24a;
+  padding: 0 2rem;
+  height: 3rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #000;
+  transition:
+    background-color 160ms var(--ease-out-expo),
+    box-shadow 160ms var(--ease-out-expo),
+    transform 160ms var(--ease-out-expo);
+}
+.gl-btn-gold:hover {
+  background-color: #f5b52e;
+  box-shadow: 0 0 30px rgba(201, 162, 74, 0.4);
+  transform: translateY(-1px);
+}
+.gl-btn-gold:active {
+  transform: translateY(0);
+}
+.gl-btn-gold:focus-visible {
+  outline: 2px solid #c9a24a;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-btn-gold { transition: none; }
+  .gl-btn-gold:hover { transform: none; }
+}
+
+/* The accent headline span inside the h1 — gold gradient text.
+   Applied to "perform with Groove" within the hero h1. */
+.gl-headline-accent {
+  background: linear-gradient(135deg, #c9a24a 0%, #f5b52e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Stats number — the large percentage figures in the Why Groove section. */
+.gl-stat-num {
+  background: linear-gradient(135deg, #c9a24a 0%, #f5b52e 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Icon tile for stats/feature cards — muted gold square on dark surface. */
+.gl-icon-tile {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(201, 162, 74, 0.2);
+  background-color: rgba(201, 162, 74, 0.08);
+  color: #c9a24a;
+}
+
+/* Dark card variant — for the Why Groove / Stats band where cards sit on
+   the #0b0b0b band surface rather than the #000 page. */
+.gl-card-dark {
+  background-color: #111;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  transition:
+    border-color 200ms var(--ease-out-expo),
+    box-shadow 200ms var(--ease-out-expo),
+    transform 200ms var(--ease-out-expo);
+}
+.gl-card-dark:hover {
+  border-color: rgba(201, 162, 74, 0.25);
+  box-shadow: 0 0 30px rgba(201, 162, 74, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Root wrapper for the landing page — forces dark palette and establishes
+   a black surface that every section sits on. Intentionally not setting
+   background on this div itself — body handles that — so the PagePatterns
+   layer remains visible. */
+.groove-landing {
+  isolation: isolate;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   LANDING SECTION CARDS — the discipline/feature/step cards that appear
+   across landing sections. Tighter than g-card to suit the cinematic dark
+   aesthetic of the landing page.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.gl-section-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.02);
+  transition:
+    border-color 240ms var(--ease-out-expo),
+    background-color 240ms var(--ease-out-expo),
+    box-shadow 240ms var(--ease-out-expo),
+    transform 240ms var(--ease-out-expo);
+}
+.gl-section-card:hover {
+  border-color: rgba(201, 162, 74, 0.3);
+  background-color: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 40px rgba(201, 162, 74, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Step connector line used in the How it Works section */
+.gl-step-connector {
+  position: absolute;
+  left: 1.25rem;
+  top: 3.5rem;
+  bottom: -1rem;
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(201, 162, 74, 0.3), transparent);
+}
+
+/* The step number badge */
+.gl-step-num {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid rgba(201, 162, 74, 0.5);
+  background-color: rgba(201, 162, 74, 0.08);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #c9a24a;
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ==============================================================================
+   LANDING — "quiet editorial" design layer.
+
+   A single, token-driven visual language for the public landing page (`/`).
+   Everything is scoped under `.groove-landing`, so no dashboard, auth screen or
+   component-library file can be affected by a change here.
+
+   WHY A LAYER INSTEAD OF UTILITIES
+     The landing page was built from one-off Tailwind strings (`text-white/55`,
+     `border-white/10`, `#C9A24A`, `min-h-screen`, `text-7xl`) baked into seven
+     components. That is why it could not be responsive in a controlled way and
+     why it only ever worked on a black page. Naming the recurring pieces —
+     container, section rhythm, the four type sizes, the card, the two pill
+     buttons, the chip — puts the design system in one auditable block, exactly
+     like the `.g-*` layer above it.
+
+   COLOUR IS STILL THE APP'S
+     No hex value appears below. Every surface, line and type colour resolves
+     through `--card`, `--border`, `--muted-foreground`, `--accent`… so the page
+     follows Light/Dark/System exactly like every other route, and keeps the
+     GroovePH brand (Unity Blue accent, warm cream surfaces, Sunburst sparingly).
+
+   MOTION
+     Hover/press transitions are 150ms, reveal-on-scroll is a 0.5s opacity +
+     12px translate. Nothing loops, nothing parallaxes, and everything collapses
+     under `prefers-reduced-motion: reduce`.
+   ========================================================================== */
+.groove-landing {
+  isolation: isolate;
+
+  /* Local aliases — the landing page thinks in these names, not in tokens. */
+  --ld-ink: var(--foreground);
+  --ld-body: var(--muted-foreground);
+  --ld-faint: var(--subtle-foreground);
+  --ld-line: var(--border);
+  --ld-field: var(--border-strong);
+  --ld-soft: var(--muted);
+  --ld-surface: var(--card);
+  --ld-brand: var(--accent);
+  --ld-brand-hover: var(--accent-hover);
+  --ld-brand-fg: var(--accent-foreground);
+  --ld-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* --- Rhythm -------------------------------------------------------------- */
+
+/* One container width for the whole page. Sections align because they all
+   use this, not because each one remembered `max-w-7xl`. */
+.ld-wrap {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+@media (max-width: 640px) {
+  .ld-wrap {
+    padding-inline: 20px;
+  }
+}
+
+.ld-section {
+  padding-block: 96px;
+  scroll-margin-top: 5rem;
+}
+@media (max-width: 900px) {
+  .ld-section {
+    padding-block: 64px;
+  }
+}
+
+/* Alternating band: one step off the page surface, hairline top and bottom.
+   Reads as a change of chapter, not as a different website. */
+.ld-band {
+  background-color: var(--surface);
+  border-block: 1px solid var(--border);
+}
+
+/* --- Type ---------------------------------------------------------------- */
+
+.ld-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ld-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.ld-h1 {
+  margin: 0;
+  color: var(--ld-ink);
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.ld-h2 {
+  margin: 0;
+  color: var(--ld-ink);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.ld-h3 {
+  margin: 0;
+  color: var(--ld-ink);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.ld-h4 {
+  margin: 0;
+  color: var(--ld-ink);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ld-lead {
+  margin: 0;
+  color: var(--ld-body);
+  font-size: 19px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+.ld-p {
+  margin: 0;
+  color: var(--ld-body);
+  font-size: 17px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+.ld-small {
+  color: var(--ld-body);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1024px) {
+  .ld-h1 {
+    font-size: 44px;
+  }
+}
+@media (max-width: 640px) {
+  .ld-h1 {
+    font-size: 34px;
+    letter-spacing: -0.02em;
+  }
+  .ld-h2 {
+    font-size: 27px;
+  }
+  .ld-lead {
+    font-size: 17px;
+  }
+  .ld-p {
+    font-size: 15px;
+  }
+}
+
+/* --- Surfaces ------------------------------------------------------------ */
+
+/* The one card. Hairline outline + a 1px shadow, exactly like the reference:
+   the silhouette comes from the border, never from a heavy drop. */
+.ld-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ld-surface);
+  border: 1px solid var(--ld-line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color 180ms var(--ld-ease),
+    border-color 180ms var(--ld-ease),
+    box-shadow 180ms var(--ld-ease),
+    transform 180ms var(--ld-ease);
+}
+.ld-card--pad {
+  padding: 28px;
+}
+.ld-card--tight {
+  padding: 20px;
+}
+.ld-card--lift:hover,
+.ld-card--lift:focus-within {
+  border-color: var(--ld-field);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+@media (max-width: 640px) {
+  .ld-card--pad {
+    padding: 22px;
+  }
+  .ld-card--tight {
+    padding: 18px;
+  }
+}
+
+/* Icon tile: soft accent wash, square, 1px hairline. */
+.ld-tile {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  transition:
+    background-color 180ms var(--ld-ease),
+    color 180ms var(--ld-ease);
+}
+
+/* --- Pills --------------------------------------------------------------- */
+
+/* Primary action. `--accent` is cream-on-black in dark and slate-on-cream in
+   light, so this is the brand's main button in both themes without a new token. */
+.ld-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 50px;
+  padding: 0 24px;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background-color: var(--ld-brand);
+  color: var(--ld-brand-fg);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+.ld-btn:hover {
+  background-color: var(--ld-brand-hover);
+}
+.ld-btn:active {
+  transform: scale(0.98);
+}
+.ld-btn--sm {
+  min-height: 40px;
+  padding: 0 16px;
+  gap: 0.5rem;
+  font-size: 14px;
+}
+
+/* Secondary action: outlined, fills with the surface tint on hover. */
+.ld-btn2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--ld-field);
+  border-radius: 9999px;
+  background-color: var(--ld-surface);
+  color: var(--ld-ink);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+.ld-btn2:hover {
+  background-color: var(--ld-soft);
+}
+.ld-btn2:active {
+  transform: scale(0.98);
+}
+.ld-btn2--sm {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+.ld-btn2--lg {
+  min-height: 50px;
+  padding: 0 22px;
+  font-size: 16px;
+}
+
+/* A text link with the underline that only appears on hover. */
+.ld-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--ld-ink);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.ld-link:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Chip: metadata pill. Neutral by default so a row of them stays quiet. */
+.ld-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 5px 12px;
+  border: 1px solid var(--ld-line);
+  border-radius: 9999px;
+  background-color: var(--ld-surface);
+  color: var(--ld-ink);
+  font-size: 13px;
+  line-height: 1.4;
+}
+/* Metadata chip that carries no meaning of its own — an overflow counter, a
+   secondary category. Quieter than a chip that is the point of the row. */
+.ld-chip--quiet {
+  color: var(--ld-faint);
+}
+.ld-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background-color: var(--success-soft);
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Segmented control (Performer / Coach). The moving selection is a fill on the
+   active pill only — no sliding shadow, no layout shift. */
+.ld-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--ld-line);
+  border-radius: 9999px;
+  background-color: var(--ld-surface);
+}
+.ld-seg__btn {
+  min-height: 40px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 9999px;
+  background-color: transparent;
+  color: var(--ld-body);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.ld-seg__btn:hover {
+  color: var(--ld-ink);
+  background-color: var(--ld-soft);
+}
+.ld-seg__btn[aria-selected='true'] {
+  background-color: var(--ld-brand);
+  color: var(--ld-brand-fg);
+}
+.ld-seg__btn[aria-selected='true']:hover {
+  background-color: var(--ld-brand-hover);
+  color: var(--ld-brand-fg);
+}
+
+/* Numbered step badge, shared by "How it works" and any future ordered list. */
+.ld-num {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent-border);
+  border-radius: 9999px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* --- Media cards --------------------------------------------------------- */
+
+/* Photo card. The label sits on its own gradient scrim, which is the only way
+   to keep 14px type legible over an arbitrary user-supplied image. */
+.ld-media {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  height: 100%;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 300px;
+  border: 1px solid var(--ld-line);
+  border-radius: 18px;
+  background-color: var(--ld-surface);
+  isolation: isolate;
+  transition:
+    border-color 200ms var(--ld-ease),
+    box-shadow 200ms var(--ld-ease),
+    transform 200ms var(--ld-ease);
+}
+.ld-media:hover {
+  border-color: var(--ld-field);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.ld-media__img {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  transition: transform 500ms var(--ld-ease);
+}
+.ld-media:hover .ld-media__img {
+  transform: scale(1.04);
+}
+.ld-media__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(8, 8, 10, 0.9) 0%, rgba(8, 8, 10, 0.52) 48%, rgba(8, 8, 10, 0.08) 100%);
+}
+.ld-media__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 22px;
+}
+
+/* Type sitting on the scrim. Scoped to `.ld-media` so a card is white-on-photo
+   and everything else in the page stays on the token palette — the media card
+   is the one place where the background is not ours to choose. */
+.ld-media .ld-h3,
+.ld-media .ld-h4 {
+  color: #fff;
+}
+.ld-media .ld-tagline {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 500;
+}
+.ld-media .ld-copy {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.ld-media .ld-pill-glass {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Verified ribbon pinned to a media thumbnail: the same pill, inverted so it
+   stays readable against an arbitrary photo. */
+.ld-ribbon {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background-color: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* --- Hero ---------------------------------------------------------------- */
+
+.groove-landing .ld-hero {
+  position: relative;
+  overflow: hidden;
+  padding-block: 88px 64px;
+}
+@media (max-width: 900px) {
+  .groove-landing .ld-hero {
+    padding-block: 56px 48px;
+  }
+}
+
+.ld-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .ld-hero-grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+.ld-hero-text {
+  display: flex;
+  max-width: 620px;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ld-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 6px 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: 9999px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Hero portrait: a photograph in a rounded frame rather than a full-bleed
+   background. Keeps the image asset, stops it fighting the headline, and works
+   unchanged in light and dark. */
+.ld-hero-art {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--ld-line);
+  box-shadow: var(--shadow-lg);
+  aspect-ratio: 5 / 6;
+}
+.ld-hero-art img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+.ld-hero-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(8, 8, 10, 0.5), transparent 55%);
+}
+@media (max-width: 899px) {
+  .ld-hero-art {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+/* Short rule that softens the join between the hero and the first section. */
+.ld-fade {
+  height: 120px;
+  margin-top: -120px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--background));
+}
+
+/* --- Stats --------------------------------------------------------------- */
+
+.ld-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  text-align: center;
+}
+.ld-stat__value {
+  color: var(--ld-ink);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.ld-stat__label {
+  color: var(--ld-body);
+  font-size: 13px;
+  font-weight: 500;
+}
+.ld-stat-rule {
+  width: 1px;
+  align-self: stretch;
+  background-color: var(--ld-line);
+}
+
+/* --- Reveal on scroll ---------------------------------------------------- */
+
+/* Deliberately opacity + a short translate. The hidden state must never remove
+   the element from layout or from the accessibility tree, or content could stay
+   invisible if the observer callback were dropped. */
+.ld-reveal {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition:
+    opacity 500ms var(--ld-ease),
+    transform 500ms var(--ld-ease);
+}
+.ld-reveal[data-reveal='shown'] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Tab-panel entry. Re-keyed on every switch, so it plays once per change. */
+@keyframes ld-panel-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ld-panel-in {
+  animation: ld-panel-in 260ms var(--ld-ease) both;
+}
+
+/* --- Public header + footer, landing only ------------------------------- */
+
+/* The bar is shared with the dashboards, so only its landing appearance is
+   tuned here: quieter links, calmer auth buttons, no shadow until scrolled. */
+.groove-landing .hx-header-inner {
+  max-width: 1240px;
+}
+.groove-landing .hx-link--anchor {
+  color: var(--ld-body);
+  font-size: 14px;
+  font-weight: 500;
+}
+.groove-landing .hx-link--anchor:hover {
+  color: var(--ld-ink);
+}
+.groove-landing .hx-auth-link {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.groove-landing .ld-footer {
+  border-top: 1px solid var(--ld-line);
+  background-color: var(--surface);
+  color: var(--ld-body);
+}
+.groove-landing .ld-footer a {
+  color: var(--ld-body);
+  transition: color 150ms ease;
+}
+.groove-landing .ld-footer a:hover {
+  color: var(--ld-ink);
+}
+.groove-landing .ld-footer-heading {
+  color: var(--ld-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.groove-landing .ld-footer-rule {
+  border-top: 1px solid var(--ld-line);
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .ld-panel-in {
+    animation: none;
+  }
+  .ld-card--lift:hover,
+  .ld-media:hover,
+  .ld-card--lift:focus-within {
+    transform: none;
+  }
+  .ld-media:hover .ld-media__img {
+    transform: none;
+  }
+  .ld-btn:active,
+  .ld-btn2:active {
+    transform: none;
+  }
+  .ld-btn,
+  .ld-btn2,
+  .ld-card,
+  .ld-media,
+  .ld-seg__btn {
+    transition-duration: 1ms;
+  }
+}
+
+/* ==============================================================================
+   AUTH SHELL — /login, /register/*, /forgot-password, /reset-password.
+
+   ONE column, centred, 460px. The previous shell was a two-column split with a
+   full-height photo panel and a dimmed full-bleed theater behind it, which made
+   every auth route a different composition and made the forms harder to read
+   than they needed to be. A sign-in has exactly one job, so the page now gives
+   it one column: brand mark, heading, one card.
+
+   Like the landing layer above, every colour resolves through a token — the auth
+   routes sit in the `(public)` group and therefore follow the visitor's
+   Light/Dark/System choice instead of being pinned to a dark canvas.
+   ========================================================================== */
+.au-shell {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Decorative wash behind the form. `background` is only used as a texture; the
+   token gradient in `::after` is what makes the page readable, so the photo can
+   stay quiet in both themes. */
+.au-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+.au-backdrop img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+}
+.au-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(48rem 28rem at 50% -10rem, var(--accent-soft), transparent 70%),
+    linear-gradient(to bottom, transparent, var(--background) 88%);
+}
+
+.au-topbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+@media (min-width: 640px) {
+  .au-topbar {
+    padding: 1.5rem 2.5rem;
+  }
+}
+
+.au-stack {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin-inline: auto;
+}
+.au-stack--narrow {
+  max-width: 460px;
+}
+.au-stack--wide {
+  max-width: 760px;
+}
+
+/* The mascot lockup, in the slot the reference gives its own mark. It is the
+   only brand element above the form, so it carries the page's personality
+   without a photograph competing with the fields. */
+.au-mark {
+  display: flex;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background-color: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.au-mark img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.au-eyebrow {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 5px 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: 9999px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.au-title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.au-lead {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 17px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.au-card {
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background-color: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.au-note {
+  display: flex;
+  gap: 0.75rem;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.au-quote {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .au-title {
+    font-size: 28px;
+  }
+  .au-lead {
+    font-size: 16px;
+  }
+  .au-card {
+    padding: 20px;
+  }
+  .au-mark {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+  }
+  .au-mark img {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* ==============================================================================
+   MODAL + ERROR UI SYSTEM.
+
+   Two pieces:
+
+   1. `.groove-confirm` — the icon + title row used by GrooveConfirmDialog and
+      GrooveAlertDialog. Lives here rather than in the component so the
+      confirmation dialogs stay in step with `<Modal>`'s own panel rules.
+
+   2. The mobile BOTTOM SHEET. `<Modal>` was a centred panel at every width,
+      which on a phone means a card floating in the middle of the screen with the
+      page still visible around all four sides of it. A dialog is a dialog at
+      any size, but on a short screen the useful shape is the one the platform
+      itself uses: anchored to the bottom edge, full width, rounded top corners
+      only, with the overlay behind it. That is a presentational change to the
+      SAME component — no new component, no new props, and it is scoped below
+      `sm` so the desktop panel is untouched.
+   ========================================================================== */
+
+/* The dialog's own heading needs to be the accessible name for `Modal`, which
+   labels a dialog from `title` when one is passed and from `aria-label`
+   otherwise. These dialogs render the heading in their body, so the name is
+   supplied here. */
+.groove-confirm h2 {
+  scroll-margin-top: 0;
+}
+
+/* --- Mobile bottom sheet ---------------------------------------------------- */
+
+/* Below `sm` the overlay stops centring and the panel becomes a sheet.
+   `max-height: 90dvh` rather than `vh` so the sheet is bounded by the space the
+   browser actually has, not by the space it had before the address bar
+   collapsed. The body's own `overflow-y: auto` is what lets a long form scroll
+   inside the sheet instead of pushing the footer off-screen. */
+@media (max-width: 639px) {
+  .g-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .g-modal-panel {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90dvh;
+    border-radius: 1.25rem 1.25rem 0 0;
+    border-bottom: 0;
+    animation: g-sheet-up 240ms var(--ease-out-expo) both;
+  }
+  /* The sheet's grab handle. Purely decorative. */
+  .g-modal-panel::before {
+    content: '';
+    display: block;
+    width: 2.25rem;
+    height: 0.25rem;
+    margin: 0.5rem auto 0;
+    border-radius: 9999px;
+    background-color: var(--border-strong);
+    opacity: 0.6;
+  }
+  /* The header sits below the handle, so it needs its own top padding rather
+     than inheriting the `py-4.5` that assumed a panel edge. */
+  .g-modal-panel > header {
+    padding-top: 0.875rem;
+  }
+}
+
+@keyframes g-sheet-up {
+  from {
+    transform: translateY(3%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Honoured once, for the sheet as well as the panel: a dialog that slides is
+   motion the user did not ask for. */
+@media (prefers-reduced-motion: reduce) {
+  .g-modal-panel,
+  .g-modal-overlay {
+    animation: none !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* The guest theme toggle in the header bar.
+
+   Matched to `.hx-auth-link` exactly — same 2.25rem pill, same 1px `--border`,
+   same `--card` fill, same hover — so it sits in the guest cluster as a peer of
+   "Sign In" and "Get started" rather than as a differently-sized stranger.
+
+   Below `sm` the label is dropped (it has none) and only the icon remains. */
+.hx-theme-toggle {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 9999px;
+}
+
+/* ===========================================================================
+   CREW DOSSIER BORDER COLOURS
+   ---------------------------------------------------------------------------
+   globals.css declares a universal `* { border-color: var(--border) }` OUTSIDE
+   any @layer (see the note above the `.hx-*` block). Unlayered styles beat
+   every layered style regardless of specificity, so Tailwind's
+   `border-[color:var(--crew-…)]` utilities are emitted correctly and then
+   silently overridden — the Featured Crews cards, chips and tiles were all
+   drawing the generic `--border` hairline and none of the gold hover states
+   ever appeared.
+
+   The fix follows the house convention already used for `.hx-*` and `.g-*`:
+   declare `border-color` explicitly, here in real (unlayered) CSS. The `border`
+   utility in the markup still supplies `border-style` and `border-width`; these
+   classes only supply the colour, so they stay in step with the rest of the
+   page. Values are crew tokens, so they follow the global theme like the
+   surfaces and inks around them.
+
+   `[data-crew-bd]` is not used — these are plain classes because that is what
+   the JSX carries, and keeping the two in one string avoids a second name.
+   =========================================================================== */
+
+.crew-bd {
+  border-color: var(--crew-border);
+}
+
+.crew-bd-hover:hover {
+  border-color: var(--crew-border-hover);
+}
+
+.crew-bd-accent:hover {
+  border-color: var(--crew-border-accent);
+}
+
+.crew-bd-gold {
+  border-color: var(--crew-accent-gold-hover);
+}
+
+.crew-bd-gold-hover:hover {
+  border-color: var(--crew-accent-gold-hover);
+}
+
+/* Variant counterparts for the classes Tailwind emits behind `group-hover:`,
+   `group-focus-within:` and `data-[expanded]:`. Those prefixed names are only
+   matched through the generated variant selector, so each needs its own
+   unlayered rule here for the same cascade reason. */
+.group:hover .crew-bd-gold,
+.group:focus-within .crew-bd-gold,
+[data-expanded] .crew-bd-gold {
+  border-color: var(--crew-accent-gold-hover);
+}
+
+.group:hover .crew-bd-hover,
+.group:focus-within .crew-bd-hover,
+[data-expanded] .crew-bd-hover {
+  border-color: var(--crew-border-hover);
+}
+
+.group:hover .crew-bd-accent,
+.group:focus-within .crew-bd-accent,
+[data-expanded] .crew-bd-accent {
+  border-color: var(--crew-border-accent);
+}
+
+
+/* ===========================================================================
+   FAQ — /faq, the landing-page teaser, and the login visual layer below.
+
+   Drawn entirely from tokens, so the whole system follows Light/Dark with no
+   per-theme rules of its own. `border-color` is set explicitly here rather
+   than left to a Tailwind `border-*` class, because globals.css declares a
+   universal `* { border-color: var(--border) }` OUTSIDE any @layer and an
+   unlayered rule outranks every layered one — the same trap documented above
+   the `.hx-*` block.
+   =========================================================================== */
+
+/* ---------------------------------------------------------------- /faq page */
+.faq-page {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  width: 100%;
+  max-width: 880px;
+  margin-inline: auto;
+  padding: 3rem 1.25rem 5rem;
+}
+
+@media (min-width: 768px) {
+  .faq-page {
+    gap: 3.5rem;
+    padding: 4.5rem 2rem 6.5rem;
+  }
+}
+
+.faq-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+.faq-hero-lead {
+  max-width: 62ch;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* Category jump links. Real anchors so they work before hydration and can be
+   shared; each scrolls to a heading further down this same page. */
+.faq-hero-cats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.faq-hero-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    color 160ms var(--ease-out-expo),
+    border-color 160ms var(--ease-out-expo),
+    background-color 160ms var(--ease-out-expo);
+}
+.faq-hero-cat:hover {
+  color: var(--foreground);
+  border-color: var(--border-strong);
+  background-color: var(--elevated);
+}
+.faq-hero-cat-count {
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------- search bar */
+.faq-searchbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.faq-search-input {
+  width: 100%;
+  padding: 0.875rem 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  transition:
+    border-color 160ms var(--ease-out-expo),
+    box-shadow 160ms var(--ease-out-expo);
+}
+.faq-search-input::placeholder {
+  color: var(--muted-foreground);
+}
+/* The `search` input type draws its own clear affordance in WebKit; ours sits
+   in the same spot, so hide the native one rather than stacking two buttons. */
+.faq-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.faq-search-input:hover {
+  border-color: var(--border-strong);
+}
+.faq-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.faq-search-placeholder {
+  padding: 0.875rem 1.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+}
+
+/* ---------------------------------------------------------- category filter */
+.faq-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.faq-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-out-expo),
+    border-color 160ms var(--ease-out-expo),
+    background-color 160ms var(--ease-out-expo);
+}
+.faq-chip:hover {
+  color: var(--foreground);
+  border-color: var(--border-strong);
+  background-color: var(--elevated);
+}
+.faq-chip--active {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.faq-chip--active:hover {
+  color: var(--accent-foreground);
+  border-color: var(--accent);
+  background-color: var(--accent);
+}
+.faq-chip-count {
+  padding: 0 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  color: var(--subtle-foreground);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.faq-chip--active .faq-chip-count {
+  background-color: var(--accent-foreground);
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ the list */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background-color: var(--card);
+  transition:
+    border-color 180ms var(--ease-out-expo),
+    box-shadow 180ms var(--ease-out-expo);
+}
+.faq-item:hover {
+  border-color: var(--border-strong);
+}
+.faq-item[data-open] {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-sm);
+}
+.faq-item-heading {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.faq-item-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.faq-item-question {
+  min-width: 0;
+  text-wrap: pretty;
+}
+.faq-item-marker {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  transition:
+    transform 220ms var(--ease-out-expo),
+    background-color 180ms var(--ease-out-expo),
+    color 180ms var(--ease-out-expo);
+}
+.faq-item-trigger:hover .faq-item-marker {
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+}
+.faq-item[data-open] .faq-item-marker {
+  transform: rotate(45deg);
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.faq-item-panel {
+  padding: 0 1.125rem 1.125rem;
+  animation: faq-reveal 220ms var(--ease-out-expo);
+}
+.faq-item-answer {
+  max-width: 68ch;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+@keyframes faq-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-item-panel {
+    animation: none;
+  }
+}
+
+/* One focus ring for every interactive thing in the FAQ, so keyboard focus is
+   always findable and never relies on a per-element default. */
+.faq-item-trigger:focus-visible,
+.faq-chip:focus-visible,
+.faq-btn:focus-visible,
+.faq-hero-cat:focus-visible,
+.faq-directory-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* ------------------------------------------------------------- empty state */
+.faq-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3.5rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background-color: var(--card);
+  text-align: center;
+}
+
+/* -------------------------------------------------------- category directory */
+.faq-directory {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--divider);
+}
+.faq-directory-group {
+  /* Anchor target for the jump links in the header. `scroll-mt` clears the
+     sticky site header so a jump never lands under it. */
+  scroll-margin-top: 6rem;
+}
+.faq-directory-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0 0 0.25rem;
+  color: var(--foreground);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.faq-directory-count {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.faq-directory-blurb {
+  margin: 0 0 0.875rem;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+.faq-directory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.faq-directory-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition:
+    color 160ms var(--ease-out-expo),
+    background-color 160ms var(--ease-out-expo),
+    border-color 160ms var(--ease-out-expo);
+}
+.faq-directory-link:hover {
+  border-color: var(--border);
+  background-color: var(--card);
+  color: var(--foreground);
+}
+.faq-directory-link svg {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 160ms var(--ease-out-expo),
+    transform 160ms var(--ease-out-expo);
+}
+.faq-directory-link:hover svg {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------- buttons */
+.faq-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--card);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color 180ms var(--ease-out-expo),
+    border-color 180ms var(--ease-out-expo),
+    transform 180ms var(--ease-out-expo);
+}
+.faq-btn:hover {
+  border-color: var(--border-strong);
+  background-color: var(--elevated);
+  transform: translateY(-1px);
+}
+.faq-btn--primary {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.faq-btn--primary:hover {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* --------------------------------------------------------------- help panel */
+.faq-help {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: linear-gradient(
+    140deg,
+    var(--accent-soft),
+    transparent 62%
+  );
+}
+@media (min-width: 768px) {
+  .faq-help {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2.5rem;
+  }
+}
+
+/* ----------------------------------------------------- landing-page teaser */
+.faq-teaser {
+  width: 100%;
+  max-width: 820px;
+  margin-inline: auto;
+}
+
+/* ===========================================================================
+   AUTH SPLIT LAYOUT — /login only.
+
+   Below `lg` this collapses completely: `.au-split` becomes a plain block and
+   `.au-split-visual` is not rendered at all (display:none), so a phone gets the
+   same single centred column the other auth routes have. The photograph is only
+   ever loaded at a real size on large screens — `sizes="(min-width: 1024px)
+   50vw, 0px"` tells next/image there is nothing to fetch below that, which
+   matters because `bright.jpeg` is 1.9MB.
+
+   In split mode `.au-backdrop` is hidden: the same photograph appears in the
+   panel beside the form, and two copies of it at different opacities is one
+   image too many.
+   =========================================================================== */
+
+.au-shell--split .au-backdrop {
+  display: none;
+}
+
+.au-split {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.25rem 4rem;
+}
+
+.au-split-form {
+  display: flex;
+  width: 100%;
+  max-width: 460px;
+  justify-content: center;
+  padding-top: 0.5rem;
+}
+
+/* The form column carries the same rhythm as the centred layout. */
+.au-stack--split {
+  gap: 1.75rem;
+}
+
+.au-split-visual {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .au-shell--split {
+    overflow: visible;
+  }
+  .au-split {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 4rem;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding: 0 2.5rem 4rem;
+  }
+  .au-split-form {
+    /* Flex-basis 0 + min-width 0 is what lets the two columns share the row
+       evenly; without it the form column refuses to shrink below its content
+       and pushes the panel off the right edge on a 1024px laptop. */
+    flex: 1 1 0%;
+    min-width: 0;
+    align-items: center;
+    padding-top: 1rem;
+  }
+  .au-split-visual {
+    position: relative;
+    display: block;
+    flex: 1 1 0%;
+    min-width: 0;
+    min-height: 30rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    background-color: var(--card);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.au-split-image {
+  object-fit: cover;
+  /* The photograph is a bright stage shot. Held back so the scrim can do its
+     job and the quote below it keeps its contrast in either theme. */
+  filter: saturate(0.92);
+}
+
+/* Scrim: a vertical wash plus a floor gradient, so the quote at the bottom of
+   the panel sits on something darker than the photo's own highlights. */
+.au-split-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.22) 46%, rgba(0, 0, 0, 0.34) 100%),
+    radial-gradient(120% 80% at 50% 0%, var(--accent-soft), transparent 62%);
+}
+
+/* THE MOVEMENT MOTIF — three nested arcs, drawn with borders and rotated into
+   a shape that reads as a body mid-turn. Decorative only: it is inside the
+   aria-hidden panel, carries no text, and sits behind the scrim's floor so it
+   never competes with the quote. */
+.au-split-pattern {
+  position: absolute;
+  right: -14%;
+  bottom: -18%;
+  width: 78%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: 0.5;
+}
+.au-split-pattern::before,
+.au-split-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(247, 240, 225, 0.22);
+  border-radius: 50%;
+}
+.au-split-pattern::before {
+  inset: 14%;
+  border-color: rgba(247, 240, 225, 0.16);
+}
+.au-split-pattern::after {
+  inset: 30%;
+  border-color: rgba(247, 240, 225, 0.11);
+}
+.au-split-pattern {
+  /* Rotate the concentric circles into a sweeping arc rather than a target. */
+  transform: rotate(-18deg) skewX(-6deg);
+}
+
+.au-split-quote {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 2rem;
+  color: #f7f0e1;
+}
+.au-split-quote-text {
+  font-family: var(--font-display, inherit);
+  font-size: 1.375rem;
+  font-style: italic;
+  line-height: 1.3;
+  text-wrap: balance;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+}
+.au-split-quote-place {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+/* The quote and the pattern sit on the photograph in both themes, so their
+   cream is deliberate and not a token read — the same reasoning as the photo
+   overlays on the dance dispatch cards. */
+@media (max-width: 1023px) {
+  .au-split-visual {
+    display: none;
+  }
 }

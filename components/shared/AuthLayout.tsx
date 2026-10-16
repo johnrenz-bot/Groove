@@ -7,243 +7,204 @@ import { ArrowLeft } from 'lucide-react';
 import { cn } from './cn';
 
 /**
- * Auth page shell. Two modes:
- *  - `split`    (default): 2-column, form left, rounded photo right
- *  - `centered`: single centered card, max 440px
- */
-/**
- * The one card every auth mode wraps its form in.
+ * THE AUTH SHELL — one component behind /login, /register/*,
+ * /forgot-password and /reset-password.
  *
- * It used to be written out three times — once per mode — as a `.glass` panel
- * with a 24px radius and a gradient hairline. Three copies of a surface is how a
- * shell drifts, and glass on a form is the wrong register anyway: this is a calm,
- * editorial sign-in, so it is a solid `--card` plane with a 16px radius, a
- * one-pixel border and a single soft shadow.
+ * WHAT CHANGED, AND WHY
+ *
+ *   It used to be a two-column split: the form on the left, a full-height photo
+ *   panel on the right with a quote card floating over it, and a dimmed theater
+ *   photograph behind everything. That is three competing surfaces, and it made
+ *   every route look like a different page — the long coach registration got the
+ *   same fixed-height photo column as a two-field sign-in. It also pinned the
+ *   whole subtree to a dark canvas, so the auth screens ignored the visitor's
+ *   saved Light/Dark choice while every other route honoured it.
+ *
+ *   It is now ONE centred column, 460px, matching the rhythm of the landing
+ *   page: brand mark, eyebrow, heading, one card, one quiet line underneath.
+ *   Everything is drawn from tokens, so the auth routes now follow the theme
+ *   like the rest of the app.
+ *
+ *   NOTHING WAS REMOVED. `image`, `imageAlt` and `quote` still arrive from every
+ *   call site and still render: the image becomes the quiet backdrop texture and
+ *   the quote becomes the single line below the card. A long form (`wide`)
+ *   scrolls from the top rather than being centred, so a tall registration can
+ *   never be pushed off-screen.
+ *
+ * THE `split` VARIANT
+ *   `/login` opts in with `split`, and it is the only route that does. The
+ *   centred column is the right answer for a form that is mostly fields — coach
+ *   registration is nine of them — because a photo column beside it would just
+ *   make the reader work. A sign-in is two fields and one button, which leaves
+ *   a 460px column sitting alone in a wide viewport, so on large screens that
+ *   one route gets the photograph back as a real, full-height panel rather than
+ *   a 16% wash.
+ *
+ *   It collapses to the SAME single column below `lg`, so mobile, tablet and
+ *   every other auth route are untouched. `image`, `quote` and `footer` keep
+ *   working in both modes — in `split` the quote moves onto the photo panel.
  */
-function AuthCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div
-      className={cn(
-        'relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-md)] sm:p-9',
-        className
-      )}
-    >
-      {/* A single hairline in Unity Blue at the top edge. It is the only
-          decoration on the card and it marks where the form begins. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
-      />
-      {children}
-    </div>
-  );
-}
-
 export function AuthLayout({
   children,
   title,
   subtext,
   eyebrow,
   image = '/image/bg/hero-theater.jpg',
-  imageAlt = 'Groove performing arts community',
+  imageAlt = '',
   quote,
-  maxWidth = 'sm:max-w-[460px]',
   footer,
   centered = false,
   wide = false,
+  split = false,
 }: {
   children: React.ReactNode;
   title: React.ReactNode;
   subtext?: React.ReactNode;
   eyebrow?: React.ReactNode;
+  /** Decorative backdrop texture. Always decorative — never the only content. */
   image?: string;
   imageAlt?: string;
   quote?: string;
-  maxWidth?: string;
   footer?: React.ReactNode;
+  /** Kept for call-site compatibility. Every mode is the centred column now. */
   centered?: boolean;
-  /** Full-width card that scrolls from the top — for long forms. */
+  /** Wider column that scrolls from the top — for long multi-section forms. */
   wide?: boolean;
+  /** Two-column composition on large screens: photo panel beside the form. */
+  split?: boolean;
 }) {
-  const logo = (
-    <Link
-      href="/"
-      className="inline-flex items-center gap-2.5 transition-transform hover:scale-[1.02]"
-      aria-label="Groove home"
-    >
-      <Image
-        src="/image/Logo/GroovePH-Logo.png"
-        alt="Groove"
-        width={104}
-        height={32}
-        className="h-7 w-auto object-contain"
-        priority
-      />
-    </Link>
-  );
-
-  const topBar = (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        {logo}
-        <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-2.5 py-0.5 text-[11px] font-medium text-subtle-foreground backdrop-blur-sm">
-          SJDM Hub
-        </span>
-      </div>
-    </div>
-  );
-
-  const heading = (
-    <div className="space-y-2">
-      {eyebrow && <div className="mb-2">{eyebrow}</div>}
-      <h1 className="g-title">{title}</h1>
-      {subtext && <p className="text-sm leading-relaxed text-muted-foreground">{subtext}</p>}
-    </div>
-  );
-
-  const backHome = (
-    <Link
-      href="/"
-      className="group inline-flex w-fit items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:border-border hover:bg-card hover:text-foreground"
-    >
-      <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-      <span>Back to home</span>
-    </Link>
-  );
-
-  if (centered) {
-    return (
-      /* Transparent shell: the (auth) layout forces `.dark` and this AuthBackdrop
-         paints the dimmed theater behind the form. */
-      <div className="relative flex min-h-screen flex-col">
-        <AuthBackdrop />
-        <div className="px-5 pt-6 sm:px-8">{topBar}</div>
-        <div className="flex flex-1 items-center justify-center px-5 py-10">
-          <div className={cn('w-full', maxWidth)}>
-            <AuthCard>
-              <div className="mb-7 text-center">{heading}</div>
-              {children}
-            </AuthCard>
-            {footer && <div className="mt-6 text-center">{footer}</div>}
-          </div>
-        </div>
-        <div className="mx-auto mb-8">{backHome}</div>
-      </div>
-    );
-  }
-
-  /* Wide: long multi-section forms (registration). Scrolls from the top rather
-     than centring, so a tall form never gets pushed off-screen, and the inner
-     card is capped so line lengths stay readable. */
-  if (wide) {
-    return (
-      <div className="relative flex min-h-screen flex-col">
-        <AuthBackdrop />
-        <div className="px-5 pt-6 sm:px-8">{topBar}</div>
-        <main className="flex-1 px-4 py-8 sm:px-8 sm:py-12">
-          <div className="mx-auto w-full max-w-4xl">
-            <div className="mb-8">{heading}</div>
-            <AuthCard className="sm:p-10">{children}</AuthCard>
-            {footer && <div className="mt-7 text-center">{footer}</div>}
-          </div>
-        </main>
-        <div className="mx-auto mb-10 w-full max-w-4xl px-4 sm:px-8">{backHome}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative flex min-h-screen flex-col lg:grid lg:grid-cols-2">
-      <AuthBackdrop />
-      {/* Form column */}
-      <div className="relative flex flex-col justify-between px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
-        {/* Subtle ambient radial glow in Unity Blue */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-accent/8 blur-[100px]"
-        />
-
-        {topBar}
-
-        <div className="flex flex-1 items-center justify-center py-8">
-          <div className="w-full max-w-[440px]">
-            <AuthCard>
-              <div className="mb-6">{heading}</div>
-              {children}
-              {footer && <div className="mt-6 border-t border-divider pt-5">{footer}</div>}
-            </AuthCard>
-          </div>
-        </div>
-
-        <div className="mt-4">{backHome}</div>
-      </div>
-
-      {/* Photo column — the only surface that stays dark in both themes. The
-          image is unpredictable, so the scrim beneath the text is a fixed
-          near-black wash rather than a token, exactly like `.g-imagecard-scrim`. */}
-      <div className="relative hidden p-6 lg:block">
-        <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border shadow-[var(--shadow-lg)]">
+  const stack = (
+    <div className={cn('au-stack', split ? 'au-stack--split' : wide ? 'au-stack--wide' : 'au-stack--narrow')}>
+      {/* Brand mark. Skipped on the wide registration forms, where it would
+          just push the first field further down the page. */}
+      {!wide && (
+        <span className="au-mark" aria-hidden="true">
           <Image
-            src={image}
-            alt={imageAlt}
-            fill
+            src="/image/Logo/GroovePH-Logo.png"
+            alt=""
+            width={64}
+            height={64}
+            className="object-contain"
             priority
-            sizes="(min-width: 1024px) 50vw, 0px"
-            className="object-cover"
           />
-          {/* Subtle multi-layer gradient */}
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/25" />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
+        </span>
+      )}
 
-          {/* Top floating badge */}
-          <div className="absolute top-7 left-7">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3.5 py-1.5 backdrop-blur-md text-xs font-semibold text-white/90 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-              Groove Performing Arts Platform
-            </span>
-          </div>
+      <header className="flex flex-col gap-3">
+        {eyebrow}
+        <h1 className="au-title">{title}</h1>
+        {subtext && <p className="au-lead">{subtext}</p>}
+      </header>
 
-          {quote && (
-            <div className="absolute inset-x-0 bottom-0 p-8 sm:p-10">
-              <div className="rounded-2xl border border-white/10 bg-black/45 p-6 backdrop-blur-md shadow-lg">
-                <p className="max-w-md text-xl font-bold leading-snug tracking-[-0.02em] text-white">
-                  &ldquo;{quote}&rdquo;
-                </p>
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="h-1 w-12 rounded-full bg-accent" />
-                  <span className="text-xs font-medium text-white/70">San Jose del Monte, Bulacan</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <section className="au-card">{children}</section>
+
+      {footer}
+
+      {/* In split mode the quote lives on the photo panel instead. */}
+      {quote && !split && (
+        <p className="au-quote">
+          &ldquo;{quote}&rdquo;
+          <span className="mt-1 block text-[13px] text-[var(--subtle-foreground)]">
+            San Jose del Monte, Bulacan
+          </span>
+        </p>
+      )}
     </div>
   );
-}
 
-/**
- * Dimmed theater backdrop shared by every auth mode.
- *
- * `absolute inset-0 -z-10` inside AuthLayout's `relative` shell: it paints
- * above the transparent shell but below all form content (cards keep their
- * own opaque `bg-card` surface). The whole auth subtree sits in the `.dark`
- * scope from app/(auth)/layout.tsx, so the near-black overlay gradient only
- * deepens an already-dark canvas and every token-built control (g-input,
- * Button, links, FormError, focus rings) renders its dark, AA-safe values.
- */
-function AuthBackdrop() {
+  const brandBar = (
+    /* Brand bar. Compact, quiet, and the same on every auth route. */
+    <div className="au-topbar">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80"
+      >
+        {/* The wordmark is live text, not the logo PNG: that asset is the
+            1240x1240 mascot only, so rendering it at header size produced a
+            28px dot that read as a broken image next to the mascot slot below.
+            Type stays crisp, re-colours with the theme and costs no request. */}
+        <span className="text-[17px] font-semibold leading-none tracking-[-0.02em] text-foreground">
+          Groove
+        </span>
+        <span className="hidden text-[11px] font-medium uppercase leading-none tracking-[0.12em] text-subtle-foreground sm:inline">
+          Performing Arts
+        </span>
+      </Link>
+
+      <Link
+        href="/"
+        className="group inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3.5 py-2 text-[13px] font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:border-[var(--border-strong)] hover:text-foreground"
+      >
+        <ArrowLeft
+          className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none"
+          aria-hidden="true"
+        />
+        <span>Back to home</span>
+      </Link>
+    </div>
+  );
+
+  if (split) {
+    return (
+      <div className="au-shell au-shell--split">
+        {/* Decorative only: `aria-hidden` on the wrapper and an empty alt, so the
+            texture is never announced and never lands in the accessibility tree. */}
+        <div className="au-backdrop" aria-hidden="true">
+          {image ? <Image src={image} alt={imageAlt} fill priority sizes="100vw" /> : null}
+        </div>
+
+        {brandBar}
+
+        <main className="au-split">
+          <div className="au-split-form">{stack}</div>
+
+          {/* The photograph, at full height and finally at a readable size. */}
+          <aside className="au-split-visual" aria-hidden="true">
+            <Image
+              src={image || '/image/bg/hero-theater.jpg'}
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 50vw, 0px"
+              className="au-split-image"
+            />
+            <div className="au-split-scrim" />
+            {/* The movement motif. Purely decorative CSS — three nested arcs
+                that read as a body mid-turn, at a weight that never competes
+                with the form. */}
+            <div className="au-split-pattern" />
+            {quote && (
+              <p className="au-split-quote">
+                <span className="au-split-quote-text">&ldquo;{quote}&rdquo;</span>
+                <span className="au-split-quote-place">San Jose del Monte, Bulacan</span>
+              </p>
+            )}
+          </aside>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <Image
-        src="/image/bg/hero-theater.jpg"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover opacity-40"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/90" />
+    <div className="au-shell">
+      {/* Decorative only: `aria-hidden` on the wrapper and an empty alt, so the
+          texture is never announced and never lands in the accessibility tree. */}
+      <div className="au-backdrop" aria-hidden="true">
+        {image ? <Image src={image} alt={imageAlt} fill priority sizes="100vw" /> : null}
+      </div>
+
+      {brandBar}
+
+      <main
+        className={cn(
+          'relative z-10 flex w-full flex-1 flex-col items-center px-5 sm:px-6',
+          // A long form must not be vertically centred — centring pushes its
+          // first fields below the fold on a short viewport.
+          wide ? 'justify-start pb-12 pt-6 sm:pt-10' : 'justify-center pb-16 pt-4 sm:pt-8'
+        )}
+      >
+        {stack}
+      </main>
     </div>
   );
 }

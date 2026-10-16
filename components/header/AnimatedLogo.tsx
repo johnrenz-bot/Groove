@@ -41,7 +41,12 @@ export function AnimatedLogo({
     <Link
       href={href}
       onClick={onNavigate}
-      aria-label={subtitle ? `Groove — ${subtitle}` : 'Groove'}
+      /* No aria-label: the lockup already reads "Groove" plus the optional
+         subtitle as its accessible name, and adding a label that paraphrases
+         that ("Groove — Performing Arts") makes the accessible name disagree
+         with the visible text, which is what
+         `label-content-name-mismatch` flags. Naming a link from its own content
+         is also what keeps it correct when `subtitle` changes with the role. */
       className={cn('hx-logo', className)}
     >
       <span className="hx-logo-mark" aria-hidden="true">

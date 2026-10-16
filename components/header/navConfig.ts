@@ -4,10 +4,14 @@ import {
   Bot,
   CalendarDays,
   Drama,
+  FileCheck,
   Home,
   Info,
+  LayoutDashboard,
+  LifeBuoy,
   MessageSquare,
   Mic,
+  Settings2,
   Sparkles,
   Theater,
   Users,
@@ -42,7 +46,7 @@ import {
  *   separate logged-out array means a new public page is one `roles: [...,'guest']`
  *   edit away from appearing in the public header.
  */
-export type NavRole = 'coach' | 'client' | 'guest';
+export type NavRole = 'coach' | 'client' | 'admin' | 'guest';
 
 /** A destination inside a dropdown — and the unit the command palette lists. */
 export interface NavLeaf {
@@ -249,6 +253,161 @@ export const NAV: NavSection[] = [
     description: 'Our story, mission, how it works & contact',
     roles: ['client', 'coach', 'guest'],
     hideOnLanding: true,
+  },
+
+  /* ── Admin ──────────────────────────────────────────────────────────────
+     The console was the one menu that was NOT in this file: it lived in
+     `components/admin/navigation.ts` and was rendered by a second, entirely
+     separate header component. Two models for one header is what let the two
+     drift apart in height, container, and behaviour. The console's thirteen
+     destinations are now expressed in the same shape as everyone else's —
+     inline where the row can afford it, dropdowns where it cannot — so one
+     component can render all four roles.
+
+     Routes and labels are copied verbatim from `ADMIN_NAV`; only the grouping
+     expression changed. Nothing about what an operator can reach moved. */
+  {
+    id: 'console',
+    label: 'Overview',
+    icon: LayoutDashboard,
+    href: '/admin/dashboard',
+    description: 'Platform overview and key metrics',
+    roles: ['admin'],
+    hideOnLanding: true,
+  },
+  {
+    id: 'admin-people',
+    label: 'People',
+    icon: Users,
+    roles: ['admin'],
+    heading: 'People',
+    hideOnLanding: true,
+    items: [
+      {
+        id: 'admin-verifications',
+        icon: FileCheck,
+        label: 'Verification Documents',
+        href: '/admin/verifications',
+        description: 'Review pending coach credentials',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-users',
+        icon: Users,
+        label: 'Users & Directory',
+        href: '/admin/users',
+        description: 'Manage accounts and role access',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-coaches',
+        icon: Sparkles,
+        label: 'Coaches',
+        href: '/admin/coaches',
+        description: 'Verified coaches and talents',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-clients',
+        icon: Users,
+        label: 'Clients',
+        href: '/admin/clients',
+        description: 'Registered performers and students',
+        roles: ['admin'],
+      },
+    ],
+  },
+  {
+    id: 'admin-operations',
+    label: 'Operations',
+    icon: CalendarDays,
+    roles: ['admin'],
+    heading: 'Operations',
+    hideOnLanding: true,
+    items: [
+      {
+        id: 'admin-bookings',
+        icon: CalendarDays,
+        label: 'Bookings',
+        href: '/admin/bookings',
+        description: 'Active and past coaching sessions',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-inquiries',
+        icon: LifeBuoy,
+        label: 'Inquiries & Tickets',
+        href: '/admin/inquiries',
+        description: 'Support requests and questions',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-messages',
+        icon: MessageSquare,
+        label: 'Client Messages',
+        href: '/admin/messages',
+        description: 'Client & coach chat oversight',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-transactions',
+        icon: FileCheck,
+        label: 'Contracts & Reviews',
+        href: '/admin/transactions',
+        description: 'Agreements, terms and feedback',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-control',
+        icon: Settings2,
+        label: 'System Control',
+        href: '/admin/control',
+        description: 'Emergency toggles and audit logs',
+        roles: ['admin'],
+      },
+    ],
+  },
+  {
+    id: 'admin-platform',
+    label: 'Platform',
+    icon: Settings2,
+    roles: ['admin'],
+    heading: 'Platform',
+    hideOnLanding: true,
+    items: [
+      {
+        id: 'admin-announcements',
+        icon: MessageSquare,
+        label: 'Announcements',
+        href: '/admin/announcements',
+        description: 'Publish site-wide broadcasts',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-maintenance',
+        icon: Settings2,
+        label: 'Maintenance',
+        href: '/admin/maintenance',
+        description: 'Platform lockout and maintenance status',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-theme',
+        icon: Sparkles,
+        label: 'Appearance',
+        href: '/admin/theme',
+        description: 'Themes, palettes and seasonal accents',
+        roles: ['admin'],
+      },
+      {
+        id: 'admin-settings',
+        icon: Settings2,
+        label: 'System Settings',
+        href: '/admin/settings',
+        description: 'Global parameters and feature flags',
+        roles: ['admin'],
+      },
+    ],
   },
 ];
 

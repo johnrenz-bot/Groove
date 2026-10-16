@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { ArrowLeft, Menu, X } from 'lucide-react';
 import { Footer } from '@/components/shared/Footer';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
@@ -152,8 +154,26 @@ export function LegalLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
+      {/* THE APP NAVIGATION. `/terms` and `/privacy` used to render no app
+          header at all — just a 64px document bar with a back link — so these
+          were the only two pages in the app a visitor could not navigate from.
+          They get the same `<SiteHeader>` as every other route.
+
+          The bar below it is NOT a second navigation bar and is not a duplicate
+          of this one: it carries document furniture only (back link, table of
+          contents, reading progress), which belongs to the document rather than
+          to the app.
+
+          `ThemeProvider` is here for the same reason it is in `PublicLayout`:
+          this layout mounts `SiteHeader` directly rather than through
+          `PublicLayout`, so without it the guest theme toggle would be inert on
+          the two legal pages. Same provider, same `groove-theme-mode` key. */}
+      <ThemeProvider>
+        <SiteHeader />
+      </ThemeProvider>
+
+      {/* Document bar — back link + TOC + reading progress. */}
+      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="g-container flex h-16 items-center justify-between gap-4">
           <Link
             href={backHref}

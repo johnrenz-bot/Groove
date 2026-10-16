@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/components/shared/cn';
@@ -65,14 +65,14 @@ export function FeaturedCrewsRoster() {
     <section
       id="featured-crews"
       aria-labelledby="featured-crews-title"
-      className="scroll-mt-24 bg-[#0A0A0A]"
+      className="scroll-mt-24 bg-[var(--crew-bg-page)]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <SectionHeader
           eyebrow="Verified crew dossiers & match records"
           title={
             <span id="featured-crews-title">
-              Featured <span className="font-normal italic text-[#A39B87]">Crews & Athletes</span>
+              Featured <span className="font-normal italic text-[var(--crew-text-muted)]">Crews & Athletes</span>
             </span>
           }
           description="World Champion franchise teams and Philippine battle contenders. Only verified competition results and official media."

@@ -11,6 +11,7 @@ import { ThemeModeSelect } from '@/components/theme/ThemeModeSelect';
 import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { usePresence } from '@/features/presence/hooks/usePresence';
 import { greetingFor } from './UserMenu';
+import { ROLE_META } from './roleMeta';
 import {
   hrefFor,
   isDropdown,
@@ -92,8 +93,22 @@ export function MobileDrawer({
         className="hx-drawer"
       >
         <div className="hx-drawer-head">
-          <span id={titleId} className="hx-drawer-title">
-            Menu
+          <span className="hx-drawer-brand">
+            <span className="hx-drawer-brand-mark" aria-hidden="true">
+              <Image src="/image/Logo/GroovePH-Logo.png" alt="" width={28} height={28} />
+            </span>
+            <span className="hx-drawer-brand-text">
+              <span className="hx-drawer-title" id={titleId}>
+                Groove
+              </span>
+              {/* The portal label is the subtitle, so the sheet says where the
+                  user is rather than only naming the surface. It is the same
+                  data the desktop wordmark uses — `ROLE_META` — so the two can
+                  never disagree. */}
+              <span className="hx-drawer-subtitle">
+                {role === 'guest' ? 'Performing Arts' : ROLE_META[role].label}
+              </span>
+            </span>
           </span>
           <button
             type="button"
@@ -248,7 +263,29 @@ function DrawerBody({
     setOpenIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   return (
-    <div className="hx-drawer-body g-scroll">
+    <>
+      {/* THE SCROLLING MIDDLE — navigation only.
+
+          It used to share one scroll container with the identity card and the
+          preference controls below it, so on a short screen the destinations
+          scrolled away while the account card stayed pinned to the top. The
+          nav is now its own scroll area between a fixed head and a fixed foot,
+          which is also how the reference sheet is built. */}
+      <div className="hx-drawer-scroll g-scroll">
+        <nav aria-label="Main">
+          <DrawerSections
+            sections={sections}
+            role={role}
+            pathname={pathname}
+            openIds={openIds}
+            onToggle={toggle}
+            onNavigate={onClose}
+          />
+        </nav>
+      </div>
+
+      {/* THE FIXED BOTTOM — identity and account-level preferences. */}
+      <div className="hx-drawer-foot g-scroll">
       {user ? (
         <>
           <div className="hx-drawer-identity">
@@ -276,17 +313,6 @@ function DrawerBody({
               </p>
             </div>
           </div>
-
-          <nav aria-label="Main">
-            <DrawerSections
-              sections={sections}
-              role={role}
-              pathname={pathname}
-              openIds={openIds}
-              onToggle={toggle}
-              onNavigate={onClose}
-            />
-          </nav>
 
           <div className="hx-drawer-section">
             <p className="hx-drawer-label">{t('header.status', 'Status')}</p>
@@ -318,28 +344,16 @@ function DrawerBody({
       ) : (
         <>
           {/*
-            SAME RENDERER AS THE SIGNED-IN BRANCH, ON PURPOSE.
+            THE GUEST FOOT IS JUST THE AUTH LINKS.
 
-            This branch used to map `sections` straight to
-            `<Link href={section.href ?? '#'}>`. For a guest, `Community` is a
-            DROPDOWN, so `section.href` is undefined and every one of its five
-            destinations rendered as a link to `#` — five items that all scrolled
-            the top of the drawer and looked broken. A signed-in user saw the
-            accordion below; a guest saw five dead links. Rendering both roles
-            through `DrawerSections` makes the difference impossible to
-            reintroduce, and it is the only reason this is a shared component
-            rather than a second copy of the block.
+            A guest's navigation already rendered above, through the same
+            `DrawerSections` renderer a member uses. This branch used to render
+            a SECOND copy of it here — so the guest sheet listed every
+            destination twice — and before that it mapped `sections` straight to
+            `<Link href={section.href ?? '#'}>`, which turned Community's five
+            destinations into five links to `#`. One renderer now, in the scroll
+            area above.
           */}
-          <nav aria-label="Main">
-            <DrawerSections
-              sections={sections}
-              role={role}
-              pathname={pathname}
-              openIds={openIds}
-              onToggle={toggle}
-              onNavigate={onClose}
-            />
-          </nav>
           <div className="hx-drawer-section hx-drawer-auth">
             <Link href="/login" onClick={onClose} className="hx-drawer-auth-link">
               <LogIn className="hx-drawer-link-icon" aria-hidden="true" />
@@ -356,7 +370,8 @@ function DrawerBody({
           </div>
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

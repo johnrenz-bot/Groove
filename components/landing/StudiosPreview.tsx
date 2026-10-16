@@ -1,4 +1,6 @@
 import React from 'react';
+import Image from 'next/image';
+import { MapPin, Star } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 interface Studio {
@@ -81,143 +83,112 @@ async function getStudiosPreviewData(): Promise<{ studios: Studio[]; coaches: Co
   return { studios, coaches };
 }
 
-interface StudioCardProps {
-  studio: Studio;
-  index: number;
-}
+/**
+ * A rating row that shows nothing rather than "0 (0)".
+ *
+ * Both the studio and coach records this section reads carry `rating: 0` until
+ * a real review exists, and "0 (0)" reads as a badly-reviewed business rather
+ * than as an absence of reviews.
+ */
+function Rating({ rating, reviewCount }: { rating: number; reviewCount: number }) {
+  if (!rating || !reviewCount) return null;
 
-function StudioCard({ studio, index }: StudioCardProps) {
   return (
-    <article className="g-card relative overflow-hidden rounded-2xl transition-all duration-500 hover:border-[#C9A24A]/30 hover:shadow-[0_0_30px_rgba(201,162,74,0.2)] group">
-      <div className="relative aspect-[16/9] overflow-hidden">
-        <img
-          src={studio.image}
-          alt={studio.name}
-          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        <div className="absolute top-3 right-3 flex gap-2">
-          {studio.verified && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
-              Verified
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="p-6">
-        <div className="flex items-center gap-2 text-xs text-white/60 mb-2">
-          <span>{studio.location}</span>
-          <span className="text-white/40">•</span>
-          <span>{studio.distance}</span>
-        </div>
-
-        <h3 className="text-lg font-bold tracking-tight text-white">{studio.name}</h3>
-        <p className="mt-1 text-sm text-white/60">{studio.discipline}</p>
-
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex items-center gap-1 text-sm font-medium text-white">
-            <span>{studio.rating}</span>
-            <span className="text-white/40">({studio.review_count})</span>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {studio.features.slice(0, 3).map((feature) => (
-            <span key={feature} className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium text-white/70">
-              {feature}
-            </span>
-          ))}
-          {studio.features.length > 3 && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium text-white/50">
-              +{studio.features.length - 3} more
-            </span>
-          )}
-        </div>
-
-        <a
-          href="#"
-          className="mt-5 inline-flex items-center gap-2 w-full justify-center rounded-full border border-white/20 bg-transparent px-4 py-2 text-sm font-semibold text-white/80 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-        >
-          View studio details
-        </a>
-      </div>
-    </article>
+    <p className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--foreground)]">
+      <Star className="h-3.5 w-3.5 fill-[var(--brand-sunburst)] text-[var(--brand-sunburst)]" aria-hidden="true" />
+      <span className="tabular-nums">{rating.toFixed(1)}</span>
+      <span className="text-[var(--subtle-foreground)]">({reviewCount})</span>
+    </p>
   );
 }
 
-interface CoachCardProps {
-  coach: Coach;
-  index: number;
-}
-
-function CoachCard({ coach, index }: CoachCardProps) {
+function StudioCard({ studio }: { studio: Studio }) {
   return (
-    <article className="g-card flex flex-col overflow-hidden rounded-2xl transition-all duration-500 hover:border-[#C9A24A]/30 hover:shadow-[0_0_30px_rgba(201,162,74,0.2)] group">
-      <div className="relative aspect-square overflow-hidden">
-        <img
-          src={coach.avatar}
-          alt={coach.name}
-          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        <div className="absolute top-3 right-3">
-          {coach.verified && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
-              Verified
-            </span>
+    <li>
+      <article className="ld-card h-full overflow-hidden">
+        <div className="relative aspect-[16/10] w-full overflow-hidden">
+          <Image
+            src={studio.image}
+            alt={studio.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+          />
+          {studio.verified && <span className="ld-ribbon">Verified</span>}
+        </div>
+
+        <div className="flex flex-1 flex-col gap-2 p-6">
+          <p className="ld-small inline-flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            {studio.location}
+            {studio.distance && <span className="text-[var(--subtle-foreground)]">· {studio.distance}</span>}
+          </p>
+
+          <h3 className="ld-h3">{studio.name}</h3>
+          <p className="text-sm text-[var(--muted-foreground)]">{studio.discipline}</p>
+
+          <Rating rating={studio.rating} reviewCount={studio.review_count} />
+
+          {studio.features.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {studio.features.slice(0, 3).map((feature) => (
+                <li key={feature} className="ld-chip">
+                  {feature}
+                </li>
+              ))}
+              {studio.features.length > 3 && (
+                <li className="ld-chip ld-chip--quiet">+{studio.features.length - 3} more</li>
+              )}
+            </ul>
           )}
+
+          <a href="#" className="ld-btn2 ld-btn2--sm mt-auto w-full">
+            View studio details
+          </a>
         </div>
-      </div>
-
-      <div className="p-6 flex-1 flex flex-col">
-        <div className="flex items-center gap-2 text-xs text-white/60 mb-2">
-          <span>{coach.location}</span>
-        </div>
-
-        <h3 className="text-lg font-bold tracking-tight text-white">{coach.name}</h3>
-        <p className="mt-1 text-sm text-white/60">{coach.discipline}</p>
-
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex items-center gap-1 text-sm font-medium text-white">
-            <span>{coach.rating}</span>
-            <span className="text-white/40">({coach.review_count})</span>
-          </div>
-        </div>
-
-        <div className="mt-auto pt-4 flex flex-wrap gap-2">
-          {coach.specialties.map((specialty) => (
-            <span key={specialty} className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium text-white/70">
-              {specialty}
-            </span>
-          ))}
-        </div>
-
-        <a
-          href="#"
-          className="mt-5 inline-flex items-center gap-2 w-full justify-center rounded-full border border-white/20 bg-transparent px-4 py-2 text-sm font-semibold text-white/80 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-        >
-          View profile
-        </a>
-      </div>
-    </article>
+      </article>
+    </li>
   );
 }
 
-function StudiosEmpty() {
+function CoachCard({ coach }: { coach: Coach }) {
   return (
-    <div className="text-center py-16">
-      <p className="text-white/60 text-lg mb-4">Studio listings coming soon.</p>
-      <p className="text-white/40 text-sm">We are curating rehearsal spaces across San Jose del Monte.</p>
-    </div>
+    <li>
+      <article className="ld-card h-full overflow-hidden">
+        <div className="relative mx-6 mt-6 aspect-square overflow-hidden rounded-xl">
+          <Image
+            src={coach.avatar}
+            alt={coach.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover"
+          />
+          {coach.verified && <span className="ld-ribbon">Verified</span>}
+        </div>
+
+        <div className="flex flex-1 flex-col gap-2 p-6">
+          <h3 className="ld-h3">{coach.name}</h3>
+          <p className="ld-small inline-flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            {coach.location}
+          </p>
+
+          <Rating rating={coach.rating} reviewCount={coach.review_count} />
+
+          <a href="#" className="ld-btn2 ld-btn2--sm mt-auto w-full">
+            View profile
+          </a>
+        </div>
+      </article>
+    </li>
   );
 }
 
-function CoachesEmpty() {
+function EmptyNote({ title, body }: { title: string; body: string }) {
   return (
-    <div className="text-center py-16">
-      <p className="text-white/60 text-lg mb-4">Verified coaches coming soon.</p>
-      <p className="text-white/40 text-sm">Coaches are being reviewed and will appear here once verified.</p>
+    <div className="ld-card px-6 py-12 text-center">
+      <p className="ld-h4">{title}</p>
+      <p className="ld-small mt-1">{body}</p>
     </div>
   );
 }
@@ -226,68 +197,67 @@ export async function StudiosPreview() {
   const { studios, coaches } = await getStudiosPreviewData();
 
   return (
-    <section id="studios" className="g-section mx-auto max-w-7xl scroll-mt-20 px-5 py-24 sm:px-8 sm:py-32">
-      <div className="flex flex-col items-center justify-between gap-8 mb-14 sm:flex-row">
-        <div className="text-center sm:text-left max-w-2xl">
-          <p className="gl-hero-badge inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm mb-6">
-            Studios & Coaches
-          </p>
-          <h2 className="font-serif text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Spaces to create, mentors to guide
-          </h2>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
-            Curated rehearsal studios and verified coaches near San Jose del Monte. Filter by discipline, capacity, and distance.
-          </p>
-        </div>
-        <a
-          href="#"
-          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-white/20 bg-transparent px-6 py-3 text-sm font-semibold text-white/80 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-        >
-          View all studios & coaches
-        </a>
-      </div>
-
-      {/* Studios Grid */}
-      {studios.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-16">
-          {studios.map((studio, index) => (
-            <StudioCard key={studio.id} studio={studio} index={index} />
-          ))}
-        </div>
-      ) : (
-        <div className="mb-16">
-          <StudiosEmpty />
-        </div>
-      )}
-
-      {/* Featured Coaches */}
-      <div>
-        <div className="flex flex-col items-center justify-between gap-8 mb-8 sm:flex-row">
-          <div className="text-center sm:text-left">
-            <p className="gl-hero-badge inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm mb-4">
-              Featured Coaches
+    <section id="studios" className="ld-section ld-band" aria-labelledby="studios-heading">
+      <div className="ld-wrap">
+        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+          <div className="flex max-w-xl flex-col gap-3">
+            <p className="ld-eyebrow">Studios &amp; Coaches</p>
+            <h2 id="studios-heading" className="ld-h2">
+              Spaces to create, mentors to guide
+            </h2>
+            <p className="ld-p">
+              Curated rehearsal studios and verified coaches near San Jose del Monte. Filter
+              by discipline, capacity, and distance.
             </p>
-            <h3 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Verified coaches ready to mentor you
-            </h3>
           </div>
-          <a
-            href="#"
-            className="inline-flex items-center gap-2 shrink-0 rounded-full border border-white/20 bg-transparent px-6 py-3 text-sm font-semibold text-white/80 transition-all hover:border-[#C9A24A]/50 hover:bg-white/[0.05] hover:text-white"
-          >
-            View all coaches
+          <a href="#" className="ld-btn2 ld-btn2--sm shrink-0">
+            View all studios &amp; coaches
           </a>
         </div>
 
-        {coaches.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {coaches.map((coach, index) => (
-              <CoachCard key={coach.id} coach={coach} index={index} />
-            ))}
+        {/* Studios */}
+        <div className="mt-14">
+          {studios.length > 0 ? (
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {studios.map((studio) => (
+                <StudioCard key={studio.id} studio={studio} />
+              ))}
+            </ul>
+          ) : (
+            <EmptyNote
+              title="Studio listings coming soon."
+              body="We are curating rehearsal spaces across San Jose del Monte."
+            />
+          )}
+        </div>
+
+        {/* Coaches */}
+        <div className="mt-20">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+            <div className="flex max-w-xl flex-col gap-2">
+              <p className="ld-eyebrow">Featured coaches</p>
+              <h3 className="ld-h2">Verified coaches ready to mentor you</h3>
+            </div>
+            <a href="#" className="ld-btn2 ld-btn2--sm shrink-0">
+              View all coaches
+            </a>
           </div>
-        ) : (
-          <CoachesEmpty />
-        )}
+
+          <div className="mt-10">
+            {coaches.length > 0 ? (
+              <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {coaches.map((coach) => (
+                  <CoachCard key={coach.id} coach={coach} />
+                ))}
+              </ul>
+            ) : (
+              <EmptyNote
+                title="Verified coaches coming soon."
+                body="Coaches are being reviewed and will appear here once verified."
+              />
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

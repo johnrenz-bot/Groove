@@ -20,23 +20,12 @@
  * consumer keep importing them from where they always have.
  */
 
-/** The three navigation roles. Mirrors `NavRole` without importing it. */
-export type AccountRole = 'coach' | 'client' | 'guest';
-
 /**
- * Does this role's account trigger show the name and role line beside the avatar?
+ * The roles this module knows about.
  *
- *   coach  -> YES. They are running a business from this bar and may hold
- *            several accounts; the name says which one is signed in.
- *   client -> NO. The trigger is the avatar, its presence dot and the caret.
- *            The panel opens on the same click and still leads with the full
- *            name, email, role badge and greeting, so nothing is lost.
- *   guest  -> the pill does not render at all; `UserMenu` returns null before
- *            this is consulted. Answering `false` keeps the caller total.
+ * Mirrors `NavRole` without importing it — see the header of this file for why.
  */
-export function showsIdentityPill(role: AccountRole): boolean {
-  return role === 'coach';
-}
+export type AccountRole = 'coach' | 'client' | 'admin' | 'guest';
 
 /**
  * Time-of-day greeting.

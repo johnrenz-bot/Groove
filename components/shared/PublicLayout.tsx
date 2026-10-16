@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Footer } from '@/components/shared/Footer';
-import { Header } from '@/components/header/Header';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 /**
  * Shell for every public page: the shared header + content + minimal footer.
@@ -48,15 +49,28 @@ export function PublicLayout({
        colour lives only on <body>, so the fixed <PagePatterns /> layer stays
        visible through this transparent shell. Sections with their own
        surfaces (hero image, footer, cards) keep them. */
-    <div className="flex min-h-screen flex-col font-sans text-foreground">
-      <Header />
-      <main className="flex-1">{children}</main>
-      {showFooter && (
-        <Footer className="mt-auto" showThemeToggle={false}>
-          {footerExtra}
-        </Footer>
-      )}
-    </div>
+    /* `ThemeProvider` is here because the header's guest theme toggle needs it.
+       It was previously mounted only by the three dashboard layouts, which left
+       every PUBLIC route — `/`, `/about`, `/users`, `/community/*`, `/terms` —
+       with no provider at all: `useTheme()` returned its defaults and the toggle
+       did nothing. The persisted preference itself still came from the
+       pre-paint script in the root layout, so themes already looked right on
+       public pages; they just could not be CHANGED there.
+
+       This is the same single provider the dashboards use, reading and writing
+       the same `groove-theme-mode` key — not a second theme state. Nothing in
+       this layout creates competing state. */
+    <ThemeProvider>
+      <div className="flex min-h-screen flex-col font-sans text-foreground">
+        <SiteHeader />
+        <main className="flex-1">{children}</main>
+        {showFooter && (
+          <Footer className="mt-auto" showThemeToggle={false}>
+            {footerExtra}
+          </Footer>
+        )}
+      </div>
+    </ThemeProvider>
   );
 }
 

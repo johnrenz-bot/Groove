@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, RefreshCw, Search, Trophy, Users as UsersIcon } from 'lucide-react';
-import { AppHeader } from '@/components/shared/Navbar';
+import { SiteHeader } from '@/components/layout/SiteHeader';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import {
   UserListItem,
@@ -254,11 +254,7 @@ export default function UsersDirectoryPage() {
 
   return (
     <div className="min-h-screen bg-background pb-16 text-foreground">
-      <AppHeader
-        role={viewerRole}
-        user={viewerProfile ?? undefined}
-        userRole={viewerRole}
-      />
+      <SiteHeader />
 
       <main className="mx-auto max-w-4xl px-4 pt-8 md:px-8 md:pt-10">
         <PageHeader

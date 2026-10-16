@@ -17,7 +17,7 @@ import {
   X,
   FileSignature,
 } from 'lucide-react';
-import { AppHeader } from '@/components/shared/Navbar';
+import { SiteHeader } from '@/components/layout/SiteHeader';
 import { Message, Profile } from '@/lib/types';
 import { statusMeta } from '@/features/presence/utils/presence';
 import { usePresence } from '@/features/presence/hooks/usePresence';
@@ -388,10 +388,7 @@ function MessagesMessenger() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground overflow-hidden">
-      <AppHeader
-        userRole={currentUser?.role === 'coach' ? 'coach' : 'client'}
-        userProfile={currentUser}
-      />
+      <SiteHeader />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden px-3 py-3 sm:px-6 sm:py-5">
         {/* Top header row */}
