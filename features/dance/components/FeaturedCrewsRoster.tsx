@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/components/shared/cn';
@@ -44,22 +44,39 @@ export function FeaturedCrewsRoster() {
     }
   }, []);
 
-  const handleRegionFilterChange = useCallback((filter: 'all' | 'ph' | 'intl') => {
-    setRegionFilter(filter);
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (filter !== 'all') {
-        params.set('region', filter);
-      } else {
-        params.delete('region');
+  const handleRegionFilterChange = useCallback(
+    (filter: 'all' | 'ph' | 'intl') => {
+      setRegionFilter(filter);
+      const nextCrews =
+        filter === 'all'
+          ? FEATURED_CREWS
+          : filter === 'ph'
+          ? FEATURED_CREWS.filter((c) => c.country === 'Philippines')
+          : FEATURED_CREWS.filter((c) => c.country !== 'Philippines');
+
+      let nextSelected = selectedCrew;
+      if (nextCrews.length > 0 && !nextCrews.some((c) => c.id === selectedCrew.id)) {
+        nextSelected = nextCrews[0];
+        setSelectedCrew(nextCrews[0]);
       }
-      const newQuery = params.toString();
-      const newUrl = newQuery
-        ? `${window.location.pathname}?${newQuery}${window.location.hash}`
-        : `${window.location.pathname}${window.location.hash}`;
-      window.history.replaceState(null, '', newUrl);
-    }
-  }, []);
+
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (filter !== 'all') {
+          params.set('region', filter);
+        } else {
+          params.delete('region');
+        }
+        params.set('crew', nextSelected.slug);
+        const newQuery = params.toString();
+        const newUrl = newQuery
+          ? `${window.location.pathname}?${newQuery}${window.location.hash}`
+          : `${window.location.pathname}${window.location.hash}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    },
+    [selectedCrew]
+  );
 
   return (
     <section

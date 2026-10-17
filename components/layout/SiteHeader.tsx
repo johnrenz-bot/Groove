@@ -229,8 +229,17 @@ export function SiteHeader({ homeHref }: SiteHeaderProps = {}) {
     const onPointerDown = (event: MouseEvent) => {
       if (barRef.current && !barRef.current.contains(event.target as Node)) closeMenus();
     };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeMenus();
+      }
+    };
     document.addEventListener('mousedown', onPointerDown);
-    return () => document.removeEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, [openMenu, closeMenus]);
 
   const user = profile;

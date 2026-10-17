@@ -48,11 +48,13 @@ const steps = [
   },
 ];
 
+import { Reveal } from '@/components/shared/Reveal';
+
 export function HowItWorks() {
   return (
     <section id="how" className="ld-section" aria-labelledby="how-heading">
       <div className="ld-wrap">
-        <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
+        <Reveal className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
           <p className="ld-eyebrow">How it works</p>
           <h2 id="how-heading" className="ld-h2">
             From discovery to performance in four steps
@@ -61,34 +63,36 @@ export function HowItWorks() {
             Groove makes it simple to find the right coach, book a session, and sign your
             agreement — all in one place.
           </p>
-        </div>
+        </Reveal>
 
         <ol className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step) => (
-            <li key={step.number}>
-              <article className="ld-card ld-card--pad ld-card--lift h-full gap-4">
-                <span className="ld-num" aria-hidden="true">
-                  {step.number}
-                </span>
-                <h3 className="ld-h3">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">
-                  {step.description}
-                </p>
-                <ul className="mt-auto flex flex-col gap-1.5 pt-2">
-                  {step.highlights.map((highlight) => (
-                    <li
-                      key={highlight}
-                      className="inline-flex items-start gap-2 text-[13px] text-[var(--muted-foreground)]"
-                    >
-                      <Check
-                        className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--success)]"
-                        aria-hidden="true"
-                      />
-                      {highlight}
-                    </li>
-                  ))}
-                </ul>
-              </article>
+            <li key={step.number} className="h-full">
+              <Reveal variant="scale" delay={step.number * 60} className="h-full">
+                <article className="ld-card ld-card--pad ld-card--lift h-full gap-4 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-lg">
+                  <span className="ld-num transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
+                    {step.number}
+                  </span>
+                  <h3 className="ld-h3">{step.title}</h3>
+                  <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">
+                    {step.description}
+                  </p>
+                  <ul className="mt-auto flex flex-col gap-1.5 pt-2">
+                    {step.highlights.map((highlight) => (
+                      <li
+                        key={highlight}
+                        className="inline-flex items-start gap-2 text-[13px] text-[var(--muted-foreground)]"
+                      >
+                        <Check
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--success)]"
+                          aria-hidden="true"
+                        />
+                        {highlight}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              </Reveal>
             </li>
           ))}
         </ol>

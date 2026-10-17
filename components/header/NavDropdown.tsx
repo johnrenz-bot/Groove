@@ -137,7 +137,7 @@ export function NavDropdown({
     closeTimer.current = window.setTimeout(() => {
       onClose();
       setActiveIndex(-1);
-    }, 120);
+    }, 220);
   }, [clearTimers, onClose]);
 
   const cancelClose = useCallback(() => {

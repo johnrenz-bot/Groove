@@ -49,6 +49,54 @@ export async function generateMetadata({
   const record = getDiscipline(discipline);
   if (!record) return { title: 'Discipline not found' };
 
+  if (discipline === 'singing') {
+    return {
+      title: 'Singing & Vocal Community — Choirs, Competitions, Masterclasses | GroovePH',
+      description:
+        'SINGING COMMUNITY — Choral Ensembles, Vocal Masterclasses, Competitions, Philippines & Worldwide. Verified updates from Philippine Madrigal Singers, NAMCYA, IFCM, NATS, and UST Singers.',
+      alternates: { canonical: '/community/performing-arts/singing' },
+      openGraph: {
+        title: 'Singing & Vocal Community — Choirs, Competitions, Masterclasses | GroovePH',
+        description:
+          'SINGING COMMUNITY — Choral Ensembles, Vocal Masterclasses, Competitions, Philippines & Worldwide.',
+        url: '/community/performing-arts/singing',
+        type: 'website',
+      },
+    };
+  }
+
+  if (discipline === 'acting') {
+    return {
+      title: 'Acting & Stage Craft Community — Auditions, Conservatories, Monologues | GroovePH',
+      description:
+        'ACTING COMMUNITY — Castings, Theater Auditions, Monologues, Philippines & Worldwide. Verified updates from Tanghalang Pilipino, PETA, Repertory Philippines, SAG-AFTRA, and Dulaang UP.',
+      alternates: { canonical: '/community/performing-arts/acting' },
+      openGraph: {
+        title: 'Acting & Stage Craft Community — Auditions, Conservatories, Monologues | GroovePH',
+        description:
+          'ACTING COMMUNITY — Castings, Theater Auditions, Monologues, Philippines & Worldwide.',
+        url: '/community/performing-arts/acting',
+        type: 'website',
+      },
+    };
+  }
+
+  if (discipline === 'theater') {
+    return {
+      title: 'Musical Theater & Stage Community — Productions, Playwriting, Staging | GroovePH',
+      description:
+        'THEATER COMMUNITY — Productions, Original Musicals, Playwriting, Backstage, Philippines & Worldwide. Verified updates from PETA, Repertory Philippines, Tanghalang Pilipino, Virgin Labfest, and Philstage.',
+      alternates: { canonical: '/community/performing-arts/theater' },
+      openGraph: {
+        title: 'Musical Theater & Stage Community — Productions, Playwriting, Staging | GroovePH',
+        description:
+          'THEATER COMMUNITY — Productions, Original Musicals, Playwriting, Backstage, Philippines & Worldwide.',
+        url: '/community/performing-arts/theater',
+        type: 'website',
+      },
+    };
+  }
+
   return {
     title: `${record.title} · Performing Arts`,
     description: record.metaDescription,
@@ -73,6 +121,27 @@ export default async function DisciplineRoute({
       '@/features/dance/components/DanceCommunityPageServer'
     );
     return <DanceCommunityPageServer />;
+  }
+
+  if (discipline === 'singing') {
+    const { SingingCommunityPageServer } = await import(
+      '@/features/singing/components/SingingCommunityPageServer'
+    );
+    return <SingingCommunityPageServer />;
+  }
+
+  if (discipline === 'acting') {
+    const { ActingCommunityPageServer } = await import(
+      '@/features/acting/components/ActingCommunityPageServer'
+    );
+    return <ActingCommunityPageServer />;
+  }
+
+  if (discipline === 'theater') {
+    const { TheaterCommunityPageServer } = await import(
+      '@/features/theater/components/TheaterCommunityPageServer'
+    );
+    return <TheaterCommunityPageServer />;
   }
 
   const record = DISCIPLINES.find((d) => d.id === discipline);

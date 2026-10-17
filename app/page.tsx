@@ -4,6 +4,7 @@ import { AudienceTabs } from '@/components/landing/AudienceTabs';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { StudiosPreview } from '@/components/landing/StudiosPreview';
 import { FinalCta } from '@/components/landing/FinalCta';
+import { CommunityTestimonials } from '@/components/landing/CommunityTestimonials';
 import { FaqTeaserSection } from '@/components/faq/FaqTeaserSection';
 import { Footer } from '@/components/shared/Footer';
 import { PublicLayout } from '@/components/shared/PublicLayout';
@@ -38,6 +39,7 @@ export default async function LandingPage() {
           <AudienceTabs />
           <HowItWorks />
           <StudiosPreview />
+          <CommunityTestimonials />
           <FaqTeaserSection />
           <FinalCta />
         </main>

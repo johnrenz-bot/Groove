@@ -350,8 +350,6 @@ export default function CommunityFeed({
   };
 
   const handleDeletePost = async (postId: number) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
-
     try {
       const supabase = createClient();
       const { error } = await supabase.from('community_posts').delete().eq('id', postId);

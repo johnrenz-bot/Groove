@@ -50,26 +50,38 @@ export function Hero({ stats }: HeroProps) {
             transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
             className="ld-hero-text"
           >
-            <p className="ld-badge">
-              <span className="gl-dot" aria-hidden="true" />
-              Groove · Performing Arts Platform
+            <p className="ld-badge shadow-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+              </span>
+              <span>Groove · Bulacan Performing Arts Hub</span>
             </p>
 
             <h1 id="hero-heading" className="ld-h1">
-              Discover, connect, and perform with Groove
+              Discover, connect, and{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-amber-500 to-orange-400">
+                perform with Groove
+              </span>
             </h1>
 
             <p className="ld-lead">
-              The performing arts platform for San Jose del Monte. Find coaches, book
-              rehearsals, sign contracts, and grow your craft — all in one place.
+              The premier performing arts platform for San Jose del Monte and Bulacan. Find verified coaches, book
+              rehearsals, sign digital agreements, and grow your craft — all in one unified ecosystem.
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="#disciplines" className="ld-btn">
-                Explore disciplines
-                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <Link
+                href="#disciplines"
+                className="ld-btn group shadow-md shadow-accent/20 transition-all duration-300 hover:shadow-lg hover:shadow-accent/30 hover:-translate-y-0.5"
+              >
+                <span>Explore disciplines</span>
+                <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
-              <Link href="/register/client" className="ld-btn2 ld-btn2--lg">
+              <Link
+                href="/register/client"
+                className="ld-btn2 ld-btn2--lg transition-all duration-300 hover:border-accent/50 hover:bg-muted"
+              >
                 Get started free
               </Link>
             </div>

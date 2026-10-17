@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, X, RotateCcw } from 'lucide-react';
 import { ShowcaseShell } from '@/features/showcase/components/ShowcaseShell';
+import { useBackgroundMusic } from '@/features/showcase/hooks/useBackgroundMusic';
+import { MusicHubBar } from '@/features/showcase/components/MusicHubBar';
 import { communityOf } from '@/features/community/utils/community';
 import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
@@ -47,6 +49,12 @@ export default function ClientTalentPage() {
   const [selectedCoachForBooking, setSelectedCoachForBooking] = useState<FullCoach | null>(null);
   const [selectedCoachForAI, setSelectedCoachForAI] = useState<FullCoach | null>(null);
   const [gateNotice, setGateNotice] = useState(false);
+
+  // Background Music for /client/talent with auto-play and browser compliance
+  const music = useBackgroundMusic({
+    currentUser,
+    community: communityOf(currentUser, myTalent),
+  });
 
   const loadCoachesAndProfile = useCallback(async () => {
     try {
@@ -200,6 +208,11 @@ export default function ClientTalentPage() {
           </div>
         }
       />
+
+      {/* Shared Rehearsal Music Hub Bar */}
+      <div className="mb-6">
+        <MusicHubBar music={music} />
+      </div>
 
       {activeTab === 'coaches' ? (
         <div className="space-y-6">
@@ -415,6 +428,8 @@ export default function ClientTalentPage() {
           currentUser={currentUser}
           memberCommunity={communityOf(currentUser, myTalent)}
           loading={loading}
+          music={music}
+          hideMusicBar={true}
         />
       )}
 

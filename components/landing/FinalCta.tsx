@@ -21,41 +21,45 @@ const benefits = [
   'Groovey AI assistant',
 ];
 
+import { Reveal } from '@/components/shared/Reveal';
+
 export function FinalCta() {
   return (
     <section className="ld-section" aria-labelledby="cta-heading">
       <div className="ld-wrap">
-        <div className="ld-card ld-card--pad flex flex-col items-center gap-6 px-6 py-14 text-center sm:px-12 sm:py-16">
-          <p className="ld-eyebrow">Ready to begin</p>
+        <Reveal variant="scale">
+          <div className="ld-card ld-card--pad flex flex-col items-center gap-6 px-6 py-14 text-center sm:px-12 sm:py-16 shadow-xl border-accent/20">
+            <p className="ld-eyebrow">Ready to begin</p>
 
-          <h2 id="cta-heading" className="ld-h2 max-w-2xl">
-            Ready to take the stage?
-          </h2>
+            <h2 id="cta-heading" className="ld-h2 max-w-2xl">
+              Ready to take the stage?
+            </h2>
 
-          <p className="ld-p max-w-xl">
-            Join the growing community of performers and coaches in San Jose del Monte. Sign
-            up in minutes and start your journey today.
-          </p>
+            <p className="ld-p max-w-xl">
+              Join the growing community of performers and coaches in San Jose del Monte. Sign
+              up in minutes and start your journey today.
+            </p>
 
-          <div className="flex flex-col items-center gap-3 sm:flex-row">
-            <Link href="/register/client" className="ld-btn">
-              Get started free
-            </Link>
-            <Link href="/login" className="ld-btn2 ld-btn2--lg">
-              Sign in
-            </Link>
+            <div className="flex flex-col items-center gap-3 sm:flex-row">
+              <Link href="/register/client" className="ld-btn transition-transform duration-200 hover:-translate-y-0.5">
+                Get started free
+              </Link>
+              <Link href="/login" className="ld-btn2 ld-btn2--lg transition-transform duration-200 hover:-translate-y-0.5">
+                Sign in
+              </Link>
+            </div>
+
+            {/* Proof line. One row, one weight, no icons competing with the CTAs. */}
+            <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+              {benefits.map((benefit) => (
+                <li key={benefit} className="ld-small inline-flex items-center gap-2">
+                  <Check className="h-4 w-4 shrink-0 text-[var(--success)]" aria-hidden="true" />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
           </div>
-
-          {/* Proof line. One row, one weight, no icons competing with the CTAs. */}
-          <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-            {benefits.map((benefit) => (
-              <li key={benefit} className="ld-small inline-flex items-center gap-2">
-                <Check className="h-4 w-4 shrink-0 text-[var(--success)]" aria-hidden="true" />
-                {benefit}
-              </li>
-            ))}
-          </ul>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -29,3 +29,12 @@ export interface MusicSearchResult {
   thumbnail: string;
   duration?: string;
 }
+
+export interface MusicPlaybackSession {
+  track: MusicTrack;
+  position: number;
+  duration?: number;
+  volume: number;
+  isMuted: boolean;
+  updatedAt: string;
+}

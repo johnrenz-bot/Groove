@@ -9,6 +9,9 @@ import { RouteThemeEnforcer } from '@/components/theme/RouteThemeEnforcer';
 import { AppLoadingSplash } from '@/components/shared/AppLoadingSplash';
 import { PresenceBridge } from '@/components/shared/PresenceBridge';
 import { ClickSoundBridge } from '@/features/sound/components/ClickSoundBridge';
+import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
+import { PageTransition } from '@/components/layout/PageTransition';
+import { BackToTopButton } from '@/components/shared/BackToTopButton';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -172,8 +175,13 @@ export default function RootLayout({
                 colour lives ONLY on <body> (see globals.css), every full-page
                 wrapper below is transparent, and all page content sits in the
                 `relative z-10` layer after this — see components/layout/PagePatterns.tsx. */}
-            <PagePatterns />
-            <div className="relative z-10">{children}</div>
+            <SmoothScrollProvider>
+              <PagePatterns />
+              <PageTransition>
+                <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+              </PageTransition>
+              <BackToTopButton />
+            </SmoothScrollProvider>
           </SessionProvider>
         </LanguageProvider>
       </body>

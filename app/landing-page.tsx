@@ -752,15 +752,6 @@ export default function LandingPage() {
           </div>
         </Reveal>
       </section>
-
-      {/* ─── Back to top (single shared Footer comes from PublicLayout) ─── */}
-      <a
-        href="#"
-        className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#17171B]/90 text-[#F7F5F0] shadow-lg backdrop-blur-md transition-all hover:border-[#F5B52E]/60 hover:text-[#F5B52E]"
-        aria-label="Back to top"
-      >
-        <ArrowUp className="h-5 w-5" />
-      </a>
     </PublicLayout>
     </div>
   );

@@ -11,7 +11,8 @@ import React, {
   ReactNode,
 } from 'react';
 import { usePathname } from 'next/navigation';
-import { MusicPlaylist, MusicTrack } from '../types';
+import { MusicPlaylist, MusicTrack, MusicPlaybackSession } from '../types';
+import { GROOVE_OFFICIAL_REHEARSAL_MIX } from '../data/curatedTracks';
 // The route gate lives in `lib/routes` so it can be unit-tested without React,
 // and is re-exported here so player consumers keep a single import site.
 import { MUSIC_ALLOWED_ROUTES, isMusicRoute } from '../lib/routes';
@@ -32,6 +33,48 @@ declare global {
 
 export type RepeatMode = 'none' | 'all' | 'one';
 
+const SESSION_STORAGE_KEY = 'groove:music:playback-session:v2';
+const HISTORY_STORAGE_KEY = 'groove:music:history:v2';
+
+function readSavedSession(): MusicPlaybackSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSavedSession(session: MusicPlaybackSession | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (session) {
+      window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    } else {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+  } catch {}
+}
+
+function readHistory(): MusicTrack[] {
+  if (typeof window === 'undefined') return [GROOVE_OFFICIAL_REHEARSAL_MIX];
+  try {
+    const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [GROOVE_OFFICIAL_REHEARSAL_MIX];
+  } catch {
+    return [GROOVE_OFFICIAL_REHEARSAL_MIX];
+  }
+}
+
+function writeHistory(tracks: MusicTrack[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(tracks.slice(0, 15)));
+  } catch {}
+}
+
 interface MusicPlayerContextType {
   currentTrack: MusicTrack | null;
   activePlaylist: MusicPlaylist | null;
@@ -51,20 +94,18 @@ interface MusicPlayerContextType {
   isActive: boolean;
   /**
    * True while the YouTube player actually holds a loaded clip.
-   *
-   * `currentTrack` alone is not enough: after `stopVideo()` the track is still
-   * remembered but nothing is loaded, so a consumer deciding whether to reload
-   * has to look at the player, not at our own bookkeeping.
    */
   isVideoLoaded: boolean;
   /**
    * True while the current track is only blocked because its owner disabled
-   * embedding. `openOnYouTubeUrl` is then non-null so the hub can offer a way
-   * to watch it. We never attempt to work around the restriction — we skip.
+   * embedding.
    */
   isEmbedRestricted: boolean;
   openOnYouTubeUrl: string | null;
-  playTrack: (track: MusicTrack, playlist?: MusicPlaylist) => void;
+  savedSession: MusicPlaybackSession | null;
+  recentHistory: MusicTrack[];
+  resumeRecentPlayback: () => void;
+  playTrack: (track: MusicTrack, playlist?: MusicPlaylist, startSeconds?: number) => void;
   togglePlay: () => void;
   playNext: () => void;
   playPrev: () => void;
@@ -90,48 +131,69 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
-  const [repeatMode, setRepeatMode] = useState<RepeatMode>('all');
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>('one');
   const [isShuffle, setIsShuffle] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isEmbedRestricted, setIsEmbedRestricted] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [savedSession, setSavedSession] = useState<MusicPlaybackSession | null>(null);
+  const [recentHistory, setRecentHistory] = useState<MusicTrack[]>([]);
 
   const playerRef = useRef<any>(null);
   const playerReadyRef = useRef<boolean>(false);
   const pendingTrackRef = useRef<MusicTrack | null>(null);
+  const pendingStartSecondsRef = useRef<number>(0);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* --- Automatic-skip bookkeeping -----------------------------------------
-     `onError` is handed to the YouTube player once, when the player is built,
-     and lives for the whole session. Calling React callbacks from there means
-     reading state through refs: the closure it captured at build time is the
-     first render's, where `activePlaylist` is still null. That is what made
-     "Skipping to next rehearsal track…" a message with nothing behind it. */
+  // Initialize saved session and history from localStorage
+  useEffect(() => {
+    const session = readSavedSession();
+    if (session) {
+      setSavedSession(session);
+      if (session.track) {
+        setCurrentTrack(session.track);
+        setCurrentTime(session.position || 0);
+        if (session.duration) setDuration(session.duration);
+      }
+    }
+    setRecentHistory(readHistory());
+  }, []);
+
   const skipTimerRef = useRef<NodeJS.Timeout | null>(null);
   const skipInFlightRef = useRef(false);
-  /** Ids that failed during the current automatic-skip run. */
   const skipAttemptsRef = useRef<Set<string>>(new Set());
   const handlePlayerErrorRef = useRef<(code: unknown) => void>(() => {});
 
-  /**
-   * Music belongs to the Community Showcase only. Derived from the pathname
-   * rather than stored, so there is no window in which the two can disagree.
-   */
   const pathname = usePathname();
   const isActive = useMemo(() => isMusicRoute(pathname), [pathname]);
 
+  // Record playback session
+  const saveCurrentSession = useCallback((track: MusicTrack, pos: number, dur?: number) => {
+    const sess: MusicPlaybackSession = {
+      track,
+      position: Math.max(0, Math.floor(pos)),
+      duration: dur,
+      volume,
+      isMuted,
+      updatedAt: new Date().toISOString(),
+    };
+    setSavedSession(sess);
+    writeSavedSession(sess);
+  }, [volume, isMuted]);
+
+  // Add to track history
+  const addToHistory = useCallback((track: MusicTrack) => {
+    setRecentHistory((prev) => {
+      const filtered = prev.filter((t) => t.youtubeId !== track.youtubeId && t.id !== track.id);
+      const updated = [track, ...filtered].slice(0, 15);
+      writeHistory(updated);
+      return updated;
+    });
+  }, []);
+
   /**
    * Leaving the Showcase stops playback immediately and releases the YouTube
-   * resource. `stopVideo()` unloads the clip, so the network and the decoder are
-   * free rather than a silent stream lingering off-screen.
-   *
-   * `currentTrack` and `activePlaylist` are deliberately KEPT: they are the state
-   * the hub restores from when the member comes back. `startPlayback` below
-   * checks the player's real state, so it reloads rather than assuming a video is
-   * still loaded.
-   *
-   * No setState here — `stopVideo()` fires `onStateChange`, whose handler clears
-   * the flags, which keeps this out of the set-state-in-effect trap.
+   * resource. We record the exact track and position so the member can resume.
    */
   useEffect(() => {
     if (isActive) return;
@@ -141,12 +203,19 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     }
     skipInFlightRef.current = false;
     try {
+      if (playerRef.current?.getCurrentTime && currentTrack) {
+        const cur = playerRef.current.getCurrentTime();
+        const dur = playerRef.current.getDuration?.();
+        if (typeof cur === 'number' && !isNaN(cur)) {
+          saveCurrentSession(currentTrack, cur, dur);
+        }
+      }
       playerRef.current?.pauseVideo();
       playerRef.current?.stopVideo?.();
     } catch {
       // The player may not exist yet on a cold route transition.
     }
-  }, [isActive]);
+  }, [isActive, currentTrack, saveCurrentSession]);
 
   /** Clears any queued skip. Called whenever the user takes control. */
   const cancelPendingSkip = useCallback(() => {
@@ -161,9 +230,10 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
   }, []);
 
-  const playTrackInternal = useCallback((track: MusicTrack) => {
+  const playTrackInternal = useCallback((track: MusicTrack, startSeconds: number = 0) => {
     if (!playerRef.current || !playerReadyRef.current) {
       pendingTrackRef.current = track;
+      pendingStartSecondsRef.current = startSeconds;
       return;
     }
 
@@ -172,10 +242,11 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       playerRef.current.loadVideoById({
         videoId: track.youtubeId,
-        startSeconds: 0,
+        startSeconds: Math.max(0, Math.floor(startSeconds)),
       });
       playerRef.current.playVideo();
       setIsPlaying(true);
+      setCurrentTime(startSeconds);
     } catch (e) {
       console.error('Error playing track on YouTube Player:', e);
       setIsLoading(false);
@@ -183,13 +254,8 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const playTrack = useCallback(
-    (track: MusicTrack, playlist?: MusicPlaylist) => {
-      // Off the Showcase, nothing loads. This is the single choke point for
-      // starting a track, so it covers every entry path.
+    (track: MusicTrack, playlist?: MusicPlaylist, startSeconds: number = 0) => {
       if (!isActive) return;
-      // A deliberate choice by the user ends the current automatic-skip run:
-      // clear the timer and forget which tracks failed, so pressing play on a
-      // previously-failed track gives it a genuine fresh attempt.
       cancelPendingSkip();
       skipAttemptsRef.current = new Set();
       setIsEmbedRestricted(false);
@@ -197,10 +263,13 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       if (playlist) {
         setActivePlaylist(playlist);
       }
-      playTrackInternal(track);
+      addToHistory(track);
+      saveCurrentSession(track, startSeconds);
+      playTrackInternal(track, startSeconds);
     },
-    [cancelPendingSkip, playTrackInternal, isActive]
+    [cancelPendingSkip, playTrackInternal, isActive, addToHistory, saveCurrentSession]
   );
+
 
   const getCurrentIndex = useCallback(() => {
     if (!activePlaylist || !currentTrack) return -1;
@@ -350,7 +419,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       playerRef.current = new window.YT.Player('groove-hidden-yt-player', {
         height: '180',
         width: '240',
-        videoId: pendingTrackRef.current?.youtubeId || 'wkJF_L6fG0M',
+        videoId: pendingTrackRef.current?.youtubeId || '3vmewzGcX2I',
         playerVars: {
           autoplay: 0,
           controls: 0,
@@ -359,14 +428,18 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
           modestbranding: 1,
           rel: 0,
           iv_load_policy: 3,
+          loop: 1,
+          playlist: pendingTrackRef.current?.youtubeId || '3vmewzGcX2I',
         },
         events: {
           onReady: () => {
             playerReadyRef.current = true;
             if (pendingTrackRef.current) {
               const trk = pendingTrackRef.current;
+              const startSec = pendingStartSecondsRef.current || 0;
               pendingTrackRef.current = null;
-              playTrackInternal(trk);
+              pendingStartSecondsRef.current = 0;
+              playTrackInternal(trk, startSec);
             }
           },
           onStateChange: (event: any) => {
@@ -514,11 +587,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   }, [isMuted]);
 
   const toggleRepeat = useCallback(() => {
-    setRepeatMode((prev) => {
-      if (prev === 'all') return 'one';
-      if (prev === 'one') return 'none';
-      return 'all';
-    });
+    setRepeatMode((prev) => (prev === 'one' ? 'none' : 'one'));
   }, []);
 
   const toggleShuffle = useCallback(() => {
@@ -538,6 +607,22 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     setCurrentTrack(null);
   }, [cancelPendingSkip]);
 
+  const resumeRecentPlayback = useCallback(() => {
+    if (!isActive) return;
+    const session = savedSession || readSavedSession();
+    if (session?.track) {
+      playTrack(session.track, activePlaylist || undefined, session.position || 0);
+    } else if (currentTrack) {
+      if (isVideoLoaded) {
+        togglePlay();
+      } else {
+        playTrack(currentTrack, activePlaylist || undefined, currentTime || 0);
+      }
+    } else {
+      playTrack(GROOVE_OFFICIAL_REHEARSAL_MIX, undefined, 0);
+    }
+  }, [isActive, savedSession, currentTrack, isVideoLoaded, currentTime, activePlaylist, togglePlay, playTrack]);
+
   // Update current time & duration timer while playing
   useEffect(() => {
     if (isPlaying) {
@@ -546,7 +631,12 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
           try {
             const cur = playerRef.current.getCurrentTime();
             const dur = playerRef.current.getDuration();
-            if (typeof cur === 'number' && !isNaN(cur)) setCurrentTime(cur);
+            if (typeof cur === 'number' && !isNaN(cur)) {
+              setCurrentTime(cur);
+              if (currentTrack) {
+                saveCurrentSession(currentTrack, cur, dur);
+              }
+            }
             if (typeof dur === 'number' && !isNaN(dur) && dur > 0) setDuration(dur);
           } catch (e) {}
         }
@@ -558,7 +648,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     return () => {
       if (progressTimerRef.current) clearInterval(progressTimerRef.current);
     };
-  }, [isPlaying]);
+  }, [isPlaying, currentTrack, saveCurrentSession]);
 
   return (
     <MusicPlayerContext.Provider
@@ -577,12 +667,13 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
         isActive,
         isVideoLoaded,
         isEmbedRestricted,
-        // Only surfaced when the owner disabled embedding — a deleted or
-        // private video (code 100) has nothing useful to open.
         openOnYouTubeUrl:
           isEmbedRestricted && currentTrack
             ? `https://www.youtube.com/watch?v=${currentTrack.youtubeId}`
             : null,
+        savedSession,
+        recentHistory,
+        resumeRecentPlayback,
         playTrack,
         togglePlay,
         playNext,

@@ -16,6 +16,7 @@ import { ORGANIZATIONS } from '@/lib/dance/constants';
 import type { DanceOrg } from '@/lib/dance/types';
 import { VERIFIED_DANCE_ORGS } from '../data/danceOrgs';
 import { OrgLogoCarouselClient } from './OrgLogoCarouselClient';
+import { PerformingArtsNewsHubGuide } from '@/features/performing-arts/components/PerformingArtsNewsHubGuide';
 import {
   ChevronLeft,
   ChevronRight,
@@ -411,6 +412,9 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
 
       {/* 5. Featured Crews & Match Recaps Roster */}
       <FeaturedCrewsRoster />
+
+      {/* 6. Performing Arts News Hub Guide, Editorial Standards & Safety Disclaimer */}
+      <PerformingArtsNewsHubGuide discipline="dance" />
 
       {/* Page attribution footer — not a duplicate of the site footer */}
       <footer aria-label="Dance community attribution" className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-6">

@@ -53,6 +53,8 @@ const AUDIENCE_COPY: Record<Audience, { label: string; heading: string; lead: st
   },
 };
 
+import { Reveal } from '@/components/shared/Reveal';
+
 export function AudienceTabs() {
   const [activeTab, setActiveTab] = useState<Audience>('client');
   const copy = AUDIENCE_COPY[activeTab];
@@ -88,7 +90,7 @@ export function AudienceTabs() {
        scroll target moved. */
     <section id="coaches" className="ld-section ld-band" aria-labelledby="audience-heading">
       <div className="ld-wrap">
-        <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
+        <Reveal className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
           <p className="ld-eyebrow">Audience</p>
           <h2 id="audience-heading" className="ld-h2">
             Built for performers and the coaches who guide them
@@ -97,7 +99,7 @@ export function AudienceTabs() {
             Two experiences, one platform. Choose your path and discover tools designed
             specifically for you.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-10 flex justify-center">
           <div
@@ -116,7 +118,7 @@ export function AudienceTabs() {
                 aria-controls="audience-panel"
                 tabIndex={activeTab === audience ? 0 : -1}
                 onClick={() => setActiveTab(audience)}
-                className="ld-seg__btn"
+                className="ld-seg__btn transition-all duration-200"
               >
                 {audience === 'client' ? 'Performer' : 'Coach'}
               </button>
@@ -139,8 +141,12 @@ export function AudienceTabs() {
             </div>
 
             <ul className="mt-10 grid gap-3 sm:grid-cols-2">
-              {features.map((feature) => (
-                <li key={feature.title} className="ld-card ld-card--tight gap-2">
+              {features.map((feature, idx) => (
+                <li
+                  key={feature.title}
+                  style={{ animationDelay: `${idx * 40}ms` }}
+                  className="ld-card ld-card--tight gap-2 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-md animate-in fade-in"
+                >
                   <h4 className="ld-h4">{feature.title}</h4>
                   <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">
                     {feature.description}

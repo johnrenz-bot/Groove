@@ -217,8 +217,9 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
         <div
           role="dialog"
           aria-label="Grooveyy AI Floating Assistant"
+          data-lenis-prevent
           className={cn(
-            'fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-foreground shadow-2xl backdrop-blur-xl transition-all duration-300 ease-out font-sans',
+            'fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-foreground shadow-2xl backdrop-blur-xl transition-all duration-300 ease-out font-sans animate-in fade-in zoom-in-95 slide-in-from-bottom-3',
             // Mobile: dock to bottom with side margins
             'inset-x-3 bottom-3 max-h-[85vh] h-[540px]',
             // Desktop: anchored bottom-right
@@ -459,7 +460,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                     <div
                       key={msg.id}
                       className={cn(
-                        'flex flex-col',
+                        'flex flex-col g-message-in',
                         isUser ? 'items-end' : 'items-start'
                       )}
                     >

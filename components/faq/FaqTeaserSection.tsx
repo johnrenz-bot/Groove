@@ -54,11 +54,13 @@ import { FaqTeaser } from './FaqTeaser';
  *   `#faq` is the anchor the `/faq` empty state links back to, so it must not be
  *   renamed without updating that link.
  */
+import { Reveal } from '@/components/shared/Reveal';
+
 export function FaqTeaserSection() {
   return (
     <section id="faq" className="ld-section" aria-labelledby="faq-heading">
       <div className="ld-wrap">
-        <div className="flex flex-col gap-3">
+        <Reveal className="flex flex-col gap-3">
           <p className="ld-eyebrow">Need to know</p>
           <h2 id="faq-heading" className="ld-h2">
             Questions, answered
@@ -67,7 +69,7 @@ export function FaqTeaserSection() {
             The things people ask before they make an account &mdash; and one link to every
             answer we have.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-14">
           <FaqTeaser />

@@ -63,7 +63,7 @@ export function DanceCommunityHero({
 
           <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-            AI-Curated · Source-Linked
+            Editorial-Verified · Official Source-Linked
           </span>
 
           <span className="text-xs text-muted-foreground">

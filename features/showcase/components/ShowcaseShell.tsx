@@ -21,10 +21,12 @@ import React, { useCallback, useState } from 'react';
 import type { Profile } from '@/lib/types';
 import type { Community } from '@/features/community/utils/community';
 import CommunityFeed from '@/features/community/components/CommunityFeed';
-import { useBackgroundMusic } from '../hooks/useBackgroundMusic';
+import { DancerCircleRules } from '@/features/community/components/DancerCircleRules';
+import { CommunityLeaderboard } from '@/features/community/components/CommunityLeaderboard';
+import { TambayanPulseCard } from '@/features/community/components/TambayanPulseCard';
+import { useBackgroundMusic, type BackgroundMusic } from '../hooks/useBackgroundMusic';
 import { useTalentSelection } from '../hooks/useTalentSelection';
 import { MusicHubBar } from './MusicHubBar';
-import { MusicHubPanel } from './MusicHubPanel';
 import { TalentBannerPanel } from './TalentBannerPanel';
 
 export interface ShowcaseShellProps {
@@ -41,6 +43,10 @@ export interface ShowcaseShellProps {
    */
   headerAction?: React.ReactNode;
   loading?: boolean;
+  /** Optional existing BackgroundMusic instance if managed by parent route */
+  music?: BackgroundMusic;
+  /** When true, omits rendering MusicHubBar inside ShowcaseShell (e.g. if parent renders it) */
+  hideMusicBar?: boolean;
 }
 
 /**
@@ -55,25 +61,24 @@ export function ShowcaseShell({
   eyebrow,
   headerAction,
   loading = false,
+  music: externalMusic,
+  hideMusicBar = false,
 }: ShowcaseShellProps) {
   const [hubOpen, setHubOpen] = useState(false);
-  const [hubCreateMode, setHubCreateMode] = useState(false);
 
   const selection = useTalentSelection({ memberCommunity });
-  const music = useBackgroundMusic({
+  const internalMusic = useBackgroundMusic({
     currentUser,
     community: memberCommunity,
   });
+  const music = externalMusic ?? internalMusic;
 
-  const openHub = useCallback((opts?: { create?: boolean }) => {
-    if (opts?.create) setHubCreateMode(true);
-    setHubOpen((v) => (opts?.create ? true : !v));
+  const toggleHub = useCallback(() => {
+    setHubOpen((v) => !v);
   }, []);
 
-  const closeHub = useCallback(() => {
-    setHubOpen(false);
-    setHubCreateMode(false);
-  }, []);
+  const isDancerCircleActive =
+    selection.selectedKey === 'dancer' || (!selection.selectedKey && memberCommunity === 'Dancer');
 
   return (
     <div className="space-y-4">
@@ -83,7 +88,7 @@ export function ShowcaseShell({
           <span className="g-eyebrow mb-2">{eyebrow}</span>
           <h1 className="text-xl font-bold tracking-[-0.02em] text-foreground sm:text-2xl">
             Performing Arts Showcase &amp;{' '}
-            <span className="text-accent-text">Community</span>
+            <span className="text-accent-text">Community Tambayan</span>
           </h1>
           <p className="mt-1 max-w-[62ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">
             {role === 'coach'
@@ -94,18 +99,10 @@ export function ShowcaseShell({
         {headerAction && <div className="flex shrink-0 items-center gap-2">{headerAction}</div>}
       </header>
 
-      <MusicHubBar music={music} onTogglePanel={openHub} panelOpen={hubOpen} />
-
-      {/* INLINE, directly beneath the bar — not a modal, no backdrop, no portal.
-          Collapses into the document flow so the page behind stays readable. */}
-      <MusicHubPanel
-        open={hubOpen}
-        onClose={closeHub}
-        music={music}
-        currentUser={currentUser}
-        community={memberCommunity}
-        startInCreateMode={hubCreateMode}
-      />
+      {/* Modern, compact, collapsible music player for Groove Rehearsal Mix */}
+      {!hideMusicBar && (
+        <MusicHubBar music={music} onTogglePanel={toggleHub} panelOpen={hubOpen} />
+      )}
 
       {loading ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -117,17 +114,23 @@ export function ShowcaseShell({
           <div className="g-skeleton h-40 w-full rounded-[14px] lg:order-2" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
           {/* Panel first in the DOM so it stacks ABOVE the feed on mobile. */}
-          <div className="order-1 lg:order-2 lg:sticky lg:top-[85px]">
+          <div className="order-1 lg:order-2 space-y-4">
             <TalentBannerPanel
               selectedKey={selection.selectedKey}
               postKey={selection.postKey}
               onSelect={selection.select}
             />
+
+            {/* Filipino Tambayan Pulse & Cypher Tags */}
+            <TambayanPulseCard />
+
+            {/* Community Leaderboard */}
+            <CommunityLeaderboard compact />
           </div>
 
-          <div className="order-2 min-w-0 lg:order-1">
+          <div className="order-2 min-w-0 lg:order-1 space-y-6">
             <CommunityFeed
               currentUser={currentUser}
               // Posts always carry the member's OWN community — RLS refuses any
@@ -138,6 +141,9 @@ export function ShowcaseShell({
               filterCommunity={selection.banner?.talent ?? null}
               browsingLabel={selection.banner?.displayName ?? null}
             />
+
+            {/* Community Rules at the bottom of Dancer Circle */}
+            {isDancerCircleActive && <DancerCircleRules />}
           </div>
         </div>
       )}

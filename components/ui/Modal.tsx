@@ -69,6 +69,7 @@ export function Modal({
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.body.setAttribute('data-modal-open', 'true');
 
     const timer = window.setTimeout(() => {
       panelRef.current
@@ -81,6 +82,7 @@ export function Modal({
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
+      document.body.removeAttribute('data-modal-open');
       window.clearTimeout(timer);
       triggerRef.current?.focus();
     };
@@ -90,6 +92,7 @@ export function Modal({
 
   return (
     <div
+      data-lenis-prevent
       className="g-modal-overlay fixed inset-0 z-[70] flex items-center justify-center bg-[var(--overlay)] p-3 backdrop-blur-sm transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -99,6 +102,7 @@ export function Modal({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
+        data-lenis-prevent
         aria-label={typeof title === 'string' ? title : undefined}
         aria-labelledby={title ? titleId : undefined}
         className={cn(
@@ -143,7 +147,7 @@ export function Modal({
           </header>
         )}
 
-        <div className="g-scroll flex-1 min-h-0 overflow-y-auto px-6 py-5 sm:px-7 sm:py-6">{children}</div>
+        <div data-lenis-prevent className="g-scroll flex-1 min-h-0 overflow-y-auto px-6 py-5 sm:px-7 sm:py-6">{children}</div>
 
         {footer && (
           <footer className="flex shrink-0 items-center justify-end gap-3 border-t border-divider bg-muted/40 px-6 py-4 sm:px-7">

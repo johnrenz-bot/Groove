@@ -807,6 +807,20 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -4376,6 +4390,16 @@ select.g-input option {
   box-shadow: var(--shadow-panel);
   transform-origin: top right;
 }
+/* Invisible hover bridge connecting trigger and panel across the 0.5rem gap */
+.hx-panel::before {
+  content: '';
+  position: absolute;
+  top: -0.625rem;
+  left: 0;
+  right: 0;
+  height: 0.625rem;
+  pointer-events: auto;
+}
 .hx-dropdown .hx-panel {
   right: auto;
   left: 50%;
@@ -7656,3 +7680,200 @@ select.g-input option {
     display: none;
   }
 }
+
+/* ==============================================================================
+   LENIS SMOOTH SCROLLING (Calibrated to match course.marwieang.com)
+   ============================================================================== */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+.lenis.lenis-autoToggle {
+  transition-property: overflow;
+  transition-duration: 1ms;
+  transition-behavior: allow-discrete;
+}
+
+/* Smooth anchor target scroll offset */
+html {
+  scroll-padding-top: 5.5rem;
+}
+
+/* ==============================================================================
+   GLOBAL REVEAL & MOTION SYSTEM (course.marwieang.com inspired)
+   ============================================================================== */
+.g-reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.g-reveal[data-reveal='shown'],
+.g-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.g-reveal--scale {
+  transform: scale(0.96) translate3d(0, 12px, 0);
+}
+.g-reveal--scale[data-reveal='shown'],
+.g-reveal--scale.is-visible {
+  transform: scale(1) translate3d(0, 0, 0);
+}
+
+.g-reveal--left {
+  transform: translate3d(-20px, 0, 0);
+}
+.g-reveal--left[data-reveal='shown'],
+.g-reveal--left.is-visible {
+  transform: translate3d(0, 0, 0);
+}
+
+.g-reveal--right {
+  transform: translate3d(20px, 0, 0);
+}
+.g-reveal--right[data-reveal='shown'],
+.g-reveal--right.is-visible {
+  transform: translate3d(0, 0, 0);
+}
+
+.g-reveal--fade {
+  transform: none;
+}
+.g-reveal--fade[data-reveal='shown'],
+.g-reveal--fade.is-visible {
+  opacity: 1;
+}
+
+/* Stagger delay children */
+.g-reveal-stagger > *:nth-child(1) { transition-delay: 50ms; }
+.g-reveal-stagger > *:nth-child(2) { transition-delay: 110ms; }
+.g-reveal-stagger > *:nth-child(3) { transition-delay: 170ms; }
+.g-reveal-stagger > *:nth-child(4) { transition-delay: 230ms; }
+.g-reveal-stagger > *:nth-child(5) { transition-delay: 290ms; }
+.g-reveal-stagger > *:nth-child(6) { transition-delay: 350ms; }
+.g-reveal-stagger > *:nth-child(7) { transition-delay: 410ms; }
+.g-reveal-stagger > *:nth-child(8) { transition-delay: 470ms; }
+
+/* ==============================================================================
+   MICRO-INTERACTIONS & MOTION UTILITIES
+   ============================================================================== */
+
+/* Card hover lift & glow */
+.g-card-hover {
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 200ms ease;
+}
+.g-card-hover:hover {
+  transform: translate3d(0, -3px, 0);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg), 0 10px 28px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* Chat bubble entrance */
+@keyframes g-message-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+.g-message-in {
+  animation: g-message-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Silky shimmer for skeleton loaders */
+@keyframes g-shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.g-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    var(--surface) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: g-shimmer-sweep 2s infinite ease-in-out;
+}
+
+/* Micro-interaction float */
+@keyframes g-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+.g-float {
+  animation: g-float 3.5s ease-in-out infinite;
+}
+
+/* Form error shake */
+@keyframes g-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.g-shake {
+  animation: g-shake 320ms ease-in-out;
+}
+
+/* Reduced motion accessibility contract */
+@media (prefers-reduced-motion: reduce) {
+  .g-reveal,
+  .g-reveal--scale,
+  .g-reveal--left,
+  .g-reveal--right,
+  .g-reveal--fade {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .g-reveal-stagger > * {
+    transition-delay: 0ms !important;
+  }
+  .g-card-hover:hover {
+    transform: none !important;
+  }
+  .g-message-in,
+  .g-float,
+  .g-shake,
+  .g-shimmer {
+    animation: none !important;
+  }
+}
+

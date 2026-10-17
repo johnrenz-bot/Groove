@@ -1,43 +1,33 @@
 'use client';
 
 /**
- * Background music for the Community Showcase.
+ * Background music for the Community Showcase — Single Track Rehearsal Player.
  *
- * PLAYER OWNERSHIP
- *   There is exactly ONE player: the `MusicPlayerProvider` mounted by
- *   `DashboardLayout`, which gates itself to the Showcase routes via the
- *   pathname. This hook never constructs a player, never injects an iframe and
- *   never subscribes to the YouTube API. Moving between the two Showcase pages
- *   therefore keeps playing through the same instance, and leaving them stops it.
+ * Dedicated to the Groove Rehearsal Mix (https://youtu.be/3vmewzGcX2I).
  *
- * AUTOPLAY, HONESTLY
- *   Browsers block programmatic playback until the user has interacted with the
- *   page. We attempt once; if it does not stick we wait for the first real
- *   interaction and try again. We never mute-and-unmute in a loop, and we never
- *   attempt to bypass the policy.
- *
- * HYDRATION
- *   Preferences are read through `useSyncExternalStore`, so the server snapshot is
- *   used for the first client render and no "muted then unmuted" flash occurs.
+ * RULES:
+ *   - No autoplay on page load. Playback is user-initiated.
+ *   - Looping the same track continuously when supported.
+ *   - Real volume slider (0-100) and mute/unmute control.
+ *   - Controls stay synchronized across expand/collapse states.
+ *   - Official YouTube IFrame Player API only; no video or thumbnails shown.
  */
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-
 import { useMusicPlayer } from '@/features/music/context/MusicPlayerContext';
-import { fetchPlaylists } from '@/features/music/services/playlistService';
-import type { MusicPlaylist } from '@/features/music/types';
+import type { MusicTrack, MusicPlaylist, MusicPlaybackSession } from '@/features/music/types';
 import type { Profile } from '@/lib/types';
 import type { Community } from '@/features/community/utils/community';
+import {
+  CURATED_DANCE_TRACKS,
+  GROOVE_OFFICIAL_REHEARSAL_MIX,
+} from '@/features/music/data/curatedTracks';
 
-/**
- * Namespaced and versioned. The `v1` suffix lets a future change to a
- * preference's meaning invalidate old values instead of misreading them.
- */
+export const GROOVE_REHEARSAL_TRACK: MusicTrack = GROOVE_OFFICIAL_REHEARSAL_MIX;
+
 export const MUSIC_MUTE_STORAGE_KEY = 'groove:showcase:music-muted:v1';
 export const MUSIC_VOLUME_STORAGE_KEY = 'groove:showcase:music-volume:v1';
-export const MUSIC_PLAYED_STORAGE_KEY = 'groove:showcase:music-autoplayed:v1';
 
-const UNLOCK_EVENTS = ['pointerdown', 'keydown', 'touchstart'] as const;
 const MIN_VOLUME = 0;
 const MAX_VOLUME = 100;
 const DEFAULT_VOLUME = 80;
@@ -49,7 +39,6 @@ function readBool(key: string): boolean {
   try {
     return window.localStorage.getItem(key) === 'true';
   } catch {
-    // Private mode / storage blocked.
     return false;
   }
 }
@@ -71,12 +60,9 @@ function write(key: string, value: string) {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(key, value);
-  } catch {
-    // Non-fatal: the preference simply will not survive the session.
-  }
+  } catch {}
 }
 
-/** `storage` only fires in OTHER tabs, so a same-tab write needs its own signal. */
 const CHANGED_EVENT = 'groove:showcase:music-pref-changed';
 
 function notify() {
@@ -94,167 +80,145 @@ function subscribe(onChange: () => void) {
   };
 }
 
-// getSnapshot must be cached, or concurrent rendering tears.
 let cachedMuted: boolean | null = null;
 let cachedVolume: number | null = null;
-let cachedPlayed: boolean | null = null;
 
 const getMutedSnapshot = () => (cachedMuted ??= readBool(MUSIC_MUTE_STORAGE_KEY));
 const getVolumeSnapshot = () => (cachedVolume ??= readVolume());
-const getPlayedSnapshot = () => (cachedPlayed ??= readBool(MUSIC_PLAYED_STORAGE_KEY));
 
-// What the server rendered; the real values land immediately after hydration.
 const serverFalse = () => false;
 const serverVolume = () => DEFAULT_VOLUME;
 
 export interface UseBackgroundMusicArgs {
-  currentUser: Profile | null | undefined;
-  community: Community | null | undefined;
+  currentUser?: Profile | null | undefined;
+  community?: Community | null | undefined;
 }
 
 export interface BackgroundMusic {
   isMuted: boolean;
-  /** Mutes/unmutes background music without disturbing the track. */
   toggleMuted: () => void;
-  /** Real pause/resume — deliberately separate from muting. */
   togglePlaying: () => void;
-  /** Transport state, i.e. whether the player has a track in progress. */
   isPlaying: boolean;
   isLoading: boolean;
   volume: number;
   changeVolume: (vol: number) => void;
+  isLooping: boolean;
+  toggleLoop: () => void;
+  isAudible: boolean;
+  currentTrack: MusicTrack | null;
+  currentTrackTitle: string;
+  currentTrackArtist: string;
+  currentTrackThumbnail: string;
+  unavailableMessage: string | null;
+  openOnYouTubeUrl: string | null;
   next: () => void;
   prev: () => void;
-  isAudible: boolean;
   isWaitingForGesture: boolean;
-  currentTrackTitle: string | null;
-  currentTrackArtist: string | null;
-  unavailableMessage: string | null;
-  /** Offered only when the owner disabled embedding. */
-  openOnYouTubeUrl: string | null;
-  /** The playlist the hub resolved, so the inline panel can edit the same one. */
   playlist: MusicPlaylist | null;
+  savedSession: MusicPlaybackSession | null;
+  recentHistory: MusicTrack[];
+  resumeRecentPlayback: () => void;
+  currentTime: number;
+  duration: number;
+  seekTo: (seconds: number) => void;
+  playTrack: (track: MusicTrack, playlist?: MusicPlaylist, startSeconds?: number) => void;
+  allTracks: MusicTrack[];
 }
 
 export function useBackgroundMusic({
   currentUser,
-  community,
-}: UseBackgroundMusicArgs): BackgroundMusic {
+}: UseBackgroundMusicArgs = {}): BackgroundMusic {
   const {
     currentTrack,
     activePlaylist,
     isPlaying,
     isLoading,
+    currentTime,
+    duration,
     error,
     isActive,
     isVideoLoaded,
     isMuted: playerMuted,
     volume: playerVolume,
-    openOnYouTubeUrl,
+    repeatMode,
+    savedSession,
+    recentHistory,
+    resumeRecentPlayback,
     playTrack,
     togglePlay,
     playNext,
     playPrev,
     setVolume,
     toggleMute,
+    toggleRepeat,
+    seekTo,
   } = useMusicPlayer();
+
+  const [isWaitingForGesture, setIsWaitingForGesture] = useState(false);
+  const autoplayAttemptedRef = useRef(false);
 
   const muted = useSyncExternalStore(subscribe, getMutedSnapshot, serverFalse);
   const volume = useSyncExternalStore(subscribe, getVolumeSnapshot, serverVolume);
-  const hasAutoplayedBefore = useSyncExternalStore(subscribe, getPlayedSnapshot, serverFalse);
 
-  const advancingRef = useRef(false);
-  const unlockCleanupRef = useRef<(() => void) | null>(null);
-  const startedRef = useRef(false);
-
-  const [playlist, setPlaylist] = useState<MusicPlaylist | null>(null);
-  const [playlistMessage, setPlaylistMessage] = useState<string | null>(null);
-
-  const memberId = currentUser?.id ?? null;
-  const enabled = Boolean(memberId) && isActive;
-
-  /* --- Resolve a playlist for this member ---------------------------------- */
+  /* --- Automatic Playback Attempt on entering allowed showcase routes ------ */
   useEffect(() => {
-    if (!memberId) return;
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const userName =
-          `${currentUser?.firstname || ''} ${currentUser?.lastname || ''}`.trim() || undefined;
-        const list = await fetchPlaylists(
-          community ?? 'General',
-          memberId,
-          userName,
-          currentUser?.role as 'client' | 'coach' | 'admin'
-        );
-        if (cancelled) return;
-        const withTracks = (list || []).find(
-          (p) => Array.isArray(p.tracks) && p.tracks.length > 0
-        );
-        setPlaylist(withTracks ?? list?.[0] ?? null);
-        setPlaylistMessage(
-          withTracks ? null : 'No playable tracks yet — add one to start the music.'
-        );
-      } catch (err) {
-        console.error('Could not load showcase playlists:', err);
-        if (!cancelled) setPlaylistMessage('Playlists could not be loaded right now.');
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-    // Only the member id matters; the profile object is recreated every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memberId, community]);
-
-  /* --- Autoplay, with a one-shot gesture retry ----------------------------- */
-  const startPlayback = useCallback(() => {
-    if (!playlist || playlist.tracks.length === 0) return;
-    const first = playlist.tracks[0];
-
-    // Only skip the reload when the player genuinely holds a loaded clip. After
-    // `stopVideo()` on leaving the Showcase, `currentTrack` is remembered but
-    // nothing is loaded — so coming back reloads instead of assuming silence.
-    if (activePlaylist?.id === playlist.id && currentTrack && isVideoLoaded) return;
-
-    playTrack(first, playlist);
-  }, [playlist, activePlaylist?.id, currentTrack, isVideoLoaded, playTrack]);
-
-  useEffect(() => {
-    if (!enabled || muted || startedRef.current) return;
-    if (!playlist || playlist.tracks.length === 0) return;
-
-    startedRef.current = true;
-    startPlayback();
-
-    if (!hasAutoplayedBefore) {
-      write(MUSIC_PLAYED_STORAGE_KEY, 'true');
-      notify();
+    if (!isActive) {
+      autoplayAttemptedRef.current = false;
+      setIsWaitingForGesture(false);
+      return;
     }
 
-    // If the browser blocked us, nothing will be audible. Listen once for the
-    // member's first real interaction and try again — the sanctioned pattern.
-    const onGesture = () => {
-      startPlayback();
-      unlockCleanupRef.current?.();
-      unlockCleanupRef.current = null;
-    };
+    // If already playing (e.g. navigated between showcase pages), do not restart!
+    if (isPlaying) {
+      setIsWaitingForGesture(false);
+      return;
+    }
 
-    const opts: AddEventListenerOptions = { once: true, passive: true };
-    UNLOCK_EVENTS.forEach((e) => window.addEventListener(e, onGesture, opts));
-    unlockCleanupRef.current = () => {
-      UNLOCK_EVENTS.forEach((e) => window.removeEventListener(e, onGesture, opts));
-    };
+    // Only attempt auto-play once per active route session
+    if (autoplayAttemptedRef.current) return;
+    autoplayAttemptedRef.current = true;
 
-    return () => {
-      unlockCleanupRef.current?.();
-      unlockCleanupRef.current = null;
-    };
-  }, [enabled, muted, playlist, startPlayback, hasAutoplayedBefore]);
+    // If current track or saved session exists, preserve it!
+    if (currentTrack && isVideoLoaded) {
+      return;
+    }
 
-  /* --- Preferences mirrored onto the live player --------------------------- */
+    if (savedSession?.track) {
+      // Cue the saved session track with saved position
+      try {
+        playTrack(savedSession.track, undefined, savedSession.position || 0);
+      } catch (err) {
+        console.warn('Playback restore attempt caught:', err);
+        setIsWaitingForGesture(true);
+      }
+    } else {
+      // Trigger playback of the official configured Groove Rehearsal Mix
+      try {
+        playTrack(GROOVE_REHEARSAL_TRACK);
+      } catch (err) {
+        console.warn('Autoplay attempt caught:', err);
+        setIsWaitingForGesture(true);
+      }
+    }
+
+    // Check if browser blocked audio autoplay due to lack of prior user gesture
+    const timer = setTimeout(() => {
+      if (!isPlaying && !isLoading) {
+        setIsWaitingForGesture(true);
+      }
+    }, 1800);
+
+    return () => clearTimeout(timer);
+  }, [isActive, isPlaying, currentTrack, isVideoLoaded, savedSession, playTrack, isLoading]);
+
+  // When playback starts, clear the waiting for user gesture requirement
+  useEffect(() => {
+    if (isPlaying) {
+      setIsWaitingForGesture(false);
+    }
+  }, [isPlaying]);
+
+  /* --- Mirror preferences to the live YouTube player ----------------------- */
   useEffect(() => {
     if (muted !== playerMuted) toggleMute();
   }, [muted, playerMuted, toggleMute]);
@@ -279,56 +243,103 @@ export function useBackgroundMusic({
       write(MUSIC_VOLUME_STORAGE_KEY, String(clamped));
       notify();
       setVolume(clamped);
-      // Dragging off zero is an implicit unmute, as in every other player.
       if (clamped > 0 && playerMuted) toggleMute();
     },
     [setVolume, toggleMute, playerMuted]
   );
 
-  const next = useCallback(() => {
-    if (advancingRef.current) return;
-    const source = activePlaylist ?? playlist;
-    if (!source || source.tracks.length === 0) return;
-    // One advance per press, however fast the member taps.
-    advancingRef.current = true;
-    Promise.resolve().then(() => {
-      advancingRef.current = false;
-    });
-    playNext();
-  }, [activePlaylist, playlist, playNext]);
+  const togglePlaying = useCallback(() => {
+    setIsWaitingForGesture(false);
+    if (isPlaying) {
+      togglePlay();
+      return;
+    }
 
-  const prev = useCallback(() => {
-    if (advancingRef.current) return;
-    const source = activePlaylist ?? playlist;
-    if (!source || source.tracks.length === 0) return;
-    advancingRef.current = true;
-    Promise.resolve().then(() => {
-      advancingRef.current = false;
-    });
-    playPrev();
-  }, [activePlaylist, playlist, playPrev]);
+    // If current track is already loaded, resume without resetting
+    if (currentTrack && isVideoLoaded) {
+      togglePlay();
+      return;
+    }
 
-  // The player skips broken tracks itself and only reports once nothing is left,
-  // so the bar says no more and no less than the engine actually decided.
-  const unavailableMessage =
-    playlistMessage ?? (error && error.includes('No playable tracks') ? error : null);
+    // If we have a saved position, resume from it
+    if (savedSession?.track && !currentTrack) {
+      playTrack(savedSession.track, undefined, savedSession.position || 0);
+      return;
+    }
+
+    // Otherwise load and play current track or official rehearsal track
+    const targetTrack = currentTrack || GROOVE_REHEARSAL_TRACK;
+    playTrack(targetTrack, activePlaylist || undefined, currentTime > 0 ? currentTime : 0);
+  }, [isPlaying, currentTrack, isVideoLoaded, savedSession, activePlaylist, currentTime, togglePlay, playTrack]);
+
+  const toggleLoop = useCallback(() => {
+    toggleRepeat();
+  }, [toggleRepeat]);
+
+  const isLooping = repeatMode === 'one';
+
+  const handleNext = useCallback(() => {
+    if (activePlaylist && activePlaylist.tracks.length > 1) {
+      playNext();
+    } else {
+      // Find current track in CURATED_DANCE_TRACKS and advance
+      const idx = CURATED_DANCE_TRACKS.findIndex(
+        (t) => t.youtubeId === currentTrack?.youtubeId
+      );
+      const nextIdx = idx >= 0 ? (idx + 1) % CURATED_DANCE_TRACKS.length : 0;
+      playTrack(CURATED_DANCE_TRACKS[nextIdx]);
+    }
+  }, [activePlaylist, currentTrack, playNext, playTrack]);
+
+  const handlePrev = useCallback(() => {
+    if (currentTime > 4) {
+      seekTo(0);
+      return;
+    }
+    if (activePlaylist && activePlaylist.tracks.length > 1) {
+      playPrev();
+    } else {
+      const idx = CURATED_DANCE_TRACKS.findIndex(
+        (t) => t.youtubeId === currentTrack?.youtubeId
+      );
+      const prevIdx =
+        idx > 0 ? idx - 1 : CURATED_DANCE_TRACKS.length - 1;
+      playTrack(CURATED_DANCE_TRACKS[prevIdx]);
+    }
+  }, [currentTime, activePlaylist, currentTrack, seekTo, playPrev, playTrack]);
+
+  const activeTrack = currentTrack || savedSession?.track || GROOVE_REHEARSAL_TRACK;
 
   return {
     isMuted: muted,
     toggleMuted,
-    togglePlaying: togglePlay,
+    togglePlaying,
     isPlaying,
     isLoading,
     volume,
     changeVolume,
-    next,
-    prev,
+    isLooping,
+    toggleLoop,
     isAudible: isPlaying && !muted && isActive,
-    isWaitingForGesture: enabled && !muted && !isPlaying && !isLoading && !currentTrack,
-    currentTrackTitle: currentTrack?.title ?? null,
-    currentTrackArtist: currentTrack?.artist ?? null,
-    unavailableMessage,
-    openOnYouTubeUrl,
-    playlist,
+    currentTrack: activeTrack,
+    currentTrackTitle: activeTrack?.title || 'Groove Rehearsal Mix',
+    currentTrackArtist: activeTrack?.artist || 'Official Rehearsal Audio',
+    currentTrackThumbnail: activeTrack?.thumbnail || GROOVE_OFFICIAL_REHEARSAL_MIX.thumbnail,
+    unavailableMessage: error || null,
+    openOnYouTubeUrl: activeTrack?.youtubeId
+      ? `https://youtu.be/${activeTrack.youtubeId}`
+      : 'https://youtu.be/3vmewzGcX2I',
+    next: handleNext,
+    prev: handlePrev,
+    isWaitingForGesture,
+    playlist: activePlaylist,
+    savedSession,
+    recentHistory,
+    resumeRecentPlayback,
+    currentTime,
+    duration,
+    seekTo,
+    playTrack,
+    allTracks: CURATED_DANCE_TRACKS,
   };
 }

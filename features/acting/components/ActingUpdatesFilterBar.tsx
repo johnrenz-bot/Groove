@@ -1,0 +1,159 @@
+'use client';
+
+import React from 'react';
+import { Search, X, Languages } from 'lucide-react';
+import { cn } from '@/components/shared/cn';
+
+const ACTING_CATEGORIES = [
+  { id: 'all', label: 'Everything' },
+  { id: 'competition', label: 'Auditions & Castings' },
+  { id: 'workshop', label: 'Masterclasses & Labs' },
+  { id: 'event', label: 'Showcases & Staged Plays' },
+  { id: 'news', label: 'Guild & Industry Standards' },
+] as const;
+
+interface ActingUpdatesFilterBarProps {
+  region: string;
+  category: string;
+  searchQuery: string;
+  language: 'en' | 'tl';
+  onSelectRegion: (reg: string) => void;
+  onSelectCategory: (cat: string) => void;
+  onSearchChange: (q: string) => void;
+  onToggleLanguage: (lang: 'en' | 'tl') => void;
+  onClearFilters: () => void;
+  hasActiveFilters: boolean;
+}
+
+export function ActingUpdatesFilterBar({
+  region,
+  category,
+  searchQuery,
+  language,
+  onSelectRegion,
+  onSelectCategory,
+  onSearchChange,
+  onToggleLanguage,
+  onClearFilters,
+  hasActiveFilters,
+}: ActingUpdatesFilterBarProps) {
+  return (
+    <div className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full max-w-md" role="search">
+          <label htmlFor="acting-update-search" className="sr-only">
+            Search auditions, castings, workshops, and studios
+          </label>
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <input
+            id="acting-update-search"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search auditions, studios, masterclasses..."
+            className="w-full rounded-full border border-border bg-background py-2 pl-10 pr-10 text-xs text-foreground placeholder:text-muted-foreground transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-ring/60"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => onSearchChange('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center rounded-full border border-border bg-muted/20 p-1" role="group" aria-label="Filter by region">
+            <button
+              type="button"
+              onClick={() => onSelectRegion('all')}
+              aria-pressed={region === 'all'}
+              className={cn(
+                'rounded-full px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+                region === 'all'
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectRegion('philippines')}
+              aria-pressed={region === 'philippines'}
+              className={cn(
+                'flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+                region === 'philippines'
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span>🇵🇭 PH</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectRegion('international')}
+              aria-pressed={region === 'international'}
+              className={cn(
+                'flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+                region === 'international'
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span>🌐 Intl</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onToggleLanguage(language === 'en' ? 'tl' : 'en')}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+              language === 'tl'
+                ? 'border-accent bg-accent/15 text-accent-text font-bold'
+                : 'border-border bg-muted/20 text-muted-foreground hover:text-foreground'
+            )}
+            title="Toggle between English and Tagalog summary"
+          >
+            <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{language === 'en' ? 'EN' : 'TL (Filipino)'}</span>
+          </button>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={onClearFilters}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-border-strong hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span>Reset</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-divider pt-3" role="group" aria-label="Filter by category">
+        {ACTING_CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => onSelectCategory(cat.id)}
+            aria-pressed={category === cat.id}
+            className={cn(
+              'rounded-full px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+              category === cat.id
+                ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+                : 'bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground'
+            )}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

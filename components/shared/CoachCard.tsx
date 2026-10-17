@@ -60,7 +60,7 @@ export function CoachCard({
   return (
     <article
       className={cn(
-        'group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border/80 bg-card shadow-md transition-all duration-500 hover:border-accent/60 hover:shadow-xl aspect-[3/4] sm:aspect-[4/5] min-h-[480px] w-full',
+        'group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border/80 bg-card shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-xl aspect-[3/4] sm:aspect-[4/5] min-h-[480px] w-full',
         className
       )}
     >
