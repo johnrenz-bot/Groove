@@ -253,15 +253,20 @@ export default function CoachProfilePage() {
           .eq('coach_id', user.id)
           .order('created_at', { ascending: false });
 
+        /**
+         * No reviews means no rating. The old `: 5.0` handed every new coach a
+         * perfect score they did not earn, and it was the value written onto the
+         * `profiles` row the directory and the public profile card read back.
+         */
         const avgRating = reviews?.length
           ? reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length
-          : 5.0;
+          : null;
 
         const next = {
           ...profile,
-          rating: Number(avgRating.toFixed(1)),
+          rating: avgRating === null ? null : Number(avgRating.toFixed(1)),
           rating_count: reviews?.length || 0,
-        } as FullCoach;
+        } as unknown as FullCoach;
 
         setCoach(next);
         setFeedbacks(reviews || []);

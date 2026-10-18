@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { authorizeCronRequest } from '@/lib/cron/auth';
 // Relative import (no @/ alias): the sync script is also run directly via
 // `node --experimental-strip-types`, which cannot resolve the webpack alias.
 // Four levels up from app/api/cron/dance-logos/ reaches the repo-root scripts/.
@@ -9,31 +10,13 @@ export const maxDuration = 300; // logo sync performs many network fetches (may 
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Verify CRON_SECRET (mirrors /api/cron/dance-agent)
-    const expectedSecret = process.env.CRON_SECRET;
-    const authHeader = request.headers.get('authorization');
-    const queryKey = request.nextUrl.searchParams.get('key');
-    const bearerSecret = authHeader?.replace(/^Bearer\s+/i, '');
-
-    // Allow Vercel Cron header or authorization secret
-    const isVercelCron = request.headers.get('user-agent')?.includes('vercel-cron');
-
-    if (expectedSecret) {
-      const authorized =
-        bearerSecret === expectedSecret ||
-        queryKey === expectedSecret ||
-        (isVercelCron && bearerSecret === expectedSecret);
-
-      if (!authorized) {
-        return NextResponse.json(
-          { error: 'Unauthorized: Invalid CRON_SECRET token.' },
-          { status: 401 }
-        );
-      }
-    } else {
-      console.warn(
-        '[API /api/cron/dance-logos] CRON_SECRET is not configured in server environment. Request executed in development mode.'
-      );
+    // 1. Authorize (mirrors /api/cron/dance-agent). Fails CLOSED in production
+    //    when CRON_SECRET is unset: an anonymous GET would otherwise trigger a
+    //    300-second outbound crawl that writes to the database through the
+    //    service-role client. See lib/cron/auth.ts.
+    const auth = authorizeCronRequest(request, 'API /api/cron/dance-logos');
+    if (!auth.ok) {
+      return NextResponse.json(auth.body, { status: auth.status });
     }
 
     // 2. Run the logo sync. writeFiles=true attempts to persist downloaded logos

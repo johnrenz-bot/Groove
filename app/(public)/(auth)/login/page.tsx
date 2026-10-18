@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { User, Sparkles, ArrowRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { isAdminIdentity } from '@/lib/admin/access';
+import type { UserRole } from '@/lib/types';
 import { AuthLayout } from '@/components/shared/AuthLayout';
 import { ImageCard } from '@/components/shared/ImageCard';
 import { FormField, PasswordInput } from '@/components/ui/FormField';
@@ -55,6 +57,15 @@ function LoginForm() {
   useEffect(() => {
     if (urlError === 'auth_callback_failed') {
       setError('Authentication callback failed or link expired. Please sign in directly.');
+    }
+    // Sent by `lib/supabase/middleware.ts` when a session exists but the account
+    // has no `profiles` row yet. Without this the visitor is bounced off the
+    // login page by the same middleware with no explanation and lands in a
+    // loop they cannot see the cause of.
+    if (urlError === 'account_not_ready') {
+      setError(
+        'Your sign-in worked, but this account has no profile yet, so there is no dashboard to open. Finish creating the account, or contact support if this is unexpected.'
+      );
     }
   }, [urlError]);
 
@@ -144,32 +155,64 @@ function LoginForm() {
         .eq('id', authData.user.id)
         .maybeSingle();
 
-      const userRole = profile?.role || authData.user.user_metadata?.role || 'client';
+      /**
+       * THE ROLE IS THE `profiles` ROW, OR NOTHING.
+       *
+       * This used to fall back to `authData.user.user_metadata.role` and then
+       * to `'client'`. `user_metadata` is written by whoever called
+       * `supabase.auth.signUp` — it is the client's own claim about itself, and
+       * it is not an authorization decision. A forged `role: 'coach'` in signup
+       * metadata therefore landed the account in the coach portal until the
+       * middleware read the real row and bounced it. The `profiles` row is
+       * written by a database trigger from the signup path, so it is the only
+       * place a role can come from.
+       */
+      if (!profile?.role) {
+        setError(
+          'Your credentials are correct, but this account has no profile yet, so there is no dashboard to open. Finish creating the account, or contact support if this is unexpected.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      const userRole = profile.role as UserRole;
 
       await supabase.from('profiles').update({ status: 'online' }).eq('id', authData.user.id);
 
-      if (userRole === 'admin') {
+      if (isAdminIdentity({ role: userRole, email: profile.email })) {
         router.push('/admin/dashboard');
         router.refresh();
         return;
       }
 
+      // A `role: 'admin'` account that is not the pinned admin address has no
+      // console to enter. Send it to the member portal rather than to a URL
+      // the middleware will bounce straight back.
+      const portalRole = userRole === 'admin' ? 'client' : userRole;
+
       // Honour a safe same-origin redirect target that matches the role.
-      if (redirectTo && redirectTo.startsWith('/')) {
-        const isClientRoute = redirectTo.startsWith('/client');
-        const isCoachRoute = redirectTo.startsWith('/coach');
-        if ((userRole === 'coach' && !isClientRoute) || (userRole === 'client' && !isCoachRoute)) {
+      if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
+        const isClientRoute = redirectTo === '/client' || redirectTo.startsWith('/client/');
+        const isCoachRoute = redirectTo === '/coach' || redirectTo.startsWith('/coach/');
+        if ((portalRole === 'coach' && !isClientRoute) || (portalRole === 'client' && !isCoachRoute)) {
+          // Mark the welcome modal even on this branch. It used to `return`
+          // first, so a member who arrived through a deep link — the common
+          // case, because the middleware sets `redirectTo` whenever it bounces
+          // a guest off a protected route — never saw it at all.
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('groove_welcome_pending', 'true');
+          }
           router.push(redirectTo);
           router.refresh();
           return;
         }
       }
 
-      if (typeof window !== 'undefined' && (userRole === 'client' || userRole === 'coach')) {
+      if (typeof window !== 'undefined') {
         sessionStorage.setItem('groove_welcome_pending', 'true');
       }
 
-      router.push(userRole === 'coach' ? '/coach/home' : '/client/home');
+      router.push(portalRole === 'coach' ? '/coach/home' : '/client/home');
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.');

@@ -203,13 +203,19 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
           .eq('coach_id', targetData.id)
           .order('created_at', { ascending: false });
 
+        /**
+         * `?? 5.0` gave a coach with no reviews a perfect 5.0 — a rating nobody
+         * gave and no rating is better than. With no reviews the stored value is
+         * kept and `rating_count` reads 0, which is what the cards already render
+         * as "no reviews yet".
+         */
         const avgRating = reviews?.length
           ? reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length
-          : 5.0;
+          : null;
 
         setTargetUser({
           ...((targetData as unknown) as FullCoach),
-          rating: Number(avgRating.toFixed(1)),
+          rating: avgRating === null ? undefined : Number(avgRating.toFixed(1)),
           rating_count: reviews?.length || 0,
         });
         setFeedbacks(reviews || []);
@@ -792,7 +798,9 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                   <div className="flex items-center justify-between rounded-xl border border-accent-border bg-accent-soft px-3 py-3">
                     <span className="text-muted-foreground">Rate:</span>
                     <span className="text-sm font-bold text-accent-text">
-                      ₱{cp?.service_fee ?? 500} / session
+                      {/* Was `?? 500`, which printed a rate the coach never
+                          published. No published fee reads as "on request". */}
+                      {cp?.service_fee != null ? `₱${cp.service_fee} / session` : 'On request'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-xl border border-divider bg-muted/40 px-3 py-3">

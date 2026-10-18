@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useSession } from '@/components/header/SessionProvider';
 import { createClient } from '@/lib/supabase/client';
 
 interface WelcomeModalProps {
@@ -29,6 +30,31 @@ export function WelcomeModal({
   const [dontShowToday, setDontShowToday] = useState(false);
   const [displayName, setDisplayName] = useState(propUsername || '');
 
+  /**
+   * THE SESSION DECIDES WHETHER THIS MODAL CAN OPEN AT ALL.
+   *
+   * It used to open on a pure date check — `savedDate !== today` — with no idea
+   * who was looking at it. `app/community/layout.tsx` renders `<ClientLayout>`,
+   * which passes `showWelcomeModal`, so a completely signed-out visitor on
+   * `/community/performing-arts/dance` was greeted 300 ms later with "Welcome
+   * back, Artist" by a name nobody had. A welcome modal for someone who has
+   * never signed in is the same "looks logged in when you are not" bug as a
+   * signed-in bar on the landing page.
+   */
+  const { status, profile } = useSession();
+
+  /**
+ * Fallback lookup for the name, used only when `<SessionProvider>` has not
+ * resolved it yet.
+ *
+ * `profile?.firstname` is deliberately NOT a dependency: `SessionProvider` may
+ * still be resolving when this mounts, and re-running the effect for it would
+ * re-fetch the row it is about to deliver anyway. `resolvedName` below reads the
+ * session's name directly, so the session is always the preferred source.
+ *
+ * `.single()` became `.maybeSingle()` so a half-created profile is a miss rather
+ * than a thrown error.
+ */
   const fetchUserName = useCallback(async () => {
     if (displayName) return;
     try {
@@ -40,9 +66,9 @@ export function WelcomeModal({
       if (authUser) {
         const { data } = await supabase
           .from('profiles')
-          .select('firstname, role')
+          .select('firstname')
           .eq('id', authUser.id)
-          .single();
+          .maybeSingle();
         if (data?.firstname) setDisplayName(data.firstname);
       }
     } catch {
@@ -60,6 +86,12 @@ export function WelcomeModal({
       return;
     }
 
+    // Still resolving — deciding now would be a guess.
+    if (status !== 'authenticated') {
+      setInternalOpen(false);
+      return;
+    }
+
     if (typeof window !== 'undefined') {
       const isLoginPending = sessionStorage.getItem('groove_welcome_pending') === 'true';
       const today = new Date().toISOString().split('T')[0];
@@ -70,7 +102,18 @@ export function WelcomeModal({
         return () => clearTimeout(timer);
       }
     }
-  }, [controlledIsOpen]);
+  }, [controlledIsOpen, status]);
+
+  /**
+   * The role the copy is written for.
+   *
+   * The prop is whatever the shell passed (`role="client"` on `/community/*`,
+   * which every role reaches). The session is the truth about who is reading,
+   * so a coach visiting a community page was being told "Find your next coach,
+   * book a rehearsal" — the member's pitch — under the coach's own name.
+   */
+  const effectiveRole: 'client' | 'coach' | 'admin' =
+    profile?.role === 'coach' || profile?.role === 'admin' ? profile.role : role;
 
   const handleClose = () => {
     if (typeof window !== 'undefined') {
@@ -143,13 +186,29 @@ export function WelcomeModal({
 
   if (!isVisible) return null;
 
-  const resolvedName = displayName || propUsername || (role === 'coach' ? 'Coach' : 'Artist');
+  /**
+ * The session's name wins over the fetched one — it is the same row, already
+ * resolved, and it arrives first in practice.
+ */
+  const resolvedName =
+    profile?.firstname ||
+    displayName ||
+    propUsername ||
+    (effectiveRole === 'coach' ? 'Coach' : 'Artist');
 
+  /**
+   * The member ("Find your next coach…") copy is for clients; a coach gets the
+   * teaching line and the teaching quote. `effectiveRole` comes from the
+   * session, not from the shell's prop, so a coach who reaches a
+   * client-rendered shell is no longer pitched the member experience.
+   */
   const defaultSubtext =
-    'Your stage is ready. Find your next coach, book a rehearsal and keep your Groove going.';
+    effectiveRole === 'coach'
+      ? 'Your studio is open. Review your schedule, meet new talent and keep your Groove going.'
+      : 'Your stage is ready. Find your next coach, book a rehearsal and keep your Groove going.';
 
   const defaultQuote =
-    role === 'coach'
+    effectiveRole === 'coach'
       ? 'To teach is to touch a life forever. Inspire greatness today.'
       : 'Every great performance begins with the courage to take the first step.';
 

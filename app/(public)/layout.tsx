@@ -3,22 +3,31 @@
 import React from 'react';
 
 /**
- * Public layout for landing page and auth routes (login, register, forgot/reset password).
+ * Public layout for the landing page and auth routes (login, register,
+ * forgot/reset password).
  *
- * This layout forces the dark theme for all public pages by applying
- * `data-public-theme="dark"` to a wrapper div. The attribute selector
- * `[data-public-theme="dark"]` in globals.css has higher specificity (0,2,0)
- * than `.light` on <html> (0,1,0), so it wins even when the dashboard has
- * set the light theme.
+ * `data-public-theme="dark"` IS INERT.
  *
- * It does NOT use the ThemeProvider, does NOT read/write localStorage or
- * cookies for theme, and does NOT show a theme toggle. The visitor's saved
- * Light/Dark/System choice is untouched and the dashboards keep switching
- * normally.
+ * The docblock here used to claim the attribute "forces the dark theme" via a
+ * `[data-public-theme="dark"]` selector in `globals.css` with specificity
+ * `(0,2,0)` that beats `.light` on `<html>`. There is no such selector —
+ * `data-public-theme` does not appear in `globals.css` at all. Every public page
+ * actually follows the visitor's saved Light/Dark/System choice like every other
+ * route, because `<RouteThemeEnforcer />` and `ThemeProvider` (both in the root
+ * layout) own the palette. The attribute is left in place because it is still
+ * used as a marker by the landing page's own `.groove-landing` rules, but it
+ * forces nothing and this comment no longer pretends otherwise.
+ *
+ * The guest theme toggle that `PublicLayout`'s header renders is real, and it
+ * works, because `<ThemeProvider>` lives in the root layout.
  *
  * URLs are unchanged: `(public)` is a route group and contributes no path
- * segment, so /, /login, /register/*, /forgot-password and /reset-password
- * resolve exactly as before.
+ * segment, so /, /about, /faq, /login, /register/*, /forgot-password,
+ * /reset-password, /terms, /privacy and /performing-arts-philippines resolve
+ * exactly as before.
+ *
+ * This layout no longer mounts a `<ThemeProvider>` — see `components/shared/
+ * PublicLayout.tsx` for why there is only one, in the root layout.
  */
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (

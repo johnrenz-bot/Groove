@@ -2,6 +2,9 @@
 import type { DanceUpdateInput } from '../../../lib/dance/schema.ts';
 import { DEFAULT_LIMIT, MAX_LIMIT, UPCOMING_CATEGORIES } from '../../../lib/dance/constants.ts';
 import { resolveVerifiedItemImage } from '../../../lib/dance/imageVerification.ts';
+// Relative (no @/ alias): this service is also imported by scripts run through
+// `node --experimental-strip-types`, which cannot resolve the webpack alias.
+import { buildOrContains } from '../../../lib/postgrest.ts';
 import { VERIFIED_DANCE_UPDATES } from '../data/danceUpdates.ts';
 
 export interface DanceUpdateRecord extends DanceUpdateInput {
@@ -111,7 +114,11 @@ export async function getPublishedDanceUpdates(params: {
 
     if (params.q && params.q.trim()) {
       const term = params.q.trim();
-      query = query.or(`title.ilike.%${term}%,summary.ilike.%${term}%,organization.ilike.%${term}%`);
+      // `.or()` takes raw PostgREST filter grammar, so a `q` containing a comma
+      // or a closing paren used to terminate one filter and open another. This
+      // query runs on the service-role client, which bypasses RLS, so the
+      // escaping has to be here rather than in a policy. See lib/postgrest.ts.
+      query = query.or(buildOrContains(['title', 'summary', 'organization'], term));
     }
 
     query = query.range(offset, offset + limit - 1);

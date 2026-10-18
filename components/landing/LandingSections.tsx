@@ -8,10 +8,18 @@ import { CommunityTestimonials } from '@/components/landing/CommunityTestimonial
 import { FaqTeaserSection } from '@/components/faq/FaqTeaserSection';
 import { Footer } from '@/components/shared/Footer';
 import { PublicLayout } from '@/components/shared/PublicLayout';
-import { getLandingStats } from '@/components/landing/landingStats';
+import { getLandingStats } from '@/components/landing/landingStats.server';
 
 /**
- * `/` — the public landing page.
+ * THE PUBLIC LANDING PAGE — the guest-facing half of `/`.
+ *
+ * This used to be `app/page.tsx`, which was a SECOND `page.tsx` resolving to
+ * `/` alongside `app/(public)/page.tsx`. Turbopack silently preferred the root
+ * one, so the `(public)` group's authentication-aware page never ran: `/` was
+ * rendered for everyone, authenticated members included, and the header on it
+ * drew the signed-in account cluster on a marketing page. There is now exactly
+ * one route for `/` — `app/(public)/page.tsx` — and it decides *whether* to
+ * render this; nothing else may.
  *
  * `data-public-theme="dark"` is kept for backwards compatibility with anything
  * that still queries it, but it carries no styles of its own: the page is drawn
@@ -22,12 +30,15 @@ import { getLandingStats } from '@/components/landing/landingStats';
  * renders exactly one copy for the whole app, and a second one on `/` was
  * doubling the corner artwork over the hero.
  *
- * Section order is: hero, disciplines, coaches, how it works, studios, FAQ,
- * closing CTA, footer. The anchors (`#disciplines`, `#coaches`, `#how`,
- * `#studios`) and every outgoing link are unchanged: the header, the footer and
- * the dashboard all point at them.
+ * Section order is: hero, disciplines, audience tabs, how it works, studios,
+ * testimonials, FAQ, closing CTA, footer. The anchors (`#disciplines`,
+ * `#coaches`, `#how`, `#studios`) and every outgoing link are unchanged: the
+ * header, the footer and the dashboard all point at them.
+ *
+ * Server component: it awaits `getLandingStats()`, which is why the whole route
+ * is dynamic.
  */
-export default async function LandingPage() {
+export default async function LandingSections() {
   const stats = await getLandingStats();
 
   return (

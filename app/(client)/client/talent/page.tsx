@@ -31,6 +31,12 @@ const DISCIPLINE_PRESETS = [
   { id: 'Theater', label: 'Musical Theater' },
 ] as const;
 
+/**
+ * The top of the budget slider. One constant, used for the initial value, for
+ * "is this filtered?" and for Reset.
+ */
+const DEFAULT_MAX_PRICE = 3000;
+
 export default function ClientTalentPage() {
   const [activeTab, setActiveTab] = useState<'coaches' | 'community'>('coaches');
   const [coaches, setCoaches] = useState<FullCoach[]>([]);
@@ -43,7 +49,14 @@ export default function ClientTalentPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTalent, setSelectedTalent] = useState('All');
   const [selectedCity, setSelectedCity] = useState('All');
-  const [maxPrice, setMaxPrice] = useState<number>(3000);
+  /**
+   * `DEFAULT_MAX_PRICE` is the unfiltered state, and both the initial value and
+   * `isFiltered` below are derived from it. They used to be two different
+   * literals — the slider started at 3000 while `isFiltered` compared against
+   * 5000 — so the page reported itself as filtered on first paint and the
+   * "Reset filters" control was permanently on screen until the user pressed it.
+   */
+  const [maxPrice, setMaxPrice] = useState<number>(DEFAULT_MAX_PRICE);
 
   // Modals
   const [selectedCoachForBooking, setSelectedCoachForBooking] = useState<FullCoach | null>(null);
@@ -152,20 +165,31 @@ export default function ClientTalentPage() {
     const matchesCity =
       selectedCity === 'All' || coachCity.toLowerCase().includes(selectedCity.toLowerCase());
 
-    const fee = coach.coach_profile?.service_fee ?? 500;
-    const matchesPrice = fee <= maxPrice;
+    /**
+     * A coach with no published `service_fee` used to be priced at a hard-coded
+     * ₱500 by `?? 500`, so the budget slider silently filtered real coaches out
+     * of the directory on the strength of a number nobody entered. An unstated
+     * rate is not an unaffordable one: coaches without a published fee always
+     * pass the budget filter, and the card shows "—" instead of an invented
+     * figure.
+     */
+    const fee = coach.coach_profile?.service_fee ?? null;
+    const matchesPrice = fee === null || fee <= maxPrice;
 
     return matchesSearch && matchesTalent && matchesCity && matchesPrice;
   });
 
   const isFiltered =
-    searchQuery.trim() !== '' || selectedTalent !== 'All' || selectedCity !== 'All' || maxPrice < 5000;
+    searchQuery.trim() !== '' ||
+    selectedTalent !== 'All' ||
+    selectedCity !== 'All' ||
+    maxPrice < DEFAULT_MAX_PRICE;
 
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedTalent('All');
     setSelectedCity('All');
-    setMaxPrice(5000);
+    setMaxPrice(DEFAULT_MAX_PRICE);
   };
 
   return (

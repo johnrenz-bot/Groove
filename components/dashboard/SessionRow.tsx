@@ -25,6 +25,27 @@ export function SessionRow({
     Performance: 'border-danger/30 bg-danger/10 text-danger',
   }[tag];
 
+  /**
+   * THE STATUS PILL USED TO BE GREEN NO MATTER WHAT.
+   *
+   * `status` is typed `'Confirmed' | 'Pending' | 'Cancelled'` and both
+   * dashboards pass all three through, but the classes were hard-coded to
+   * `bg-success-soft … text-success` — so a CANCELLED session was drawn with a
+   * green tick and green text. Reading a cancellation as a confirmation is not a
+   * cosmetic problem. The colour now comes from the value.
+   */
+  const statusStyle = {
+    Confirmed: 'bg-success-soft text-success',
+    Pending: 'bg-warning-soft text-warning',
+    Cancelled: 'bg-danger-soft text-danger line-through',
+  }[status];
+
+  const dotStyle = {
+    Confirmed: 'bg-success',
+    Pending: 'bg-warning',
+    Cancelled: 'bg-danger',
+  }[status];
+
   return (
     <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-3.5 transition hover:border-accent-border hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]">
       {/* Date block */}
@@ -50,8 +71,10 @@ export function SessionRow({
       </div>
 
       {/* Status */}
-      <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success">
-        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+      <span
+        className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusStyle}`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${dotStyle}`} aria-hidden="true" />
         {status}
       </span>
     </div>

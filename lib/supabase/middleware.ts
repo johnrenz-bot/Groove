@@ -24,8 +24,6 @@ function classify(path: string): RouteKind {
   if (path.startsWith('/client')) return 'client';
   if (
     path.startsWith('/messages') ||
-    path.startsWith('/appointments') ||
-    path.startsWith('/calendar') ||
     path.startsWith('/contracts') ||
     path.startsWith('/userprofile')
   ) {
@@ -93,8 +91,53 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle();
 
-    const role = (profile?.role as UserRole | undefined) ?? 'client';
+    /**
+     * A SESSION WITH NO PROFILES ROW HAS NO PORTAL.
+     *
+     * This used to read `profile?.role ?? 'client'`, which quietly handed the
+     * whole `/client/**` tree — appointments, calendar, bookings, messages —
+     * to any account whose `profiles` row was missing. That row is created by
+     * the `handle_new_user` trigger, so "missing" means the signup transaction
+     * did not finish; it does not mean "client". Defaulting it is the exact
+     * hardcoded-role-as-hiding-place the brief warns about.
+     *
+     * `account_not_ready` is what breaks what would otherwise be a redirect
+     * loop: `/login` is an `auth` route and an authenticated visitor is
+     * normally bounced off it, so this one case is allowed to land there with a
+     * reason the login page renders instead of being thrown straight back.
+     */
+    const role = profile?.role as UserRole | undefined;
+
+    if (!role) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '?error=account_not_ready';
+      return NextResponse.redirect(url);
+    }
+
     const isAdmin = isAdminIdentity({ role, email: profile?.email });
+
+    /**
+     * `/` IS THE FRONT DOOR, AND A MEMBER'S FRONT DOOR IS THEIR PORTAL.
+     *
+     * `/` is classified `public` so it falls through for guests — the marketing
+     * page. For a signed-in member it is a redirect to their own dashboard.
+     *
+     * Only the root path. `/about`, `/faq`, `/users`, `/community/*`,
+     * `/performing-arts-philippines`, `/terms` and `/privacy` stay public for
+     * members too, and render the signed-in header from `SessionProvider` —
+     * bouncing a member away from every public page would be the same class of
+     * bug as refusing them the ones they are entitled to.
+     *
+     * This is the edge copy of the same rule `app/(public)/page.tsx` enforces
+     * during SSR; the page remains the authority, this one saves a render.
+     */
+    if (kind === 'public' && path === '/') {
+      const url = request.nextUrl.clone();
+      url.pathname = homeFor(role);
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
 
     // If on an auth page, redirect to the role home
     if (kind === 'auth') {

@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { DashboardLayout } from '@/components/shared/DashboardLayout';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 /**
  * Coach portal shell.
@@ -13,15 +12,14 @@ import { ThemeProvider } from '@/components/theme/ThemeProvider';
  * the coach menu, which is what let the coach bar drift away from the client
  * bar's geometry.
  *
- * ThemeProvider is scoped to dashboard layouts only (client, coach, admin).
+ * It also no longer mounts a `<ThemeProvider>`: that lives in the root layout,
+ * once, beside `<SessionProvider>`.
  */
 export function CoachLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider>
-      <DashboardLayout role="coach" homeHref="/coach/home" showWelcomeModal>
-        {children}
-      </DashboardLayout>
-    </ThemeProvider>
+    <DashboardLayout role="coach" homeHref="/coach/home" showWelcomeModal>
+      {children}
+    </DashboardLayout>
   );
 }
 

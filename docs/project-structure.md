@@ -16,7 +16,7 @@ GrooveSystem/
 ├── supabase/                       # Database schema, migrations, and seeds
 ├── docs/                           # Project documentation (you are here)
 │
-├── middleware.ts                   # Edge middleware — session refresh + RBAC
+├── proxy.ts                       # Request boundary (was middleware.ts in Next 16) — session refresh + RBAC
 ├── next.config.ts                  # Next.js configuration (image domains)
 ├── tsconfig.json                   # TypeScript config with @/* path alias
 ├── eslint.config.mjs               # ESLint flat config (Next.js + TS rules)
@@ -90,7 +90,11 @@ app/
 │   ├── settings/page.tsx           # /admin/settings — Platform configuration
 │   ├── control/page.tsx            # /admin/control — Advanced control panel
 │   ├── theme/page.tsx              # /admin/theme — Theme accent configuration
-│   └── verify-passcode/page.tsx    # /admin/verify-passcode — Admin 2FA passcode
+│   └── verify-passcode/            # /admin/verify-passcode — Admin second factor
+│       ├── page.tsx                # Renders the form only when ADMIN_PASSCODE is set
+│       ├── actions.ts              # 'use server' — the actual passcode comparison
+│       ├── config.ts               # Reads ADMIN_PASSCODE (not a 'use server' file)
+│       └── PasscodeForm.tsx        # Presentation only
 │
 ├── api/                            # Server Route Handlers
 │   ├── ai/
@@ -120,11 +124,14 @@ app/
 │   └── [id]/page.tsx               # /userprofile/:id — Public profile viewer
 │
 ├── terms/page.tsx                  # /terms — Terms of Service
-├── privacy/page.tsx                # /privacy — Privacy Policy
-│
-├── __verify-coach/page.tsx         # Internal verification test page
-└── __verify-header/page.tsx        # Internal header verification test page
+└── privacy/page.tsx                # /privacy — Privacy Policy
 ```
+
+> The temporary `app/__verify-coach/` and `app/__verify-header/` harnesses were
+> removed. They were reachable without a session (`lib/supabase/middleware.ts`
+> classifies `__verify-*` as public) and presented invented profile data — a
+> fabricated coach named "Mikaela Dela Cruz" with a 4.8 rating — as if it were
+> real.
 
 ---
 

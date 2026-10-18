@@ -40,8 +40,25 @@ export interface SessionValue {
   status: SessionStatus;
   /** The `profiles` row, which is what the app treats as the user's identity. */
   profile: Profile | null;
-  /** `profiles.role`. Authoritative — `user_metadata.role` is client-supplied. */
-  role: 'coach' | 'client' | 'guest';
+  /**
+   * `profiles.role`, or `'none'` when the session resolved but the account has
+   * no `profiles` row yet.
+   *
+   * `'admin'` is a real value here and was not one until now: the ternary read
+   * `profile?.role === 'coach' ? 'coach' : 'client'`, so an administrator was
+   * reported as a client everywhere the header cares about it. On `/`, `/about`
+   * or any other public page that meant an admin saw the word "Client Account"
+   * over their own name, a client-only nav, and "Profile / Edit Profile /
+   * Account Settings" pointing at `/client/*` URLs the middleware then bounced
+   * straight back to `/admin/dashboard`. The console itself was unaffected —
+   * `app/admin/layout.tsx` re-checks the identity server-side — which is why
+   * this went unnoticed.
+   *
+   * `'none'` covers the half-created account: signed in, but no portal. The
+   * header renders the public menu for it rather than inventing a client one
+   * full of destinations that will 404.
+   */
+  role: 'coach' | 'client' | 'admin' | 'none' | 'guest';
   /** Force a re-read, e.g. after a profile update. */
   refresh: () => Promise<void>;
 }
@@ -147,15 +164,23 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     () => ({
       status,
       profile,
-      // A signed-in user whose role is neither coach nor client is an admin.
-      // Admins have no member portal, so the header treats them as signed in
-      // but without a portal menu of their own — the admin console keeps its own
-      // header and never renders this one.
+      /**
+       * `profiles.role` verbatim.
+       *
+       * This used to be `profile?.role === 'coach' ? 'coach' : 'client'`, which
+       * collapsed `admin` into `client` and an absent row into `client` as
+       * well. Both are wrong in the same way: the header then renders a
+       * destination set the signed-in account cannot actually open. Only the
+       * middleware and the server layouts may decide what a role can reach —
+       * the header's job is to show what is true, not to smooth it over.
+       */
       role:
         status === 'authenticated'
-          ? profile?.role === 'coach'
-            ? 'coach'
-            : 'client'
+          ? profile?.role === 'coach' ||
+            profile?.role === 'admin' ||
+            profile?.role === 'client'
+            ? profile.role
+            : 'none'
           : 'guest',
       refresh: resolve,
     }),

@@ -36,6 +36,7 @@ const en: DictNode = {
     search: 'Search',
     searchLabel: 'Search pages and people',
     openNav: 'Open navigation',
+    openAccountMenu: 'Open account menu',
     signIn: 'Sign In',
     getStarted: 'Get started',
     accountOf: 'Account menu for {name}',
@@ -66,6 +67,14 @@ const en: DictNode = {
     directory: 'Directory',
     coaches: 'Coaches',
     howItWorks: 'How it works',
+    /* The admin console's four top-level entries. They were looked up
+       dynamically by `section.id` in `NavDropdown` / `MobileDrawer`, so with
+       no keys here the whole admin bar rendered in English even with Tagalog
+       selected. Keys are the stable ids from `navConfig.ts`. */
+    console: 'Overview',
+    adminPeople: 'People',
+    adminOperations: 'Operations',
+    adminPlatform: 'Platform',
   },
   drawer: {
     mainNav: 'Main',
@@ -99,6 +108,11 @@ const en: DictNode = {
     statRegionSub: 'Region III',
     statAccount: 'Account Status',
     statAccountValue: 'Verified Active',
+    /* The Account Status card used to render `statAccountValue` for everyone,
+       verified or not. These two are what it actually says now. */
+    statAccountVerified: 'Verified Active',
+    statAccountPending: 'Pending Review',
+    statAccountNoId: 'No ID yet',
     statAppointments: 'Appointments',
     statAppointmentsSub: 'View upcoming requests',
     statStudents: 'Students in SJDM',
@@ -167,6 +181,7 @@ const tl: DictNode = {
     search: 'Maghanap',
     searchLabel: 'Maghanap ng mga pahina at tao',
     openNav: 'Buksan ang nabigasyon',
+    openAccountMenu: 'Buksan ang account menu',
     signIn: 'Mag-sign In',
     getStarted: 'Magsimula',
     accountOf: 'Account menu para kay {name}',
@@ -197,6 +212,11 @@ const tl: DictNode = {
     directory: 'Direktoryo',
     coaches: 'Mga Coach',
     howItWorks: 'Paano ito gumagana',
+    /* Mirrors the `en` admin section keys — see the note there. */
+    console: 'Pangkalahatang-ideya',
+    adminPeople: 'Mga Tao',
+    adminOperations: 'Mga Operasyon',
+    adminPlatform: 'Platorma',
   },
   drawer: {
     mainNav: 'Pangunahin',
@@ -231,6 +251,9 @@ const tl: DictNode = {
     statRegionSub: 'Region III',
     statAccount: 'Status ng Account',
     statAccountValue: 'Verified Active',
+    statAccountVerified: 'Aktibong Na-verify',
+    statAccountPending: 'Naghihintay ng Pagsusuri',
+    statAccountNoId: 'Wala pang ID',
     statAppointments: 'Mga Appointment',
     statAppointmentsSub: 'Tingnan ang mga paparating na kahilingan',
     statStudents: 'Mga Estudyante sa SJDM',

@@ -51,7 +51,13 @@ export function CoachCard({
   const ratingCount = coach.rating_count ?? 0;
   const location = coach.city_name || coach.address_summary || 'San Jose del Monte, Bulacan';
   const category = cp?.talents || 'Performing Arts';
-  const fee = cp?.service_fee ?? 500;
+  /**
+   * `?? 500` invented a published rate for every coach who has not set one, and
+   * the card then quoted it as if the coach had. A coach with no stated fee
+   * shows "Rate on request" instead — which is what the absence means, and what
+   * the booking flow below already does.
+   */
+  const fee = cp?.service_fee ?? null;
   const duration = cp?.duration || '1 hr session';
   const bio = coach.bio || 'Dedicated performing arts instructor guiding students in artistic excellence and technique.';
   const genres = parseGenres(cp?.genres);
@@ -128,8 +134,14 @@ export function CoachCard({
         <div className="space-y-1.5">
           {/* Fee Pill */}
           <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-black/70 px-3 py-1 text-xs font-bold tabular-nums text-accent-text backdrop-blur-md shadow-sm">
-            ₱{fee.toLocaleString()}
-            <span className="text-[10px] font-normal text-white/70">/ {duration}</span>
+            {fee === null ? (
+              'Rate on request'
+            ) : (
+              <>
+                ₱{fee.toLocaleString()}
+                <span className="text-[10px] font-normal text-white/70">/ {duration}</span>
+              </>
+            )}
           </div>
 
           {/* Coach Name */}

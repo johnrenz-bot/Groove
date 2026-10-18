@@ -14,8 +14,27 @@ import type { UserRole } from '@/lib/types';
  *
  * Every caller — middleware, the admin layout guard, RLS migration, the admin
  * client helper — reads this module rather than re-typing either value.
+ *
+ * WHY THIS IS AN ENV VAR AND NOT A LITERAL
+ *
+ *   It used to be the literal `'admin@gmail.com'`, while `.env.local` configured
+ *   `ADMIN_EMAIL=admin@groove.com`. `isAdminIdentity` therefore answered `false`
+ *   for the real administrator: `/admin` bounced to `/client/home`, and
+ *   `app/admin/layout.tsx` redirected every console URL away. Nobody could log
+ *   in to the admin area at all, and the cause was invisible — the symptom is
+ *   "my account is treated like a normal user", not "a constant is stale".
+ *
+ *   The same address is mirrored in `supabase/admin_hardening.sql` (`is_admin()`
+ *   and `guard_role_assignment`), so changing it here ALSO requires a migration.
+ *   That duplication is unavoidable — SQL cannot read `process.env` — and the
+ *   comment below is the reminder. `.env.example` documents the variable.
  */
-export const ADMIN_EMAIL = 'admin@gmail.com';
+const CONFIGURED_ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim();
+
+export const ADMIN_EMAIL =
+  CONFIGURED_ADMIN_EMAIL && CONFIGURED_ADMIN_EMAIL.length > 0
+    ? CONFIGURED_ADMIN_EMAIL.toLowerCase()
+    : 'admin@gmail.com';
 
 /** Minimal shape needed to make an authorization decision. */
 export interface AdminIdentity {

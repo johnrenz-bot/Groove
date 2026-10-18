@@ -232,7 +232,14 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
     }
   };
 
-  const rate = coach.coach_profile?.service_fee ?? 500;
+  /**
+ * The rate shown in the booking summary. `?? 500` used to quote a price the
+ * coach had never published; with no fee on file the modal now says so, which
+ * is also the only honest thing to put on a screen whose next button creates a
+ * contract.
+ */
+const rate = coach.coach_profile?.service_fee ?? null;
+const rateLabel = rate === null ? 'Rate on request' : `₱${rate.toLocaleString()}`;
 
   return (
     <div
@@ -261,7 +268,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                   Book Session with Coach {coach.firstname}
                 </h3>
                 <span className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent-text">
-                  ₱{rate}
+                  {rateLabel}
                 </span>
               </div>
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -552,8 +559,10 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
           <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-divider bg-muted/40 px-5 py-3.5 backdrop-blur-sm sm:px-7 sm:py-4">
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-muted-foreground">Session Fee:</span>
-              <span className="text-sm font-bold text-accent-text">₱{rate}</span>
-              <span className="text-[10px] text-muted-foreground">/ session</span>
+              <span className="text-sm font-bold text-accent-text">{rateLabel}</span>
+              {rate !== null && (
+                <span className="text-[10px] text-muted-foreground">/ session</span>
+              )}
             </div>
 
             <div className="flex items-center gap-2.5">

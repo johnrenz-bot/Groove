@@ -3,6 +3,7 @@ import { Inter, Source_Serif_4, Mr_De_Haviland } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 import { SessionProvider } from '@/components/header/SessionProvider';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { PagePatterns } from '@/components/layout/PagePatterns';
 import { PlatformThemeSync } from '@/components/theme/PlatformThemeSync';
 import { RouteThemeEnforcer } from '@/components/theme/RouteThemeEnforcer';
@@ -158,30 +159,42 @@ export default function RootLayout({
               rendered by a different layout. One provider, one answer, for the
               dashboards and the public pages alike. */}
           <SessionProvider>
-            <PlatformThemeSync />
-            <RouteThemeEnforcer />
-            <AppLoadingSplash />
-            {/* One presence subscription for the whole app, so /messages, coach
-                cards and the header all read the same live value. */}
-            <PresenceBridge />
-            {/* One click-sound listener for the whole app, mounted beside the
-                presence bridge for the same reason: every shell renders a
-                different subset of controls, so a per-shell or per-component
-                listener would leave some routes silent and some clicks doubled.
-                Renders nothing. */}
-            <ClickSoundBridge />
-            {/* The one shared four-corner decoration for Landing, Client, Coach
-                and Admin: fixed at z-0, behind everything. The page background
-                colour lives ONLY on <body> (see globals.css), every full-page
-                wrapper below is transparent, and all page content sits in the
-                `relative z-10` layer after this — see components/layout/PagePatterns.tsx. */}
-            <SmoothScrollProvider>
-              <PagePatterns />
-              <PageTransition>
-                <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
-              </PageTransition>
-              <BackToTopButton />
-            </SmoothScrollProvider>
+            {/* ONE theme provider for the whole app, for the same reason.
+                It used to be mounted by each dashboard shell (client, coach,
+                admin) and by PublicLayout — and by NOTHING on `/users`,
+                `/messages`, `/userprofile/[id]` or `/contracts/[id]`, which
+                mount <SiteHeader /> directly. On those four routes
+                `useTheme()` returned the context default, whose setters are
+                all no-ops, so the guest theme toggle in the bar and the
+                Appearance control in the account menu did nothing at all:
+                visible, clickable, inert. One provider here fixes that and
+                removes three duplicate instances. */}
+            <ThemeProvider>
+              <PlatformThemeSync />
+              <RouteThemeEnforcer />
+              <AppLoadingSplash />
+              {/* One presence subscription for the whole app, so /messages, coach
+                  cards and the header all read the same live value. */}
+              <PresenceBridge />
+              {/* One click-sound listener for the whole app, mounted beside the
+                  presence bridge for the same reason: every shell renders a
+                  different subset of controls, so a per-shell or per-component
+                  listener would leave some routes silent and some clicks doubled.
+                  Renders nothing. */}
+              <ClickSoundBridge />
+              {/* The one shared four-corner decoration for Landing, Client, Coach
+                  and Admin: fixed at z-0, behind everything. The page background
+                  colour lives ONLY on <body> (see globals.css), every full-page
+                  wrapper below is transparent, and all page content sits in the
+                  `relative z-10` layer after this — see components/layout/PagePatterns.tsx. */}
+              <SmoothScrollProvider>
+                <PagePatterns />
+                <PageTransition>
+                  <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+                </PageTransition>
+                <BackToTopButton />
+              </SmoothScrollProvider>
+            </ThemeProvider>
           </SessionProvider>
         </LanguageProvider>
       </body>

@@ -136,10 +136,16 @@ function getServerModeSnapshot(): ThemeMode {
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
 /**
- * Applies a Global Theme directly to the DOM and persists to localStorage.
+ * Applies a Global Theme directly to the DOM.
+ *
+ * `persist` defaults to true and is what every USER ACTION wants: an explicit
+ * choice has to survive a reload. It is turned off by `<RouteThemeEnforcer />`,
+ * which re-applies the resolved theme on every navigation and must not turn a
+ * read into a write.
  */
-export function applyGlobalTheme(theme: GlobalThemeId) {
+export function applyGlobalTheme(theme: GlobalThemeId, options: { persist?: boolean } = {}) {
   if (typeof document === 'undefined') return;
+  const persist = options.persist !== false;
 
   const root = document.documentElement;
   const meta = GLOBAL_THEMES.find((t) => t.id === theme);
@@ -152,12 +158,15 @@ export function applyGlobalTheme(theme: GlobalThemeId) {
   root.classList.toggle('christmas', theme === 'christmas');
   root.style.colorScheme = colorScheme;
 
-  try {
-    window.localStorage.setItem(GLOBAL_THEME_KEY, theme);
-    window.localStorage.setItem(THEME_KEY, colorScheme);
-  } catch {
-    // Private mode / storage blocked
+  if (persist) {
+    try {
+      window.localStorage.setItem(GLOBAL_THEME_KEY, theme);
+    } catch {
+      // Private mode / storage blocked
+    }
   }
+
+  root.removeAttribute('data-theme-preview');
 
   emit();
 }
@@ -172,7 +181,8 @@ export function applyPreviewGlobalTheme(theme: GlobalThemeId | null) {
   if (!theme) {
     // Restore stored theme
     const stored = resolveInitialGlobalTheme();
-    applyGlobalTheme(stored);
+    applyGlobalTheme(stored, { persist: false });
+    root.removeAttribute('data-theme-preview');
     return;
   }
 
@@ -185,6 +195,12 @@ export function applyPreviewGlobalTheme(theme: GlobalThemeId | null) {
   root.classList.toggle('halloween', theme === 'halloween');
   root.classList.toggle('christmas', theme === 'christmas');
   root.style.colorScheme = colorScheme;
+
+  // A live preview is not a stored preference. The marker lets
+  // `<RouteThemeEnforcer />` recognise "the user is hovering a swatch on the
+  // admin theme page" and leave the preview alone for this navigation rather
+  // than snapping it back to the stored theme.
+  root.setAttribute('data-theme-preview', theme);
 
   emit();
 }
@@ -216,9 +232,23 @@ export function setGlobalTheme(next: GlobalThemeId) {
   applyGlobalTheme(next);
 }
 
+/**
+ * Set a RESOLVED palette (light/dark) and remember that the user asked for it.
+ *
+ * It used to set the `data-theme-mode` attribute and nothing else — no
+ * `localStorage` write. The attribute is what paints the page right now, so the
+ * theme appeared to work, and then reverted on the next full load, because the
+ * pre-paint script in `app/layout.tsx` re-reads storage and found nothing.
+ * `setThemeMode` (above) already persisted; this is the sibling that was missed.
+ */
 export function setTheme(next: Theme) {
   if (typeof document === 'undefined') return;
   document.documentElement.setAttribute('data-theme-mode', next);
+  try {
+    window.localStorage.setItem(MODE_KEY, next);
+  } catch {
+    // Private mode / storage blocked
+  }
   applyTheme(next);
 }
 
@@ -270,6 +300,13 @@ export function resolveInitialMode(): ThemeMode {
     if (MODES.includes(stored as ThemeMode)) return stored as ThemeMode;
     // Legacy: before `system` existed, `groove-theme` only ever held a resolved
     // colour. Honour it so an existing visitor is not reset to the OS default.
+    //
+    // Nothing writes this key any more. `applyGlobalTheme` used to mirror its
+    // resolved colour into it, which meant the admin's platform default — and
+    // any palette the enforcer re-applied on navigation — silently promoted
+    // "follow my OS" into a permanent concrete choice the user never made. It is
+    // read-only from here on: a migration for existing visitors, not a second
+    // source of truth.
     const legacy = window.localStorage.getItem(THEME_KEY);
     if (legacy === 'light' || legacy === 'dark') return legacy;
     return DEFAULT_MODE;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { PUBLIC_PROFILE_COLUMNS } from '@/lib/publicProfile';
+import { buildOrContains, escapeLikePattern } from '@/lib/postgrest';
 
 /**
  * GET /api/users — the Users directory data source.
@@ -46,8 +47,12 @@ interface FollowEdgeRow {
   following_id: string;
 }
 
+/**
+ * Kept for the `.ilike()` filters that are not part of an `or()` expression.
+ * The `or()` branch uses `buildOrContains` below, which also quotes the value.
+ */
 function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, '\\$&');
+  return escapeLikePattern(value);
 }
 
 async function tallyFollowers(
@@ -112,9 +117,12 @@ export async function GET(request: NextRequest) {
       base = base.eq('role', role);
     }
     if (q) {
-      const needle = `%${escapeLike(q)}%`;
+      // Built with the shared PostgREST escaping helper rather than string
+      // concatenation. `.or()` takes raw filter grammar: a `q` containing a
+      // comma or a closing paren used to end the filter early and start a new
+      // one, on an endpoint that needs no authentication. See lib/postgrest.ts.
       base = base.or(
-        `firstname.ilike.${needle},lastname.ilike.${needle},username.ilike.${needle}`
+        buildOrContains(['firstname', 'lastname', 'username'], q)
       );
     }
 

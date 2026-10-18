@@ -17,6 +17,7 @@ import {
   Ticket as TicketIcon,
   Maximize2,
   Users,
+  HelpCircle,
 } from 'lucide-react';
 
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -34,12 +35,11 @@ import { SessionRow } from '@/components/dashboard/SessionRow';
 import { BadgeMiniWidget } from '@/components/dashboard/BadgeMiniWidget';
 import { SupportCallout } from '@/components/dashboard/SupportCallout';
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
-}
+/**
+ * Removed: a local `getGreeting()` that nothing called. Its absence is why the
+ * heading said "Good morning" at every hour — `<Greeting>` now owns the
+ * time-of-day salutation (see `components/dashboard/Greeting.tsx`).
+ */
 
 function MiniCalendar() {
   const [date] = useState(new Date());
@@ -273,20 +273,50 @@ export default function CoachHomePage() {
   const [showTicket, setShowTicket] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  /**
+ * A real failure to load the coach profile.
+ *
+ * The page used to have no such state: `if (loading || !coach)` showed the
+ * skeleton, and every non-coach visitor left `coach` null forever — so a client
+ * who reached `/coach/home` without the middleware (a stale cookie, a
+ * client-side navigation the gateway did not re-check) stared at "Loading your
+ * coach terminal..." indefinitely, with no error and no way forward. It also
+ * redirected them to `/login`, which is the wrong destination for someone who
+ * is already signed in: the middleware bounces an authenticated visitor straight
+ * off `/login` again.
+ */
+const [loadError, setLoadError] = useState<string | null>(null);
+
   const fetchData = useCallback(async () => {
+    setLoadError(null);
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login'); return; }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (!profile || profile.role !== 'coach') {
-        router.push('/login');
+      if (profileError) {
+        console.error('Failed to load coach profile:', profileError);
+        setLoadError('We could not load your profile. Please try again.');
+        return;
+      }
+
+      if (!profile) {
+        setLoadError(
+          'Your account is signed in but has no profile yet, so there is no dashboard to show.'
+        );
+        return;
+      }
+
+      if (profile.role !== 'coach') {
+        // A signed-in member who is not a coach belongs in their own portal —
+        // not on the sign-in page, which would bounce them back here.
+        router.push(profile.role === 'admin' ? '/admin/dashboard' : '/client/home');
         return;
       }
       setCoach(profile as Profile);
@@ -338,6 +368,29 @@ export default function CoachHomePage() {
     fetchData();
   }, [fetchData]);
 
+  /**
+   * The profile did not arrive. Previously this branch could not be reached
+   * for a non-coach: `coach` stayed null, `loading` went false, and the skeleton
+   * below stayed on screen forever.
+   */
+  if (loadError) {
+    return (
+      <div className="mx-auto flex max-w-lg flex-col items-center gap-4 py-24 text-center">
+        <HelpCircle className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
+        <h1 className="text-xl font-bold tracking-tight text-foreground">Dashboard unavailable</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">{loadError}</p>
+        <div className="flex items-center gap-3">
+          <Button variant="secondary" onClick={() => void fetchData()}>
+            Try again
+          </Button>
+          <Button variant="ghost" onClick={() => router.push('/messages')}>
+            Contact support
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading || !coach) {
     return (
       <div className="space-y-6" role="status" aria-live="polite">
@@ -356,7 +409,7 @@ export default function CoachHomePage() {
           <div className="g-skeleton h-72 rounded-[14px] lg:col-span-2" />
           <div className="g-skeleton h-72 rounded-[14px]" />
         </div>
-        <p className="text-xs text-muted-foreground">Loading your coach terminal...</p>
+        <p className="text-xs text-muted-foreground">{t('home.loadingTerminal', 'Loading your coach terminal...')}</p>
       </div>
     );
   }

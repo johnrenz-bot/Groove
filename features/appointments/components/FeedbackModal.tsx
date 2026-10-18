@@ -98,14 +98,19 @@ export default function FeedbackModal({
       setSuccess(true);
       if (onSuccess) onSuccess();
 
-      // Update achievements after review submission
+      // Update achievements after review submission.
+      //
+      // `isFiveStar` is no longer passed in: the action reads the rating back
+      // off the feedback row it was just given, so the five-star task can only
+      // complete when a five-star review actually exists. The local `rating`
+      // below is still the right thing to branch on for the coach's badge.
       const isFiveStar = rating === 5;
       try {
         const { updateAchievementsAfterReviewSubmitted } = await import('@/app/actions/achievements');
-        await updateAchievementsAfterReviewSubmitted(user.id, 'client', feedbackId, isFiveStar);
+        await updateAchievementsAfterReviewSubmitted(user.id, 'client', feedbackId);
         // Also update coach achievements if it's a 5-star review
         if (isFiveStar) {
-          await updateAchievementsAfterReviewSubmitted(appointment.coach_id, 'coach', feedbackId, true);
+          await updateAchievementsAfterReviewSubmitted(appointment.coach_id, 'coach', feedbackId);
         }
       } catch (e) {
         console.error('Failed to update achievements:', e);

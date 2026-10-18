@@ -47,8 +47,20 @@ function YoutubeIcon({ className }: { className?: string }) {
  * `.groove-landing .ld-footer` adds the bordered band treatment on the landing
  * page; other public routes keep the plain edge.
  *
- * Every link, address and social handle below is unchanged from the previous
- * version; only the type scale, the spacing and the palette are different.
+ * LINKS ARE ROUTES, NOT ASPIRATIONS
+ *
+ *   Every `href` below is a route that exists under `app/`, or an anchor that
+ *   exists on a route that does. Six of them used to be neither: `/careers`,
+ *   `/blog`, `/press`, `/partnerships`, `/cookies` and `/guidelines` have no
+ *   page, so every one of them 404'd from the footer of four public routes. They
+ *   are gone rather than stubbed — a placeholder page is a promise the app has
+ *   to keep, and an honest column of four real destinations is worth more than
+ *   nine that half of them break.
+ *
+ *   The two section anchors are absolute (`/#disciplines`, `/#studios`) rather
+ *   than bare `#…` because the footer also renders on `/about`, `/faq`,
+ *   `/terms`, `/privacy` and `/performing-arts-philippines`, none of which has
+ *   those ids — a bare hash there is a click that scrolls nowhere.
  */
 export function Footer({
   className = '',
@@ -64,8 +76,8 @@ export function Footer({
   const platformLinks = [
     { label: 'For Performers', href: '/register/client' },
     { label: 'For Coaches', href: '/register/coach' },
-    { label: 'Disciplines', href: '#disciplines' },
-    { label: 'Studio Locator', href: '#studios' },
+    { label: 'Disciplines', href: '/#disciplines' },
+    { label: 'Studio Locator', href: '/#studios' },
     { label: 'Showcase Feed', href: '/client/talent#showcase' },
     { label: 'Groovey AI', href: '/client/groovey' },
     /* Help & FAQ sits here rather than in a new column: every footer column is
@@ -85,17 +97,15 @@ export function Footer({
 
   const companyLinks = [
     { label: 'About Groove', href: '/about' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Press', href: '/press' },
-    { label: 'Partnerships', href: '/partnerships' },
+    { label: 'Help & FAQ', href: '/faq' },
+    { label: 'Member Directory', href: '/users' },
+    { label: 'Performing Arts PH', href: '/performing-arts-philippines' },
+    { label: 'Sign In', href: '/login' },
   ];
 
   const legalLinks = [
     { label: 'Terms of Service', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Cookie Policy', href: '/cookies' },
-    { label: 'Community Guidelines', href: '/guidelines' },
   ];
 
   const socials = [

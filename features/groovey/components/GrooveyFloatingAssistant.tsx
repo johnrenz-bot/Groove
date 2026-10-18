@@ -52,6 +52,23 @@ const STARTER_PROMPTS = [
 
 const DISCIPLINES: DisciplineType[] = ['Singing', 'Dance', 'Acting', 'Theater', 'Auditions', 'General'];
 
+/**
+ * `/client/groovey` IS THE ONLY FULL-PAGE GROOVEY ROUTE THAT EXISTS.
+ *
+ * The Maximize button used to push `/client/groovey` unconditionally while
+ * `DashboardLayout` renders this widget for coaches and admins too. For those
+ * two roles the middleware classified `/client/**` as a client area and bounced
+ * the navigation straight back to `/coach/home` / `/admin/dashboard` — so the
+ * button looked broken, the widget could never hide on its own "full page", and
+ * the title said it opened a studio that was not theirs.
+ *
+ * There is no `/coach/groovey`. Rather than point a coach at a client URL the
+ * gateway refuses, the widget keeps them where they are: the assistant is the
+ * same experience, only docked, and the control is hidden for anyone who has
+ * no page to be sent to.
+ */
+const FULL_PAGE_ROUTE = '/client/groovey';
+
 export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> = ({ role }) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -85,7 +102,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // If already on the full /client/groovey page, hide floating widget
-  const isFullPage = pathname === '/client/groovey';
+  const isFullPage = pathname === FULL_PAGE_ROUTE;
 
   const scrollToBottom = useCallback((smooth = true) => {
     messagesEndRef.current?.scrollIntoView({
@@ -140,9 +157,16 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
 
+  /**
+   * Only a client has somewhere to be sent. For a coach or an admin the
+   * assistant IS the floating widget; there is no `/coach/groovey` route, so
+   * the control is omitted rather than wired to a URL that redirects away.
+   */
+  const canOpenFullPage = resolvedRole === 'client';
   const handleOpenFullPage = () => {
+    if (!canOpenFullPage) return;
     setIsOpen(false);
-    router.push('/client/groovey');
+    router.push(FULL_PAGE_ROUTE);
   };
 
   if (isFullPage) {
@@ -288,15 +312,19 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                   <RotateCcw className="h-3.5 w-3.5" />
                 </button>
 
-                {/* Expand to full page */}
-                <button
-                  type="button"
-                  onClick={handleOpenFullPage}
-                  title="Open full studio (/client/groovey)"
-                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
-                >
-                  <Maximize2 className="h-3.5 w-3.5" />
-                </button>
+                {/* Expand to full page. Rendered only where a full page exists — see
+                    FULL_PAGE_ROUTE. */}
+                {canOpenFullPage && (
+                  <button
+                    type="button"
+                    onClick={handleOpenFullPage}
+                    title="Open full studio"
+                    aria-label="Open Groovey full studio"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
 
                 {/* Minimize */}
                 <button

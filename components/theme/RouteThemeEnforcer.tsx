@@ -42,13 +42,26 @@ export function isDarkOnlyRoute(
  * exactly what is already in storage, which is a no-op visually — the value of
  * running it is that it repairs any drift a component or a third-party script
  * may have introduced on `<html>`.
+ *
+ * `persist: false` is the important part. This runs on EVERY route change, and
+ * it used to persist what it applied: `applyGlobalTheme` mirrored the resolved
+ * colour into the legacy `groove-theme` key, which `app/layout.tsx`'s init
+ * script reads as a last resort when no explicit mode is stored. The effect was
+ * a ratchet — an admin's `platform_theme = 'light'`, or a single navigation in
+ * the wrong order, permanently pinned the visitor out of "System" and onto a
+ * concrete palette they had never chosen. Reading storage must not write to it.
+ *
+ * It also skips an active preview. `applyPreviewGlobalTheme` deliberately does
+ * not persist, and navigating away from the admin theme page would otherwise
+ * snap the preview back to the stored theme mid-hover.
  */
 export function RouteThemeEnforcer() {
   const pathname = usePathname();
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    applyGlobalTheme(resolveInitialGlobalTheme());
+    if (document.documentElement.getAttribute('data-theme-preview')) return;
+    applyGlobalTheme(resolveInitialGlobalTheme(), { persist: false });
   }, [pathname]);
 
   return null;

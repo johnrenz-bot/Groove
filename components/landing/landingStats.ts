@@ -1,71 +1,35 @@
-import { createClient } from '@/lib/supabase/client';
-
 /**
- * Server-side stats fetching for the landing page.
- * Revalidates every hour to keep the page fast while showing fresh data.
- * All counts are from real database queries — no fake numbers.
+ * Landing-page statistics — THE CLIENT-SAFE HALF.
+ *
+ * This module deliberately imports NOTHING.
+ *
+ * It used to hold `getLandingStats()` as well, which meant a `'use client'`
+ * component (`HeroStats.tsx`) imported a module that built a Supabase client.
+ * Two consequences, both of which had to be fixed rather than worked around:
+ *
+ *   - with the BROWSER client, a SERVER component called it. `createBrowserClient`
+ *     reads cookies out of `document.cookie`, which does not exist on the
+ *     server, so every count came back `0` and the hero's stats strip silently
+ *     rendered nothing.
+ *   - with the SERVER client, the `'use client'` import pulled `next/headers`
+ *     into the browser bundle and the whole route failed to compile
+ *     ("You're importing a module that depends on next/headers … Pages Router").
+ *
+ * The fix is the split: the query lives in `landingStats.server.ts` and only the
+ * shape and the formatting live here, so the client bundle has no Supabase and
+ * no `next/headers` in it, and the server component gets the real cookie jar.
  */
-export async function getLandingStats() {
-  const supabase = createClient();
 
-  try {
-    // Count verified coaches (profiles with role='coach' and verified status)
-    const { count: coachCount, error: coachError } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'coach')
-      .eq('status', 'active');
-
-    // Count studios (from a studios table if it exists, or use a default)
-    // For now, return null if no studios table - we'll handle gracefully
-    let studioCount: number | null = null;
-    let studioError: Error | null = null;
-
-    try {
-      const { count, error } = await supabase
-        .from('studios')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-      studioCount = count;
-      studioError = error;
-    } catch {
-      studioCount = null;
-      studioError = new Error('Studios table not available');
-    }
-
-    // Count disciplines (from the community/disciplines list)
-    const { count: disciplineCount, error: disciplineError } = await supabase
-      .from('dance_categories')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'active');
-
-    // If dance_categories doesn't exist, fall back to a known count
-    let finalDisciplineCount = disciplineCount ?? 0;
-    if (disciplineError || !disciplineCount) {
-      // Known disciplines: dance, singing, acting, theater
-      finalDisciplineCount = 4;
-    }
-
-    return {
-      coaches: coachCount ?? 0,
-      studios: studioCount ?? 0,
-      disciplines: finalDisciplineCount,
-      // sessions intentionally omitted unless real query exists
-    };
-  } catch {
-    // On any error, return zeros — the UI will hide zero stats
-    return {
-      coaches: 0,
-      studios: 0,
-      disciplines: 4, // known static list
-    };
-  }
+export interface LandingStats {
+  coaches: number;
+  studios: number;
+  disciplines: number;
 }
 
 /**
  * Helper to format a number for display (add + suffix for rounded counts)
  */
-export function formatStatValue(count: number, label: string): string {
+export function formatStatValue(count: number, _label: string): string {
   if (count >= 1000) {
     return `${(count / 1000).toFixed(count % 1000 === 0 ? 0 : 1)}k`;
   }

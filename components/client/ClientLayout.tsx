@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { DashboardLayout } from '@/components/shared/DashboardLayout';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 /**
  * Client portal shell.
@@ -14,15 +13,14 @@ import { ThemeProvider } from '@/components/theme/ThemeProvider';
  * `<SiteHeader>` reads the session, looks the role's sections up in
  * `components/header/navConfig.ts`, and renders them.
  *
- * ThemeProvider is scoped to dashboard layouts only (client, coach, admin).
+ * It also no longer mounts a `<ThemeProvider>`: that lives in the root layout,
+ * once, beside `<SessionProvider>`.
  */
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider>
-      <DashboardLayout role="client" homeHref="/client/home" showWelcomeModal>
-        {children}
-      </DashboardLayout>
-    </ThemeProvider>
+    <DashboardLayout role="client" homeHref="/client/home" showWelcomeModal>
+      {children}
+    </DashboardLayout>
   );
 }
 

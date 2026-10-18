@@ -47,9 +47,29 @@ export default function ClientHomePage() {
   const [ticketLoading, setTicketLoading] = useState(false);
   const [ticketSent, setTicketSent] = useState(false);
   const [loading, setLoading] = useState(true);
+  /**
+   * WHY THIS EXISTS
+   *
+   * The page used to end in `if (!user) return null;`. That is not a loading
+   * state and not an error state — it is a blank page under a working header,
+   * with no way to recover and nothing in the console to explain it. It is
+   * reached whenever the `profiles` read fails for any reason: an RLS error, a
+   * trigger that has not written the row yet, a dropped connection. The query
+   * used `.single()` and threw its error away.
+   *
+   * Now the failure is captured and shown, with a retry that re-runs the same
+   * loader. A blank page is the hardest bug to report; this one says what
+   * happened.
+   */
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadDashboardData = async () => {
+      setLoading(true);
+      setLoadError(null);
       try {
         const supabase = createClient();
         const {
@@ -62,13 +82,36 @@ export default function ClientHomePage() {
         }
 
         // Fetch user profile
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', authUser.id)
-          .single();
+          .maybeSingle();
 
-        if (profile) setUser(profile);
+        if (cancelled) return;
+
+        if (profileError) {
+          console.error('Failed to load profile:', profileError);
+          setLoadError('We could not load your profile. Please try again.');
+          return;
+        }
+
+        if (!profile) {
+          // A session with no `profiles` row is a half-created account, not a
+          // client. The middleware sends it to /login with a reason; this keeps
+          // the dashboard from pretending otherwise.
+          setLoadError(
+            'Your account is signed in but has no profile yet, so there is no dashboard to show.'
+          );
+          return;
+        }
+
+        if (profile.role !== 'client') {
+          router.push(profile.role === 'coach' ? '/coach/home' : '/admin/dashboard');
+          return;
+        }
+
+        setUser(profile);
 
         // Fetch recommended coaches
         const { data: coachesData } = await supabase
@@ -80,7 +123,7 @@ export default function ClientHomePage() {
           .eq('role', 'coach')
           .limit(8);
 
-        if (coachesData) {
+        if (!cancelled && coachesData) {
           setRecommendedCoaches(coachesData as FullCoach[]);
         }
 
@@ -95,7 +138,7 @@ export default function ClientHomePage() {
           .order('date', { ascending: true })
           .limit(4);
 
-        if (apptData) {
+        if (!cancelled && apptData) {
           setUpcomingAppointments(apptData as Appointment[]);
         }
 
@@ -107,18 +150,23 @@ export default function ClientHomePage() {
           .limit(1)
           .maybeSingle();
 
-        if (annData) {
+        if (!cancelled && annData) {
           setAnnouncement(annData);
         }
       } catch (err) {
         console.error('Failed to load dashboard:', err);
+        if (!cancelled) setLoadError('We could not load your dashboard. Please try again.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    loadDashboardData();
-  }, [router]);
+    void loadDashboardData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router, reloadToken]);
 
   const handleTicketSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +214,29 @@ export default function ClientHomePage() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
           <div className="g-skeleton h-72 rounded-[14px] lg:col-span-2" />
           <div className="g-skeleton h-72 rounded-[14px]" />
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * The profile did not arrive. Say so instead of rendering nothing —
+   * `return null` here produced a blank page under a fully working header, with
+   * no way for the member to recover and nothing in the console to explain it.
+   */
+  if (loadError) {
+    return (
+      <div className="mx-auto flex max-w-lg flex-col items-center gap-4 py-24 text-center">
+        <HelpCircle className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
+        <h1 className="text-xl font-bold tracking-tight text-foreground">Dashboard unavailable</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">{loadError}</p>
+        <div className="flex items-center gap-3">
+          <Button variant="secondary" onClick={() => setReloadToken((n) => n + 1)}>
+            Try again
+          </Button>
+          <Button variant="ghost" onClick={() => router.push('/messages')}>
+            Contact support
+          </Button>
         </div>
       </div>
     );
@@ -227,10 +298,17 @@ export default function ClientHomePage() {
           />
           <StatCard
             icon={<BadgeCheck className="h-5 w-5" />}
-            value={t('home.statAccountValue', 'Verified Active')}
+            /* Was the literal string "Verified Active" for every account,
+               verified or not. It now reflects `profiles.account_verified`,
+               which is what "Account Status" claims to be. */
+            value={
+              user.account_verified
+                ? t('home.statAccountVerified', 'Verified Active')
+                : t('home.statAccountPending', 'Pending Review')
+            }
             label={t('home.statAccount', 'Account Status')}
-            sub={`#${user.custom_id || '0001'}`}
-            accentColor="green"
+            sub={user.custom_id ? `#${user.custom_id}` : t('home.statAccountNoId', 'No ID yet')}
+            accentColor={user.account_verified ? 'green' : 'yellow'}
             href="/client/profile"
           />
         </div>

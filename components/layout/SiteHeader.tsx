@@ -82,10 +82,15 @@ type HeaderRole = Extract<NavRole, 'client' | 'coach' | 'admin' | 'guest'>;
 /**
  * Map the resolved session role onto a navigation role.
  *
- * A session that has resolved but carries no profile yet is a GUEST as far as
+ * A session that has resolved but carries no profile row is a GUEST as far as
  * the header is concerned: it gets the public menu and the auth buttons, which
  * is exactly what it could see a moment ago. Guessing `client` would offer a
  * menu full of destinations that immediately 404.
+ *
+ * `'admin'` is carried through unchanged — it is a real role here, not a
+ * fallback. It used to be impossible for the session to report admin (the
+ * provider collapsed it to `client`), which meant an administrator browsing a
+ * public page saw "Client Account" and a client-only menu.
  */
 function navRoleFor(sessionRole: string | undefined | null): HeaderRole {
   return sessionRole === 'coach' || sessionRole === 'admin' || sessionRole === 'client'
@@ -247,19 +252,24 @@ export function SiteHeader({ homeHref }: SiteHeaderProps = {}) {
   const role = navRoleFor(sessionRole);
 
   /**
-   * `/` IS THE PUBLIC LANDING PAGE, FOR EVERYONE.
+   * `/` IS THE PUBLIC LANDING PAGE.
    *
-   * The four in-page links are part of THAT page's navigation, so they show for a
-   * signed-in visitor too — not only for a guest. Previously `showAnchors`
-   * required `!user`, so the moment anyone signed in the centre of the bar
-   * swapped to the role menu and "Disciplines / Studios / Coaches / How it
-   * works" disappeared from the page they were describing.
+   * An authenticated member asking for `/` is redirected to their own portal —
+   * at the edge by `lib/supabase/middleware.ts`, and during SSR by
+   * `app/(public)/page.tsx`. The bar still has to render correctly in the frames
+   * before that redirect lands (a client-side `router.push('/')` paints first),
+   * so the rule below stands: on the landing document the centre of the bar is
+   * the four in-page links and nothing else.
    *
-   * And the role menu is dropped here rather than shown alongside. The landing
+   * It used to be `!user` as well, so the moment anyone signed in the anchors
+   * vanished and were replaced by the role menu — including, until the session
+   * provider learned to report `admin`, a client menu for an administrator.
+   *
+   * The role menu is dropped on `/` rather than shown alongside. The landing
    * page is a marketing document, not a portal: putting a coach's appointments
-   * dropdown or the admin console's three operation groups into its header is the
-   * "dashboard navigation leaking onto the public page" this is meant to prevent,
-   * and with the admin menu it would also overflow the row at 1024px.
+   * dropdown or the admin console's three operation groups into its header is
+   * the "dashboard navigation leaking onto the public page" this is meant to
+   * prevent, and with the admin menu it would also overflow the row at 1024px.
    *
    * Every other route is untouched: the nav there still comes from `role` via
    * `sectionsForRole`, so a client still gets the Dashboard group and a coach
@@ -366,7 +376,7 @@ export function SiteHeader({ homeHref }: SiteHeaderProps = {}) {
       ? ROLE_META.client.label
       : ROLE_META[role].label;
 
-  /** The landing page centre is the four in-page links, for guest and member alike. */
+  /** The landing page centre is the four in-page links. */
   const showAnchors = isLanding && !resolving;
 
   return (
