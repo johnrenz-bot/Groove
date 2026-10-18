@@ -1,7 +1,0 @@
-{
-  "task_id": "task-welcome-modal-logo-redesign",
-  "task_description": "Frontend-only redesign: (1) Rebuild the WelcomeModal with amber spotlight, equalizer bars, animations, and accessibility. (2) Replace all /image/wc/logo.png references with /image/Logo/GroovePH-Logo.png. (3) Regenerate favicons from the new logo and update Next.js metadata.",
-  "status": "pending",
-  "feature_order": ["FEAT-001", "FEAT-002"],
-  "blocked_reason": null
-}

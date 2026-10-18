@@ -1,9 +1,0 @@
-{
-  "verdict": "APPROVED",
-  "summary": "All 7 dashboard widget components are present with semantic-token-only styling, AppTopNav correctly hides the wordmark via logoOnly, DashboardLayout passes logoOnly={role !== 'admin'}, and both home pages use the new widget layout while preserving every original modal, StudioLocator, MaintenanceBanner, MiniCalendar, and data-fetching call intact.",
-  "findings": [
-    "Loading prop not forwarded to UpcomingSessionsWidget or CoachAvatarRow from the host pages — both widgets default to loading=false and the widget-level skeleton paths are unreachable in production. Functionally harmless because the page-level loading guard renders a full-page skeleton before these components mount, but the widgets' own loading prop is dead code in this wiring.",
-    "CoachAvatarRow is not used on coach home — consistent with the plan which specifies a bespoke Students card in the coach sidebar instead. Not a defect, but reviewers should note the widget is client-only.",
-    "StatRow uses xl:grid-cols-4 (not lg:grid-cols-4) for the 4-column stat layout, meaning the single-column gap persists until 1280px on tablet-sized screens. The plan specified xl:grid-cols-4 explicitly, so this matches the spec, but reviewers should confirm the visual at 768px is acceptable."
-  ]
-}

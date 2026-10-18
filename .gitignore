@@ -55,3 +55,12 @@ yarn-error.log*
 # ─────────────────────────────────────────
 .idea
 .vscode
+
+# ─────────────────────────────────────────
+# Project archives / backups
+# ─────────────────────────────────────────
+/backups/
+/.agents/
+/.freebuff/
+/.font-baseline/
+/supabase/.temp

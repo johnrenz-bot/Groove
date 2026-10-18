@@ -1,7 +1,0 @@
-{
-  "task_id": "task-landing-page-enhancement",
-  "task_description": "Enhance the GroovePH landing page (app/page.tsx) by: (1) adding a Filipino-inspired SVG background to the existing CTA section, (2) adding a 'For Performers' section with confirmed client features, (3) adding a 'For Coaches' section with confirmed coach features, and (4) validating with lint + build. Logo is already correct everywhere. All changes are additive.",
-  "status": "completed",
-  "feature_order": ["FEAT-001", "FEAT-002"],
-  "blocked_reason": null
-}

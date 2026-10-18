@@ -1,7 +1,0 @@
-{
-  "task_id": "task-badge-dashboard-navbar",
-  "task_description": "Implement Badge Collection UI on client/coach profiles, improve both dashboards with real stats and new widgets, and polish the AppTopNav with profile photo in mobile sheet and a messages shortcut.",
-  "status": "pending",
-  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
-  "blocked_reason": null
-}

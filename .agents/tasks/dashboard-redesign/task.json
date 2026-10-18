@@ -1,7 +1,0 @@
-{
-  "task_id": "task-dashboard-redesign",
-  "task_description": "Redesign /client/home, /coach/home, and the shared header navigation (AppTopNav). UI/layout only — keep all existing logic, data fetching, server actions, and routes. Extract 7 shared dashboard widget components into components/dashboard/, add logoOnly prop to AppTopNav, and replace the home page layouts to use the new widgets.",
-  "status": "completed",
-  "feature_order": ["FEAT-001", "FEAT-002"],
-  "blocked_reason": null
-}
