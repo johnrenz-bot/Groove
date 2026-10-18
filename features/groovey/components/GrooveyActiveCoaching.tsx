@@ -23,6 +23,7 @@ import {
 import { useChat } from '../context/ChatContext';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { DisciplineType } from '../types';
+import { SiteLinkCard } from '@/components/groovey/SiteLinkCard';
 
 export const GrooveyActiveCoaching: React.FC = () => {
   const {
@@ -492,6 +493,32 @@ export const GrooveyActiveCoaching: React.FC = () => {
                     <span className="text-[11px]">Retry</span>
                   </button>
                 </div>
+
+                {/* SiteLinkCard — show only when preceding user message asks about GroovePH */}
+                {(() => {
+                  const msgIndex = messages.indexOf(msg);
+                  const precedingUserMsg = messages
+                    .slice(0, msgIndex)
+                    .reverse()
+                    .find((m) => m.role === 'user');
+                  if (!precedingUserMsg) return null;
+                  const text = (precedingUserMsg.content || '').toLowerCase();
+                  // Word-boundary keyword matching: groove, grooveph, "this app", "this platform", "about groove"
+                  const grooveKeywords = [
+                    '\\bgroove\\b',
+                    '\\bgrooveph\\b',
+                    'this\\s+app',
+                    'this\\s+platform',
+                    'about\\s+groove',
+                  ];
+                  const matches = grooveKeywords.some((kw) => new RegExp(kw, 'i').test(text));
+                  if (!matches) return null;
+                  return (
+                    <div key={`sitelink-${msg.id}`} className="mt-3 ml-11 sm:ml-12">
+                      <SiteLinkCard compact />
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );

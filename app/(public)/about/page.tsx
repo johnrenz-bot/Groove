@@ -19,6 +19,7 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
+import { SiteLinkCard } from "@/components/groovey/SiteLinkCard";
 import { PublicLayout } from '@/components/shared/PublicLayout';
 import { PROJECT_INFO } from '@/lib/config/projectInfo';
 
@@ -479,6 +480,11 @@ export default function AboutPage() {
             </Link>{' '}
             so the reply reaches you.
           </p>
+        </section>
+
+        {/* ---- Website Link Card ---- */}
+        <section className="mt-10">
+          <SiteLinkCard />
         </section>
       </div>
     </PublicLayout>
