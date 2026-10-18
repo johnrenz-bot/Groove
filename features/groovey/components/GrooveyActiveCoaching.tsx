@@ -24,6 +24,7 @@ import { useChat } from '../context/ChatContext';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { DisciplineType } from '../types';
 import { SiteLinkCard } from '@/components/groovey/SiteLinkCard';
+import { isAboutPlatformMessage } from '../utils/isAboutPlatform';
 
 export const GrooveyActiveCoaching: React.FC = () => {
   const {
@@ -292,8 +293,8 @@ export const GrooveyActiveCoaching: React.FC = () => {
         </div>
       )}
 
-      {/* Main Conversation Stream: Centered, Claude-inspired line length, invisible scrollbar */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-6 w-full max-w-3xl mx-auto no-scrollbar">
+      {/* Main Conversation Stream: Centered, Claude-inspired line length, visible scrollbar on hover */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-6 w-full max-w-3xl mx-auto scrollable-hover">
         {/* Welcome Screen / Empty State */}
         {messages.length === 0 && !isGenerating && (
           <div className="py-6 sm:py-8 px-2 sm:px-4 text-center space-y-6 animate-groovey-in">
@@ -378,10 +379,10 @@ export const GrooveyActiveCoaching: React.FC = () => {
         )}
 
         {/* Message Turns */}
-        {messages.map((msg) => {
+        {messages.map((msg, msgIndex) => {
           if (msg.role === 'user') {
             return (
-              <div key={msg.id} className="flex flex-col items-end pl-6 sm:pl-16 animate-groovey-in">
+              <div key={msg.id} className="flex flex-col items-end pl-6 sm:pl-16 animate-groovey-message">
                 {/* User Header Info */}
                 <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium mb-1 mr-1">
                   <span className="text-foreground font-semibold">
@@ -405,7 +406,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
 
           // AI Model Message (Claude-inspired open canvas layout)
           return (
-            <div key={msg.id} className="flex gap-3 sm:gap-4 pr-2 sm:pr-8 animate-groovey-in">
+            <div key={msg.id} className="flex gap-3 sm:gap-4 pr-2 sm:pr-8 animate-groovey-message">
               {/* Avatar on Left */}
               <div className="shrink-0 pt-0.5">
                 <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
@@ -496,23 +497,13 @@ export const GrooveyActiveCoaching: React.FC = () => {
 
                 {/* SiteLinkCard — show only when preceding user message asks about GroovePH */}
                 {(() => {
-                  const msgIndex = messages.indexOf(msg);
                   const precedingUserMsg = messages
                     .slice(0, msgIndex)
                     .reverse()
                     .find((m) => m.role === 'user');
                   if (!precedingUserMsg) return null;
-                  const text = (precedingUserMsg.content || '').toLowerCase();
-                  // Word-boundary keyword matching: groove, grooveph, "this app", "this platform", "about groove"
-                  const grooveKeywords = [
-                    '\\bgroove\\b',
-                    '\\bgrooveph\\b',
-                    'this\\s+app',
-                    'this\\s+platform',
-                    'about\\s+groove',
-                  ];
-                  const matches = grooveKeywords.some((kw) => new RegExp(kw, 'i').test(text));
-                  if (!matches) return null;
+                  const text = precedingUserMsg.content || '';
+                  if (!isAboutPlatformMessage(text)) return null;
                   return (
                     <div key={`sitelink-${msg.id}`} className="mt-3 ml-11 sm:ml-12">
                       <SiteLinkCard compact />
@@ -526,7 +517,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
 
         {/* Live Streaming Response Chunk */}
         {isGenerating && (
-          <div className="flex gap-3 sm:gap-4 pr-2 sm:pr-8 animate-groovey-in">
+          <div className="flex gap-3 sm:gap-4 pr-2 sm:pr-8 animate-groovey-message">
             <div className="shrink-0 pt-0.5">
               <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center animate-groovey-glow">
                 <Image
@@ -678,3 +669,5 @@ export const GrooveyActiveCoaching: React.FC = () => {
     </div>
   );
 };
+
+export default GrooveyActiveCoaching;

@@ -1,26 +1,55 @@
 /* Scoped Groovey AI Design Styles (Claude-inspired, Theme-compliant) */
 
-/* Hide scrollbars across all browsers while preserving full scrolling capabilities */
-.groovey-root,
-.groovey-root * {
+/* Hide scrollbars ONLY on the root container, NOT on children */
+/* This preserves scrolling in conversation areas while keeping the outer frame clean */
+.groovey-root {
   scrollbar-width: none !important; /* Firefox */
   -ms-overflow-style: none !important; /* IE and Edge */
 }
 
-.groovey-root *::-webkit-scrollbar {
+.groovey-root::-webkit-scrollbar {
   display: none !important; /* Chrome, Safari, Opera */
   width: 0px !important;
   height: 0px !important;
   background: transparent !important;
 }
 
-.groovey-root .no-scrollbar {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+/* Allow scrollbars on conversation areas - visible on hover for better UX */
+.groovey-root .scrollable-hover {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--accent-border) transparent;
 }
 
-.groovey-root .no-scrollbar::-webkit-scrollbar {
-  display: none !important;
+.groovey-root .scrollable-hover::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  display: block !important;
+}
+
+.groovey-root .scrollable-hover::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.groovey-root .scrollable-hover::-webkit-scrollbar-thumb {
+  background: var(--accent-border);
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.groovey-root .scrollable-hover:hover::-webkit-scrollbar-thumb,
+.groovey-root .scrollable-hover:focus-within::-webkit-scrollbar-thumb {
+  opacity: 1;
+}
+
+/* Dark mode scrollbar */
+.dark .groovey-root .scrollable-hover {
+  scrollbar-color: var(--accent-border) transparent;
+}
+
+.dark .groovey-root .scrollable-hover::-webkit-scrollbar-thumb {
+  background: var(--accent-border);
 }
 
 /* Keyframe Animations */
@@ -61,3 +90,26 @@
 .groovey-root .animate-groovey-blink {
   animation: grooveyBlink 0.9s infinite ease-in-out;
 }
+
+/* Message bubble animation */
+@keyframes grooveyMessageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.groovey-root .animate-groovey-message {
+  animation: grooveyMessageSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered animation for multiple messages */
+.groovey-root .animate-groovey-message:nth-child(1) { animation-delay: 0ms; }
+.groovey-root .animate-groovey-message:nth-child(2) { animation-delay: 50ms; }
+.groovey-root .animate-groovey-message:nth-child(3) { animation-delay: 100ms; }
+.groovey-root .animate-groovey-message:nth-child(4) { animation-delay: 150ms; }
+.groovey-root .animate-groovey-message:nth-child(5) { animation-delay: 200ms; }

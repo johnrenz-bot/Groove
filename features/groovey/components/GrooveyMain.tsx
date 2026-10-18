@@ -13,7 +13,7 @@ const MainContent: React.FC = () => {
   const { activeTab, toastMessage } = useChat();
 
   return (
-    <div className="groovey-root w-full flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-9rem)] min-h-[520px] bg-card text-foreground border border-border rounded-2xl shadow-sm overflow-hidden font-sans relative">
+    <div className="groovey-root w-full flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-9rem)] min-h-[520px] bg-card text-foreground border border-border rounded-2xl shadow-sm font-sans relative overflow-hidden">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300">
@@ -30,7 +30,7 @@ const MainContent: React.FC = () => {
       <GrooveySideDrawer />
 
       {/* Main View Port (Coach / Repertoire / Artist) */}
-      <div className="flex-1 min-h-0 flex flex-col relative w-full overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col relative w-full">
         {(activeTab === 'coach' || activeTab === 'studio') && <GrooveyActiveCoaching />}
         {activeTab === 'repertoire' && <GrooveyRepertoireView />}
         {activeTab === 'artist' && <GrooveyArtistProfileView />}

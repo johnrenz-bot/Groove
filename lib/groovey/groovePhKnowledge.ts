@@ -10,14 +10,28 @@ import { PROJECT_INFO } from "@/lib/config/projectInfo";
  * Generates a concise text summary of GroovePH for the AI system prompt.
  * Includes: what it is, purpose, 3 modules, key features, limitations.
  * Excludes: survey stats, team, advisers, tech stack.
+ * Overrides outdated PROJECT_INFO claims where code reality differs.
  */
 export function getGroovePhKnowledge(): string {
-  const features = PROJECT_INFO.keyFeatures.join("; ");
+  const features = PROJECT_INFO.keyFeatures
+    .map((f) =>
+      f.includes("earnings tracking")
+        ? "Profile management, booking calendar, client list via bookings, verification documents, portfolio document upload."
+        : f
+    )
+    .join("; ");
+
   const limitations = PROJECT_INFO.limitations
+    .filter((l) => l.title !== "No Achievement/Badge System")
     .map((l) => `${l.title}: ${l.description}`)
     .join("; ");
+
   const modules = PROJECT_INFO.coreModules
-    .map((m) => `${m.name} — ${m.description}`)
+    .map((m) =>
+      m.name === "Performing Artist (Coach/Choreographer)"
+        ? "Performing Artist (Coach/Choreographer) — Profile management, booking calendar, client list via bookings, verification documents, portfolio document upload."
+        : `${m.name} — ${m.description}`
+    )
     .join("; ");
 
   return `ABOUT THE PLATFORM YOU LIVE IN (GroovePH)
