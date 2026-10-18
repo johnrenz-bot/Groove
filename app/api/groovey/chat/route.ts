@@ -8,6 +8,7 @@ import {
   getUserFriendlyErrorMessage,
   isDailyQuotaError,
 } from '@/features/groovey/server/gemini';
+import { getGroovePhKnowledge } from '@/lib/groovey/groovePhKnowledge';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest) {
     if (level && level !== 'All') {
       contextualSystemInstruction += `\nARTIST PROFICIENCY LEVEL: ${level}.`;
     }
+    // Append GroovePH platform knowledge block (single source from lib/config/projectInfo.ts)
+    contextualSystemInstruction += `\n\n${getGroovePhKnowledge()}`;
 
     const contextWindow = messages.slice(-16);
     const contents = contextWindow.map((msg: { role: string; content?: string; text?: string }) => ({
