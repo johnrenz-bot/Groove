@@ -210,7 +210,9 @@ check('canonical points at the matching portal path', /\`\/\$\{role\}\/performin
 
 /* 12. Accessibility essentials in the redesigned component. */
 check('exactly one H1 in the hub', (hub.match(/<h1/g) || []).length === 1);
-check('hero image has priority', /priority/.test(hub));
+// Next 16.3.3 deprecated `priority` in favor of `preload`; the hero must still
+// request its LCP image eagerly, so accept either prop name.
+check('hero image preloads eagerly', /\b(preload|priority)\b/.test(hub));
 // Match `<Image` only when it is a real tag: `<ImageCredit` also starts with
 // "<Image" and would otherwise be counted as an unlabelled image.
 check(

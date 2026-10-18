@@ -247,7 +247,7 @@ function Hero({ role }: { role: HubRole }) {
                 src={HUB_IMAGES.ccpTanghalangPilipino.src}
                 alt={HUB_IMAGES.ccpTanghalangPilipino.alt}
                 fill
-                priority
+                preload
                 sizes="(min-width: 1024px) 42vw, 100vw"
                 className="object-cover"
               />

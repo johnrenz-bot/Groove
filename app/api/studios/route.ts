@@ -227,8 +227,17 @@ interface OverpassElement {
 export async function GET(request: NextRequest) {
   // Optional overrides so "My Location" and a picked map centre search around
   // where the user is actually looking, not always around the default.
-  const latParam = Number(request.nextUrl.searchParams.get('lat'));
-  const lngParam = Number(request.nextUrl.searchParams.get('lng'));
+  //
+  // `Number(null)` is 0, NOT NaN, so a MISSING parameter used to parse as a
+  // perfectly valid coordinate — (0, 0), a point in the Gulf of Guinea — and
+  // the search ran there instead of at the default: no curated listing within
+  // 12 km, no OSM elements, and an empty result set (or a 502 when Overpass
+  // was unreachable) for any caller who omitted the query string. A blank or
+  // absent value now stays invalid so the default centre applies.
+  const rawLat = request.nextUrl.searchParams.get('lat');
+  const rawLng = request.nextUrl.searchParams.get('lng');
+  const latParam = rawLat === null || rawLat.trim() === '' ? Number.NaN : Number(rawLat);
+  const lngParam = rawLng === null || rawLng.trim() === '' ? Number.NaN : Number(rawLng);
   const center: LatLng = isValidLatLng(latParam, lngParam)
     ? { lat: latParam, lng: lngParam }
     : DEFAULT_CENTER;
@@ -401,15 +410,38 @@ export async function GET(request: NextRequest) {
     seenPositions.push({ name, lat, lng });
   }
 
-  // Nearest first, THEN capped. Sorting before the cap is what guarantees a
-  // 1 km filter still finds its results even though only 20 are sent. Curated
-  // listings merge into the same ranking and are all within 12 km by the filter
-  // above, so a narrowed radius never hides a curated studio from this route.
-  const osmPlaces = [...byKey.values()].sort((a, b) => a.distanceKm - b.distanceKm);
-  const places = [...curatedEntries, ...osmPlaces].slice(0, MAX_RESULTS);
+  /**
+   * MERGE, THEN SORT, THEN CAP.
+   *
+   * This was `[...curatedEntries, ...osmPlaces].slice(0, MAX_RESULTS)` — a
+   * concatenation, not a ranking. Every curated row therefore outranked every
+   * OSM row regardless of distance, so if the curated set ever grew past the
+   * cap the NEAREST community listings would be dropped in favour of curated
+   * venues that might be 10 km away. The comment here claims "nearest first",
+   * so the merged list is now actually sorted before it is capped.
+   */
+  const osmPlaces = [...byKey.values()];
+  const ranked = [...curatedEntries, ...osmPlaces].sort((a, b) => a.distanceKm - b.distanceKm);
+  const places = ranked.slice(0, MAX_RESULTS);
+  const truncated = ranked.length - places.length;
 
-  const truncated = curatedEntries.length + osmPlaces.length > places.length;
-  const skipped = skippedUnnamed + skippedNoCentre + Number(truncated);
+  /**
+   * ROUTINE FILTERING, REPORTED AS COUNTS RATHER THAN AS A WARNING.
+   *
+   * OSM is full of dance-tagged building outlines that carry no name, and any
+   * dense area will exceed the result cap. Both are normal inputs to be
+   * filtered, not failures — so they are reported here as structured numbers
+   * the UI can choose to show, and `warning` below is left for a response that
+   * is genuinely degraded.
+   */
+  const skipped = {
+    /** Matched the tags but carry no name — nothing a user could act on. */
+    unnamed: skippedUnnamed,
+    /** No usable node coordinate and no `out center` result either. */
+    withoutLocation: skippedNoCentre,
+    /** Matched, valid, and further away than the top MAX_RESULTS. */
+    beyondLimit: truncated,
+  };
 
   return NextResponse.json(
     {
@@ -418,17 +450,25 @@ export async function GET(request: NextRequest) {
       // Per-row `source` distinguishes curated from community rows; this is the
       // summary for the footer note.
       sources:
-        places.some((p) => p.source === 'curated') && places.some((p) => p.source === 'openstreetmap')
+        places.some((p) => p.source === 'curated') &&
+        places.some((p) => p.source === 'openstreetmap')
           ? ['curated', 'openstreetmap']
           : places.some((p) => p.source === 'curated')
             ? ['curated']
             : ['openstreetmap'],
       // Attribution is a licence condition of OpenStreetMap data, not a nicety.
       attribution: '© OpenStreetMap contributors',
-      warning:
-        skipped > 0
-          ? `Some OpenStreetMap entries were skipped: ${skippedUnnamed} unnamed, ${skippedNoCentre} without a usable location, ${truncated} beyond the top ${MAX_RESULTS}.`
-          : null,
+      skipped,
+      /**
+       * `warning` NOW MEANS ONLY "DEGRADED".
+       *
+       * It previously also carried "N unnamed, M without a usable location, K
+       * beyond the top 20" — so `[studio-locator] partial search failure` was
+       * logged on nearly every page load, alongside a complete and correct
+       * result set. A warning that always fires is a warning nobody reads, and
+       * it buried the case that genuinely matters: Overpass being unreachable.
+       */
+      warning: upstream.remark ? `OpenStreetMap reported: ${upstream.remark}` : null,
     },
     {
       status: 200,

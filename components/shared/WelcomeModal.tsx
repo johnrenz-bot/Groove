@@ -267,9 +267,15 @@ export function WelcomeModal({
             alt="Groove"
             width={200}
             height={124}
-            className="h-[124px] w-auto object-contain"
+            // No CSS sizing here on purpose. `h-[124px] w-auto` made the
+            // rendered width differ from the `width` attribute while the height
+            // matched exactly, which is precisely the mismatch next/image
+            // warns about ("has either width or height modified, but not the
+            // other"). The attributes already ARE the intended 200x124, so
+            // rendering at intrinsic size is both warning-free and identical.
+            className="object-contain"
             style={{ animation: 'wm-logo-pop 0.5s ease-out both' }}
-            priority
+            preload
           />
           {/* Soft light pool beneath the logo */}
           <div

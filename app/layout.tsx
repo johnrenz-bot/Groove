@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Source_Serif_4, Mr_De_Haviland } from 'next/font/google';
+import './fonts.css';
 import './globals.css';
 import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 import { SessionProvider } from '@/components/header/SessionProvider';
@@ -14,36 +14,44 @@ import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvide
 import { PageTransition } from '@/components/layout/PageTransition';
 import { BackToTopButton } from '@/components/shared/BackToTopButton';
 
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-});
-
 /**
- * Display face. Used only by `.g-display` / `.g-title` / `.font-display` — page
- * titles, greeting headlines and large section headings. Body copy, forms and
- * controls stay on Inter, which is what keeps the serif reading as editorial
- * rather than as a theme change.
+ * TYPEFACES ARE SELF-HOSTED — see `app/fonts.css` for the full story.
+ *
+ * Inter (body), Source Serif 4 (display) and Mr De Haviland (the tagline script
+ * face) used to load through `next/font/google`, and briefly through
+ * `next/font/local`. BOTH break the Vercel build:
+ *
+ *   Module not found: Can't resolve '@vercel/turbopack-next/internal/font/google/font'
+ *   Module not found: Can't resolve '@vercel/turbopack-next/internal/font/local/cssmodule.module.css'
+ *
+ * On Vercel, `next/font/*` is not handled by Next's own loader — Turbopack
+ * resolves it to a module inside Vercel's own package, `@vercel/turbopack-next`.
+ * That specifier exists nowhere in this repository and nowhere in the `next`
+ * package; it lives only inside Vercel's build image, so there is nothing here
+ * to correct, alias or pin. Both loaders go through that one injected module,
+ * so the only thing this project controls is whether it reaches it at all.
+ *
+ * It no longer does. `app/fonts.css` declares the `@font-face` rules and the
+ * three CSS variables the app consumes, and the files are committed under
+ * `public/fonts/`. Nothing in this file imports `next/font`.
+ *
+ * The faces, weights and styles are unchanged, and the metric-adjusted
+ * fallbacks in `fonts.css` carry the exact override values `next/font/google`
+ * generated — so the swap causes no reflow. `scripts/vendor-fonts.mjs`
+ * re-downloads the files; `scripts/verify-fonts.mjs --check` compares the
+ * emitted `@font-face` rules against a captured baseline.
+ *
+ * WHAT IS LEFT HERE IS PRELOADING, which `next/font` used to do automatically.
+ * These are the same three faces it preloaded — its latin subsets, visible as
+ * the `-s.p.` media filenames — so first paint is no slower than before. The
+ * serif italic file is deliberately NOT preloaded: it is used only inside
+ * running prose, never above the fold.
  */
-const serif = Source_Serif_4({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600', '700'],
-  style: ['normal', 'italic'],
-  variable: '--font-serif',
-});
-
-/**
- * Script face for the "Art • Discipline • Community" tagline.
- * Used only in the Greeting component.
- */
-const script = Mr_De_Haviland({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: '400',
-  variable: '--font-script',
-});
+const FONT_PRELOADS = [
+  '/fonts/inter-variable-100-900.woff2',
+  '/fonts/source-serif-4-normal-400-700.woff2',
+  '/fonts/mr-de-haviland-400.woff2',
+];
 
 export const metadata: Metadata = {
   title: 'Groove — Performing Arts Platform',
@@ -143,13 +151,28 @@ export default function RootLayout({
   return (
     // suppressHydrationWarning: the script above mutates <html> before React
     // hydrates, so the class here deliberately does not match it.
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${serif.variable} ${script.variable}`}
-    >
+    //
+    // The three `--font-*` variables are no longer attached to <html> as class
+    // names. `next/font` used to generate `__variable_xxx` classes and define
+    // the variables through them; `app/fonts.css` now defines them on `:root`
+    // directly, which needs no class and cannot be out of step with the markup.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* First-paint faces, replacing what `next/font` preloaded for us.
+            `crossOrigin` is required even same-origin: fonts are fetched in
+            CORS mode, and without it the browser fetches the file twice and
+            discards the first response. */}
+        {FONT_PRELOADS.map((href) => (
+          <link
+            key={href}
+            rel="preload"
+            href={href}
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+        ))}
       </head>
       <body className="isolate min-h-screen bg-background font-sans text-foreground antialiased">
         <LanguageProvider>

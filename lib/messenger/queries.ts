@@ -33,10 +33,61 @@ export interface ConversationSummary {
  * `read_at` is added by `supabase/messenger.sql`. Until that migration has been
  * applied the column does not exist, and PostgREST rejects the WHOLE query with
  * 42703 — an unread badge would otherwise cost the user their entire contact
- * list. So the column is probed once per session and dropped from the select if
- * it is missing, leaving a fully working thread list with no unread counts.
+ * list. So the column is probed and dropped from the select if it is missing,
+ * leaving a fully working thread list with no unread counts.
  */
 let readAtAvailable: boolean | null = null;
+
+/**
+ * THE VERDICT SURVIVES A PAGE LOAD.
+ *
+ * `readAtAvailable` alone was module state, which resets on every hard refresh
+ * and on every navigation that re-evaluates the module. On a database where
+ * `supabase/messenger.sql` has not been applied, that meant EVERY cold load of
+ * `/messages` fired:
+ *
+ *   GET /rest/v1/messages?select=...,read_at&or=(...)&order=created_at.desc&limit=500
+ *   -> 400 {"code":"42703","message":"column messages.read_at does not exist"}
+ *
+ * The retry hid the FEATURE failure — threads still rendered, just without
+ * unread counts — but the invalid request still went out on every single load,
+ * so the Network tab filled with 400s that nothing in the app explained.
+ *
+ * `sessionStorage` makes the answer sticky for the tab. The first load in a
+ * session still costs one rejected request, because there is no way to ask
+ * "does this column exist?" without either making that request or having a
+ * schema endpoint. Every load after it goes straight to the working shape.
+ *
+ * Cached, not permanent: the moment `supabase/messenger.sql` IS applied, the
+ * next successful query clears the flag and unread counts come back.
+ */
+const READ_AT_MISSING_KEY = 'groove-messenger-read-at-missing';
+
+function readAtFlagStoredMissing(): boolean {
+  try {
+    return window.sessionStorage.getItem(READ_AT_MISSING_KEY) === '1';
+  } catch {
+    // Private mode / storage blocked. Losing the cache only costs one extra
+    // rejected request per load, which is exactly where we started.
+    return false;
+  }
+}
+
+function markReadAtMissing(): void {
+  try {
+    window.sessionStorage.setItem(READ_AT_MISSING_KEY, '1');
+  } catch {
+    // Non-fatal: see readAtFlagStoredMissing().
+  }
+}
+
+function clearReadAtMissing(): void {
+  try {
+    window.sessionStorage.removeItem(READ_AT_MISSING_KEY);
+  } catch {
+    // Non-fatal.
+  }
+}
 
 const THREAD_COLUMNS = [
   'id',
@@ -48,6 +99,8 @@ const THREAD_COLUMNS = [
   'read_at',
 ];
 
+const THREAD_COLUMNS_WITHOUT_READ_AT = THREAD_COLUMNS.filter((column) => column !== 'read_at');
+
 type ThreadRow = Pick<
   Message,
   'id' | 'sender_id' | 'receiver_id' | 'message' | 'media_path' | 'created_at'
@@ -55,11 +108,25 @@ type ThreadRow = Pick<
 
 /**
  * Select the thread columns, dropping `read_at` when the migration is absent.
- * Resets to probing after a failure so a newly applied migration is picked up.
+ *
+ * Three sources of truth, most specific first: the sessionStorage flag set the
+ * last time Postgres rejected the column (survives reload), the module flag for
+ * this page's lifetime, and finally optimistic — try with the column and let
+ * `queryThreads` retry without it.
  */
 function selectThreadColumns(): string {
-  if (readAtAvailable === false) return THREAD_COLUMNS.filter((c) => c !== 'read_at').join(',');
+  if (readAtKnownMissing()) return THREAD_COLUMNS_WITHOUT_READ_AT.join(',');
   return THREAD_COLUMNS.join(',');
+}
+
+/**
+ * True once any evidence says the column is absent — the persisted tab verdict
+ * or the module flag. Every read-receipt query gates on this so a missing
+ * column costs exactly ONE rejected request per tab, no matter which of the
+ * three (thread list, unread badge, mark-read) happens to fire first.
+ */
+function readAtKnownMissing(): boolean {
+  return readAtAvailable === false || readAtFlagStoredMissing();
 }
 
 /**
@@ -88,8 +155,12 @@ async function queryThreads(
   build: (columns: string) => PromiseLike<{ data: unknown; error: unknown }>
 ): Promise<ThreadRow[]> {
   const first = await build(selectThreadColumns());
+
   if (!first.error) {
+    // The column is present — so is any previously cached "missing" verdict,
+    // which would otherwise keep suppressing unread counts forever.
     readAtAvailable = true;
+    clearReadAtMissing();
     return asRows(first.data);
   }
 
@@ -97,16 +168,21 @@ async function queryThreads(
     throw first.error;
   }
 
-  // Migration not applied: retry without the column so the feature still works,
-  // just without unread counts.
+  // Migration not applied: record it so no later load repeats this request, then
+  // retry without the column so the feature still works, just without unread
+  // counts.
   readAtAvailable = false;
+  markReadAtMissing();
   const second = await build(selectThreadColumns());
   if (second.error) throw second.error;
   return asRows(second.data);
 }
 
 function noteReadAtFailure(error: { code?: string; message?: string } | null) {
-  if (error && isMissingReadAt(error)) readAtAvailable = false;
+  if (error && isMissingReadAt(error)) {
+    readAtAvailable = false;
+    markReadAtMissing();
+  }
 }
 
 /** Whether an error is PostgREST saying the read-receipt column does not exist. */
@@ -277,7 +353,10 @@ export async function fetchConversationsForUser(userId: string): Promise<Convers
  * page that hosts it.
  */
 export async function fetchUnreadTotal(userId: string): Promise<number> {
-  if (readAtAvailable === false) return 0;
+  // Without this gate a fresh tab whose badge query runs BEFORE the thread
+  // query fired a second 400 (`select=id&receiver_id=...&read_at=is.null`) on
+  // every load, because only the module flag was consulted.
+  if (readAtKnownMissing()) return 0;
   const supabase = createClient();
   const { count, error } = await supabase
     .from('messages')
@@ -314,7 +393,7 @@ export async function fetchThread(userId: string, partnerId: string): Promise<Me
  * updated, so this cannot be used to mark someone else's traffic as read.
  */
 export async function markThreadRead(userId: string, partnerId: string): Promise<void> {
-  if (readAtAvailable === false) return;
+  if (readAtKnownMissing()) return;
   const supabase = createClient();
   const { error } = await supabase
     .from('messages')

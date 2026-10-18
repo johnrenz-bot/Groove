@@ -428,8 +428,20 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
           modestbranding: 1,
           rel: 0,
           iv_load_policy: 3,
-          loop: 1,
-          playlist: pendingTrackRef.current?.youtubeId || '3vmewzGcX2I',
+          // NO `loop: 1` and NO `playlist:` here. The pair is the documented
+          // recipe for making the EMBED loop one video forever — and it did:
+          // after the first track ended the embed restarted a short segment
+          // on repeat instead of advancing, and the dock's repeat setting was
+          // ignored. `playlist` is also pinned at construction time, so once a
+          // different track was loaded the embed's loop target was a stale
+          // video id.
+          //
+          // Looping is owned by the APP: `handleTrackEnded` re-plays the track
+          // when repeatMode is 'one' and otherwise defers to `playNext`, which
+          // honours 'none' (stop at the end) and 'all' (wrap). `playbackPolicy`
+          // then guarantees the auto-skip path can never cycle. Do not add
+          // these two playerVars back.
+          origin: typeof window !== 'undefined' ? window.location.origin : '',
         },
         events: {
           onReady: () => {

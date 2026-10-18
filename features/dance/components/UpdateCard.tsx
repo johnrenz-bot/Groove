@@ -137,7 +137,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 420px"
             className={`object-cover object-center ${isPastEvent ? 'grayscale-[60%]' : ''}`}
-            priority={false}
+            preload={false}
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
           />

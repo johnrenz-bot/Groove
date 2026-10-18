@@ -103,7 +103,7 @@ export function LoadingScreen({
             alt="Groove"
             width={160}
             height={50}
-            priority
+            preload
             className="h-10 w-auto object-contain sm:h-12"
           />
         </div>

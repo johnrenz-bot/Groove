@@ -85,7 +85,7 @@ export function AuthLayout({
             width={64}
             height={64}
             className="object-contain"
-            priority
+            preload
           />
         </span>
       )}
@@ -147,11 +147,12 @@ export function AuthLayout({
   if (split) {
     return (
       <div className="au-shell au-shell--split">
-        {/* Decorative only: `aria-hidden` on the wrapper and an empty alt, so the
-            texture is never announced and never lands in the accessibility tree. */}
-        <div className="au-backdrop" aria-hidden="true">
-          {image ? <Image src={image} alt={imageAlt} fill priority sizes="100vw" /> : null}
-        </div>
+        {/* No `.au-backdrop` here on purpose. It is `display: none` in split
+            mode (globals.css), so rendering it would still download and preload
+            a full-width photograph that never paints — which is exactly what
+            produced the browser's "not rendered at full viewport width" and
+            "preloaded but not used" warnings on /login. The photo lives on the
+            panel below; a second invisible copy is pure waste. */}
 
         {brandBar}
 
@@ -164,7 +165,7 @@ export function AuthLayout({
               src={image || '/image/bg/hero-theater.jpg'}
               alt=""
               fill
-              priority
+              preload
               sizes="(min-width: 1024px) 50vw, 0px"
               className="au-split-image"
             />
@@ -190,7 +191,7 @@ export function AuthLayout({
       {/* Decorative only: `aria-hidden` on the wrapper and an empty alt, so the
           texture is never announced and never lands in the accessibility tree. */}
       <div className="au-backdrop" aria-hidden="true">
-        {image ? <Image src={image} alt={imageAlt} fill priority sizes="100vw" /> : null}
+        {image ? <Image src={image} alt={imageAlt} fill preload sizes="100vw" /> : null}
       </div>
 
       {brandBar}

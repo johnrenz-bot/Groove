@@ -204,7 +204,7 @@ export function StudioLocatorMap({
         const { lat, lng } = (e as Leaflet.LeafletMouseEvent).latlng;
         onPickCenterRef.current?.({ lat, lng });
       };
-      map.on('latlngclick', onMapClick);
+      map.on('click', onMapClick);
 
       // The container is laid out by a CSS aspect ratio, so Leaflet can compute
       // its size before the first paint. invalidateSize() after mount makes the
@@ -216,7 +216,7 @@ export function StudioLocatorMap({
       teardown = () => {
         window.clearTimeout(timer);
         window.removeEventListener('resize', invalidate);
-        map?.off('latlngclick', onMapClick);
+        map?.off('click', onMapClick);
       };
 
       mapRef.current = map;

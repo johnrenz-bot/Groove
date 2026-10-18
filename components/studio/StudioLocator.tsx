@@ -38,7 +38,7 @@
  *   requests off the shared public Overpass instance.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, LocateFixed, MapPin, Navigation, Search } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -65,6 +65,97 @@ interface StudioPlace extends MapStudio {
   source: 'curated' | 'openstreetmap';
   mapsUrl: string;
   distanceKm: number;
+}
+
+/** Counts the route reports for entries it deliberately did not render. */
+interface SkippedCounts {
+  unnamed: number;
+  withoutLocation: number;
+  beyondLimit: number;
+}
+
+/**
+ * What one `/api/studios` call settled as. Never rejects: a transport error and
+ * a 5xx are both just `{ ok: false }`, so a caller cannot forget to handle one.
+ */
+type StudiosOutcome =
+  | { ok: true; places: unknown[]; warning: string | null }
+  | { ok: false; message: string };
+
+/**
+ * One call to the server route. Discovery comes from `/api/studios`, which
+ * merges the curated dataset (lib/studios/curatedStudios.ts) with live
+ * OpenStreetMap results; each row carries a `source` so the list can
+ * distinguish curated listings from community-sourced rows.
+ *
+ * The centre is part of the request so that "My Location" and a picked map
+ * centre search around where the user is actually looking. The radius is NOT
+ * sent: the route returns everything within its own generous search circle,
+ * and the 1/3/5/10 km selector filters that locally against the same centre,
+ * which is what makes the selector exact rather than approximate.
+ */
+async function fetchStudios(center: LatLng): Promise<StudiosOutcome> {
+  try {
+    const params = new URLSearchParams({
+      lat: String(center.lat),
+      lng: String(center.lng),
+    });
+    const res = await fetch(`/api/studios?${params.toString()}`);
+
+    const body = (await res.json().catch(() => null)) as {
+      places?: unknown[];
+      error?: string;
+      warning?: string | null;
+      skipped?: SkippedCounts;
+    } | null;
+
+    if (!res.ok || !Array.isArray(body?.places)) {
+      return {
+        ok: false,
+        message:
+          body?.error ?? 'Studio search is unavailable right now. Please try again in a moment.',
+      };
+    }
+
+    return { ok: true, places: body.places, warning: body.warning ?? null };
+  } catch {
+    return { ok: false, message: 'Studio search could not be reached. Please try again.' };
+  }
+}
+
+/**
+ * CLIENT-SIDE VALIDATION OF A DISCOVERY ROW.
+ *
+ * `/api/studios` already refuses to emit a nameless or coordinate-less OSM
+ * element — it counts them and moves on, so one bad entry never fails the
+ * search. This is the second gate, and it is here for a specific reason: this
+ * component renders whatever the response contains, and a row with a missing
+ * name or a `NaN` coordinate does not fail quietly — it becomes a nameless pin
+ * in the wrong place, or a card that reads "NaN km away", or a marker Leaflet
+ * throws on while adding it to the layer.
+ *
+ * It is deliberately the SAME rule the route applies, not a looser one, and it
+ * never repairs a row: a bad row is dropped, never filled in. Inventing a name
+ * or snapping a coordinate to the search centre would put a fabricated studio on
+ * a map, which is worse than showing one fewer.
+ */
+function isUsablePlace(value: unknown): value is StudioPlace {
+  if (!value || typeof value !== 'object') return false;
+  const row = value as Partial<StudioPlace>;
+
+  const name = typeof row.name === 'string' ? row.name.trim() : '';
+  if (!name) return false;
+
+  const { latitude, longitude } = row;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') return false;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return false;
+  if (latitude < -90 || latitude > 90) return false;
+  if (longitude < -180 || longitude > 180) return false;
+
+  if (typeof row.id !== 'string' || !row.id) return false;
+  if (typeof row.mapsUrl !== 'string' || !row.mapsUrl) return false;
+
+  return true;
 }
 
 /**
@@ -106,71 +197,102 @@ export function StudioLocator({
   const [picking, setPicking] = useState(false);
 
   // ---- data --------------------------------------------------------------
+  /**
+   * ONE IN-FLIGHT REQUEST PER CENTRE, SHARED ACROSS EFFECT RUNS.
+   *
+   * Strict Mode is `true` by default with the App Router, and it deliberately
+   * runs every effect twice on mount: setup, CLEANUP, setup. A guard that only
+   * remembered "which centre have I already asked for" deadlocked against that
+   * sequence — the first run started the fetch, the cleanup aborted it, and the
+   * second run saw the key and returned early, so the spinner never stopped.
+   *
+   * The ref therefore holds the REQUEST ITSELF, not a memory of one. The
+   * cleanup marks this effect run as cancelled but does NOT abort the shared
+   * fetch, so the second Strict Mode run attaches to the same promise and gets
+   * the same answer. One network request is dispatched, the result still
+   * lands, and moving the map centre replaces the entry and fetches normally.
+   *
+   * A FAILED entry is evicted as soon as the failure is known, so the next
+   * effect run is a genuine retry rather than a replay of the error.
+   */
+  const inflightRef = useRef<{ key: string; promise: Promise<StudiosOutcome> } | null>(null);
+
   useEffect(() => {
+    const centerKey = `${center.lat.toFixed(6)},${center.lng.toFixed(6)}`;
     let cancelled = false;
-    const ctrl = new AbortController();
 
-    void (async () => {
-      setLoading(true);
-      setLoadError(null);
-      try {
-        // Discovery comes from the server route /api/studios, which merges the
-        // curated dataset (lib/studios/curatedStudios.ts) with live
-        // OpenStreetMap results. Each row carries a `source` so the list can
-        // distinguish curated listings from community-sourced rows.
-        //
-        // The centre is part of the request so that "My Location" and a picked
-        // map centre search around where the user is actually looking. The
-        // radius is NOT sent: the route returns everything within its own
-        // generous search circle, and the 1/3/5/10 km selector filters that
-        // locally against the same centre, which is what makes the selector
-        // exact rather than approximate.
-        const params = new URLSearchParams({
-          lat: String(center.lat),
-          lng: String(center.lng),
-        });
-        const res = await fetch(`/api/studios?${params.toString()}`, {
-          signal: ctrl.signal,
-        });
-
-        const body = (await res.json().catch(() => null)) as {
-          places?: StudioPlace[];
-          error?: string;
-          warning?: string | null;
-        } | null;
-
-        if (cancelled) return;
-
-        if (!res.ok || !body?.places) {
-          setStudios([]);
-          setLoadError(
-            body?.error ??
-              'Studio search is unavailable right now. Please try again in a moment.'
-          );
-        } else {
-          // A partial failure (one search phrase rejected) still yields usable
-          // results, so it is surfaced without discarding what was found.
-          if (body.warning) {
-            console.warn('[studio-locator] partial search failure:', body.warning);
-          }
-          setStudios((body.places ?? []) as Studio[]);
+    const entry = inflightRef.current;
+    let outcomePromise = entry?.promise;
+    if (!outcomePromise || entry?.key !== centerKey) {
+      outcomePromise = fetchStudios(center);
+      const mine = outcomePromise;
+      inflightRef.current = { key: centerKey, promise: mine };
+      void mine.then((outcome) => {
+        // Evict a failure so the same centre can be retried on the next run.
+        if (!outcome.ok && inflightRef.current?.promise === mine) {
+          inflightRef.current = null;
         }
-      } catch (err) {
-        if (cancelled || (err as { name?: string })?.name === 'AbortError') return;
+      });
+    }
+
+    setLoading(true);
+    setLoadError(null);
+
+    void outcomePromise.then((outcome) => {
+      if (cancelled) return;
+      setLoading(false);
+
+      if (!outcome.ok) {
         setStudios([]);
-        setLoadError('Studio search could not be reached. Please try again.');
-      } finally {
-        if (!cancelled) setLoading(false);
+        setLoadError(outcome.message);
+        return;
       }
-    })();
+
+      /**
+       * VALIDATE BEFORE RENDERING.
+       *
+       * `filter` rather than a throw: one malformed row must not discard the
+       * good ones alongside it. `isUsablePlace` is the same rule
+       * `/api/studios` applies, so in practice this rejects nothing — which is
+       * the point. It is the guard that means a future change to the route, a
+       * cached response from an older deploy, or a partially malformed
+       * upstream payload cannot put a nameless marker or a NaN coordinate on
+       * the map.
+       */
+      const usable = outcome.places.filter(isUsablePlace);
+      const rejected = outcome.places.length - usable.length;
+
+      if (rejected > 0) {
+        console.warn(
+          `[studio-locator] dropped ${rejected} malformed ${rejected === 1 ? 'entry' : 'entries'} from the response; the rest were kept.`
+        );
+      }
+
+      /**
+       * ROUTINE COUNTS ARE NOT WARNINGS.
+       *
+       * The route reports how many OpenStreetMap elements it skipped —
+       * unnamed buildings, elements with no usable coordinate, results
+       * beyond the top N. That is what filtering discovery data IS, and it
+       * happens on essentially every real search. It is reported under
+       * `skipped`, not `warning`, precisely so this component does not
+       * `console.warn` a complete and correct result set on every page load.
+       */
+      if (outcome.warning) {
+        // Now only: Overpass could not be reached, or answered with a
+        // remark. That IS degraded and does deserve to be noticed.
+        console.warn('[studio-locator] studio search is degraded:', outcome.warning);
+      }
+
+      setStudios(usable);
+    });
 
     return () => {
       cancelled = true;
-      ctrl.abort();
     };
     // `center` intentionally drives the refetch: moving the map centre should
-    // search around the new place. sameCenter() upstream already stops
-    // rounding-error jitter from turning this into a request loop.
+    // search around the new place. `inflightRef` is a ref, so it is stable and
+    // does not belong in this list.
   }, [center]);
 
   // ---- filtering ---------------------------------------------------------

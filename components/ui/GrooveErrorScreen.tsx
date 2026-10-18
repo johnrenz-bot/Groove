@@ -67,7 +67,7 @@ export function GrooveErrorScreen({
           alt="Groove"
           width={56}
           height={56}
-          priority
+          preload
           className="mx-auto h-14 w-14 rounded-2xl object-contain"
         />
 

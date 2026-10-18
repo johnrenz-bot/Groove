@@ -109,7 +109,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                     reducedMotion ? 'transition-none' : 'group-hover:scale-[1.05]'
                   )}
                   sizes="(max-width: 1024px) 100vw, 460px"
-                  priority={false}
+                  preload={false}
                   placeholder="blur"
                   blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
                 />

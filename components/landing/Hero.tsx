@@ -108,7 +108,7 @@ export function Hero({ stats }: HeroProps) {
               src="/image/bg/hero-theater.jpg"
               alt="Performers on stage during a GroovePH rehearsal."
               fill
-              priority
+              preload
               sizes="(max-width: 900px) 100vw, 320px"
               className="object-cover"
             />

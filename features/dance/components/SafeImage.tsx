@@ -104,7 +104,7 @@ export function SafeImage({
           referrerPolicy="no-referrer"
           onLoad={() => setLoaded(true)}
           onError={handleError}
-          priority={eager}
+          preload={eager}
           style={{ opacity: loaded ? 1 : 0, ...imgStyle }}
         />
       </span>
@@ -136,7 +136,7 @@ export function SafeImage({
         referrerPolicy="no-referrer"
         onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
-        priority={eager}
+        preload={eager}
         style={imgStyle}
       />
     </div>

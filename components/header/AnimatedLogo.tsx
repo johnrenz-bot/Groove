@@ -55,7 +55,7 @@ export function AnimatedLogo({
           alt=""
           width={40}
           height={40}
-          priority
+          preload
           className="hx-logo-img"
         />
         {/* The shimmer sweep lives on the mark, not the wordmark: at 40px the

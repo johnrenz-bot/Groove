@@ -24,12 +24,21 @@ export function HeroBanner({
 }: HeroBannerProps) {
   return (
     <section className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border shadow-[0_1px_2px_rgba(20,40,75,0.06),0_8px_24px_rgba(20,40,75,0.05)] sm:aspect-[2/1] lg:aspect-auto lg:h-[200px]">
-      {/* Background image — fills the whole banner, no gaps */}
+      {/* Background image — fills the whole banner, no gaps.
+
+          `preload` because this banner is the Largest Contentful Paint element
+          on both dashboards: without it the image is lazy-loaded, and the
+          browser logs "Image … was detected as the Largest Contentful Paint
+          (LCP). Please add the `loading=\"eager\"` property if this image is
+          above the fold" on every dashboard load. It is above the fold — the
+          banner is the first section under the greeting on /client/home and
+          /coach/home — so it is preloaded rather than deferred. */}
       <div className="absolute inset-0">
         <Image
           src={image}
           alt=""
           fill
+          preload
           sizes="100vw"
           className="object-cover object-center"
           aria-hidden="true"

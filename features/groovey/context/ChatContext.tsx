@@ -174,9 +174,23 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             let movementStyle = '';
 
             if (profile.role === 'client') {
+              // SELECT ONLY COLUMNS THAT EXIST. `public.client_profiles` has
+              // exactly one content column — `talent` (plus `valid_id_path`);
+              // see supabase/schema.sql and the registration upsert in
+              // app/(public)/(auth)/register/client/page.tsx. This used to ask
+              // for `talent, genres, skill_level, goals`, none of which besides
+              // `talent` are real, so PostgREST rejected the WHOLE query with
+              // 42703 and every signed-in client dashboard load put a red
+              // `GET /rest/v1/client_profiles?... → 400` in the Network tab.
+              //
+              // The failure was silent here (`.maybeSingle()` swallows the
+              // error), so the only observable effect was the 400 — `clientSpec`
+              // came back null and none of the branches below ever ran. The
+              // genres/movementStyle parsing is gone with the bad columns for
+              // the same reason: it could never have executed.
               const { data: clientSpec } = await supabase
                 .from('client_profiles')
-                .select('talent, genres, skill_level, goals')
+                .select('talent')
                 .eq('id', user.id)
                 .maybeSingle();
 
@@ -187,19 +201,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   else if (t.includes('sing')) discipline = 'Singing';
                   else if (t.includes('act')) discipline = 'Acting';
                   else if (t.includes('theater')) discipline = 'Musical Theater';
-                }
-
-                if (clientSpec.genres) {
-                  try {
-                    const parsed = JSON.parse(clientSpec.genres);
-                    if (Array.isArray(parsed?.genres)) {
-                      movementStyle = parsed.genres.join(', ');
-                    } else if (Array.isArray(parsed)) {
-                      movementStyle = parsed.join(', ');
-                    }
-                  } catch {
-                    movementStyle = String(clientSpec.genres);
-                  }
                 }
               }
             } else if (profile.role === 'coach') {
