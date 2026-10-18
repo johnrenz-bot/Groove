@@ -1,0 +1,173 @@
+/* ==============================================================================
+   SELF-HOSTED TYPEFACES — READ THIS BEFORE "SIMPLIFYING" IT AWAY.
+
+   These three families used to be loaded with `next/font/google`, then
+   `next/font/local`. BOTH fail to build on Vercel:
+
+     Module not found: Can't resolve '@vercel/turbopack-next/internal/font/google/font'
+     Module not found: Can't resolve '@vercel/turbopack-next/internal/font/local/cssmodule.module.css'
+
+   Root cause, precisely: on Vercel, `next/font/*` is NOT handled by Next's own
+   loader. Turbopack resolves it to a module inside Vercel's own package,
+   `@vercel/turbopack-next`. That specifier appears nowhere in this repository
+   and nowhere in the `next` package — it exists only inside Vercel's build
+   image — so there is no import to fix, no alias to add and no version to pin
+   from here. It is a skew between the Turbopack that Vercel injects and this
+   `next@16.3.3`.
+
+   Swapping loaders does not help, because both loaders go through the same
+   injected module. The only thing the repository controls is whether it
+   reaches that code path at all. Plain `@font-face` does not: no `next/font`
+   import, nothing for the broken module to break, and no network access at
+   build time.
+
+   WHAT IS GIVEN UP, AND WHAT IS GIVEN BACK
+
+     `next/font` also preloads, self-hosts, and generates a metric-adjusted
+     fallback so the swap does not shift layout. All three are done by hand
+     here:
+
+       - the files are committed under `public/fonts/` (self-hosted);
+       - `app/layout.tsx` `<link rel="preload">`s the three first-paint faces;
+       - the `* Fallback` faces below carry the EXACT `ascent-override` /
+         `descent-override` / `line-gap-override` / `size-adjust` values that
+         `next/font/google` generated for these fonts. They are not guesses —
+         they are lifted from the build that produced them, so layout shift on
+         the swap behaves exactly as it did before.
+
+   TWO THINGS THAT ARE LOAD-BEARING
+
+     - INTER IS A VARIABLE FONT covering 100-900. It must stay declared over the
+       whole range. Pinning it to `400` makes every `font-bold` and
+       `font-semibold` in the app fall back to synthetic bold: no error, just
+       quietly wrong type everywhere.
+
+     - THE FAMILY NAMES MUST STAY EXACTLY THESE. `components/dashboard/
+       Greeting.tsx` references `'Mr De Haviland'` as a literal string, and
+       `globals.css` composes `--font-sans` / `--font-serif` from these names.
+       `next/font/local` renames families after the CSS VARIABLE (`--font-serif`
+       would register as `serif`), which breaks that reference silently.
+   ========================================================================== */
+
+/* ── Body face ────────────────────────────────────────────────────────────
+   One variable file covering 100-900. `next/font/google` served the same file
+   for this family because the app declared no `weight`. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-variable-100-900.woff2') format('woff2');
+}
+
+/* ── Display face ─────────────────────────────────────────────────────────
+   Page titles, greeting headlines and large section headings (`.g-display`,
+   `.g-title`, `.font-display`). Body copy, forms and controls stay on Inter.
+
+   Google backs 400, 600 and 700 with a SINGLE variable font per style, so all
+   three declarations point at one file — exactly what the previous build
+   emitted. Three `@font-face` rules, two downloads. */
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/source-serif-4-normal-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/source-serif-4-normal-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/source-serif-4-normal-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/source-serif-4-italic-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/source-serif-4-italic-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/source-serif-4-italic-400-700.woff2') format('woff2');
+}
+
+/* ── Script face ──────────────────────────────────────────────────────────
+   The "Art • Discipline • Community" tagline. Referenced BY NAME from
+   components/dashboard/Greeting.tsx — renaming this family breaks that. */
+@font-face {
+  font-family: 'Mr De Haviland';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/mr-de-haviland-400.woff2') format('woff2');
+}
+
+/* ── Metric-adjusted fallbacks ─────────────────────────────────────────────
+   While the real face is still downloading, these stand in for it with the
+   SAME ascent, descent, line gap and size, so the swap causes no visible reflow.
+   Values are copied from the `next/font/google` build that used to generate
+   them — not approximated. */
+
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  ascent-override: 90.44%;
+  descent-override: 22.52%;
+  line-gap-override: 0%;
+  size-adjust: 107.12%;
+}
+
+@font-face {
+  font-family: 'Source Serif 4 Fallback';
+  src: local('Times New Roman');
+  ascent-override: 87.87%;
+  descent-override: 28.41%;
+  line-gap-override: 0%;
+  size-adjust: 117.91%;
+}
+
+@font-face {
+  font-family: 'Mr De Haviland Fallback';
+  src: local('Arial');
+  ascent-override: 153.57%;
+  descent-override: 77.58%;
+  line-gap-override: 0%;
+  size-adjust: 56.98%;
+}
+
+/* ── The three variables the app actually consumes ──────────────────────────
+   Unlayered on purpose. Tailwind v4 emits its own `--font-sans` / `--font-serif`
+   defaults inside `@layer theme`, and an unlayered author rule outranks a
+   layered one regardless of order — so these win without depending on where in
+   `globals.css` the import lands.
+
+   Each list is: metric-adjusted shim, then the real face, then the system
+   stack. That is the shape `next/font` produced, which is why nothing in
+   `globals.css` had to change. */
+:root {
+  --font-sans:
+    'Inter Fallback', 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif:
+    'Source Serif 4 Fallback', 'Source Serif 4', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-script: 'Mr De Haviland Fallback', 'Mr De Haviland', cursive;
+}
