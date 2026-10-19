@@ -1,7 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Loader2, RefreshCw, Search, Trophy, Users as UsersIcon } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import {
+  CheckCircle2,
+  LayoutGrid,
+  List as ListIcon,
+  Loader2,
+  MapPin,
+  RefreshCw,
+  Search,
+  Trophy,
+  UserPlus,
+  Users as UsersIcon,
+  X,
+} from 'lucide-react';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import {
@@ -9,6 +22,8 @@ import {
   UserListItemSkeleton,
   type UserListItemProps,
 } from '@/components/shared/UserListItem';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { createClient } from '@/lib/supabase/client';
 import {
   fetchFollowingState,
@@ -18,22 +33,36 @@ import {
 } from '@/lib/profileFollows';
 import type { Profile } from '@/lib/types';
 import { cn } from '@/components/shared/cn';
+import { formatDate, getInitials } from '@/lib/utils';
 
 /**
  * /users — the member directory, shared by coaches and clients.
  *
- * Data comes from /api/users, which runs the search, role filter, sort and
- * pagination server-side (PostgREST) — this page only owns the input and the
- * optimistic follow state. The search input is debounced so a keystroke does
- * not fire a request; every query change resets to page one.
+ * Data still comes from /api/users, which runs search, the role filter, the new
+ * verification filter, sort and pagination server-side (PostgREST). This page
+ * owns only the inputs, the view mode, and optimistic follow state. It still
+ * never filters or sorts a client-side snapshot.
  *
- * Rows use the same <UserListItem> as the follow-lists modal, and follow
- * state is loaded in one round trip per page via fetchFollowingState, so a
- * page never fires one query per row.
+ * WHAT IS NEW HERE, AND WHAT IS NOT
+ *   New: a view toggle (grid / list), a verification filter, a live result
+ *   summary, member-count stat tiles, and a card layout for wide screens.
+ *   Unchanged on purpose: the route, the endpoint contract (the new `verified`
+ *   parameter is optional and defaults to the previous behaviour), the follow
+ *   round trip model (one query per page, never one per row), and
+ *   `UserListItem`, which the follow-lists modal also renders. The list view IS
+ *   that component — reusing it is what keeps the two surfaces identical.
+ *
+ * PRIVACY
+ *   Rows carry only PUBLIC_PROFILE_COLUMNS. `status` is deliberately NOT shown:
+ *   it is a presence signal, not a directory attribute, and the RLS on
+ *   `public.profiles` is row-level, so requesting it would put every member's
+ *   live presence in this endpoint's response for no editorial benefit.
  */
 
 type RoleFilter = 'all' | 'coach' | 'client';
+type VerifiedFilter = 'all' | 'yes' | 'no';
 type SortKey = 'followers' | 'newest' | 'az';
+type ViewMode = 'grid' | 'list';
 
 interface DirectoryUser extends FollowPerson {
   created_at: string;
@@ -52,13 +81,14 @@ interface ListResponse {
 
 export default function UsersDirectoryPage() {
   const [viewerId, setViewerId] = useState<string | null>(null);
-  const [viewerRole, setViewerRole] = useState<'client' | 'coach' | 'admin'>('client');
   const [viewerProfile, setViewerProfile] = useState<Profile | null>(null);
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+  const [verifiedFilter, setVerifiedFilter] = useState<VerifiedFilter>('all');
   const [sort, setSort] = useState<SortKey>('followers');
+  const [view, setView] = useState<ViewMode>('grid');
 
   const [users, setUsers] = useState<DirectoryUser[]>([]);
   const [total, setTotal] = useState<number | null>(null);
@@ -93,9 +123,6 @@ export default function UsersDirectoryPage() {
       if (!profile || cancelled) return;
       setViewerId(profile.id);
       setViewerProfile(profile as Profile);
-      if (profile.role === 'coach' || profile.role === 'client' || profile.role === 'admin') {
-        setViewerRole(profile.role);
-      }
     })();
     return () => {
       cancelled = true;
@@ -122,6 +149,7 @@ export default function UsersDirectoryPage() {
         const url = new URL('/api/users', window.location.origin);
         url.searchParams.set('q', debouncedQuery);
         url.searchParams.set('role', roleFilter);
+        url.searchParams.set('verified', verifiedFilter);
         url.searchParams.set('sort', sort);
         url.searchParams.set('page', String(pageToLoad));
         url.searchParams.set('pageSize', '20');
@@ -131,7 +159,7 @@ export default function UsersDirectoryPage() {
           setError(body.error ?? `The directory could not be loaded (${res.status}).`);
           return;
         }
-        const key = `${debouncedQuery}|${roleFilter}|${sort}|${viewerId ?? 'anon'}`;
+        const key = `${debouncedQuery}|${roleFilter}|${verifiedFilter}|${sort}|${viewerId ?? 'anon'}`;
         if (mode === 'reset' || fetchedFollowingFor.current !== key) {
           fetchedFollowingFor.current = key;
           setFollowing(await fetchFollowingState(viewerId ?? '', body.users.map((u) => u.id)));
@@ -150,10 +178,10 @@ export default function UsersDirectoryPage() {
         setLoadingMore(false);
       }
     },
-    [debouncedQuery, roleFilter, sort, viewerId]
+    [debouncedQuery, roleFilter, verifiedFilter, sort, viewerId]
   );
 
-  {/* Initial + query/filter/sort changes: always back to page one. */}
+  // Initial + query/filter/sort changes: always back to page one.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadPage(1, 'reset');
@@ -252,19 +280,60 @@ export default function UsersDirectoryPage() {
     { value: 'client', label: 'Clients' },
   ];
 
+  /** Counts for the stat tiles, from what is actually loaded right now. */
+  const stats = useMemo(() => {
+    const coaches = users.filter((u) => u.role === 'coach').length;
+    const clients = users.filter((u) => u.role === 'client').length;
+    const verified = users.filter((u) => u.account_verified).length;
+    return { coaches, clients, verified };
+  }, [users]);
+
+  const filtersActive = Boolean(debouncedQuery) || roleFilter !== 'all' || verifiedFilter !== 'all';
+
+  const resetFilters = () => {
+    setQuery('');
+    setRoleFilter('all');
+    setVerifiedFilter('all');
+    setSort('followers');
+  };
+
   return (
     <div className="min-h-screen bg-background pb-16 text-foreground">
       <SiteHeader />
 
-      <main className="mx-auto max-w-4xl px-4 pt-8 md:px-8 md:pt-10">
+      <main className="mx-auto max-w-6xl px-4 pt-8 md:px-8 md:pt-10">
         <PageHeader
           eyebrow="Community"
           title="Members"
           description="Find coaches and performers around Groove. Search by name or username, filter by role, and follow the people whose work you want to see."
         />
 
-        {/* Search + role tabs + sort */}
-        <div className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+        {/* ── Stat tiles. Derived from the loaded page, not a second query. ── */}
+        {!loading && users.length > 0 && (
+          <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Showing', value: users.length, hint: 'on this page' },
+              {
+                label: 'Total',
+                value: typeof total === 'number' ? total : users.length,
+                hint: filtersActive ? 'match your filters' : 'members',
+              },
+              { label: 'Coaches', value: stats.coaches, hint: 'on this page' },
+              { label: 'Verified', value: stats.verified, hint: 'on this page' },
+            ].map((tile) => (
+              <div key={tile.label} className="g-card px-4 py-3">
+                <dt className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                  {tile.label}
+                </dt>
+                <dd className="mt-1 text-xl font-bold tabular-nums text-foreground">{tile.value}</dd>
+                <p className="text-[10px] text-subtle-foreground">{tile.hint}</p>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {/* ── Search + sort ── */}
+        <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
           <div className="relative">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle-foreground"
@@ -283,9 +352,9 @@ export default function UsersDirectoryPage() {
                 type="button"
                 onClick={() => setQuery('')}
                 aria-label="Clear search"
-                className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                ×
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -300,33 +369,107 @@ export default function UsersDirectoryPage() {
             <option value="newest">Newest</option>
             <option value="az">A–Z</option>
           </select>
+
+          {/* View toggle */}
+          <div
+            role="group"
+            aria-label="Change layout"
+            className="flex h-[42px] items-center rounded-xl border border-border bg-muted/50 p-1"
+          >
+            {(
+              [
+                { value: 'grid', label: 'Cards', Icon: LayoutGrid },
+                { value: 'list', label: 'List', Icon: ListIcon },
+              ] as const
+            ).map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setView(value)}
+                aria-pressed={view === value}
+                aria-label={`${label} view`}
+                title={`${label} view`}
+                className={cn(
+                  'flex h-full cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors',
+                  view === value
+                    ? 'bg-card text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div
-          role="tablist"
-          aria-label="Filter by role"
-          className="mb-6 inline-flex rounded-xl border border-border bg-muted/50 p-1"
-        >
-          {roleTabs.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              role="tab"
-              aria-selected={roleFilter === tab.value}
-              onClick={() => setRoleFilter(tab.value)}
-              className={cn(
-                'cursor-pointer rounded-lg px-4 py-1.5 text-xs font-bold transition-colors',
-                roleFilter === tab.value
-                  ? 'bg-card text-foreground shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* ── Filters ── */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div
+            role="tablist"
+            aria-label="Filter by role"
+            className="inline-flex rounded-xl border border-border bg-muted/50 p-1"
+          >
+            {roleTabs.map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                role="tab"
+                aria-selected={roleFilter === tab.value}
+                onClick={() => setRoleFilter(tab.value)}
+                className={cn(
+                  'cursor-pointer rounded-lg px-4 py-1.5 text-xs font-bold transition-colors',
+                  roleFilter === tab.value
+                    ? 'bg-card text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="group" aria-label="Filter by verification" className="flex gap-1.5">
+              {(
+                [
+                  { value: 'all', label: 'Any' },
+                  { value: 'yes', label: 'Verified' },
+                  { value: 'no', label: 'Unverified' },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  aria-pressed={verifiedFilter === opt.value}
+                  onClick={() => setVerifiedFilter(opt.value)}
+                  className={cn(
+                    'inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold transition',
+                    verifiedFilter === opt.value
+                      ? 'border-accent-border bg-accent-soft text-accent-text'
+                      : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
+                  )}
+                >
+                  {opt.value === 'yes' && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold text-muted-foreground transition hover:border-border-strong hover:text-foreground"
+              >
+                <X className="h-3 w-3" aria-hidden="true" />
+                Clear filters
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Top followed */}
+        {/* ── Top followed ── */}
         {topUsers.length > 0 && !query && roleFilter === 'all' && (
           <section className="g-card mb-6 overflow-hidden" aria-label="Top followed members">
             <h2 className="flex items-center gap-2 border-b border-divider px-5 py-4 text-sm font-bold tracking-[-0.01em] text-foreground">
@@ -354,43 +497,80 @@ export default function UsersDirectoryPage() {
           </div>
         )}
 
-        {/* Directory */}
+        {/* ── Results ── */}
         {error ? (
-          <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card px-6 py-12 text-center">
-            <span className="text-sm text-muted-foreground">{error}</span>
-            <button
-              type="button"
+          <div
+            role="alert"
+            className="flex flex-col items-center gap-4 rounded-2xl border border-danger/30 bg-danger-soft px-6 py-12 text-center"
+          >
+            <span className="text-sm text-danger">{error}</span>
+            <Button
+              size="sm"
               onClick={() => void loadPage(1, 'reset')}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground transition hover:bg-accent-hover"
+              icon={<RefreshCw className="h-3.5 w-3.5" />}
             >
-              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
               Try again
-            </button>
+            </Button>
           </div>
         ) : loading ? (
-          <div className="g-card overflow-hidden">
-            <ul className="divide-y divide-[var(--divider)] px-5">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <UserListItemSkeleton key={i} />
+          view === 'grid' ? (
+            <div
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              role="status"
+              aria-live="polite"
+            >
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="g-card space-y-3 p-5">
+                  <div className="flex items-center gap-3">
+                    <span className="h-12 w-12 animate-pulse rounded-full bg-muted" />
+                    <div className="flex-1 space-y-2">
+                      <span className="block h-3.5 w-2/3 animate-pulse rounded bg-muted" />
+                      <span className="block h-3 w-1/2 animate-pulse rounded bg-muted/70" />
+                    </div>
+                  </div>
+                  <span className="block h-3 w-3/4 animate-pulse rounded bg-muted/70" />
+                </div>
               ))}
-            </ul>
-          </div>
+            </div>
+          ) : (
+            <div className="g-card overflow-hidden" role="status" aria-live="polite">
+              <ul className="divide-y divide-[var(--divider)] px-5">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <UserListItemSkeleton key={i} />
+                ))}
+              </ul>
+            </div>
+          )
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-muted text-subtle-foreground">
               <UsersIcon className="h-5 w-5" aria-hidden="true" />
             </span>
             <p className="text-sm text-muted-foreground">
-              {query
+              {debouncedQuery
                 ? `No members match “${debouncedQuery}”.`
-                : 'No members here yet — be the first to join the community.'}
+                : filtersActive
+                  ? 'No members match these filters.'
+                  : 'No members here yet — be the first to join the community.'}
             </p>
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground transition hover:bg-accent-hover"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+                Clear filters
+              </button>
+            )}
           </div>
         ) : (
-          <div className="g-card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-divider px-5 py-3">
+          <>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
-                {typeof total === 'number' ? `${total} member${total === 1 ? '' : 's'}` : 'Members'}
+                {typeof total === 'number'
+                  ? `${total} member${total === 1 ? '' : 's'}`
+                  : `${users.length} member${users.length === 1 ? '' : 's'}`}
               </span>
               {debouncedQuery && (
                 <span className="text-xs text-muted-foreground">
@@ -398,16 +578,137 @@ export default function UsersDirectoryPage() {
                 </span>
               )}
             </div>
-            <ul className="divide-y divide-[var(--divider)] px-5">
-              {users.map((user) => (
-                <UserListItem key={user.id} {...rowProps(user)} />
-              ))}
-              {loadingMore &&
-                [0, 1].map((i) => <UserListItemSkeleton key={`more-${i}`} />)}
-            </ul>
+
+            {view === 'grid' ? (
+              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {users.map((user) => {
+                  const isSelf = viewerId !== null && user.id === viewerId;
+                  const isFollowing = following.has(user.id);
+                  const display =
+                    `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim() ||
+                    user.username ||
+                    'Groove member';
+                  const location = [user.city_name, user.province_name].filter(Boolean).join(', ');
+
+                  return (
+                    <li
+                      key={user.id}
+                      className="g-card flex flex-col p-5 transition-colors hover:border-accent-border"
+                    >
+                      <div className="flex items-start gap-3">
+                        <Link
+                          href={`/userprofile/${user.id}`}
+                          aria-label={`View ${display}'s profile`}
+                          className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        >
+                          <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-bold text-accent-text">
+                            {user.photo_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={user.photo_url} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              getInitials(user.firstname ?? 'G', user.lastname ?? 'M')
+                            )}
+                          </span>
+                        </Link>
+
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/userprofile/${user.id}`}
+                            className="truncate text-sm font-bold text-foreground hover:text-accent-text hover:underline hover:underline-offset-4"
+                          >
+                            {display}
+                          </Link>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge
+                              variant={user.role === 'coach' ? 'accent' : 'neutral'}
+                              className="text-[10px]"
+                            >
+                              {user.role === 'coach' ? 'Coach' : 'Client'}
+                            </Badge>
+                            {user.account_verified && (
+                              <Badge variant="confirmed" className="text-[10px]">
+                                <CheckCircle2 className="h-2.5 w-2.5" aria-hidden="true" />
+                                Verified
+                              </Badge>
+                            )}
+                            {isSelf && (
+                              <Badge variant="neutral" className="text-[10px]">
+                                You
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <dl className="mt-4 space-y-1.5 text-[11px] text-muted-foreground">
+                        {user.username && (
+                          <div className="flex items-center gap-1.5">
+                            <dt className="sr-only">Username</dt>
+                            <dd className="truncate font-medium">@{user.username}</dd>
+                          </div>
+                        )}
+                        {location && (
+                          <div className="flex items-center gap-1.5">
+                            <dt className="sr-only">Location</dt>
+                            <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <dd className="truncate">{location}</dd>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                          <dt className="sr-only">Statistics</dt>
+                          <dd className="tabular-nums">
+                            {user.followerCount} follower{user.followerCount === 1 ? '' : 's'}
+                          </dd>
+                          <dd className="tabular-nums text-subtle-foreground">
+                            Joined {formatDate(user.created_at)}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      {/* The follow control sits OUTSIDE the profile link: a button
+                          inside an anchor is invalid nesting and cannot be
+                          reliably clicked. Same rule as UserListItem. */}
+                      {viewerId && !isSelf && (
+                        <div className="mt-4 border-t border-divider pt-3">
+                          <Button
+                            size="sm"
+                            variant={isFollowing ? 'outline' : 'primary'}
+                            loading={busyId === user.id}
+                            onClick={() => void onToggleFollow(user)}
+                            icon={<UserPlus className="h-3.5 w-3.5" />}
+                            className="w-full"
+                          >
+                            {busyId === user.id
+                              ? 'Updating…'
+                              : isFollowing
+                                ? 'Following'
+                                : 'Follow'}
+                          </Button>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="g-card overflow-hidden">
+                <ul className="divide-y divide-[var(--divider)] px-5">
+                  {users.map((user) => (
+                    <UserListItem key={user.id} {...rowProps(user)} />
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {loadingMore && (
+              <div className="mt-4 flex justify-center" role="status" aria-live="polite">
+                <Loader2 className="h-5 w-5 animate-spin text-accent-text" aria-hidden="true" />
+                <span className="sr-only">Loading more members</span>
+              </div>
+            )}
 
             {hasMore && (
-              <div className="border-t border-divider py-4 text-center">
+              <div className="mt-5 border-t border-divider pt-4 text-center">
                 <button
                   type="button"
                   onClick={() => void loadPage(page + 1, 'more')}
@@ -419,12 +720,18 @@ export default function UsersDirectoryPage() {
                 </button>
               </div>
             )}
-          </div>
+          </>
         )}
 
         {toggleError && (
           <p role="alert" className="mt-4 text-xs text-danger">
             {toggleError}
+          </p>
+        )}
+
+        {viewerProfile && !loading && users.length > 0 && (
+          <p className="mt-8 text-center text-[11px] text-subtle-foreground">
+            Showing public profile information only. Contact details stay private.
           </p>
         )}
       </main>

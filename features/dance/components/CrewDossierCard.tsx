@@ -83,7 +83,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
     const body = encodeURIComponent(
       `Hello Groove team,\n\nI would like to suggest an update for the ${field.toLowerCase()} of ${crew.name}.\n\nCurrent value: Not verified\nCorrect information:\nSource (if available):\n\nThank you.`
     );
-    window.open(`mailto:Groove1152000@gmail.com?subject=${subject}&body=${body}`);
+    window.open(`mailto:grooveyyph@gmail.com?subject=${subject}&body=${body}`);
   }, [crew.name]);
 
   return (
@@ -97,7 +97,10 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
         {/* LEFT COLUMN */}
         <div className="flex flex-col gap-6">
           {/* Hero Photo */}
-          <div className="relative rounded-2xl overflow-hidden" style={{ height: '440px' }}>
+          {/* Hero Photo. 440px was a fixed inline height that ignored the 14px
+              root; 380px keeps the portrait crop at the same shape while letting
+              the dossier sit in a denser grid. */}
+          <div className="relative rounded-2xl overflow-hidden" style={{ height: '380px' }}>
             {hasImage ? (
               <>
                 <Image

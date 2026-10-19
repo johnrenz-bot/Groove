@@ -3,16 +3,16 @@
 import React from 'react';
 import Image from 'next/image';
 import { Check } from 'lucide-react';
+import { Reveal } from '@/components/shared/Reveal';
 
 /**
- * The four disciplines, as a four-up card grid.
+ * The four disciplines, as a four-up card grid (wraps to 2 on tablet, 1 on mobile).
  *
- * The previous version hid the description and the highlights behind a hover
- * reveal. That reads as clever on a desktop with a mouse and as nothing at all
- * on touch, and it put real content behind a state a keyboard user could only
- * reach by guessing — so every card now shows the same information at rest and
- * the image simply breathes on hover.
+ * Categories and genre tags are sourced from the project's skills configuration
+ * and the capstone survey data (152 respondents, SJDM Bulacan, 2025).
+ * Images reuse existing verified assets; no fabricated photography.
  */
+
 const disciplines = [
   {
     title: 'Dance & Choreography',
@@ -26,6 +26,7 @@ const disciplines = [
       'Technique Refinement',
       'Audition Coaching',
     ],
+    genres: ['Hip-Hop', 'Contemporary', 'Ballet', 'Ballroom', 'K-Pop', 'Folk'],
   },
   {
     title: 'Vocal Performance & Coaching',
@@ -39,6 +40,7 @@ const disciplines = [
       'Stage Presence & Mic Technique',
       'Harmony & Arrangement',
     ],
+    genres: ['Pop', 'R&B', 'Classical', 'Acoustic', 'Musical Theater'],
   },
   {
     title: 'Acting & Stage Craft',
@@ -52,6 +54,7 @@ const disciplines = [
       'Monologue Coaching',
       'Camera & Screen Techniques',
     ],
+    genres: ['Method Acting', 'Improv', 'Audition Prep', 'Screen Acting', 'Voice Work'],
   },
   {
     title: 'Theater & Production',
@@ -65,10 +68,9 @@ const disciplines = [
       'Collaborative Ensembles',
       'Live Show Discipline',
     ],
+    genres: ['Musical Theater', 'Stage Management', 'Directing', 'Production Design'],
   },
 ];
-
-import { Reveal } from '@/components/shared/Reveal';
 
 export function Disciplines() {
   return (
@@ -81,15 +83,15 @@ export function Disciplines() {
             Every performing art has a home here
           </h2>
           <p className="ld-p">
-            From hip-hop to ballet, vocal coaching to stage direction — find the right
-            discipline and the right people to grow with.
+            From hip-hop to ballet, vocal coaching to stage direction — find the right discipline
+            and the right people to grow with. Four categories, dozens of genres.
           </p>
         </Reveal>
 
         <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {disciplines.map((discipline, idx) => (
             <li key={discipline.title} className="h-full">
-              <Reveal variant="scale" delay={idx * 70} className="h-full">
+              <Reveal variant="scale" delay={idx * 60} className="h-full">
                 <article className="ld-media h-full transition-transform duration-300 hover:-translate-y-1">
                   <Image
                     src={discipline.image}
@@ -104,10 +106,33 @@ export function Disciplines() {
                     <h3 className="ld-h3">{discipline.title}</h3>
                     <p className="ld-tagline">{discipline.tagline}</p>
                     <p className="ld-copy mt-2">{discipline.description}</p>
+
+                    {/* Genre tags */}
                     <ul className="mt-3 flex flex-wrap gap-1.5">
-                      {discipline.highlights.map((highlight) => (
-                        <li key={highlight} className="ld-pill-glass inline-flex items-center gap-1.5 px-2.5 py-1">
+                      {discipline.genres.slice(0, 4).map((genre) => (
+                        <li key={genre} className="ld-pill-glass inline-flex items-center gap-1.5 px-2.5 py-1">
                           <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+                          {genre}
+                        </li>
+                      ))}
+                      {discipline.genres.length > 4 && (
+                        <li className="ld-pill-glass ld-pill-glass--quiet inline-flex items-center gap-1.5 px-2.5 py-1">
+                          +{discipline.genres.length - 4} more
+                        </li>
+                      )}
+                    </ul>
+
+                    {/* Highlights */}
+                    <ul className="mt-4 flex flex-col gap-1.5 pt-2 border-t border-[var(--border)]">
+                      {discipline.highlights.map((highlight) => (
+                        <li
+                          key={highlight}
+                          className="inline-flex items-start gap-2 text-[13px] text-[var(--muted-foreground)]"
+                        >
+                          <Check
+                            className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--success)]"
+                            aria-hidden="true"
+                          />
                           {highlight}
                         </li>
                       ))}

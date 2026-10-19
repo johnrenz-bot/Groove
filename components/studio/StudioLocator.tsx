@@ -464,7 +464,7 @@ export function StudioLocator({
           - `overflow-hidden` clips the tile layer to the rounded box, so no map
             pixels can paint outside the card.
           */}
-      <div className="relative z-0 isolate overflow-hidden rounded-xl h-[320px] md:h-[400px]">
+      <div className="relative z-0 isolate overflow-hidden rounded-xl h-[19rem] md:h-[24rem]">
         {/* Always mounted. An earlier version gated this on an `onReady` flag,
             which is a deadlock: the flag is only set by the map this condition
             decides whether to render. */}

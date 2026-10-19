@@ -17,7 +17,7 @@
  *   report rather than claimed.
  */
 
-import { greetingFor } from '../lib/header/accountPill.ts';
+import { greetingFor } from '../../lib/header/accountPill.ts';
 import {
   NAV,
   leavesForRole,
@@ -25,7 +25,7 @@ import {
   isDropdown,
   hrefFor,
   type NavRole,
-} from '../components/header/navConfig.ts';
+} from '../../components/header/navConfig.ts';
 
 let failures = 0;
 function check(name: string, actual: unknown, expected: unknown) {

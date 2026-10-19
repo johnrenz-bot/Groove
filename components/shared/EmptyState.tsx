@@ -38,7 +38,11 @@ export function EmptyState({
     <div
       className={cn(
         'flex flex-col items-center justify-center rounded-[14px] border border-dashed border-border-strong bg-card text-center',
-        compact ? 'px-6 py-10' : 'px-6 py-16',
+        // `py-10` / `py-16` were 40px / 64px against the old 16px root and scale
+        // to 35px / 56px on the new one — still the tallest thing on most pages
+        // for what is usually one line of copy and a button. Tightened to
+        // `py-8` / `py-12` (28px / 42px).
+        compact ? 'px-6 py-8' : 'px-6 py-12',
         className
       )}
     >

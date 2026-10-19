@@ -152,8 +152,8 @@ export function Footer({
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent-text)]" aria-hidden="true" />
-                  <a href="mailto:Groove1152000@gmail.com" className="hover:text-foreground">
-                    Groove1152000@gmail.com
+                  <a href="mailto:grooveyyph@gmail.com" className="hover:text-foreground">
+                    grooveyyph@gmail.com
                   </a>
                 </li>
               </ul>

@@ -199,7 +199,7 @@ function CoachAIModalContent({
       role="dialog"
       aria-modal="true"
       aria-label={`Ask AI about Coach ${coachName}`}
-      className="w-full max-w-lg h-[600px] max-h-[92vh] flex flex-col bg-card border border-border rounded-3xl shadow-2xl overflow-hidden text-foreground animate-in zoom-in-95 duration-150"
+      className="w-full max-w-lg h-[32rem] max-h-[92vh] flex flex-col bg-card border border-border rounded-3xl shadow-2xl overflow-hidden text-foreground animate-in zoom-in-95 duration-150"
     >
       {/* Header */}
       <div className="p-4 border-b border-border bg-muted/60 flex items-center justify-between gap-3 shrink-0">

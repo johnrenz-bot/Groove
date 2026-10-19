@@ -310,6 +310,53 @@ export async function fetchVerificationQueue(): Promise<AdminUserRecord[]> {
 }
 
 /**
+ * Create a new account through the admin server route.
+ *
+ * Account creation needs the service-role key (it writes to `auth.users`), so it
+ * cannot happen in the browser. The route runs the `handle_new_user` trigger,
+ * which creates the `profiles` row and the role-specific detail row.
+ */
+export async function createAdminUser(input: {
+  email: string;
+  password: string;
+  role: 'client' | 'coach';
+  firstname: string;
+  middlename?: string;
+  lastname: string;
+  username?: string;
+  contact?: string;
+  talent?: string;
+  talents?: string;
+}) {
+  const res = await fetch('/api/admin/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(payload.error || 'Could not create this account.');
+  return payload.user;
+}
+
+/**
+ * Change an account's role through the admin server route.
+ *
+ * Role changes touch `auth.users.raw_user_meta_data` as well as `profiles`, so
+ * they cannot be done with the anon client. The route also ensures the
+ * role-specific detail row exists.
+ */
+export async function updateUserRole(userId: string, role: 'client' | 'coach' | 'admin') {
+  const res = await fetch('/api/admin/users', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: userId, role }),
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(payload.error || 'Could not change this role.');
+  return payload.user;
+}
+
+/**
  * Delete a profile.
  *
  * `profiles.id` references `auth.users` with ON DELETE CASCADE, but the reverse

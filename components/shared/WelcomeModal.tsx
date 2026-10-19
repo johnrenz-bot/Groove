@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ArrowRight, X } from 'lucide-react';
+import { ArrowRight, X, Sparkles, Calendar, Users, TrendingUp, Search, Clock, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useSession } from '@/components/header/SessionProvider';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { createClient } from '@/lib/supabase/client';
 
 interface WelcomeModalProps {
@@ -24,37 +25,13 @@ export function WelcomeModal({
   onClose,
   onStart,
   subtext: propSubtext,
-  quote: propQuote,
 }: WelcomeModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [dontShowToday, setDontShowToday] = useState(false);
   const [displayName, setDisplayName] = useState(propUsername || '');
-
-  /**
-   * THE SESSION DECIDES WHETHER THIS MODAL CAN OPEN AT ALL.
-   *
-   * It used to open on a pure date check — `savedDate !== today` — with no idea
-   * who was looking at it. `app/community/layout.tsx` renders `<ClientLayout>`,
-   * which passes `showWelcomeModal`, so a completely signed-out visitor on
-   * `/community/performing-arts/dance` was greeted 300 ms later with "Welcome
-   * back, Artist" by a name nobody had. A welcome modal for someone who has
-   * never signed in is the same "looks logged in when you are not" bug as a
-   * signed-in bar on the landing page.
-   */
   const { status, profile } = useSession();
+  const { t } = useLanguage();
 
-  /**
- * Fallback lookup for the name, used only when `<SessionProvider>` has not
- * resolved it yet.
- *
- * `profile?.firstname` is deliberately NOT a dependency: `SessionProvider` may
- * still be resolving when this mounts, and re-running the effect for it would
- * re-fetch the row it is about to deliver anyway. `resolvedName` below reads the
- * session's name directly, so the session is always the preferred source.
- *
- * `.single()` became `.maybeSingle()` so a half-created profile is a miss rather
- * than a thrown error.
- */
   const fetchUserName = useCallback(async () => {
     if (displayName) return;
     try {
@@ -86,7 +63,6 @@ export function WelcomeModal({
       return;
     }
 
-    // Still resolving — deciding now would be a guess.
     if (status !== 'authenticated') {
       setInternalOpen(false);
       return;
@@ -104,14 +80,6 @@ export function WelcomeModal({
     }
   }, [controlledIsOpen, status]);
 
-  /**
-   * The role the copy is written for.
-   *
-   * The prop is whatever the shell passed (`role="client"` on `/community/*`,
-   * which every role reaches). The session is the truth about who is reading,
-   * so a coach visiting a community page was being told "Find your next coach,
-   * book a rehearsal" — the member's pitch — under the coach's own name.
-   */
   const effectiveRole: 'client' | 'coach' | 'admin' =
     profile?.role === 'coach' || profile?.role === 'admin' ? profile.role : role;
 
@@ -132,15 +100,19 @@ export function WelcomeModal({
     if (onStart) onStart();
   };
 
+  const handleAskAi = (prompt?: string) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('groovey:open', { detail: { prompt } }));
+    }
+  };
+
   const isVisible = controlledIsOpen !== undefined ? controlledIsOpen : internalOpen;
 
-  // ── Accessibility: Escape key + focus trap ──────────────────────────────────
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isVisible) return;
 
-    // Focus the card on open
     cardRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -186,180 +158,198 @@ export function WelcomeModal({
 
   if (!isVisible) return null;
 
-  /**
- * The session's name wins over the fetched one — it is the same row, already
- * resolved, and it arrives first in practice.
- */
   const resolvedName =
     profile?.firstname ||
     displayName ||
     propUsername ||
     (effectiveRole === 'coach' ? 'Coach' : 'Artist');
 
-  /**
-   * The member ("Find your next coach…") copy is for clients; a coach gets the
-   * teaching line and the teaching quote. `effectiveRole` comes from the
-   * session, not from the shell's prop, so a coach who reaches a
-   * client-rendered shell is no longer pitched the member experience.
-   */
-  const defaultSubtext =
-    effectiveRole === 'coach'
-      ? 'Your studio is open. Review your schedule, meet new talent and keep your Groove going.'
-      : 'Your stage is ready. Find your next coach, book a rehearsal and keep your Groove going.';
+  const isCoach = effectiveRole === 'coach';
 
-  const defaultQuote =
-    effectiveRole === 'coach'
-      ? 'To teach is to touch a life forever. Inspire greatness today.'
-      : 'Every great performance begins with the courage to take the first step.';
+  const clientSteps = [
+    { icon: Search, title: t('showcase.stepDiscoverTitle', 'Discover'), body: t('showcase.stepDiscoverBody', 'Browse verified coaches for dance, vocals, acting, and theater in San Jose del Monte, Bulacan.') },
+    { icon: Calendar, title: t('showcase.stepBookTitle', 'Book'), body: t('showcase.stepBookBody', 'Pick a schedule and book a rehearsal or class.') },
+    { icon: Users, title: t('showcase.stepConnectTitle', 'Connect'), body: t('showcase.stepConnectBody', 'Join the Community Showcase, share clips, and climb the Tambayan Leaderboard.') },
+    { icon: TrendingUp, title: t('showcase.stepGrowTitle', 'Grow'), body: t('showcase.stepGrowBody', 'Track your sessions and progress.') },
+  ];
 
-  const subtext = propSubtext || defaultSubtext;
-  const quote = propQuote || defaultQuote;
+  const coachSteps = [
+    { icon: CheckCircle2, title: t('welcome.coachStep1Title', 'Set up profile'), body: t('welcome.coachStep1Body', 'Complete your coach profile and showcase your specialties.') },
+    { icon: Clock, title: t('welcome.coachStep2Title', 'Open schedule'), body: t('welcome.coachStep2Body', 'Set your availability so students can book rehearsals.') },
+    { icon: Calendar, title: t('welcome.coachStep3Title', 'Accept bookings'), body: t('welcome.coachStep3Body', 'Review and confirm student booking requests.') },
+    { icon: Users, title: t('welcome.coachStep4Title', 'Grow your students'), body: t('welcome.coachStep4Body', 'Track sessions and help performers level up.') },
+  ];
 
-  // 40 equalizer bars with varied heights (12–36 px), cycling through a pattern
-  const BAR_COUNT = 40;
-  const barHeights = Array.from({ length: BAR_COUNT }, (_, i) => {
-    // Spread heights across a sine-ish pattern so bars look organic
-    const t = i / (BAR_COUNT - 1);
-    const base = 12 + Math.round(Math.sin(t * Math.PI * 3 + 0.5) * 12 + 12);
-    return Math.max(12, Math.min(36, base));
-  });
+  const steps = isCoach ? coachSteps : clientSteps;
+
+  const chips = [
+    t('welcome.chip1', 'Find me a dance coach'),
+    t('welcome.chip2', 'How do I book?'),
+    t('welcome.chip3', 'Tips for my first rehearsal'),
+  ];
 
   return (
-    /* Backdrop */
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md select-none animate-in fade-in"
+      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 p-0 backdrop-blur-md sm:items-center sm:p-4 motion-reduce:animate-none"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="wm-title"
     >
-      {/* Card — stopPropagation prevents backdrop click from firing */}
       <div
         ref={cardRef}
         tabIndex={-1}
-        className="relative w-full max-w-[402px] min-h-[397px] rounded-3xl border border-accent-border bg-card p-8 text-center shadow-[0_0_40px_-8px_var(--accent-soft)] focus:outline-none animate-in zoom-in-95 duration-200"
+        className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-y-auto rounded-t-3xl border border-accent-border bg-card shadow-[0_0_60px_-12px_var(--accent-soft)] focus:outline-none sm:w-[94vw] sm:rounded-3xl motion-reduce:animate-none animate-in fade-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Amber spotlight radial gradient */}
-        <div
-          className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full blur-3xl"
-          style={{
-            background: 'radial-gradient(ellipse, var(--accent-soft) 0%, transparent 70%)',
-            animation: 'wm-spotlight-pulse 3s ease-in-out infinite',
-          }}
-          aria-hidden="true"
-        />
-
-        {/* Gold circular × close button */}
         <button
           type="button"
           onClick={handleClose}
           aria-label="Close welcome modal"
-          className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-md transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-muted text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
 
-        {/* Logo section */}
-        <div className="relative mx-auto mb-6 flex flex-col items-center">
-          <Image
-            src="/image/Logo/welcome-Logo.png"
-            alt="Groove"
-            width={200}
-            height={124}
-            // No CSS sizing here on purpose. `h-[124px] w-auto` made the
-            // rendered width differ from the `width` attribute while the height
-            // matched exactly, which is precisely the mismatch next/image
-            // warns about ("has either width or height modified, but not the
-            // other"). The attributes already ARE the intended 200x124, so
-            // rendering at intrinsic size is both warning-free and identical.
-            className="object-contain"
-            style={{ animation: 'wm-logo-pop 0.5s ease-out both' }}
-            preload
-          />
-          {/* Soft light pool beneath the logo */}
-          <div
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-4 w-32 rounded-full blur-xl"
-            style={{ background: 'var(--accent-soft)' }}
-            aria-hidden="true"
-          />
-        </div>
-
-        {/* Text content */}
-        <div
-          className="space-y-3"
-          style={{ animation: 'wm-text-up 0.4s 0.2s ease-out both' }}
-        >
-          <h2
-            id="wm-title"
-            className="text-xl font-bold tracking-[-0.02em] text-foreground sm:text-2xl"
-          >
-            Welcome back,{' '}
-            <span className="text-accent-text">{resolvedName}</span>
-          </h2>
-
-          <p className="mx-auto max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">
-            {subtext}
-          </p>
-
-          {quote && (
-            <div className="pt-1">
-              <div className="mx-auto mb-3 h-px w-16 bg-divider" />
-              <p className="px-4 text-xs italic text-accent-text">{quote}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Equalizer bars */}
-        <div
-          className="relative my-5 flex items-end justify-center overflow-hidden"
-          aria-hidden="true"
-          style={{
-            gap: '4px',
-            height: '40px',
-            // Fade bars at both ends
-            maskImage: 'linear-gradient(to right, transparent 0%, white 15%, white 85%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, white 15%, white 85%, transparent 100%)',
-          }}
-        >
-          {barHeights.map((h, i) => (
-            <span
-              key={i}
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* Hero panel */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-accent-soft via-card to-card px-6 py-8 sm:px-8">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-30"
               style={{
-                display: 'inline-block',
-                width: '6px',
-                height: `${h}px`,
-                borderRadius: '3px',
-                backgroundColor: 'var(--accent-text)',
-                transformOrigin: 'bottom',
-                animation: `wm-eq-rise 1.2s ease-in-out infinite`,
-                animationDelay: `${i * 30}ms`,
+                backgroundImage:
+                  'conic-gradient(from 0deg at 50% 50%, transparent 0deg, var(--accent-soft) 20deg, transparent 40deg, transparent 360deg)',
               }}
             />
-          ))}
-        </div>
+            <div className="relative flex flex-col items-center text-center md:items-start md:text-left">
+              <Image
+                src="/image/Logo/welcome-Logo.png"
+                alt="Groove"
+                width={180}
+                height={112}
+                className="object-contain"
+                preload
+              />
+              <div className="mt-6 space-y-2">
+                <p className="text-sm font-bold text-accent-text">
+                  {t('welcome.maligayang', 'Maligayang pagdating sa GroovePH!')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t('welcome.englishLine', 'Welcome to GroovePH')}
+                </p>
+                <p className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl">
+                  {t('welcome.welcomeBack', 'Welcome back, {name}', { name: resolvedName })}
+                </p>
+                <p className="text-xs italic text-accent-text">
+                  {t('welcome.tagline', 'Para sa sining, para sa Pilipino.')}
+                </p>
+              </div>
 
-        {/* CTA section */}
-        <div className="mt-1 space-y-3">
-          <Button
-            variant="primary"
-            size="lg"
-            className="w-full"
-            onClick={handleStart}
-            trailingIcon={<ArrowRight className="h-4 w-4" />}
-          >
-            Start my day
-          </Button>
+              <div
+                aria-hidden="true"
+                className="mt-6 flex items-end justify-center gap-1 md:justify-start"
+                style={{ height: '32px' }}
+              >
+                {Array.from({ length: 18 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="motion-reduce:animate-none"
+                    style={{
+                      display: 'inline-block',
+                      width: '4px',
+                      height: `${10 + Math.round(Math.sin(i * 0.7) * 8 + 8)}px`,
+                      borderRadius: '2px',
+                      backgroundColor: 'var(--accent-text)',
+                      animation: `wm-eq-rise 1.2s ease-in-out infinite`,
+                      animationDelay: `${i * 40}ms`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
 
-          <label className="inline-flex cursor-pointer select-none items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
-            <input
-              type="checkbox"
-              checked={dontShowToday}
-              onChange={(e) => setDontShowToday(e.target.checked)}
-              className="h-3.5 w-3.5 cursor-pointer rounded border-border-strong text-accent-text accent-[var(--accent)]"
-            />
-            <span>Don&apos;t show again today</span>
-          </label>
+          {/* Content panel */}
+          <div className="space-y-6 px-6 py-8 sm:px-8">
+            <div>
+              <h2 id="wm-title" className="text-base font-semibold text-foreground sm:text-lg">
+                {t('welcome.howItWorks', 'How GroovePH works')}
+              </h2>
+              <div className="mt-4 space-y-3">
+                {steps.map((step, idx) => {
+                  const Icon = step.icon;
+                  return (
+                    <div key={idx} className="flex items-start gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                        <p className="text-xs leading-relaxed text-muted-foreground">{step.body}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* AI card */}
+            <div className="rounded-2xl border border-accent-border bg-accent-soft/40 p-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-accent-text" aria-hidden="true" />
+                <h3 className="text-sm font-semibold text-foreground">
+                  {t('welcome.aiTitle', 'Grooveyy AI')}
+                </h3>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {t('welcome.aiBody', 'Ask Grooveyy AI for dance tips, schedules, or help getting started.')}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {chips.map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => handleAskAi(chip)}
+                    className="rounded-full border border-border bg-card px-3 py-1 text-[11px] font-medium text-foreground transition hover:border-accent-border hover:bg-accent-soft"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                className="mt-3 w-full"
+                onClick={() => handleAskAi()}
+                trailingIcon={<ArrowRight className="h-4 w-4" />}
+              >
+                {t('welcome.askAi', 'Ask Grooveyy AI')}
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                onClick={handleStart}
+                trailingIcon={<ArrowRight className="h-4 w-4" />}
+              >
+                {t('welcome.startMyDay', 'Start my day')}
+              </Button>
+
+              <label className="inline-flex cursor-pointer select-none items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+                <input
+                  type="checkbox"
+                  checked={dontShowToday}
+                  onChange={(e) => setDontShowToday(e.target.checked)}
+                  className="h-3.5 w-3.5 cursor-pointer rounded border-border-strong text-accent-text accent-[var(--accent)]"
+                />
+                <span>{t('welcome.dontShow', "Don't show again today")}</span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
     </div>

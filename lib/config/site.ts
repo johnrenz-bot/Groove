@@ -3,8 +3,11 @@
  * Single source for the production URL and other site-wide config.
  */
 
-// Production URL for GroovePH (deployed on Vercel)
-export const GROOVEPH_URL = "https://grooveyph.vercel.app/";
+// Production URL for GroovePH (the capstone platform, no "y")
+export const GROOVEPH_URL = "https://grooveph.vercel.app/";
+
+// Production URL for Grooveyy AI (the standalone chatbot site, with "y")
+export const GROOVEYY_URL = "https://grooveyph.vercel.app/";
 
 // Fallback for local development
 export const getSiteUrl = (): string => {

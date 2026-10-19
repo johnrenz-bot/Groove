@@ -269,7 +269,12 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             onClick={() => setRevealed((v) => !v)}
             aria-label={revealed ? 'Hide password' : 'Show password'}
             aria-pressed={revealed}
-            className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            // `h-8 w-8` (35px) instead of `p-1.5` around a `h-4` glyph. The padded
+            // version measured 28px before the 14px root and 24.5px after it —
+            // this control is the only way to reveal a password, so it needs to
+            // clear the 32px hit target on its own, not inherit it from the field
+            // it sits in. The field itself is 38.5px, so it still reads as inset.
+            className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>

@@ -22,6 +22,7 @@ import {
   validateMedia,
 } from '../utils/communityMedia';
 import { cn } from '@/components/shared/cn';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 function describeError(err: unknown, fallback: string): string {
   const e = err as { message?: string; code?: string } | null;
@@ -171,6 +172,7 @@ export function PostComposer({
   const composer = useCommunityComposer({ currentUser, community, onCreated });
   const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { t } = useLanguage();
 
   if (!currentUser) return null;
 
@@ -216,7 +218,7 @@ export function PostComposer({
             id="community-post-caption"
             ref={textareaRef}
             rows={isFocused || caption ? 3 : 2}
-            placeholder={`Share a rehearsal moment, routine update, or stage highlight, ${currentUser.firstname}...`}
+            placeholder={t('showcase.composerPlaceholder', 'Share a rehearsal moment, routine update, or stage highlight, {name}...', { name: currentUser.firstname })}
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             onFocus={() => setIsFocused(true)}
@@ -276,7 +278,7 @@ export function PostComposer({
           {/* Add Media Button */}
           <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-border-strong hover:bg-muted active:scale-[0.98]">
             <ImageIcon className="h-4 w-4 text-accent-text" aria-hidden="true" />
-            <span>Add Media</span>
+            <span>{t('showcase.addMedia', 'Add Media')}</span>
             <input
               ref={fileInputRef}
               type="file"
@@ -299,11 +301,11 @@ export function PostComposer({
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
               {browsingTalentLabel && browsingTalentLabel !== community ? (
                 <span>
-                  Posting to <strong className="font-semibold text-foreground">{community}</strong> Circle
+                  {t('showcase.postingToCircle', 'Posting to {community} Circle', { community: String(community) })}
                 </span>
               ) : (
                 <span>
-                  Posting to: <strong className="font-semibold text-foreground">{community}</strong>
+                  {t('showcase.postingTo', 'Posting to:')} {community}
                 </span>
               )}
             </span>
@@ -321,7 +323,7 @@ export function PostComposer({
           ) : (
             <Send className="h-3.5 w-3.5" aria-hidden="true" />
           )}
-          <span>{uploading ? 'Uploading…' : submitting ? 'Posting…' : 'Share Post'}</span>
+          <span>{uploading ? t('common.uploading', 'Uploading�') : submitting ? t('common.posting', 'Posting�') : t('showcase.sharePost', 'Share Post')}</span>
         </button>
       </div>
 

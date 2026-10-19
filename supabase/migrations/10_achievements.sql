@@ -101,7 +101,7 @@ ON CONFLICT (slug) DO UPDATE SET
 CREATE OR REPLACE FUNCTION public.ensure_user_achievements(p_user_id UUID)
 RETURNS VOID AS $$
 DECLARE
-    v_role user_role;
+    v_role public.user_role;
     v_achievement RECORD;
 BEGIN
     -- Get user's role
@@ -120,10 +120,10 @@ BEGIN
         ON CONFLICT (user_id, achievement_id) DO NOTHING;
     END LOOP;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Check if user has earned a badge (all 3 role tasks completed)
-CREATE OR REPLACE FUNCTION public.has_user_earned_badge(p_user_id UUID, p_role user_role)
+CREATE OR REPLACE FUNCTION public.has_user_earned_badge(p_user_id UUID, p_role public.user_role)
 RETURNS BOOLEAN AS $$
 DECLARE
     v_count INTEGER;
@@ -142,12 +142,12 @@ BEGIN
 
     RETURN v_count >= v_total;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Get user's badge unlock status
 CREATE OR REPLACE FUNCTION public.get_user_badge_status(p_user_id UUID)
 RETURNS TABLE (
-    role user_role,
+    role public.user_role,
     badge_name VARCHAR(100),
     badge_description TEXT,
     tasks_completed INTEGER,
@@ -157,7 +157,7 @@ RETURNS TABLE (
     badge_image_url TEXT
 ) AS $$
 DECLARE
-    v_role user_role;
+    v_role public.user_role;
 BEGIN
     -- Fully qualify the column: the output parameter named `role` shadows it.
     SELECT p.role INTO v_role
@@ -183,7 +183,7 @@ BEGIN
     WHERE a.role = v_role AND a.is_active = TRUE
     GROUP BY a.badge_name, a.badge_description, a.badge_image_url;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Update user achievement progress (server-side validation)
 CREATE OR REPLACE FUNCTION public.update_user_achievement_progress(
@@ -264,7 +264,7 @@ BEGIN
 
     RETURN QUERY SELECT TRUE, 'Progress updated', v_now_completed, v_badge_unlocked;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Trigger to ensure achievements exist for new users
 CREATE OR REPLACE FUNCTION public.handle_new_user_achievements()
@@ -273,7 +273,7 @@ BEGIN
     PERFORM public.ensure_user_achievements(NEW.id);
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 DROP TRIGGER IF EXISTS on_user_achievements_created ON public.profiles;
 CREATE TRIGGER on_user_achievements_created

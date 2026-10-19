@@ -9,6 +9,7 @@ import {
   isDailyQuotaError,
 } from '@/features/groovey/server/gemini';
 import { getGroovePhKnowledge } from '@/lib/groovey/groovePhKnowledge';
+import { isAboutPlatformMessage, isAboutGrooveyyMessage } from '@/features/groovey/utils/isAboutPlatform';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,18 @@ export async function POST(req: NextRequest) {
     if (level && level !== 'All') {
       contextualSystemInstruction += `\nARTIST PROFICIENCY LEVEL: ${level}.`;
     }
+
+    // Check if the last user message is asking about the platform
+    const lastUserMessage = [...messages].reverse().find((m: { role: string; content?: string }) => m.role === 'user');
+    const isPlatformQuery = lastUserMessage ? isAboutPlatformMessage(lastUserMessage.content || '') : false;
+    const isGrooveyyQuery = lastUserMessage ? isAboutGrooveyyMessage(lastUserMessage.content || '') : false;
+
+    // PLATFORM QUESTION MODE: High-priority block prepended for platform questions
+    if (isPlatformQuery) {
+      const platformModeBlock = `PLATFORM QUESTION MODE: The user is asking about the GroovePH platform. Answer ONLY from the GroovePH facts below. Do not use outside knowledge about any "Groove" event, competition, championship, or organization. GroovePH is a web platform, NOT a dance competition, championship, event, or organization. Never describe it as one.`;
+      contextualSystemInstruction = platformModeBlock + '\n\n' + contextualSystemInstruction;
+    }
+
     // Append GroovePH platform knowledge block (single source from lib/config/projectInfo.ts)
     contextualSystemInstruction += `\n\n${getGroovePhKnowledge()}`;
 

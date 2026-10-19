@@ -14,6 +14,7 @@
  */
 
 import React from 'react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import {
   AlertTriangle,
   Award,
@@ -27,54 +28,55 @@ import {
 } from 'lucide-react';
 
 export function DancerCircleRules() {
+  const { t } = useLanguage();
   const rules = [
     {
       id: 'respect',
       icon: HeartHandshake,
-      title: '1. Mutual Respect & Pakikisama (Anti-Harassment)',
+      title: t('showcase.rule1Title', '1. Mutual Respect & Pakikisama (Anti-Harassment)'),
       color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
       description:
-        'Dance is a universal language of expression. We enforce zero tolerance for bullying, hate speech, body-shaming, discrimination, or aggressive mockery in battle comments. Welcome beginners and uplift fellow dancers across all styles.',
+        t('showcase.rule1Body', 'Dance is a universal language of expression. We enforce zero tolerance for bullying, hate speech, body-shaming, discrimination, or aggressive mockery in battle comments. Welcome beginners and uplift fellow dancers across all styles.'),
     },
     {
       id: 'safety',
       icon: ShieldCheck,
-      title: '2. Physical Safety & Appropriate Content',
+      title: t('showcase.rule2Title', '2. Physical Safety & Appropriate Content'),
       color: 'text-accent bg-accent/10 border-accent/20',
       description:
-        'Share choreography, practice runs, and stage highlights that celebrate movement. Do not post hazardous stunts or unassisted acrobatics without proper crash pads and warnings. Explicit, vulgar, or unsafe footage will be removed.',
+        t('showcase.rule2Body', 'Share choreography, practice runs, and stage highlights that celebrate movement. Do not post hazardous stunts or unassisted acrobatics without proper crash pads and warnings. Explicit, vulgar, or unsafe footage will be removed.'),
     },
     {
       id: 'privacy',
       icon: Eye,
-      title: '3. Studio Privacy & Recording Consent',
+      title: t('showcase.rule3Title', '3. Studio Privacy & Recording Consent'),
       color: 'text-sky-500 bg-sky-500/10 border-sky-500/20',
       description:
-        'Always ask for consent before recording rehearsal footage that features other studio members, students, or instructors in the background. Never publish private phone numbers, rehearsal studio door codes, or sensitive personal data.',
+        t('showcase.rule3Body', 'Always ask for consent before recording rehearsal footage that features other studio members, students, or instructors in the background. Never publish private phone numbers, rehearsal studio door codes, or sensitive personal data.'),
     },
     {
       id: 'copyright',
       icon: Copyright,
-      title: '4. Choreography Credits & Music Copyright',
+      title: t('showcase.rule4Title', '4. Choreography Credits & Music Copyright'),
       color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
       description:
-        'Always tag and credit the original choreographer, crew, and music producer in your captions. Routine plagiarism or claiming another creator’s choreo as your original work violates community trust.',
+        t('showcase.rule4Body', 'Always tag and credit the original choreographer, crew, and music producer in your captions. Routine plagiarism or claiming another creator’s choreo as your original work violates community trust.'),
     },
     {
       id: 'scam',
       icon: AlertTriangle,
-      title: '5. Audition Safety & Anti-Scam Protection',
+      title: t('showcase.rule5Title', '5. Audition Safety & Anti-Scam Protection'),
       color: 'text-warning bg-warning/10 border-warning/20',
       description:
-        'Legitimate dance auditions, backup dancer castings, and crew auditions never ask for unverified upfront placement fees or sensitive documents via private messaging. Always verify calls with registered organizations.',
+        t('showcase.rule5Body', 'Legitimate dance auditions, backup dancer castings, and crew auditions never ask for unverified upfront placement fees or sensitive documents via private messaging. Always verify calls with registered organizations.'),
     },
     {
       id: 'reporting',
       icon: Flag,
-      title: '6. Reporting Inappropriate Behavior',
+      title: t('showcase.rule6Title', '6. Reporting Inappropriate Behavior'),
       color: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
       description:
-        'If you encounter harassment, copyright infringement, or spam, click the three dots (⋮) on the post or comment to report it, or contact Groove community moderators. All reports are confidential and reviewed promptly.',
+        t('showcase.rule6Body', 'If you encounter harassment, copyright infringement, or spam, click the three dots (⋮) on the post or comment to report it, or contact Groove community moderators. All reports are confidential and reviewed promptly.'),
     },
   ];
 
@@ -89,17 +91,17 @@ export function DancerCircleRules() {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/15 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-accent-text">
               <Sparkles className="h-3 w-3" />
-              Dancer Circle Code
+              {t('showcase.dancerCircleCode', 'Dancer Circle Code')}
             </span>
             <span className="text-xs text-muted-foreground">· Official Guidelines</span>
           </div>
           <h2 className="mt-1 text-base font-bold text-foreground sm:text-lg">
-            Community Rules &amp; Studio Etiquette
+            {t('showcase.rulesTitle', 'Community Rules & Studio Etiquette')}
           </h2>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-          <span>Active for all dancers, coaches &amp; crews</span>
+          <span>{t('showcase.activeForAll', 'Active for all dancers, coaches & crews')}</span>
         </div>
       </div>
 
@@ -135,11 +137,11 @@ export function DancerCircleRules() {
         <div className="flex items-center gap-2">
           <Award className="h-4 w-4 text-accent" />
           <span>
-            Keeping our Filipino dance tambayan respectful, creative, and safe for performers of all ages.
+            {t('showcase.footerLine', 'Keeping our Filipino dance tambayan respectful, creative, and safe for performers of all ages.')}
           </span>
         </div>
         <span className="font-semibold text-accent-text">
-          Sama-sama sa entablado · GrooveSystem
+          {t('showcase.footerSignature', 'Sama-sama sa entablado · GrooveSystem')}
         </span>
       </div>
     </section>

@@ -12,8 +12,16 @@ import {
 import { AddressData, composeStreetLine } from '@/components/auth/AddressSelector';
 import { CLIENT_TALENT_OPTIONS, normalizeContactForStorage } from '@/lib/profileFields';
 import { AuthLayout } from '@/components/shared/AuthLayout';
+import { GoogleRegisterButton } from '@/components/shared/GoogleRegisterButton';
 import { Sparkles } from 'lucide-react';
 import { getFeaturedLocationsDisplay, getFeaturedLocationsAddressSummary } from '@/lib/config/featuredLocations';
+
+// GCASH-QR (temporarily disabled)
+// The optional GCash QR upload is hidden in this form. Its component and service
+// are deliberately left in place and untouched — both are still used by the
+// profile pages, and nothing here was deleted. Every removed piece below is
+// fenced with "GCASH-QR (temporarily disabled)" so the block can be restored by
+// uncommenting the original code, which is preserved in the project history.
 
 export default function ClientRegistrationPage() {
   const [talent, setTalent] = useState('Dance');
@@ -28,7 +36,16 @@ export default function ClientRegistrationPage() {
     username: string;
     email: string;
     talent: string;
+    // GCASH-QR (temporarily disabled): restore `gcashWarning?: string | null;`
+    // here when the optional QR upload is re-enabled.
   } | null>(null);
+
+  // GCASH-QR (temporarily disabled): the optional QR upload state lived here —
+  // `gcashName`, `gcashNumber`, `gcashNotes`, `gcashFile` and the derived
+  // `wantsGCash` flag. The file was held in state rather than uploaded from the
+  // form because the member has no session yet and the `payment-qr-codes`
+  // policies are TO authenticated; the upload ran after signUp() returned a
+  // session. Reinstate these five hooks exactly as they were to restore.
 
   const handleSubmit = async (data: {
     personal: PersonalData;
@@ -114,6 +131,44 @@ export default function ClientRegistrationPage() {
         throw new Error(
           authErr?.message || 'Registration failed. Username or email may already be registered.'
         );
+      }
+
+      // Welcome email. Best-effort only: the account already exists at this point,
+      // so a delivery failure must not abort the rest of the registration or turn a
+      // successful signup into an error for the user. The inner catch is what makes
+      // that true for a network-level rejection, which `!response.ok` never sees --
+      // without it the throw would land in the outer catch below as a signup failure.
+      // The recipient is the address Supabase actually created the user with.
+      if (authData.user?.email) {
+        try {
+          const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: authData.user.email,
+              name: data.personal.firstname.trim(),
+            }),
+          });
+
+          if (!response.ok) {
+            // Best-effort diagnostic: log the HTTP status and any detail the
+            // route returned. Registration already succeeded at this point.
+            try {
+              const body = await response.json().catch(() => ({}));
+              console.error(
+                `[client-reg] Welcome email not sent. HTTP ${response.status}.` +
+                  (body?.detail ? ` detail="${body.detail}"` : '') +
+                  (body?.error ? ` error="${body.error}"` : '')
+              );
+            } catch {
+              console.error(`[client-reg] Welcome email not sent. HTTP ${response.status}.`);
+            }
+          }
+        } catch {
+          // Swallowed on purpose; see the note above.
+        }
       }
 
       // The account now exists. From here on the user is no longer anonymous, so
@@ -256,6 +311,12 @@ export default function ClientRegistrationPage() {
         throw new Error(`Your client details could not be saved: ${clientProfileErr.message}`);
       }
 
+      // GCASH-QR (temporarily disabled): the optional GCash attach step that ran
+      // here is removed. It only ran when the member actually filled the block in
+      // and never threw, so a member who left it blank is unaffected. To restore,
+      // re-add the `attachGCashQrAfterSignup` call guarded by `wantsGCash` and
+      // pass its result back as `gcashWarning`.
+
       setSuccessData({
         firstname: data.personal.firstname.trim(),
         username: data.contact.username.trim().toLowerCase(),
@@ -286,6 +347,9 @@ export default function ClientRegistrationPage() {
           { label: 'Primary Interest', value: successData.talent },
           { label: 'Location', value: getFeaturedLocationsAddressSummary() },
         ]}
+        // GCASH-QR (temporarily disabled): the conditional "GCash QR — not saved"
+        // detail row and the matching `warning` prop that rendered beside it were
+        // removed here. Restore both alongside `gcashWarning` above.
         message={`You can now sign in to discover verified coaches, book live rehearsal sessions, and explore performing arts in ${getFeaturedLocationsDisplay()}.`}
       />
     );
@@ -314,6 +378,37 @@ export default function ClientRegistrationPage() {
         </p>
       }
     >
+      {/* Fast Track with Google */}
+      <div className="mb-8 rounded-2xl border border-[#2a2c38] bg-[#121319]/80 p-5 shadow-sm backdrop-blur-sm">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F4BE4D]/15 text-[#F4BE4D] text-xs font-bold">
+              ⚡
+            </span>
+            <h2 className="text-sm font-bold text-[#f5f5f5]">Fast-Track with Google</h2>
+          </div>
+          <span className="rounded-full border border-[#F4BE4D]/30 bg-[#F4BE4D]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#F4BE4D]">
+            Instant Setup
+          </span>
+        </div>
+        <p className="mb-4 text-xs text-[#9e9ea8] leading-relaxed">
+          Create your performer account instantly with your Google profile. You can upload verification documents and fill in full address details later from your profile.
+        </p>
+        <GoogleRegisterButton
+          role="client"
+          label="Continue with Google as Performer"
+        />
+      </div>
+
+      <div className="relative my-8 text-center">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <div className="w-full border-t border-[#262832]" />
+        </div>
+        <span className="relative bg-[#111218] px-4 text-[11px] font-semibold uppercase tracking-wider text-[#9e9ea8]">
+          or complete full registration with ID document
+        </span>
+      </div>
+
       <RegistrationFormFields
         role="client"
         loading={loading}
@@ -340,6 +435,13 @@ export default function ClientRegistrationPage() {
           </div>
         }
       />
+
+      {/* GCASH-QR (temporarily disabled): the optional GCash QR upload block is hidden
+          here. It sat outside RegistrationFormFields because the component owns
+          its own <form> element and was never part of the shared field contract,
+          so removing it affects no other field and no other validation. To
+          restore, re-render <GCashRegistrationSection audience="client" … />
+          against the state hooks near the top of this component. */}
     </AuthLayout>
   );
 }

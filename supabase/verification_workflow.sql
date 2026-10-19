@@ -90,7 +90,7 @@ CREATE INDEX IF NOT EXISTS idx_profiles_verification_status
 CREATE OR REPLACE FUNCTION public.missing_verification_documents(p_id UUID)
 RETURNS TEXT[] AS $$
 DECLARE
-    v_role user_role;
+    v_role public.user_role;
     v_missing TEXT[] := '{}'::TEXT[];
 BEGIN
     SELECT role INTO v_role FROM public.profiles WHERE id = p_id;

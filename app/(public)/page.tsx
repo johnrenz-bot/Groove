@@ -59,15 +59,26 @@ export default async function PublicHome() {
   // A session with no profiles row is not a client until something says so.
   // Defaulting it to `client` is how a half-created account ends up with a
   // dashboard full of other people's data shapes; refuse it explicitly instead.
+  // Such an account has no portal, so it is shown the public landing page rather
+  // than being redirected to /login — that redirect is what trapped users on the
+  // account_not_ready screen with no way back to '/'.
   if (!profile?.role) {
-    redirect('/login?error=account_not_ready');
+    return <LandingSections />;
   }
 
   const role = profile.role as UserRole;
 
   // Admin requires both the role and the pinned admin email.
   if (isAdminIdentity({ role, email: profile.email })) {
-    redirect(roleHome('admin'));
+    redirect('/admin/dashboard');
+  }
+
+  // A `role: 'admin'` account that is not the pinned admin identity has no
+  // console to enter. Send it to the member portal rather than to a URL the
+  // middleware would bounce straight back, which is what caused the
+  // ERR_TOO_MANY_REDIRECTS loop on /admin/dashboard.
+  if (role === 'admin') {
+    redirect('/client/home');
   }
 
   redirect(roleHome(role));

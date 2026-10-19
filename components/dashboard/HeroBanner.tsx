@@ -23,7 +23,12 @@ export function HeroBanner({
   image,
 }: HeroBannerProps) {
   return (
-    <section className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border shadow-[0_1px_2px_rgba(20,40,75,0.06),0_8px_24px_rgba(20,40,75,0.05)] sm:aspect-[2/1] lg:aspect-auto lg:h-[200px]">
+    // `lg:h-[200px]` was a fixed px height, so at desktop the banner stayed a
+    // 200px band while everything below it compacted — leaving a visible seam in
+    // the page rhythm. `lg:h-[11rem]` is 154px at the 14px root and scales with
+    // the type below it. The `aspect-*` ratios above `lg` are unitless and are
+    // deliberately left alone: they describe the crop, not the density.
+    <section className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border shadow-[0_1px_2px_rgba(20,40,75,0.06),0_8px_24px_rgba(20,40,75,0.05)] sm:aspect-[2/1] lg:aspect-auto lg:h-[11rem]">
       {/* Background image — fills the whole banner, no gaps.
 
           `preload` because this banner is the Largest Contentful Paint element

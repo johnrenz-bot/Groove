@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import React from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { getAdminIdentity } from '@/lib/admin/guard';
-import { roleHome } from '@/lib/admin/access';
+import { isAdminIdentity, roleHome } from '@/lib/admin/access';
 import { createClient } from '@/lib/supabase/server';
 import type { Profile } from '@/lib/types';
 
@@ -43,10 +43,18 @@ export default async function Layout({ children }: { children: React.ReactNode }
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, email')
           .eq('id', user.id)
           .maybeSingle();
-        fallback = roleHome(profile?.role);
+        // An account whose `profiles.role` is 'admin' but which is not the
+        // pinned admin identity has no console to enter; sending it back to
+        // /admin/dashboard would loop with the middleware's own bounce. Route
+        // it to the client portal instead.
+        if (profile?.role === 'admin' && !isAdminIdentity({ role: profile.role, email: profile.email })) {
+          fallback = '/client/home';
+        } else {
+          fallback = roleHome(profile?.role);
+        }
       } else {
         fallback = '/login';
       }

@@ -226,7 +226,7 @@ export function VerificationDocumentsUpload({
         </div>
       )}
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-3">
         {documents.map((doc) => {
           const held = Boolean(currentPaths[doc.key]) || Boolean(uploaded[doc.key]);
           const busy = busyKey === doc.key;
@@ -235,7 +235,7 @@ export function VerificationDocumentsUpload({
             <div
               key={doc.key}
               className={cn(
-                'relative rounded-xl border p-3.5 transition-colors',
+                'relative w-full rounded-xl border p-3.5 transition-colors',
                 held ? 'border-success/30 bg-success-soft' : 'border-dashed border-border-strong bg-muted/40'
               )}
             >

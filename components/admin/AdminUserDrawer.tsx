@@ -29,6 +29,7 @@ import {
   updateClientProfile,
   updateCoachProfile,
   updateUserProfile,
+  updateUserRole,
   type AdminUserRecord,
 } from '@/lib/admin/service';
 import { VerificationReviewPanel } from '@/features/verification/components/VerificationReviewPanel';
@@ -85,6 +86,7 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
   const [coachFee, setCoachFee] = useState('');
   const [coachDuration, setCoachDuration] = useState('');
   const [clientTalent, setClientTalent] = useState('');
+  const [role, setRole] = useState<AdminUserRecord['role']>('client');
   const [confirm, setConfirm] = useState<null | 'suspend' | 'delete'>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   // Verification review lives in its own panel so the users table, the coaches
@@ -111,6 +113,7 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
     setCoachFee(user.coach_profile?.service_fee != null ? String(user.coach_profile.service_fee) : '');
     setCoachDuration(user.coach_profile?.duration ?? '');
     setClientTalent(user.client_profile?.talent ?? '');
+    setRole(user.role);
   }, [user]);
 
   const idDoc =
@@ -209,6 +212,10 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
 
   const handleSave = () =>
     runAction(async () => {
+      if (role !== user.role && user.role !== 'admin') {
+        await updateUserRole(user.id, role);
+      }
+
       await updateUserProfile(user.id, {
         firstname: form.firstname.trim(),
         middlename: form.middlename.trim() || null,
@@ -442,6 +449,16 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
           <section className="mt-6 space-y-4 border-t border-divider pt-6">
             <SectionTitle icon={<Save className="h-4 w-4" />} title="Edit account details" />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {user.role !== 'admin' && (
+                <Select
+                  label="Role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as AdminUserRecord['role'])}
+                >
+                  <option value="client">Client / Performer</option>
+                  <option value="coach">Coach / Choreographer</option>
+                </Select>
+              )}
               <Input
                 label="First name"
                 value={form.firstname}

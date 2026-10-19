@@ -30,7 +30,7 @@ export function AdminErrorState({
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center justify-center rounded-[20px] border border-danger/30 bg-danger-soft px-6 py-14 text-center',
+        'flex flex-col items-center justify-center rounded-[20px] border border-danger/30 bg-danger-soft px-6 py-12 text-center',
         className
       )}
     >
@@ -85,7 +85,7 @@ export function AdminEmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border-strong bg-card px-6 py-16 text-center',
+        'flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border-strong bg-card px-6 py-12 text-center',
         className
       )}
     >

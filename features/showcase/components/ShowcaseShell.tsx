@@ -18,6 +18,7 @@
 
 import React, { useCallback, useState } from 'react';
 
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import type { Profile } from '@/lib/types';
 import type { Community } from '@/features/community/utils/community';
 import CommunityFeed from '@/features/community/components/CommunityFeed';
@@ -65,6 +66,7 @@ export function ShowcaseShell({
   hideMusicBar = false,
 }: ShowcaseShellProps) {
   const [hubOpen, setHubOpen] = useState(false);
+  const { t } = useLanguage();
 
   const selection = useTalentSelection({ memberCommunity });
   const internalMusic = useBackgroundMusic({
@@ -87,17 +89,19 @@ export function ShowcaseShell({
         <div className="min-w-0">
           <span className="g-eyebrow mb-2">{eyebrow}</span>
           <h1 className="text-xl font-bold tracking-[-0.02em] text-foreground sm:text-2xl">
-            Performing Arts Showcase &amp;{' '}
-            <span className="text-accent-text">Community Tambayan</span>
+            {t('showcase.headerTitle', 'Performing Arts Showcase & Community Tambayan')}
           </h1>
           <p className="mt-1 max-w-[62ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">
             {role === 'coach'
-              ? 'Share choreography routines, rehearsal highlights and masterclass announcements with verified students and mentors in San Jose del Monte.'
-              : 'Follow rehearsal clips, routines and stage moments from performers and coaches in San Jose del Monte.'}
+              ? t('showcase.headerDescCoach', 'Share choreography routines, rehearsal highlights and masterclass announcements with verified students and mentors in San Jose del Monte.')
+              : t('showcase.headerDescClient', 'Follow rehearsal clips, routines and stage moments from performers and coaches in San Jose del Monte.')}
           </p>
         </div>
         {headerAction && <div className="flex shrink-0 items-center gap-2">{headerAction}</div>}
       </header>
+
+      {/* Community Rules directly below the header on the Dancer Circle. */}
+      {isDancerCircleActive && <DancerCircleRules />}
 
       {/* Modern, compact, collapsible music player for Groove Rehearsal Mix */}
       {!hideMusicBar && (
@@ -142,8 +146,7 @@ export function ShowcaseShell({
               browsingLabel={selection.banner?.displayName ?? null}
             />
 
-            {/* Community Rules at the bottom of Dancer Circle */}
-            {isDancerCircleActive && <DancerCircleRules />}
+            {/* Community Rules moved above the feed. */}
           </div>
         </div>
       )}

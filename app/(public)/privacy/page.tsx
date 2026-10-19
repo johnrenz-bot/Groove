@@ -317,10 +317,10 @@ export default function PrivacyPolicyPage() {
                   Questions, requests, or complaints
                 </p>
                 <a
-                  href="mailto:Groove1152000@gmail.com"
+                  href="mailto:grooveyyph@gmail.com"
                   className="break-all text-sm font-semibold text-accent-text underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  Groove1152000@gmail.com
+                  grooveyyph@gmail.com
                 </a>
               </div>
             </div>

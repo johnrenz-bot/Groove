@@ -17,7 +17,7 @@
 
 CREATE OR REPLACE FUNCTION public.get_user_badge_status(p_user_id UUID)
 RETURNS TABLE (
-    role user_role,
+    role public.user_role,
     badge_name VARCHAR(100),
     badge_description TEXT,
     tasks_completed INTEGER,
@@ -26,7 +26,7 @@ RETURNS TABLE (
     is_unlocked BOOLEAN
 ) AS $$
 DECLARE
-    v_role user_role;
+    v_role public.user_role;
 BEGIN
     -- Fully qualify the column: the output parameter named `role` shadows it.
     SELECT p.role INTO v_role

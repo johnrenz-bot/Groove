@@ -223,7 +223,10 @@ export function LegalLayout({
       </header>
 
       <main className="flex-1">
-        <div className="g-container py-10 sm:py-14 lg:py-16">
+        {/* `py-10 sm:py-14 lg:py-16` was 40/56/64px against the old 16px root and
+          scales to 35/49/56px on the new one — still the tallest vertical rhythm
+          on any public route. Tightened to `py-8 sm:py-10 lg:py-12`. */}
+      <div className="g-container py-8 sm:py-10 lg:py-12">
           {/* Document header */}
           <div className="mx-auto max-w-[760px]">
             <h1 className="text-balance text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">

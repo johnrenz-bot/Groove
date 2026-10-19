@@ -32,9 +32,14 @@ function classify(path: string): RouteKind {
   return 'public';
 }
 
-/** The portal a role belongs in. Admins land on the admin console. */
-function homeFor(role: UserRole | string | undefined): string {
-  if (role === 'admin') return '/admin/dashboard';
+/** The portal a role belongs in. Only a full admin identity lands on the admin
+ *  console; an account whose `profiles.role` is 'admin' but which is not the
+ *  pinned admin address is treated as a member and sent to the client portal.
+ *  Keeping this here (rather than in `roleHome`, which only knows the role)
+ *  is what prevents a redirect loop between `/admin/*` and `/client/*` for
+ *  such an account. */
+function homeFor(role: UserRole | string | undefined, isAdmin: boolean = false): string {
+  if (role === 'admin') return isAdmin ? '/admin/dashboard' : '/client/home';
   return roleHome(role);
 }
 
@@ -66,7 +71,28 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
+
+  // A stale/invalid session must not be treated as an account-readiness problem.
+  // Supabase reports it through `authError` with no `user`; fall through as an
+  // unauthenticated visitor rather than redirecting into the account_not_ready
+  // flow. The cookie refresh above is what keeps a valid session alive.
+  //
+  // "Database error loading user" specifically means Supabase Auth could not load
+  // the account behind this session (typically an orphaned/stale session after a
+  // data clear). Clearing the stale cookies is justified in that case; a generic
+  // transient network error is not, so we only sign out for that message.
+  if (authError && !user) {
+    const message = (authError.message || '').toLowerCase();
+    if (message.includes('database error loading user')) {
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // Best-effort cleanup; the redirect below still handles the visit.
+      }
+    }
+  }
 
   const path = request.nextUrl.pathname;
   const kind = classify(path);
@@ -85,7 +111,7 @@ export async function updateSession(request: NextRequest) {
   if (user) {
     // The profiles row is authoritative. `user_metadata.role` is supplied by the
     // client at signup, so it is not a trustworthy authorization claim.
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role, email')
       .eq('id', user.id)
@@ -109,6 +135,36 @@ export async function updateSession(request: NextRequest) {
     const role = profile?.role as UserRole | undefined;
 
     if (!role) {
+      // The public landing page stays reachable for a half-created account so a
+      // user who lands on /login?error=account_not_ready can still navigate back
+      // to '/' instead of being trapped. Protected routes below still redirect.
+      if (path === '/') {
+        return supabaseResponse;
+      }
+
+      // Already on the not-ready login URL: do not redirect again (this was the
+      // source of ERR_TOO_MANY_REDIRECTS).
+      const alreadyNotReady =
+        path === '/login' &&
+        request.nextUrl.searchParams.get('error') === 'account_not_ready';
+
+      if (alreadyNotReady) {
+        return supabaseResponse;
+      }
+
+      // A read error is not a missing profile. Do not label it account_not_ready;
+      // send the visitor to /login without that reason (and never self-redirect).
+      if (profileError) {
+        if (path !== '/login') {
+          const url = request.nextUrl.clone();
+          url.pathname = '/login';
+          url.search = '';
+          return NextResponse.redirect(url);
+        }
+        return supabaseResponse;
+      }
+
+      // Genuinely missing profile: account not ready.
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       url.search = '?error=account_not_ready';
@@ -134,7 +190,7 @@ export async function updateSession(request: NextRequest) {
      */
     if (kind === 'public' && path === '/') {
       const url = request.nextUrl.clone();
-      url.pathname = homeFor(role);
+      url.pathname = homeFor(role, isAdmin);
       url.search = '';
       return NextResponse.redirect(url);
     }
@@ -142,7 +198,7 @@ export async function updateSession(request: NextRequest) {
     // If on an auth page, redirect to the role home
     if (kind === 'auth') {
       const url = request.nextUrl.clone();
-      url.pathname = homeFor(role);
+      url.pathname = homeFor(role, isAdmin);
       url.search = '';
       return NextResponse.redirect(url);
     }
@@ -157,13 +213,13 @@ export async function updateSession(request: NextRequest) {
 
     if (kind === 'coach' && role !== 'coach' && !isAdmin) {
       const url = request.nextUrl.clone();
-      url.pathname = homeFor(role);
+      url.pathname = homeFor(role, isAdmin);
       return NextResponse.redirect(url);
     }
 
     if (kind === 'client' && role !== 'client' && !isAdmin) {
       const url = request.nextUrl.clone();
-      url.pathname = homeFor(role);
+      url.pathname = homeFor(role, isAdmin);
       return NextResponse.redirect(url);
     }
   }

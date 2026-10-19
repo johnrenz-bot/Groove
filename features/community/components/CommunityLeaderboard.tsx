@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { getInitials } from '@/lib/utils';
 import { cn } from '@/components/shared/cn';
 
@@ -57,6 +58,7 @@ export interface CommunityLeaderboardProps {
 }
 
 export function CommunityLeaderboard({ className, compact = false }: CommunityLeaderboardProps) {
+  const { t } = useLanguage();
   const [roleFilter, setRoleFilter] = useState<'all' | 'coach' | 'client'>('all');
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,6 +96,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
           coach_profile:coach_profiles(talents, service_fee),
           client_profile:client_profiles(talent)
         `)
+        .in('role', ['client', 'coach'])
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -281,13 +284,13 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
             </div>
             <div>
               <h3 className="text-sm font-bold text-foreground sm:text-base flex items-center gap-1.5">
-                <span>Tambayan Leaderboard</span>
+                <span>{t('showcase.leaderboardTitle', 'Tambayan Leaderboard')}</span>
                 <span className="rounded bg-accent/15 px-1.5 py-0.2 text-[10px] font-extrabold text-accent-text">
                   SJDM
                 </span>
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Ranked by verified participation, rehearsal posts &amp; community support
+                {t('showcase.leaderboardSubtitle', 'Ranked by verified participation, rehearsal posts & community support')}
               </p>
             </div>
           </div>
@@ -308,9 +311,9 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
         {/* Role Filters */}
         <div className="mt-3.5 flex gap-1 rounded-xl border border-border/70 bg-muted/40 p-1">
           {[
-            { id: 'all', label: 'All Circles' },
-            { id: 'client', label: 'Dancers & Clients' },
-            { id: 'coach', label: 'Mentors & Coaches' },
+            { id: 'all', label: t('showcase.tabAll', 'All Circles') },
+            { id: 'client', label: t('showcase.tabClients', 'Dancers & Clients') },
+            { id: 'coach', label: t('showcase.tabCoaches', 'Mentors & Coaches') },
           ].map((tab) => {
             const active = roleFilter === tab.id;
             return (
@@ -337,7 +340,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
         {loading ? (
           <div className="py-8 flex flex-col items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin text-accent" />
-            <span className="text-xs">Calculating participation points…</span>
+            <span className="text-xs">{t('showcase.calculating', 'Calculating participation points�')}</span>
           </div>
         ) : error ? (
           <div className="py-6 px-4 text-center">
@@ -348,12 +351,12 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted active:scale-95 cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              <span>Retry</span>
+              <span>{t('common.retry', 'Retry')}</span>
             </button>
           </div>
         ) : displayedUsers.length === 0 ? (
           <div className="py-8 text-center text-xs text-muted-foreground">
-            No performers found for this filter. Start posting to climb the leaderboard!
+            {t('showcase.leaderboardEmpty', 'No ranked members yet. Be the first to post!')}
           </div>
         ) : (
           <div className="space-y-2">
@@ -452,10 +455,11 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
 
       {/* Footer Info */}
       <div className="border-t border-border/60 bg-muted/20 px-4 py-2.5 text-center text-[10px] text-muted-foreground">
-        Points: +50 per post · +10 per reaction · +5 per comment · +100 verified badge
+        {t('showcase.pointsLegend', 'Points: +50 per post � +10 per reaction � +5 per comment � +100 verified badge')}
       </div>
     </div>
   );
 }
 
 export default CommunityLeaderboard;
+

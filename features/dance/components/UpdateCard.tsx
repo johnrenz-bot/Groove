@@ -21,7 +21,12 @@ interface UpdateCardProps {
   language: 'en' | 'tl';
 }
 
-const CARD_HEIGHT = 480; // px
+// Fixed card height. Was a hardcoded `480` px, which ignored the 14px root and
+// kept every card in "Latest Updates" taller than the cards around it. 420 is
+// the same proportion at a denser setting; it stays an explicit pixel value
+// because a masonry row of mixed-height cards needs one exact height to align
+// against, and deriving it from the root would make it fractional.
+const CARD_HEIGHT = 420; // px
 
 export function UpdateCard({ update, language }: UpdateCardProps) {
   // Authentic organization logo resolution

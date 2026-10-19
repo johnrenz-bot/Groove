@@ -446,7 +446,7 @@ CREATE POLICY "Admins can update settings" ON public.system_settings FOR ALL USI
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_role user_role := COALESCE((new.raw_user_meta_data->>'role')::user_role, 'client');
+    v_role public.user_role := COALESCE((new.raw_user_meta_data->>'role')::public.user_role, 'client');
     v_custom_id VARCHAR(10) := new.raw_user_meta_data->>'custom_id';
     v_firstname VARCHAR(100) := COALESCE(new.raw_user_meta_data->>'firstname', 'User');
     v_middlename VARCHAR(100) := new.raw_user_meta_data->>'middlename';
@@ -494,7 +494,7 @@ BEGIN
 
     RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Drop trigger if exists and recreate
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

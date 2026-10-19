@@ -40,6 +40,7 @@ import { ProfileLinksCard, type ProfileLinks } from '@/components/profile/Profil
 import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
+import { GCashQrCard } from '@/features/payments/components/GCashQrField';
 import { verificationStatusOf } from '@/features/verification/services/verification';
 import { BadgeCollection } from '@/components/badges/BadgeCollection';
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
@@ -646,8 +647,8 @@ export default function CoachProfilePage() {
 
       {/* ── Overview: view mode ── */}
       {activeTab === 'overview' && !editing && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="min-w-0 space-y-6">
             <ProfileSummary
               title="Personal Information"
               description="The identity fields collected at registration."
@@ -748,6 +749,15 @@ export default function CoachProfilePage() {
                 id_selfie_path: cp?.id_selfie_path ?? null,
               }}
               onResubmitted={fetchCoachData}
+            />
+
+            {/* Optional GCash QR. Self-contained: it writes only the
+                gcash_profiles row, so it needs no coordination with the
+                profile form's single Save button. */}
+            <GCashQrCard
+              userId={coach.id}
+              accountName={`${coach.firstname ?? ''} ${coach.lastname ?? ''}`.trim()}
+              accountNumber={cp?.payment_handle ?? ''}
             />
 
             <Link href="/coach/settings" className="block">

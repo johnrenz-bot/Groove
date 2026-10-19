@@ -14,13 +14,13 @@
  *
  * Exits non-zero on the first failure so it can gate a build.
  */
-import { isMusicRoute, MUSIC_ALLOWED_ROUTES } from '../features/music/lib/routes.ts';
+import { isMusicRoute, MUSIC_ALLOWED_ROUTES } from '../../features/music/lib/routes.ts';
 import {
   MUSIC_GENRES,
   DEFAULT_GENRE_ID,
   getGenre,
   matchGenre,
-} from '../features/music/config/genres.ts';
+} from '../../features/music/config/genres.ts';
 
 let passed = 0;
 const failures = [];

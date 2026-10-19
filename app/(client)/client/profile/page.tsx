@@ -39,6 +39,7 @@ import { ProfileLinksCard, type ProfileLinks } from '@/components/profile/Profil
 import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
+import { GCashQrCard } from '@/features/payments/components/GCashQrField';
 import { verificationStatusOf } from '@/features/verification/services/verification';
 import { BadgeCollection } from '@/components/badges/BadgeCollection';
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
@@ -75,7 +76,7 @@ const EMPTY_ADDRESS: AddressData = {
   address_summary: '',
 };
 
-type Tab = 'about' | 'showcase';
+type Tab = 'about' | 'showcase' | 'payments';
 
 export default function ClientProfilePage() {
   const router = useRouter();
@@ -448,6 +449,7 @@ export default function ClientProfilePage() {
   const TABS: { id: Tab; label: string; count?: number }[] = [
     { id: 'about', label: 'Overview & Details' },
     { id: 'showcase', label: 'My Media Showcase', count: posts.length },
+    { id: 'payments', label: 'Payments' },
   ];
 
   return (
@@ -565,8 +567,8 @@ export default function ClientProfilePage() {
 
       {/* ── About: view mode ── */}
       {activeTab === 'about' && !editing && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="min-w-0 space-y-6">
             <ProfileSummary
               title="Personal Information"
               description="The identity fields collected at registration."
@@ -711,6 +713,18 @@ export default function ClientProfilePage() {
             </Button>
           </div>
         </form>
+      )}
+
+      {/* ── Payments tab: GCash QR ──
+          Its own tab because it is self-contained (it writes only the
+          gcash_profiles row) and must not be entangled with the "About" form's
+          single save button. */}
+      {activeTab === 'payments' && (
+        <GCashQrCard
+          userId={profile.id}
+          accountName={`${profile.firstname ?? ''} ${profile.lastname ?? ''}`.trim()}
+          accountNumber={profile.contact ?? ''}
+        />
       )}
 
       {/* ── Showcase ── */}

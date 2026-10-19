@@ -98,6 +98,7 @@ export async function GET(request: NextRequest) {
     const q = (sp.get('q') ?? '').trim();
     const role = sp.get('role') ?? 'all';
     const sort = sp.get('sort') ?? 'followers';
+    const verified = sp.get('verified') ?? 'all';
     const requestedPage = Math.max(1, parseInt(sp.get('page') ?? '1', 10) || 1);
     const pageSize = Math.min(50, Math.max(1, parseInt(sp.get('pageSize') ?? '20', 10) || 20));
     const topOnly = sp.get('top') === '1';
@@ -115,6 +116,16 @@ export async function GET(request: NextRequest) {
 
     if (role === 'coach' || role === 'client') {
       base = base.eq('role', role);
+    }
+    // Verification filter. `account_verified` is already in PUBLIC_PROFILE_COLUMNS,
+    // so this adds no new column to the response and leaks nothing — it only
+    // narrows rows the caller was already entitled to read. Anything other than
+    // 'yes'/'no' is ignored rather than treated as a filter, so an old client
+    // sending no parameter keeps the previous unfiltered behaviour.
+    if (verified === 'yes') {
+      base = base.eq('account_verified', true);
+    } else if (verified === 'no') {
+      base = base.eq('account_verified', false);
     }
     if (q) {
       // Built with the shared PostgREST escaping helper rather than string

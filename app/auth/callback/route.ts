@@ -56,6 +56,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const oauthError = requestUrl.searchParams.get('error_description') || requestUrl.searchParams.get('error');
+  if (oauthError) {
+    const isCancel = /access_denied|cancelled|canceled/i.test(oauthError);
+    const errCode = isCancel ? 'oauth_cancelled' : 'auth_callback_failed';
+    return NextResponse.redirect(new URL(`/login?error=${errCode}`, request.url));
+  }
+
   // If code exchange failed or wasn't provided, redirect to login
   return NextResponse.redirect(new URL('/login?error=auth_callback_failed', request.url));
 }

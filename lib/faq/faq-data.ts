@@ -70,7 +70,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
         id: 'about-contact',
         question: 'How do I reach Groove System?',
         answer:
-          'Use the contact details in the footer of any page, or email Groove1152000@gmail.com. If you already have an account, the fastest route is a support request through Inquiries in the admin console, which is where support tickets are tracked.',
+          'Use the contact details in the footer of any page, or email grooveyyph@gmail.com. If you already have an account, the fastest route is a support request through Inquiries in the admin console, which is where support tickets are tracked.',
       },
     ],
   },

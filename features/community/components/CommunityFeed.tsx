@@ -21,6 +21,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 import { CommunityPost, Comment, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
@@ -57,6 +58,7 @@ export default function CommunityFeed({
   browsingLabel,
 }: CommunityFeedProps) {
   const activeFilter = filterCommunity ?? community ?? null;
+  const { t } = useLanguage();
 
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   /**
@@ -427,21 +429,21 @@ export default function CommunityFeed({
           </div>
           <h4 className="text-sm font-bold text-foreground">
             {!currentUser
-              ? 'Sign in to see your community'
+              ? t('showcase.signInToSee', 'Sign in to see your community')
               : !community
-                ? 'No community set on your profile'
+                ? t('showcase.noCommunity', 'No community set on your profile')
                 : !activeFilter
-                  ? 'Choose a circle to browse'
-                  : `No showcase posts in ${activeFilter} yet`}
+                  ? t('showcase.chooseCircle', 'Choose a circle to browse')
+                  : t('showcase.noPosts', 'No showcase posts in {community} yet', { community: String(activeFilter) })}
           </h4>
           <p className="mx-auto max-w-sm text-xs leading-relaxed text-muted-foreground">
             {!currentUser
-              ? 'Your community showcase is only visible to signed-in members.'
+              ? t('showcase.signInHint', 'Your community showcase is only visible to signed-in members.')
               : !community
-                ? 'Add your discipline in your profile settings to join a community and start sharing.'
+                ? t('showcase.noCommunityHint', 'Add your discipline in your profile settings to join a community and start sharing.')
                 : !activeFilter
-                  ? 'Pick Dancer, Singer, Actor or Theater to see what your circle is working on.'
-                  : 'Be the first to share a rehearsal clip with the circle!'}
+                  ? t('showcase.chooseCircleHint', 'Pick Dancer, Singer, Actor or Theater to see what your circle is working on.')
+                  : t('showcase.noPostsHint', 'Be the first to share a rehearsal clip with the circle!')}
           </p>
         </div>
       ) : (

@@ -416,7 +416,14 @@ const [loadError, setLoadError] = useState<string | null>(null);
 
   return (
     <div className="relative min-h-screen">
-      <div className="relative z-10 mx-auto max-w-[1420px] space-y-6 px-5 py-7 sm:px-8 sm:py-9">
+      {/* No wrapper padding or max-width here. DashboardLayout already applies
+          `px-5 py-7 sm:px-8 sm:py-9` and caps the column at 1240px, so the old
+          `max-w-[1420px] px-5 py-7 sm:px-8 sm:py-9` was a SECOND layer of the same
+          padding (64px per side at `sm`, not 32) wrapping a cap that could never
+          take effect inside the narrower 1240px parent. `space-y-*` and `relative
+          z-10` are kept — the former is the page rhythm, the latter the stacking
+          context the patterns layer needs. */}
+      <div className="relative z-10 space-y-6">
         {/* Greeting */}
         <Greeting
           eyebrow={t('home.coachEyebrow', 'Coach Control Terminal')}

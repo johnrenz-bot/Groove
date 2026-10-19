@@ -108,7 +108,7 @@ export default function FaqPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <a href="mailto:Groove1152000@gmail.com" className="faq-btn faq-btn--primary">
+            <a href="mailto:grooveyyph@gmail.com" className="faq-btn faq-btn--primary">
               Email the team
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>

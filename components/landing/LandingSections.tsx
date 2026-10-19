@@ -2,9 +2,8 @@ import { Hero } from '@/components/landing/Hero';
 import { Disciplines } from '@/components/landing/Disciplines';
 import { AudienceTabs } from '@/components/landing/AudienceTabs';
 import { HowItWorks } from '@/components/landing/HowItWorks';
-import { StudiosPreview } from '@/components/landing/StudiosPreview';
+import { WhyGroove } from '@/components/landing/WhyGroove';
 import { FinalCta } from '@/components/landing/FinalCta';
-import { CommunityTestimonials } from '@/components/landing/CommunityTestimonials';
 import { FaqTeaserSection } from '@/components/faq/FaqTeaserSection';
 import { Footer } from '@/components/shared/Footer';
 import { PublicLayout } from '@/components/shared/PublicLayout';
@@ -30,10 +29,10 @@ import { getLandingStats } from '@/components/landing/landingStats.server';
  * renders exactly one copy for the whole app, and a second one on `/` was
  * doubling the corner artwork over the hero.
  *
- * Section order is: hero, disciplines, audience tabs, how it works, studios,
- * testimonials, FAQ, closing CTA, footer. The anchors (`#disciplines`,
- * `#coaches`, `#how`, `#studios`) and every outgoing link are unchanged: the
- * header, the footer and the dashboard all point at them.
+ * Section order is: hero, why groove (survey stats), disciplines, audience tabs,
+ * how it works, FAQ, closing CTA, footer. The anchors (`#disciplines`,
+ * `#coaches`, `#how`, `#faq`) and every outgoing link are unchanged:
+ * the header, the footer and the dashboard all point at them.
  *
  * Server component: it awaits `getLandingStats()`, which is why the whole route
  * is dynamic.
@@ -46,11 +45,10 @@ export default async function LandingSections() {
       <PublicLayout showFooter={false}>
         <main id="main" className="flex-1">
           <Hero stats={stats} />
+          <WhyGroove />
           <Disciplines />
           <AudienceTabs />
           <HowItWorks />
-          <StudiosPreview />
-          <CommunityTestimonials />
           <FaqTeaserSection />
           <FinalCta />
         </main>

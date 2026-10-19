@@ -2,7 +2,7 @@
 
 import { Flag } from 'lucide-react';
 
-const SUPPORT_EMAIL = 'Groove1152000@gmail.com';
+const SUPPORT_EMAIL = 'grooveyyph@gmail.com';
 
 interface ReportIssueLinkProps {
   /** Human-readable title of the item being reported (event, crew, article). */

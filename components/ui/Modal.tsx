@@ -135,11 +135,13 @@ export function Modal({
               )}
             </div>
             {showClose && (
+              // `p-2.5` not `p-2`: 7px padding either side of a `h-5` glyph
+              // lands at 31.5px, half a pixel under the 32px hit target.
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="-mr-1 -mt-1 shrink-0 cursor-pointer rounded-full p-2 text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="-mr-1 -mt-1 shrink-0 cursor-pointer rounded-full p-2.5 text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <X className="h-5 w-5" />
               </button>

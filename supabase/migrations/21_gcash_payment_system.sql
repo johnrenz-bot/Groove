@@ -1,5 +1,25 @@
 -- Migration 21: GroovePH Professional GCash Payment System
 --
+-- ============================================================================
+-- DO NOT RUN THIS FILE ON THE LIVE PROJECT — use 25_gcash_qr_codes.sql.
+--
+-- Verified 2026-10-19: this migration was never applied (PostgREST returns
+-- PGRST205 for both gcash_profiles and payment_transactions). It is retained
+-- only as the design record for payment_transactions, which no shipped code
+-- path reads or writes yet.
+--
+-- Two concrete problems with applying it now:
+--   1. It stores GCash QR images in the PUBLIC `avatars` bucket, so every QR
+--      would be permanently fetchable by URL.
+--   2. Its gcash_profiles SELECT policy ("Anyone can view active gcash
+--      profiles") publishes every member's registered name and mobile number
+--      to every signed-in member. 25 installs owner-only access instead.
+--
+-- 25 creates the bucket, the storage policies and the gcash_profiles table,
+-- and is idempotent against a database where 21 HAS been applied: it drops
+-- the permissive policy above rather than coexisting with it.
+-- ============================================================================
+--
 -- Adds tables and policies for:
 -- 1. gcash_profiles: GCash account details, QR code images, and status for Clients and Coaches
 -- 2. payment_transactions: Payment requests, receipts/proofs, verification reviews, and audit trail

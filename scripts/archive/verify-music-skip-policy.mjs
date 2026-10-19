@@ -10,7 +10,7 @@
  *
  * Exits non-zero on the first failure so it can gate a build.
  */
-import { classifyPlaybackError, planSkip } from '../features/music/lib/playbackPolicy.ts';
+import { classifyPlaybackError, planSkip } from '../../features/music/lib/playbackPolicy.ts';
 
 let passed = 0;
 const failures = [];

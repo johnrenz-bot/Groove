@@ -24,7 +24,7 @@ import { useChat } from '../context/ChatContext';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { DisciplineType } from '../types';
 import { SiteLinkCard } from '@/components/groovey/SiteLinkCard';
-import { isAboutPlatformMessage } from '../utils/isAboutPlatform';
+import { isAboutPlatformMessage, isAboutGrooveyyMessage } from '../utils/isAboutPlatform';
 
 export const GrooveyActiveCoaching: React.FC = () => {
   const {
@@ -495,7 +495,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                   </button>
                 </div>
 
-                {/* SiteLinkCard — show only when preceding user message asks about GroovePH */}
+                {/* SiteLinkCard — show only when preceding user message asks about GroovePH or Grooveyy */}
                 {(() => {
                   const precedingUserMsg = messages
                     .slice(0, msgIndex)
@@ -503,10 +503,12 @@ export const GrooveyActiveCoaching: React.FC = () => {
                     .find((m) => m.role === 'user');
                   if (!precedingUserMsg) return null;
                   const text = precedingUserMsg.content || '';
-                  if (!isAboutPlatformMessage(text)) return null;
+                  const isPlatform = isAboutPlatformMessage(text);
+                  const isGrooveyy = isAboutGrooveyyMessage(text);
+                  if (!isPlatform && !isGrooveyy) return null;
                   return (
                     <div key={`sitelink-${msg.id}`} className="mt-3 ml-11 sm:ml-12">
-                      <SiteLinkCard compact />
+                      <SiteLinkCard compact showGrooveyyLink={isGrooveyy} />
                     </div>
                   );
                 })()}

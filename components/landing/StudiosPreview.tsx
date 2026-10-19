@@ -1,189 +1,80 @@
 import React from 'react';
 import Image from 'next/image';
-import { MapPin, Star } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import Link from 'next/link';
+import { MapPin, ExternalLink } from 'lucide-react';
+import { CURATED_STUDIOS, type CuratedStudio } from '@/lib/studios/curatedStudios';
+import { haversineKm, DEFAULT_CENTER } from '@/lib/geo';
+import { Reveal } from '@/components/shared/Reveal';
 
-interface Studio {
-  id: string;
-  name: string;
-  discipline: string;
-  location: string;
-  distance: string;
-  image: string;
-  rating: number;
-  review_count: number;
-  features: string[];
-  verified: boolean;
-}
+/**
+ * Distance from SJDM city center to each curated studio (precomputed).
+ * SJDM center: 14.8144, 121.0455 (approximate city hall coordinates)
+ */
+const SJDM_CENTER = { lat: 14.8144, lng: 121.0455 };
 
-interface Coach {
-  id: string;
-  name: string;
-  discipline: string;
-  avatar: string;
-  rating: number;
-  review_count: number;
-  verified: boolean;
-  location: string;
-  specialties: string[];
+function computeDistanceKm(studio: CuratedStudio): number {
+  return haversineKm(SJDM_CENTER, { lat: studio.latitude, lng: studio.longitude });
 }
 
 /**
- * Server component to fetch real studios and coaches data.
- * Returns empty arrays if tables don't exist or queries fail.
+ * Studio Card — displays verified curated studio data.
+ * No ratings, phone numbers, or hours invented.
+ * Links to the Studio Locator with the studio pre-selected.
  */
-async function getStudiosPreviewData(): Promise<{ studios: Studio[]; coaches: Coach[] }> {
-  const supabase = createClient();
+function StudioCard({ studio }: { studio: CuratedStudio }) {
+  const distance = computeDistanceKm(studio);
+  const distanceStr = distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`;
 
-  let studios: Studio[] = [];
-  let coaches: Coach[] = [];
+  // Studio Locator URL with this studio's coordinates as center
+  const locatorUrl = `/#studios`;
 
-  try {
-    // Try to fetch studios if table exists
-    const { data: studioData, error: studioError } = await supabase
-      .from('studios')
-      .select('*')
-      .eq('status', 'active')
-      .limit(3);
-
-    if (!studioError && studioData) {
-      studios = studioData as Studio[];
-    }
-  } catch {
-    // Studios table doesn't exist or query failed
-    studios = [];
-  }
-
-  try {
-    // Try to fetch coaches from profiles with role='coach'
-    const { data: coachData, error: coachError } = await supabase
-      .from('profiles')
-      .select('id, firstname, lastname, role, photo_url, bio, location')
-      .eq('role', 'coach')
-      .eq('status', 'active')
-      .limit(4);
-
-    if (!coachError && coachData) {
-      coaches = coachData.map((profile: { id: string; firstname: string; lastname: string; photo_url: string | null; bio: string | null; location: string | null }) => ({
-        id: profile.id,
-        name: `${profile.firstname} ${profile.lastname}`.trim(),
-        discipline: 'Coach',
-        avatar: profile.photo_url || '/image/placeholder-coach.jpg',
-        rating: 0,
-        review_count: 0,
-        verified: true,
-        location: profile.location || 'San Jose del Monte',
-        specialties: [],
-      })) as Coach[];
-    }
-  } catch {
-    coaches = [];
-  }
-
-  return { studios, coaches };
-}
-
-/**
- * A rating row that shows nothing rather than "0 (0)".
- *
- * Both the studio and coach records this section reads carry `rating: 0` until
- * a real review exists, and "0 (0)" reads as a badly-reviewed business rather
- * than as an absence of reviews.
- */
-function Rating({ rating, reviewCount }: { rating: number; reviewCount: number }) {
-  if (!rating || !reviewCount) return null;
-
-  return (
-    <p className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--foreground)]">
-      <Star className="h-3.5 w-3.5 fill-[var(--brand-sunburst)] text-[var(--brand-sunburst)]" aria-hidden="true" />
-      <span className="tabular-nums">{rating.toFixed(1)}</span>
-      <span className="text-[var(--subtle-foreground)]">({reviewCount})</span>
-    </p>
-  );
-}
-
-function StudioCard({ studio }: { studio: Studio }) {
   return (
     <li>
-      <article className="ld-card h-full overflow-hidden">
+      <article className="ld-card h-full overflow-hidden group">
         <div className="relative aspect-[16/10] w-full overflow-hidden">
           <Image
-            src={studio.image}
+            src={studio.image || '/image/placeholder-studio.jpg'}
             alt={studio.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          {studio.verified && <span className="ld-ribbon">Verified</span>}
+          <span className="ld-ribbon">Verified</span>
         </div>
 
         <div className="flex flex-1 flex-col gap-2 p-6">
           <p className="ld-small inline-flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            {studio.location}
-            {studio.distance && <span className="text-[var(--subtle-foreground)]">· {studio.distance}</span>}
+            {studio.address || 'San Jose del Monte, Bulacan'}
+            <span className="text-[var(--subtle-foreground)]">· {distanceStr} from city center</span>
           </p>
 
           <h3 className="ld-h3">{studio.name}</h3>
-          <p className="text-sm text-[var(--muted-foreground)]">{studio.discipline}</p>
 
-          <Rating rating={studio.rating} reviewCount={studio.review_count} />
-
-          {studio.features.length > 0 && (
-            <ul className="mt-2 flex flex-wrap gap-1.5">
-              {studio.features.slice(0, 3).map((feature) => (
-                <li key={feature} className="ld-chip">
-                  {feature}
-                </li>
-              ))}
-              {studio.features.length > 3 && (
-                <li className="ld-chip ld-chip--quiet">+{studio.features.length - 3} more</li>
-              )}
-            </ul>
+          {studio.address && (
+            <p className="text-sm text-[var(--muted-foreground)]">
+              {studio.address}
+            </p>
           )}
 
-          <a href="#" className="ld-btn2 ld-btn2--sm mt-auto w-full">
-            View studio details
-          </a>
+          <div className="mt-auto pt-2">
+            <Link
+              href={locatorUrl}
+              className="ld-btn2 ld-btn2--sm w-full inline-flex items-center justify-center gap-2"
+            >
+              <span>View in Studio Locator</span>
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </article>
     </li>
   );
 }
 
-function CoachCard({ coach }: { coach: Coach }) {
-  return (
-    <li>
-      <article className="ld-card h-full overflow-hidden">
-        <div className="relative mx-6 mt-6 aspect-square overflow-hidden rounded-xl">
-          <Image
-            src={coach.avatar}
-            alt={coach.name}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover"
-          />
-          {coach.verified && <span className="ld-ribbon">Verified</span>}
-        </div>
-
-        <div className="flex flex-1 flex-col gap-2 p-6">
-          <h3 className="ld-h3">{coach.name}</h3>
-          <p className="ld-small inline-flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            {coach.location}
-          </p>
-
-          <Rating rating={coach.rating} reviewCount={coach.review_count} />
-
-          <a href="#" className="ld-btn2 ld-btn2--sm mt-auto w-full">
-            View profile
-          </a>
-        </div>
-      </article>
-    </li>
-  );
-}
-
+/**
+ * Empty state when no studios are available.
+ */
 function EmptyNote({ title, body }: { title: string; body: string }) {
   return (
     <div className="ld-card px-6 py-12 text-center">
@@ -193,30 +84,35 @@ function EmptyNote({ title, body }: { title: string; body: string }) {
   );
 }
 
+/**
+ * Studios Preview Section — uses curated studio data.
+ * Links to the full Studio Locator for interactive map and radius search.
+ */
 export async function StudiosPreview() {
-  const { studios, coaches } = await getStudiosPreviewData();
+  const studios = CURATED_STUDIOS;
 
   return (
     <section id="studios" className="ld-section ld-band" aria-labelledby="studios-heading">
       <div className="ld-wrap">
-        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+        <Reveal className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="flex max-w-xl flex-col gap-3">
-            <p className="ld-eyebrow">Studios &amp; Coaches</p>
+            <p className="ld-eyebrow">Studios Near You</p>
             <h2 id="studios-heading" className="ld-h2">
-              Spaces to create, mentors to guide
+              Verified rehearsal spaces in San Jose del Monte
             </h2>
             <p className="ld-p">
-              Curated rehearsal studios and verified coaches near San Jose del Monte. Filter
-              by discipline, capacity, and distance.
+              {studios.length} curated studios with confirmed locations. Filter by distance,
+              discipline, and capacity in the full locator.
             </p>
           </div>
-          <a href="#" className="ld-btn2 ld-btn2--sm shrink-0">
-            View all studios &amp; coaches
-          </a>
-        </div>
+          <Link href="#studios" className="ld-btn2 ld-btn2--sm shrink-0">
+            Open full Studio Locator
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        </Reveal>
 
-        {/* Studios */}
-        <div className="mt-14">
+        {/* Studios Grid */}
+        <Reveal variant="scale" delay={100} className="mt-14">
           {studios.length > 0 ? (
             <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {studios.map((studio) => (
@@ -226,38 +122,23 @@ export async function StudiosPreview() {
           ) : (
             <EmptyNote
               title="Studio listings coming soon."
-              body="We are curating rehearsal spaces across San Jose del Monte."
+              body="We are curating verified rehearsal spaces across San Jose del Monte."
             />
           )}
-        </div>
+        </Reveal>
 
-        {/* Coaches */}
-        <div className="mt-20">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-            <div className="flex max-w-xl flex-col gap-2">
-              <p className="ld-eyebrow">Featured coaches</p>
-              <h3 className="ld-h2">Verified coaches ready to mentor you</h3>
-            </div>
-            <a href="#" className="ld-btn2 ld-btn2--sm shrink-0">
-              View all coaches
-            </a>
+        {/* Feature hint */}
+        <Reveal variant="fade" delay={200} className="mt-10">
+          <div className="ld-card ld-card--pad px-6 py-4 text-center border-accent/20 bg-accent/5">
+            <p className="ld-small text-[var(--muted-foreground)]">
+              Need a different radius or discipline?{' '}
+              <Link href="#studios" className="font-semibold text-accent-text underline-offset-2 hover:underline">
+                Open the full Studio Locator &rarr;
+              </Link>
+              for interactive map search, 1/3/5/10 km filters, and OpenStreetMap community listings.
+            </p>
           </div>
-
-          <div className="mt-10">
-            {coaches.length > 0 ? (
-              <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {coaches.map((coach) => (
-                  <CoachCard key={coach.id} coach={coach} />
-                ))}
-              </ul>
-            ) : (
-              <EmptyNote
-                title="Verified coaches coming soon."
-                body="Coaches are being reviewed and will appear here once verified."
-              />
-            )}
-          </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

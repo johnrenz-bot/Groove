@@ -11,7 +11,21 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-const PADDING = { none: '', sm: 'p-4', md: 'p-6', lg: 'p-8' } as const;
+/**
+ * Card padding ladder, re-based against the 14px root in `app/globals.css`.
+ *
+ * Was `p-4` / `p-6` / `p-8` = 16 / 24 / 32px. Those are rem, so the root change
+ * already took them to 14 / 21 / 28px — but 28px is still well outside the
+ * 16-20px band this app now targets, and `md` is the DEFAULT, so it is the padding
+ * most of the product actually renders. Tightened one step:
+ *
+ *     sm   p-4   14px      dense panels, nested cards
+ *     md   p-5   17.5px    the default — most cards in the product
+ *     lg   p-6   21px      feature cards that need to breathe
+ *
+ * The ladder keeps a visible three-step hierarchy rather than collapsing it.
+ */
+const PADDING = { none: '', sm: 'p-4', md: 'p-5', lg: 'p-6' } as const;
 
 export function Card({
   children,

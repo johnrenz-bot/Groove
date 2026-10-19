@@ -125,7 +125,7 @@ function GoogleCompletionInner() {
           </div>
           <Link
             href={`/register/${role}`}
-            className="block w-full rounded-lg bg-accent px-4 py-3 text-center text-sm font-semibold text-accent-contrast transition hover:opacity-90"
+            className="block w-full rounded-xl bg-accent px-4 py-3 text-center text-sm font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover hover:shadow-[0_4px_20px_rgba(244,190,77,0.25)] active:scale-[0.99]"
           >
             Try Google again
           </Link>
@@ -158,7 +158,7 @@ function GoogleCompletionInner() {
           </div>
           <Link
             href={GOOGLE_ROLE_DASHBOARD[phase.actual]}
-            className="block w-full rounded-lg bg-accent px-4 py-3 text-center text-sm font-semibold text-accent-contrast transition hover:opacity-90"
+            className="block w-full rounded-xl bg-accent px-4 py-3 text-center text-sm font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover hover:shadow-[0_4px_20px_rgba(244,190,77,0.25)] active:scale-[0.99]"
           >
             Go to my dashboard
           </Link>
@@ -187,7 +187,7 @@ function GoogleCompletionInner() {
         </div>
         <Link
           href={`/register/${role}`}
-          className="block w-full rounded-lg bg-accent px-4 py-3 text-center text-sm font-semibold text-accent-contrast transition hover:opacity-90"
+          className="block w-full rounded-xl bg-accent px-4 py-3 text-center text-sm font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover hover:shadow-[0_4px_20px_rgba(244,190,77,0.25)] active:scale-[0.99]"
         >
           Try again
         </Link>

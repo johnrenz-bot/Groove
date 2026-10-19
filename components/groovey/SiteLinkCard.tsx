@@ -3,23 +3,27 @@
 import React from "react";
 import { ExternalLink, Globe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
-import { GROOVEPH_URL } from "@/lib/config/site";
+import { GROOVEPH_URL, GROOVEYY_URL } from "@/lib/config/site";
 
 interface SiteLinkCardProps {
   /** Show a compact version for inline/chat use */
   compact?: boolean;
   /** Optional custom className */
   className?: string;
+  /** Show Grooveyy AI button (for messages mentioning "grooveyy", "groovey ph", etc.) */
+  showGrooveyyLink?: boolean;
 }
 
 /**
  * SiteLinkCard — Displays the GroovePH website link with a "Visit GroovePH" button.
+ * Optionally shows a second button for Grooveyy AI.
  * Uses existing UI primitives and dark/gold styling.
  * No iframe — link-only per requirements (embedding headers UNKNOWN).
  */
 export const SiteLinkCard: React.FC<SiteLinkCardProps> = ({
   compact = false,
   className = "",
+  showGrooveyyLink = false,
 }) => {
   const baseStyles = "border-accent-border/30 bg-accent-soft/10";
   const compactStyles = "p-3";
@@ -53,15 +57,28 @@ export const SiteLinkCard: React.FC<SiteLinkCardProps> = ({
               <p className="text-xs text-muted-foreground truncate">{GROOVEPH_URL}</p>
             </div>
           </div>
-          <a
-            href={GROOVEPH_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${buttonStyles} shrink-0 flex items-center gap-1.5`}
-          >
-            <span>Visit GroovePH</span>
-            <ExternalLink className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-          </a>
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <a
+              href={GROOVEPH_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${buttonStyles} shrink-0 flex items-center gap-1.5`}
+            >
+              <span>Visit GroovePH</span>
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            </a>
+            {showGrooveyyLink && (
+              <a
+                href={GROOVEYY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${buttonStyles} shrink-0 flex items-center gap-1.5`}
+              >
+                <span>Visit Grooveyy AI</span>
+                <ExternalLink className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              </a>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

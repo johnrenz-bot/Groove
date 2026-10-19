@@ -106,6 +106,38 @@
   --radius-card: 14px;
   --radius-panel: 16px;
 
+  /* --- TYPE SCALE -----------------------------------------------------------
+     Re-based against the 14px root declared above.
+
+     `html { font-size: 87.5% }` shrinks every rem by 12.5%, which would drag the
+     whole stock scale down with it — `text-xs` to 10.5px (below the 12px
+     legibility floor) and `text-3xl` to 26.25px (no longer a heading). These
+     overrides restore the ABSOLUTE pixel size of each step to the density
+     target, so every one of the ~1,500 `text-*` utilities in the codebase lands
+     correctly without a single call site being touched.
+
+       step       rem        @14px root   job
+       text-xs    0.875rem   12.25px      metadata, table heads, badges
+       text-sm    0.9375rem  13.1px       secondary body, labels, buttons
+       text-base  1rem       14px         BODY TEXT
+       text-lg    1.125rem   15.75px      lead-in, card titles
+       text-xl    1.25rem    17.5px       H3
+       text-2xl   1.5rem     21px         H2
+       text-3xl   1.75rem    24.5px       sub-heading / modal title
+       text-4xl   2.25rem    31.5px       H1
+       text-5xl   2.75rem    38.5px       hero
+
+     Steps not listed (`text-lg`, `text-xl`, `text-2xl`, `text-4xl`) already hold
+     the value that lands on target at a 14px root, so they are deliberately left
+     at Tailwind's default rather than restated here.
+
+     Line heights are NOT restated: Tailwind defines each as a unitless ratio
+     (`calc(2 / 1.5)`), which stays correct when the size underneath it changes. */
+  --text-xs: 0.875rem;
+  --text-sm: 0.9375rem;
+  --text-3xl: 1.75rem;
+  --text-5xl: 2.75rem;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Philippine flag accent palette — used exclusively for decorative SVG/border
@@ -802,9 +834,80 @@
   border-color: var(--border);
 }
 
+/* ------------------------------------------------------------------------------
+   ROOT SCALE — 14px, declared ONCE here.
+
+   `html` had no `font-size` at all, so the root was the browser default 16px and
+   every rem-based Tailwind utility resolved against it. That single omission is
+   what made the whole app read oversized at 100% zoom: `text-base` was 16px,
+   `text-2xl` 24px, `text-4xl` 36px, `h-10` 40px, `p-8` 32px.
+
+   87.5% of 16px = 14px. Every rem-based utility in the app now resolves against
+   a 14px root, which is the single highest-leverage change in this file.
+
+   IMPORTANT — this is NOT a double scale. Nothing else in the app sets a root
+   font size: there is no `tailwind.config.js`, no `--spacing` override, and
+   Tailwind v4's preflight does not touch `html { font-size }`. One
+   declaration, one effect.
+
+   The companion type scale lives in `@theme` at the top of this file. Both must
+   change together: the root shrinks every rem by 12.5%, so `--text-xs` would
+   land at 10.5px — below the 12px legibility floor — and `--text-3xl` at
+   26.25px, which is no longer a heading. Rebasing `--text-*` puts the ABSOLUTE
+   pixel size of every utility step back on target.
+   ------------------------------------------------------------------------------ */
 html {
+  font-size: 87.5%; /* 14px root */
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+}
+
+/* ------------------------------------------------------------------------------
+   INTERACTIVE CONTROL FLOOR
+
+   The 14px root shrinks every rem by 12.5%, which drags the two smallest steps
+   of Tailwind's height/size scale under the 32px minimum hit target:
+
+       h-8 / w-8   2rem    ->  28px     below the floor
+       h-9 / w-9   2.25rem ->  31.5px   0.5px below the floor
+
+   Both steps are in real use as buttons and icon targets — filter pills, chip
+   toggles, back buttons, attachment controls — so they cannot simply be allowed
+   to shrink. They are re-based here onto the floor instead:
+
+       h-8 / w-8   2.375rem ->  33.25px
+       h-9 / w-9   2.5rem   ->  35px
+
+   These are the SAME class names, so no call site is edited and the rest of the
+   scale (`h-10` 35px, `h-11` 38.5px, `h-12` 42px) still reads as a monotonic
+   ladder. Declared in `@layer utilities` — the layer Tailwind emits into — and
+   placed after the `@import`, so this block is appended after Tailwind's own
+   output and wins on source order at equal specificity.
+
+   `h-8` is also used for spinner glyphs and skeleton bars. Those grow by the same
+   5px, which is harmless: neither is a fixed-layout constraint, and a slightly
+   larger spinner is the better of the two outcomes. */
+@layer utilities {
+  .h-8 {
+    height: 2.375rem;
+  }
+  .w-8 {
+    width: 2.375rem;
+  }
+  .h-9 {
+    height: 2.5rem;
+  }
+  .w-9 {
+    width: 2.5rem;
+  }
+  .size-8 {
+    width: 2.375rem;
+    height: 2.375rem;
+  }
+  .size-9 {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -841,6 +944,18 @@ body {
 
    `.g-display` is opt-in so no existing heading changes by accident; `.g-title`
    is the smaller variant used by page headers.
+
+   SIZES were retuned for the 14px root (see the `html` rule near the top of this
+   file). Both used to be declared in rem against a 16px root, so they rendered
+   at 32–52px and 24–34px; the rem values below resolve to:
+
+     .g-display  clamp(2rem, 4vw, 3.15rem)   ->  28px … 44.1px   hero / editorial
+     .g-title    clamp(1.75rem, 2.6vw, 2.25rem) -> 24.5px … 31.5px   page H1
+
+   `.g-title` is the <h1> on every dashboard, client, coach and admin route
+   (components/shared/SectionHeader.tsx:75), so its clamp upper bound is the
+   project's H1 ceiling. The `vw` middle term is viewport-relative and does not
+   scale with the root — that is why the upper bound is stated explicitly.
    ------------------------------------------------------------------------------ */
 .g-display,
 .g-title,
@@ -853,12 +968,12 @@ body {
 }
 
 .g-display {
-  font-size: clamp(2rem, 4.6vw, 3.25rem);
+  font-size: clamp(2rem, 4vw, 3.15rem);
   line-height: 1.08;
 }
 
 .g-title {
-  font-size: clamp(1.5rem, 3vw, 2.125rem);
+  font-size: clamp(1.75rem, 2.6vw, 2.25rem);
   line-height: 1.18;
 }
 
@@ -907,6 +1022,17 @@ textarea {
 
 /* ------------------------------------------------------------------------------
    Layout primitives
+
+   `.g-container` keeps its 1240px measure deliberately. It is px, so it does NOT
+   shrink with the 14px root — which is exactly the point: a narrower pixel
+   column holding smaller type carries more content per screen. It is also the
+   number `.g-header-inner`, `.hx-header-inner` and DashboardLayout all mirror,
+   so the header stays aligned with the content it floats over. Do not change
+   one of the four without the other three.
+
+   `.g-section` WAS `4.5rem` / `6rem` (63px / 84px at the old 16px root, i.e.
+   72px / 96px as authored). Both bounds are reduced ~22% so a section still
+   breathes but no longer costs a full screen.
    ------------------------------------------------------------------------------ */
 .g-container {
   width: 100%;
@@ -921,11 +1047,11 @@ textarea {
 }
 
 .g-section {
-  padding-block: 4.5rem;
+  padding-block: 3.5rem;
 }
 @media (min-width: 768px) {
   .g-section {
-    padding-block: 6rem;
+    padding-block: 4.5rem;
   }
 }
 
@@ -1130,7 +1256,7 @@ textarea {
   align-items: center;
   gap: 0.25rem;
   margin-top: 0.25rem;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--accent-text);
   text-decoration: none;
@@ -1150,7 +1276,12 @@ textarea {
   position: relative;
   display: flex;
   align-items: center;
-  height: 2.25rem;
+  /* 2.375rem = 33.25px. Every interactive control in this file that was authored
+     at `2.25rem` is lifted to this value: against the 14px root `2.25rem` is
+     31.5px, half a pixel under the 32px minimum hit target. Retuning the root
+     without retuning these would have quietly pushed the entire app chrome
+     below the floor. */
+  height: 2.375rem;
   flex-shrink: 0;
   gap: 0.5rem;
   padding-inline: 0.625rem;
@@ -1160,7 +1291,7 @@ textarea {
   color: var(--muted-foreground);
   /* Width is the animation. `min-width: 0` is required or the flex item refuses
      to shrink below its content and the collapse snaps instead of animating. */
-  width: 2.25rem;
+  width: 2.375rem;
   min-width: 0;
   overflow: hidden;
   transition:
@@ -1199,7 +1330,7 @@ textarea {
   background: none;
   border: none;
   outline: none;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   transition: opacity 130ms ease 40ms;
 }
@@ -1620,18 +1751,30 @@ textarea {
 }
 
 /* ------------------------------------------------------------------------------
-   Inputs - 48px, token-driven. Shared by every form on every page, so field
+   Inputs - 38px, token-driven. Shared by every form on every page, so field
    geometry is defined once rather than per page.
+
+   `height` was `44px`, a px value, so it would have survived the 14px root
+   untouched — every field in the app would have stayed 44px tall while its own
+   label shrank, which reads as LOOSER, not denser. It is now `2.75rem`
+   (38.5px at the 14px root), inside the 36-40px target band and still a
+   comfortable target on touch.
+
+   `font-size` was `0.875rem` = 14px against the old 16px root; the root change
+   would have silently dropped the typed text to 12.25px, which is too small for
+   the primary content of a field. `0.9375rem` (13.1px) keeps it compact and
+   matched to `text-sm`, while staying well clear of the iOS 16px auto-zoom
+   threshold.
    ------------------------------------------------------------------------------ */
 .g-input {
   width: 100%;
-  height: 44px;
+  height: 2.75rem;
   padding-inline: 0.875rem;
   background-color: var(--card);
   border: 1px solid var(--input);
   border-radius: 8px;
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   outline: none;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
@@ -1660,9 +1803,11 @@ textarea {
   box-shadow: 0 0 0 4px var(--danger-soft);
 }
 
-/* Icon inset for fields with a leading glyph (mail, lock, phone). */
+/* Icon inset for fields with a leading glyph (mail, lock, phone). Was 2.75rem
+   against the old 44px field; tightened to keep the glyph optically centred in
+   the shorter 38.5px control. */
 .g-input-has-icon {
-  padding-left: 2.75rem;
+  padding-left: 2.5rem;
 }
 
 /* Autofill must not repaint the canvas with the OS's opposite color */
@@ -1679,7 +1824,10 @@ select:-webkit-autofill {
 
 textarea.g-input {
   height: auto;
-  min-height: 104px;
+  /* Was a px 104px — ~3.4 lines at the old 14px type. Now `6.5rem` (91px), which
+     is still a comfortable multi-line field but no longer a text area sized for
+     a term sheet. */
+  min-height: 6.5rem;
   padding-block: 0.75rem;
   line-height: 1.5;
   resize: vertical;
@@ -1842,7 +1990,7 @@ select.g-input option {
   border-radius: 999px;
   border: 1px solid var(--ph-border);
   background: var(--ph-card);
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2038,23 +2186,25 @@ select.g-input option {
   animation: g-loading-breathe 2.4s ease-in-out infinite;
 }
 
-/* Read-only / locked field, e.g. the fixed region and province on signup. */
+/* Read-only / locked field, e.g. the fixed region and province on signup.
+   Height and font-size MUST match `.g-input` exactly ; these two sit side by
+   side in the same form row, and any difference shows up as a misaligned seam. */
 .g-input-static {
   display: flex;
   align-items: center;
-  height: 44px;
+  height: 2.75rem;
   padding-inline: 0.875rem;
   background-color: var(--muted);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 
 .g-label {
   display: block;
   margin-bottom: 0.4375rem;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   letter-spacing: -0.01em;
@@ -2065,13 +2215,13 @@ select.g-input option {
   align-items: center;
   gap: 0.375rem;
   margin-top: 0.4375rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--danger);
 }
 
 .g-field-hint {
   margin-top: 0.4375rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -2132,7 +2282,7 @@ select.g-input option {
   gap: 0.375rem;
   border-radius: 9999px;
   padding: 0.3125rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
   background-color: var(--muted);
@@ -2167,7 +2317,7 @@ select.g-input option {
 }
 .g-table thead th {
   text-align: left;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2307,7 +2457,15 @@ select.g-input option {
    ------------------------------------------------------------------------------ */
 
 :root {
-  --nav-header-h: 4.25rem;
+  /* 56px at the 14px root. Was `4.25rem` = 68px against the old 16px root, so it
+     shrinks automatically; the value is restated here to land on the top of the
+     56-64px band rather than the bottom. The bar holds a 2.25rem link row plus
+     the padding above and below it, so there is no slack to give back here.
+
+     `--hx-header-h` below is deliberately set to the SAME number. The two
+     headers are separate components with separate token blocks; they only look
+     identical because they are held to the same height. */
+  --nav-header-h: 4rem;
   --nav-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --nav-dur: 260ms;
   /* Panels sit on one soft two-layer shadow rather than a hard border — the
@@ -2476,7 +2634,7 @@ select.g-input option {
   align-items: center;
   gap: 0.375rem;
   flex-shrink: 0;
-  height: 2.25rem;
+  height: 2.375rem;
   padding-inline: 0.6875rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
@@ -2569,8 +2727,8 @@ select.g-input option {
    `g-topbar-action`, so they share one hit target with the burger. */
 .g-topbar-action {
   display: inline-flex;
-  height: 2.25rem;
-  width: 2.25rem;
+  height: 2.375rem;
+  width: 2.375rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -2589,8 +2747,8 @@ select.g-input option {
 
 .g-header-burger {
   display: inline-flex;
-  height: 2.25rem;
-  width: 2.25rem;
+  height: 2.375rem;
+  width: 2.375rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -2620,7 +2778,7 @@ select.g-input option {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  height: 2.25rem;
+  height: 2.375rem;
   padding-inline: 0.625rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border);
@@ -2644,7 +2802,7 @@ select.g-input option {
   }
   .g-header-search-text {
     display: inline;
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
   }
   .g-header-kbd {
     display: inline-flex;
@@ -2699,7 +2857,7 @@ select.g-input option {
   border-radius: 9999px;
   background-color: var(--accent-soft);
   color: var(--accent-text);
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -2729,7 +2887,7 @@ select.g-input option {
 .g-header-account-name {
   display: block;
   overflow: hidden;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
   text-overflow: ellipsis;
@@ -2829,7 +2987,7 @@ select.g-input option {
 }
 .g-panel-head-name {
   overflow: hidden;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--foreground);
   text-overflow: ellipsis;
@@ -2838,7 +2996,7 @@ select.g-input option {
 .g-panel-head-sub {
   margin-top: 0.125rem;
   overflow: hidden;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2918,7 +3076,7 @@ select.g-input option {
 .g-panel-item-label {
   display: block;
   overflow: hidden;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: inherit;
   text-overflow: ellipsis;
@@ -2930,7 +3088,7 @@ select.g-input option {
 .g-panel-item-desc {
   display: block;
   overflow: hidden;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   color: var(--subtle-foreground);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2970,7 +3128,7 @@ select.g-input option {
 .g-search-empty {
   padding: 1.25rem 0.75rem;
   text-align: center;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -2988,7 +3146,7 @@ select.g-input option {
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.875rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   line-height: 1.45;
   color: var(--muted-foreground);
 }
@@ -3038,7 +3196,7 @@ select.g-input option {
   overflow: hidden;
   border: 1px solid var(--border);
   background-color: var(--muted);
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--accent-text);
 }
@@ -3048,7 +3206,7 @@ select.g-input option {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -3103,7 +3261,7 @@ select.g-input option {
   border-radius: 9999px;
   background-color: var(--accent-soft);
   color: var(--accent-text);
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -3144,7 +3302,7 @@ select.g-input option {
   width: 100%;
   padding: 0.5rem 0.625rem;
   border-radius: 0.625rem;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   text-align: left;
   color: var(--muted-foreground);
@@ -3207,7 +3365,7 @@ select.g-input option {
   border-radius: 0.5rem;
   border: 1px solid transparent;
   background-color: transparent;
-  font-size: 0.625rem;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--muted-foreground);
@@ -3251,7 +3409,7 @@ select.g-input option {
   flex-direction: row;
   gap: 0.375rem;
   padding: 0.625rem 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
 }
 
 /* --- Presence --------------------------------------------------------------- */
@@ -3271,7 +3429,7 @@ select.g-input option {
   gap: 0.625rem;
   border-radius: 0.625rem;
   padding: 0.5rem 0.625rem;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   text-align: left;
@@ -3340,7 +3498,7 @@ select.g-input option {
   gap: 0.625rem;
   border-radius: 0.5rem;
   padding: 0.4375rem 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
   text-align: left;
@@ -3442,7 +3600,7 @@ select.g-input option {
 .g-presence-error {
   margin-top: 0.5rem;
   padding-inline: 0.25rem;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   line-height: 1.45;
   color: var(--danger);
 }
@@ -3507,7 +3665,7 @@ select.g-input option {
   box-shadow: var(--shadow-panel);
 }
 .leaflet-popup-content {
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   line-height: 1.45;
   margin: 0.75rem 0.875rem;
 }
@@ -3603,7 +3761,7 @@ select.g-input option {
 
 .g-sheet-greeting {
   padding: 0.5rem 0.625rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 .g-sheet-greeting strong {
@@ -3913,10 +4071,14 @@ select.g-input option {
    panels can escape the bar's stacking context, and tokens declared on the bar
    do not reach them. That gap showed up as a drawer with no background at all. */
 :root {
-  /* 72px, not the 68px `--nav-header-h` the admin header uses: this bar carries
-     a 40px logo mark plus a two-line wordmark, and at 68px the row was tight
-     against the mark's own padding. The drawer head reads the same token. */
-  --hx-header-h: 4.5rem;
+  /* 56px, matching `--nav-header-h` exactly. This bar carries a 2.5rem logo mark
+     plus a two-line wordmark, which at the 14px root is ~35px + ~34px of type —
+     comfortably inside 56px. The old `4.5rem` was sized against the 68px admin
+     bar because the two were deliberately different heights; with both retuned to
+     the same target they are the same height again, which is what keeps the
+     dashboard and the public pages reading as one product.
+     The drawer head reads this same token. */
+  --hx-header-h: 4rem;
   /* Raised surface: a dropdown or the drawer. Solid in both themes. */
   --hx-surface: var(--card);
   /* Hover fill. Fully opaque in both themes, so hovering can never let the page
@@ -3932,10 +4094,9 @@ select.g-input option {
 .hx-header {
   position: sticky;
   top: 0;
-  z-index: 40;
-  /* Semi-transparent so the pattern backdrop shows through.
-     Uses the theme-aware --background token so the header adapts to dark/light. */
-  background-color: color-mix(in srgb, var(--background) 75%, transparent);
+  z-index: 50;
+  /* Near-solid so page content cannot show through while scrolling. */
+  background-color: color-mix(in srgb, var(--background) 95%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--hx-hairline);
@@ -4245,7 +4406,7 @@ select.g-input option {
   align-items: center;
   gap: 0.375rem;
   flex-shrink: 0;
-  height: 2.25rem;
+  height: 2.375rem;
   padding-inline: 0.75rem;
   border: 0;
   border-radius: 0.5rem;
@@ -4556,7 +4717,7 @@ select.g-input option {
 .hx-panel-item-desc {
   display: block;
   margin-top: 1px;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.4;
   color: var(--muted-foreground);
   /* Wraps. `white-space: nowrap` + `text-overflow: ellipsis` was truncating
@@ -4588,14 +4749,14 @@ select.g-input option {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  height: 2.25rem;
+  height: 2.375rem;
   padding-inline: 0.625rem;
   border: 1px solid var(--border);
   border-radius: 9999px;
   background-color: var(--card);
   color: var(--muted-foreground);
   font-family: inherit;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition:
     color 160ms ease,
@@ -4617,7 +4778,7 @@ select.g-input option {
   border-radius: 0.375rem;
   background-color: var(--muted);
   font-family: inherit;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   line-height: 1.4;
   color: var(--subtle-foreground);
 }
@@ -4629,7 +4790,7 @@ select.g-input option {
     display: none;
   }
   .hx-search-btn {
-    width: 2.25rem;
+    width: 2.375rem;
     padding-inline: 0;
     justify-content: center;
   }
@@ -4639,8 +4800,8 @@ select.g-input option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.375rem;
+  height: 2.375rem;
   flex-shrink: 0;
   border: 0;
   border-radius: 0.5rem;
@@ -4681,7 +4842,7 @@ select.g-input option {
   /* The gap BETWEEN avatar and chevron. The avatar's own breathing room is the
      padding below, so the two never share one number and drift apart. */
   gap: 0.375rem;
-  height: 2.25rem;
+  height: 2.375rem;
   flex-shrink: 0;
   /* Asymmetric on purpose: 4px around the avatar (which carries a presence dot
      that overhangs its corner by 2px and needs room to hang), 7px past the
@@ -4754,7 +4915,7 @@ select.g-input option {
   border-radius: 9999px;
   border: 1px solid var(--border);
   background-color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--foreground);
 }
@@ -4855,7 +5016,7 @@ select.g-input option {
    comfortable target on a touch screen — and these rows are the only way to
    reach the account settings, the theme and sign out. */
 .hx-panel--account .hx-menu-item {
-  min-height: 2.25rem;
+  min-height: 2.375rem;
   align-items: center;
 }
 .hx-panel-head {
@@ -4894,7 +5055,7 @@ select.g-input option {
 .hx-account-email {
   margin: 0;
   min-width: 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   /* NOT `white-space: nowrap`. An address with no spaces in it has no break
      opportunity, and a nowrap line ignores `overflow-wrap` entirely — so a long
@@ -4924,7 +5085,7 @@ select.g-input option {
 }
 .hx-account-greeting {
   margin: 0.375rem 0 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -5001,7 +5162,7 @@ select.g-input option {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  height: 2.25rem;
+  height: 2.375rem;
   padding-inline: 0.875rem;
   border: 1px solid var(--border);
   border-radius: 9999px;
@@ -5184,7 +5345,7 @@ select.g-input option {
 }
 .hx-drawer-subtitle {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   /* A long portal label truncates rather than pushing the close button off the
      edge of the sheet. */
@@ -5196,8 +5357,8 @@ select.g-input option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.375rem;
+  height: 2.375rem;
   flex-shrink: 0;
   border: 0;
   border-radius: 9999px;
@@ -5268,7 +5429,7 @@ select.g-input option {
 }
 .hx-drawer-greeting {
   margin: 0.25rem 0 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 .hx-drawer-section {
@@ -5374,7 +5535,7 @@ select.g-input option {
 }
 .hx-drawer-sublink-desc {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.35;
   color: var(--muted-foreground);
 }
@@ -5445,7 +5606,7 @@ select.g-input option {
   border-radius: 0.375rem;
   background-color: var(--muted);
   font-family: inherit;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   color: var(--subtle-foreground);
 }
 .hx-cmdk-list {
@@ -5490,7 +5651,7 @@ select.g-input option {
   color: var(--muted-foreground);
 }
 .hx-cmdk-avatar {
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 .hx-cmdk-row-text {
@@ -5504,7 +5665,7 @@ select.g-input option {
 }
 .hx-cmdk-row-desc {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.35;
   color: var(--muted-foreground);
   overflow: hidden;
@@ -5524,7 +5685,7 @@ select.g-input option {
   gap: 1rem;
   padding: 0.5rem 1rem;
   border-top: 1px solid var(--divider);
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 .hx-cmdk-foot span {
@@ -5865,7 +6026,7 @@ select.g-input option {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background-color: rgba(255, 255, 255, 0.03);
   padding: 0.375rem 1rem;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -6066,26 +6227,34 @@ select.g-input option {
 /* --- Rhythm -------------------------------------------------------------- */
 
 /* One container width for the whole page. Sections align because they all
-   use this, not because each one remembered `max-w-7xl`. */
+   use this, not because each one remembered `max-w-7xl`.
+
+   `max-width` stays 1080px and `padding-inline` tightens 24px -> 21px. The width
+   is deliberately NOT tied to the 14px root: it is a measure, and a measure
+   should stay fixed while the type inside it shrinks. */
 .ld-wrap {
   width: 100%;
   max-width: 1080px;
   margin-inline: auto;
-  padding-inline: 24px;
+  padding-inline: 1.5rem;
 }
 @media (max-width: 640px) {
   .ld-wrap {
-    padding-inline: 20px;
+    padding-inline: 1.25rem;
   }
 }
 
+/* 96px per side, on roughly eight sections, is the single largest reason the
+   landing page reads as oversized: it is a full 192px of dead space per fold.
+   `4.5rem` is 63px at the 14px root — a 34% cut — and the 900px breakpoint is
+   reduced to match rather than left at a px value the root could not reach. */
 .ld-section {
-  padding-block: 96px;
+  padding-block: 4.5rem;
   scroll-margin-top: 5rem;
 }
 @media (max-width: 900px) {
   .ld-section {
-    padding-block: 64px;
+    padding-block: 3rem;
   }
 }
 
@@ -6096,22 +6265,30 @@ select.g-input option {
   border-block: 1px solid var(--border);
 }
 
-/* --- Type ---------------------------------------------------------------- */
+/* --- Type ----------------------------------------------------------------
+
+   Every size in this block was authored in px, so NONE of it responded to the
+   root change — the landing page would have stayed at 56px hero / 17px body
+   while every other route compacted. They are converted to rem against the 14px
+   root. No step lands below 12.25px; the pre-existing 10-13px micro-labels
+   further down are left in px precisely so they are NOT shrunk twice. */
 
 .ld-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   color: var(--ld-body);
-  font-size: 14px;
+  font-size: 0.875rem; /* 12.25px, was 14px */
   font-weight: 500;
   line-height: 1.4;
 }
 
+/* Hero. clamp(2rem, 4vw, 3rem) = 28px … 42px across the viewport, replacing the
+   fixed 56px (which never shrank on a laptop). */
 .ld-h1 {
   margin: 0;
   color: var(--ld-ink);
-  font-size: 56px;
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 600;
   line-height: 1.08;
   letter-spacing: -0.03em;
@@ -6120,7 +6297,7 @@ select.g-input option {
 .ld-h2 {
   margin: 0;
   color: var(--ld-ink);
-  font-size: 34px;
+  font-size: 1.5rem; /* 21px, was 34px — H2 band */
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -6129,7 +6306,7 @@ select.g-input option {
 .ld-h3 {
   margin: 0;
   color: var(--ld-ink);
-  font-size: 18px;
+  font-size: 1.25rem; /* 17.5px, was 18px — H3 band */
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.01em;
@@ -6137,7 +6314,7 @@ select.g-input option {
 .ld-h4 {
   margin: 0;
   color: var(--ld-ink);
-  font-size: 15px;
+  font-size: 1.0625rem; /* 14.9px, was 15px */
   font-weight: 600;
   line-height: 1.4;
 }
@@ -6145,41 +6322,41 @@ select.g-input option {
 .ld-lead {
   margin: 0;
   color: var(--ld-body);
-  font-size: 19px;
+  font-size: 1.0625rem; /* 14.9px, was 19px */
   line-height: 1.65;
   text-wrap: pretty;
 }
 .ld-p {
   margin: 0;
   color: var(--ld-body);
-  font-size: 17px;
+  font-size: 1rem; /* 14px BODY, was 17px */
   line-height: 1.65;
   text-wrap: pretty;
 }
 .ld-small {
   color: var(--ld-body);
-  font-size: 14px;
+  font-size: 0.875rem; /* 12.25px, was 14px — metadata */
   line-height: 1.55;
 }
 
 @media (max-width: 1024px) {
   .ld-h1 {
-    font-size: 44px;
+    font-size: clamp(1.75rem, 3.4vw, 2.5rem);
   }
 }
 @media (max-width: 640px) {
   .ld-h1 {
-    font-size: 34px;
+    font-size: 1.75rem; /* 24.5px, was 34px */
     letter-spacing: -0.02em;
   }
   .ld-h2 {
-    font-size: 27px;
+    font-size: 1.25rem; /* 17.5px, was 27px */
   }
   .ld-lead {
-    font-size: 17px;
+    font-size: 0.9375rem; /* 13.1px, was 17px */
   }
   .ld-p {
-    font-size: 15px;
+    font-size: 0.875rem; /* 12.25px, was 15px */
   }
 }
 
@@ -6200,11 +6377,14 @@ select.g-input option {
     box-shadow 180ms var(--ld-ease),
     transform 180ms var(--ld-ease);
 }
+/* Card padding. Was 28px / 20px in px, so it ignored the root change and left
+   every landing card with far more air than the app's own cards. Now
+   `1.25rem` = 17.5px, squarely inside the 16-20px target band. */
 .ld-card--pad {
-  padding: 28px;
+  padding: 1.25rem;
 }
 .ld-card--tight {
-  padding: 20px;
+  padding: 1.125rem;
 }
 .ld-card--lift:hover,
 .ld-card--lift:focus-within {
@@ -6214,10 +6394,10 @@ select.g-input option {
 }
 @media (max-width: 640px) {
   .ld-card--pad {
-    padding: 22px;
+    padding: 1rem;
   }
   .ld-card--tight {
-    padding: 18px;
+    padding: 1rem;
   }
 }
 
@@ -6240,19 +6420,24 @@ select.g-input option {
 /* --- Pills --------------------------------------------------------------- */
 
 /* Primary action. `--accent` is cream-on-black in dark and slate-on-cream in
-   light, so this is the brand's main button in both themes without a new token. */
+   light, so this is the brand's main button in both themes without a new token.
+
+   Heights were px (50 / 44 / 40) and so ignored the root change, leaving the
+   landing CTA taller than every button in the app it links to. The ladder is now
+   2.75rem / 2.5rem / 2.375rem = 38.5 / 35 / 33.25px, matching
+   components/ui/Button.tsx's `lg` / `md` / `sm` exactly. */
 .ld-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
-  min-height: 50px;
-  padding: 0 24px;
+  min-height: 2.75rem;
+  padding: 0 1.375rem;
   border: 1px solid transparent;
   border-radius: 9999px;
   background-color: var(--ld-brand);
   color: var(--ld-brand-fg);
-  font-size: 16px;
+  font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -6269,10 +6454,10 @@ select.g-input option {
   transform: scale(0.98);
 }
 .ld-btn--sm {
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 2.375rem;
+  padding: 0 1rem;
   gap: 0.5rem;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 /* Secondary action: outlined, fills with the surface tint on hover. */
@@ -6281,13 +6466,13 @@ select.g-input option {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 2.5rem;
+  padding: 0 1.125rem;
   border: 1px solid var(--ld-field);
   border-radius: 9999px;
   background-color: var(--ld-surface);
   color: var(--ld-ink);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -6304,14 +6489,14 @@ select.g-input option {
   transform: scale(0.98);
 }
 .ld-btn2--sm {
-  min-height: 40px;
-  padding: 0 16px;
-  font-size: 14px;
+  min-height: 2.375rem;
+  padding: 0 1rem;
+  font-size: 0.875rem;
 }
 .ld-btn2--lg {
-  min-height: 50px;
-  padding: 0 22px;
-  font-size: 16px;
+  min-height: 2.75rem;
+  padding: 0 1.375rem;
+  font-size: 0.9375rem;
 }
 
 /* A text link with the underline that only appears on hover. */
@@ -6320,7 +6505,7 @@ select.g-input option {
   align-items: center;
   gap: 0.375rem;
   color: var(--ld-ink);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
   transition: color 150ms ease;
@@ -6373,13 +6558,13 @@ select.g-input option {
   background-color: var(--ld-surface);
 }
 .ld-seg__btn {
-  min-height: 40px;
-  padding: 0 22px;
+  min-height: 2.375rem;
+  padding: 0 1.25rem;
   border: 0;
   border-radius: 9999px;
   background-color: transparent;
   color: var(--ld-body);
-  font-size: 15px;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -6426,7 +6611,10 @@ select.g-input option {
   height: 100%;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: 300px;
+  /* 300px was a px floor, so it survived the root change untouched. At 17rem
+     this is 238px — still a real card, but four of them now sit in a row of
+     reasonable height instead of dominating the section. */
+  min-height: 17rem;
   border: 1px solid var(--ld-line);
   border-radius: 18px;
   background-color: var(--ld-surface);
@@ -6463,7 +6651,7 @@ select.g-input option {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-  padding: 22px;
+  padding: 1.125rem; /* was 22px */
 }
 
 /* Type sitting on the scrim. Scoped to `.ld-media` so a card is white-on-photo
@@ -6514,21 +6702,27 @@ select.g-input option {
 
 /* --- Hero ---------------------------------------------------------------- */
 
+/* Hero vertical rhythm. `88px 64px` was px, so the fold kept roughly a screen of
+   padding above the headline even after the rest of the page compacted. Now
+   `4.25rem 3.25rem` = 59.5px / 45.5px, which still gives the hero room to be a
+   hero without pushing the proof row below the fold. */
 .groove-landing .ld-hero {
   position: relative;
   overflow: hidden;
-  padding-block: 88px 64px;
+  padding-block: 4.25rem 3.25rem;
 }
 @media (max-width: 900px) {
   .groove-landing .ld-hero {
-    padding-block: 56px 48px;
+    padding-block: 3.25rem 2.5rem;
   }
 }
 
+/* 48px -> 2.5rem (35px). The portrait column keeps its 320px track; only the
+   gutter between the two columns was outsized. */
 .ld-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 48px;
+  gap: 2.5rem;
   align-items: center;
 }
 @media (min-width: 900px) {
@@ -6541,7 +6735,7 @@ select.g-input option {
   display: flex;
   max-width: 620px;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.25rem;
 }
 
 .ld-badge {
@@ -6587,10 +6781,12 @@ select.g-input option {
   }
 }
 
-/* Short rule that softens the join between the hero and the first section. */
+/* Short rule that softens the join between the hero and the first section.
+   120px -> 7rem (98px); the negative margin must stay equal to the height or
+   the gradient stops meeting the section it is meant to blend into. */
 .ld-fade {
-  height: 120px;
-  margin-top: -120px;
+  height: 7rem;
+  margin-top: -7rem;
   pointer-events: none;
   background: linear-gradient(to bottom, transparent, var(--background));
 }
@@ -6606,7 +6802,7 @@ select.g-input option {
 }
 .ld-stat__value {
   color: var(--ld-ink);
-  font-size: 32px;
+  font-size: 1.5rem; /* 21px, was 32px */
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -6731,6 +6927,68 @@ select.g-input option {
   }
 }
 
+/* --- Background patterns (landing only) -----------------------------------
+   Subtle geometric patterns using CSS gradients. Respects reduced motion.
+   Scoped to .groove-landing so they never leak into dashboards or auth. */
+.groove-landing::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    /* Subtle grid pattern */
+    linear-gradient(rgba(var(--accent-rgb), 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  opacity: 0.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .groove-landing::before {
+    opacity: 0.25;
+  }
+}
+
+/* Accent radial glow behind hero — only in dark-ish contexts */
+.groove-landing .ld-hero::after {
+  content: '';
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 60%;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--accent-soft), transparent 70%);
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .groove-landing .ld-hero::after {
+    opacity: 0.3;
+  }
+}
+
+/* Section divider accent lines */
+.groove-landing .ld-section + .ld-band,
+.groove-landing .ld-band + .ld-section {
+  position: relative;
+}
+.groove-landing .ld-section + .ld-band::before,
+.groove-landing .ld-band + .ld-section::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+}
+
+/* Card hover glow enhancement */
+.groove-landing .ld-card--lift:hover {
+  box-shadow:
+    var(--shadow-md),
+    0 0 30px rgba(var(--accent-rgb), 0.12);
+}
+
 /* ==============================================================================
    AUTH SHELL — /login, /register/*, /forgot-password, /reset-password.
 
@@ -6744,6 +7002,73 @@ select.g-input option {
    routes sit in the `(public)` group and therefore follow the visitor's
    Light/Dark/System choice instead of being pinned to a dark canvas.
    ========================================================================== */
+/* ==============================================================================
+   GROOVEPH PERMANENT DARK LUXURY AUTH THEME
+   Black/charcoal backgrounds, warm gold accents, polished inputs, and gold focus.
+   ============================================================================== */
+.groove-auth {
+  --background: #08090b;
+  --foreground: #f5f5f5;
+  --surface: #0f1015;
+  --elevated: #161820;
+  --card: #111218;
+  --card-foreground: #f5f5f5;
+  --border: #242630;
+  --border-strong: #363946;
+  --divider: #1d1e26;
+  --input: #262832;
+  --muted: #15171e;
+  --muted-foreground: #9e9ea8;
+  --subtle-foreground: #6e707e;
+
+  /* Warm Gold Accent tokens */
+  --accent: #F4BE4D;
+  --accent-foreground: #121008;
+  --accent-hover: #E5B23E;
+  --accent-text: #F4BE4D;
+  --accent-soft: rgba(244, 190, 77, 0.12);
+  --accent-border: rgba(244, 190, 77, 0.32);
+  --ring: rgba(244, 190, 77, 0.35);
+
+  background-color: #08090b;
+  color: #f5f5f5;
+}
+
+.groove-auth .au-card {
+  background: linear-gradient(180deg, rgba(18, 19, 25, 0.92) 0%, rgba(13, 14, 19, 0.96) 100%);
+  border: 1px solid rgba(244, 190, 77, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+}
+
+.groove-auth .g-input {
+  background-color: #121319;
+  border-color: #272934;
+  color: #f5f5f5;
+}
+
+.groove-auth .g-input:hover:not(:disabled) {
+  border-color: #3b3e4e;
+}
+
+.groove-auth .g-input:focus {
+  border-color: #F4BE4D;
+  box-shadow: 0 0 0 3px rgba(244, 190, 77, 0.22);
+}
+
+.groove-auth .au-mark {
+  border-color: rgba(244, 190, 77, 0.25);
+  background-color: #121319;
+  box-shadow: 0 4px 16px rgba(244, 190, 77, 0.1);
+}
+
+.groove-auth .au-eyebrow {
+  border-color: rgba(244, 190, 77, 0.32);
+  background-color: rgba(244, 190, 77, 0.12);
+  color: #F4BE4D;
+}
+
 .au-shell {
   position: relative;
   display: flex;
@@ -6809,23 +7134,26 @@ select.g-input option {
 
 /* The mascot lockup, in the slot the reference gives its own mark. It is the
    only brand element above the form, so it carries the page's personality
-   without a photograph competing with the fields. */
+   without a photograph competing with the fields.
+
+   88px -> 3.5rem (56px). The mark is decorative; it was competing with the form
+   for attention and pushing the first field below the fold on a laptop. */
 .au-mark {
   display: flex;
-  width: 88px;
-  height: 88px;
+  width: 3.5rem;
+  height: 3.5rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 18px;
   background-color: var(--card);
   box-shadow: var(--shadow-sm);
 }
 .au-mark img {
-  width: 64px;
-  height: 64px;
+  width: 2.5rem;
+  height: 2.5rem;
   object-fit: contain;
 }
 
@@ -6834,7 +7162,7 @@ select.g-input option {
   align-self: flex-start;
   align-items: center;
   gap: 0.5rem;
-  padding: 5px 12px;
+  padding: 0.25rem 0.625rem;
   border: 1px solid var(--accent-border);
   border-radius: 9999px;
   background-color: var(--accent-soft);
@@ -6845,10 +7173,13 @@ select.g-input option {
   text-transform: uppercase;
 }
 
+/* The auth form title. 36px -> 2rem (28px): the bottom of the H1 band. At 36px it
+   was the largest heading on any authenticated route, larger than the page H1
+   it sits inside. */
 .au-title {
   margin: 0;
   color: var(--foreground);
-  font-size: 36px;
+  font-size: 2rem;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -6857,15 +7188,18 @@ select.g-input option {
 .au-lead {
   margin: 0;
   color: var(--muted-foreground);
-  font-size: 17px;
+  font-size: 0.9375rem;
   line-height: 1.6;
   text-wrap: pretty;
 }
 
+/* Form card padding. 28px -> 1.25rem (17.5px), matching `.ld-card--pad` and the
+   16-20px target band, so the auth card no longer looks roomier than the app
+   cards it links to. */
 .au-card {
-  padding: 28px;
+  padding: 1.25rem;
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 14px;
   background-color: var(--card);
   box-shadow: var(--shadow-sm);
 }
@@ -6873,41 +7207,41 @@ select.g-input option {
 .au-note {
   display: flex;
   gap: 0.75rem;
-  padding: 14px 16px;
+  padding: 0.75rem 0.875rem;
   border: 1px solid var(--border);
   border-radius: 14px;
   background-color: var(--muted);
   color: var(--muted-foreground);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.55;
 }
 
 .au-quote {
   margin: 0;
   color: var(--muted-foreground);
-  font-size: 15px;
+  font-size: 0.875rem;
   line-height: 1.6;
   text-align: center;
 }
 
 @media (max-width: 640px) {
   .au-title {
-    font-size: 28px;
+    font-size: 1.5rem;
   }
   .au-lead {
-    font-size: 16px;
+    font-size: 0.875rem;
   }
   .au-card {
-    padding: 20px;
+    padding: 1rem;
   }
   .au-mark {
-    width: 72px;
-    height: 72px;
-    border-radius: 20px;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 16px;
   }
   .au-mark img {
-    width: 52px;
-    height: 52px;
+    width: 2.125rem;
+    height: 2.125rem;
   }
 }
 
@@ -6999,14 +7333,14 @@ select.g-input option {
 
 /* The guest theme toggle in the header bar.
 
-   Matched to `.hx-auth-link` exactly — same 2.25rem pill, same 1px `--border`,
+   Matched to `.hx-auth-link` exactly — same 2.375rem pill, same 1px `--border`,
    same `--card` fill, same hover — so it sits in the guest cluster as a peer of
    "Sign In" and "Get started" rather than as a differently-sized stranger.
 
    Below `sm` the label is dropped (it has none) and only the icon remains. */
 .hx-theme-toggle {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.375rem;
+  height: 2.375rem;
   flex-shrink: 0;
   padding: 0;
   border-radius: 9999px;

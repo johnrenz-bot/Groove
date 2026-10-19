@@ -109,7 +109,10 @@ export function FaqBrowser() {
             type="button"
             onClick={() => applyQuery('')}
             aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            // `h-8 w-8` (35px) rather than `p-1.5` around a `h-4` glyph — same
+            // reason as the password toggle in components/ui/FormField.tsx: the
+            // padded version fell under the 32px hit target once the root scaled.
+            className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>

@@ -33,6 +33,8 @@ export interface CuratedStudio {
   address: string | null;
   latitude: number;
   longitude: number;
+  /** Optional image path for landing page display. */
+  image?: string;
 }
 
 export const CURATED_STUDIOS: CuratedStudio[] = [
@@ -44,6 +46,7 @@ export const CURATED_STUDIOS: CuratedStudio[] = [
     address: 'Along Quirino Highway, Brgy. Tungkong Mangga, San Jose del Monte, Bulacan',
     latitude: 14.7912125,
     longitude: 121.0744362,
+    image: '/image/wc/dance.jpg',
   },
   {
     id: 'curated-onse-academy',
@@ -53,6 +56,7 @@ export const CURATED_STUDIOS: CuratedStudio[] = [
     address: 'Along Quirino Highway, Brgy. Tungkong Mangga, San Jose del Monte, Bulacan',
     latitude: 14.7912122,
     longitude: 121.0744437,
+    image: '/image/wc/dance.jpg',
   },
   {
     id: 'curated-esr-dance-studio',
@@ -63,6 +67,7 @@ export const CURATED_STUDIOS: CuratedStudio[] = [
     address: 'Sapang Palay, San Jose del Monte, Bulacan',
     latitude: 14.862241,
     longitude: 121.0554981,
+    image: '/image/wc/dance.jpg',
   },
   {
     id: 'curated-align-studio-sta-maria',
@@ -72,6 +77,7 @@ export const CURATED_STUDIOS: CuratedStudio[] = [
     address: '37 Pulong Buhangin, Santa Maria, Bulacan',
     latitude: 14.8533596,
     longitude: 120.9862778,
+    image: '/image/wc/dance.jpg',
   },
   {
     id: 'curated-kalatas-dance-ensemble',
@@ -81,6 +87,7 @@ export const CURATED_STUDIOS: CuratedStudio[] = [
     address: null,
     latitude: 14.8279974,
     longitude: 121.0407993,
+    image: '/image/wc/dance.jpg',
   },
   {
     id: 'curated-eyesonhigh-dance-studio',
@@ -89,5 +96,6 @@ export const CURATED_STUDIOS: CuratedStudio[] = [
     address: null,
     latitude: 14.7938034,
     longitude: 121.0055674,
+    image: '/image/wc/dance.jpg',
   },
 ];

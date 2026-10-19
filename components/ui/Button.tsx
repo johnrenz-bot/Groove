@@ -19,10 +19,25 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   children?: React.ReactNode;
 }
 
+/**
+ * Height ladder, re-based against the 14px root in `app/globals.css`.
+ *
+ * `sm` was `h-8`, which is 2rem — 32px at the old 16px root but 28px at the new
+ * one, i.e. below the minimum hit target. The three steps are now:
+ *
+ *     sm     2.375rem  33.25px
+ *     md     2.5rem    35px
+ *     lg     2.75rem   38.5px
+ *
+ * `lg` was `h-12` (48px, now 42px); dropping it a step keeps the same
+ * sm < md < lg ordering inside the 32-40px band instead of letting the primary
+ * CTA tower over the rest of the form. Label sizes follow `text-xs` / `text-sm`
+ * (12.25px / 13.1px), which the same root change re-based in `@theme`.
+ */
 const SIZE_STYLES: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3.5 text-xs gap-1.5',
+  sm: 'h-[2.375rem] px-3 text-xs gap-1.5',
   md: 'h-10 px-4 text-sm gap-2',
-  lg: 'h-12 px-6 text-[0.9375rem] gap-2.5',
+  lg: 'h-11 px-5 text-sm gap-2',
   icon: 'h-10 w-10 p-0',
 };
 

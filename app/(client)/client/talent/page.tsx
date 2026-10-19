@@ -395,7 +395,7 @@ export default function ClientTalentPage() {
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border bg-card p-5 aspect-[3/4] sm:aspect-[4/5] min-h-[480px]"
+                  className="relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border bg-card p-5 aspect-[3/4] sm:aspect-[4/5] min-h-[26rem]"
                 >
                   <div className="flex justify-between items-start">
                     <div className="g-skeleton h-6 w-24 rounded-full" />

@@ -36,9 +36,16 @@ import {
   Layers,
 } from 'lucide-react';
 import { AuthLayout } from '@/components/shared/AuthLayout';
+import { GoogleRegisterButton } from '@/components/shared/GoogleRegisterButton';
 import { FormError } from '@/components/ui/FormError';
 import { createClient } from '@/lib/supabase/client';
 import { getFeaturedLocationsDisplay, getFeaturedLocationsAddressSummary } from '@/lib/config/featuredLocations';
+// GCASH-QR (temporarily disabled)
+// The optional GCash QR upload is hidden in this form. Its component and service
+// are deliberately left in place and untouched — both are still used by the
+// profile pages, and nothing here was deleted. Every removed piece below is
+// fenced with "GCASH-QR (temporarily disabled)" so the block can be restored by
+// uncommenting the original code, which is preserved in the project history.
 
 /* ─── Skill Icon Mapping ─── */
 const SKILL_ICONS: Record<string, React.ElementType> = {
@@ -146,6 +153,8 @@ export default function CoachRegistrationPage() {
     email: string;
     talents: string;
     genres: string;
+    // GCASH-QR (temporarily disabled): restore `gcashWarning?: string | null;`
+    // here when the optional QR upload is re-enabled.
   } | null>(null);
 
   /* Step 1 data captured from RegistrationFormFields */
@@ -189,6 +198,13 @@ export default function CoachRegistrationPage() {
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
   const [validIdFile, setValidIdFile] = useState<File | null>(null);
   const [idSelfieFile, setIdSelfieFile] = useState<File | null>(null);
+
+  // GCASH-QR (temporarily disabled): the optional QR upload state lived here —
+  // `gcashQrFile`, `gcashQrNotes` and the derived `wantsGCashQr` flag.
+  // step3Data.payment_handle already collects a GCash number when the coach picks
+  // "Online Payment" and is UNCHANGED; that field and its validation stay. Only
+  // the QR image/notes half was hidden. To restore, reinstate these three hooks
+  // exactly as they were.
 
   /* Step 1 is rendered by RegistrationFormFields, which owns its own <form>.
      The Next button must submit THAT form, not the first form on the page. */
@@ -327,6 +343,11 @@ export default function CoachRegistrationPage() {
       setError('Please provide your GCash or Maya mobile number for online payments.');
       return;
     }
+    // GCASH-QR (temporarily disabled): the check that a QR upload came with a
+    // matching mobile number (gcash_profiles.account_number is NOT NULL) was
+    // removed. It was only reachable once a QR had been attached, which is no
+    // longer possible. The separate "Online Payment requires a mobile number"
+    // rule above is unchanged and still applies.
     if (!validIdFile) {
       setError('Please upload a valid government ID for coach verification.');
       return;
@@ -415,6 +436,44 @@ export default function CoachRegistrationPage() {
 
       if (!authData.user) {
         throw new Error('Registration failed. Username or email may already be registered.');
+      }
+
+      // Welcome email. Best-effort only: the account already exists at this point,
+      // so a delivery failure must not abort the rest of the registration or turn a
+      // successful signup into an error for the user. The inner catch is what makes
+      // that true for a network-level rejection, which `!response.ok` never sees --
+      // without it the throw would land in the outer catch below as a signup failure.
+      // The recipient is the address Supabase actually created the user with.
+      if (authData.user?.email) {
+        try {
+          const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: authData.user.email,
+              name: step1Data.personal.firstname.trim(),
+            }),
+          });
+
+          if (!response.ok) {
+            // Best-effort diagnostic: log the HTTP status and any detail the
+            // route returned. Registration already succeeded at this point.
+            try {
+              const body = await response.json().catch(() => ({}));
+              console.error(
+                `[coach-reg] Welcome email not sent. HTTP ${response.status}.` +
+                  (body?.detail ? ` detail="${body.detail}"` : '') +
+                  (body?.error ? ` error="${body.error}"` : '')
+              );
+            } catch {
+              console.error(`[coach-reg] Welcome email not sent. HTTP ${response.status}.`);
+            }
+          }
+        } catch {
+          // Swallowed on purpose; see the note above.
+        }
       }
 
       // The account now exists, so the Storage writes below are no longer anon.
@@ -550,6 +609,12 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
         throw new Error(`Your coaching details could not be saved: ${coachErr.message}`);
       }
 
+      // GCASH-QR (temporarily disabled): the optional GCash QR attach step that ran
+      // here is removed. It only ran when a QR had been attached and never threw,
+      // so a coach who left it blank is unaffected. To restore, re-add the
+      // `attachGCashQrAfterSignup` call guarded by `wantsGCashQr` and pass its
+      // result back as `gcashWarning`.
+
       setSuccessData({
         firstname: step1Data.personal.firstname.trim(),
         username: step1Data.contact.username.trim().toLowerCase(),
@@ -580,6 +645,9 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
           { label: 'Location', value: getFeaturedLocationsAddressSummary() },
           { label: 'Verification Status', value: 'Under Review', highlight: true },
         ]}
+        // GCASH-QR (temporarily disabled): the conditional "GCash QR — not saved"
+        // detail row and the matching `warning` prop that rendered beside it were
+        // removed here. Restore both alongside `gcashWarning` above.
         message={`You can now sign in to configure your schedule, manage bookings, and communicate with clients in ${getFeaturedLocationsDisplay()}.`}
       />
     );
@@ -730,6 +798,37 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
         {/* ─── STEP 1: Personal, Address & Bio ─── */}
         {step === 1 && (
           <div ref={step1FormRef}>
+            {/* Fast Track with Google */}
+            <div className="mb-8 rounded-2xl border border-[#2a2c38] bg-[#121319]/80 p-5 shadow-sm backdrop-blur-sm">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F4BE4D]/15 text-[#F4BE4D] text-xs font-bold">
+                    ⚡
+                  </span>
+                  <h2 className="text-sm font-bold text-[#f5f5f5]">Fast-Track Coach Registration</h2>
+                </div>
+                <span className="rounded-full border border-[#F4BE4D]/30 bg-[#F4BE4D]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#F4BE4D]">
+                  Quick Onboarding
+                </span>
+              </div>
+              <p className="mb-4 text-xs text-[#9e9ea8] leading-relaxed">
+                Sign up in seconds with your verified Google account. You can configure your coaching specialties, hourly rates, and upload verification credentials later from your coach dashboard.
+              </p>
+              <GoogleRegisterButton
+                role="coach"
+                label="Continue with Google as Coach"
+              />
+            </div>
+
+            <div className="relative my-8 text-center">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-[#262832]" />
+              </div>
+              <span className="relative bg-[#111218] px-4 text-[11px] font-semibold uppercase tracking-wider text-[#9e9ea8]">
+                or complete 3-step coach application below
+              </span>
+            </div>
+
             <RegistrationFormFields
               role="coach"
               loading={false}
@@ -1125,6 +1224,13 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 />
               </div>
             </div>
+
+            {/* GCASH-QR (temporarily disabled): the optional GCash QR upload block is
+                hidden here. The "Online Payment (GCash / Maya)" method and the
+                GCash / Maya Mobile Number field above it are UNCHANGED — only
+                the QR image and notes fields were hidden. To restore, re-render
+                <GCashRegistrationSection audience="coach" … /> against the
+                state hooks near the top of this component. */}
 
             {/* Terms */}
             <div className="flex items-start gap-3 pt-2">

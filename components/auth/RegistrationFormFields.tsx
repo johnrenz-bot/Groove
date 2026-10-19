@@ -17,6 +17,7 @@ import {
   MapPin,
   Shield,
   ShieldCheck,
+  AlertCircle,
 } from 'lucide-react';
 import {
   PasswordInput,
@@ -986,7 +987,7 @@ export function RegistrationFormFields({
             type="submit"
             size="lg"
             loading={loading}
-            className="w-full"
+            className="w-full font-bold bg-[#F4BE4D] text-[#121008] hover:bg-[#E5B23E] hover:shadow-[0_4px_24px_rgba(244,190,77,0.25)] active:scale-[0.99] transition-all"
             trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
           >
             {loading
@@ -1006,9 +1007,22 @@ interface RegistrationSuccessProps {
   role: 'client' | 'coach';
   details: { label: string; value: string; highlight?: boolean }[];
   message?: string;
+  /**
+   * Optional post-registration problem that did NOT roll the registration back —
+   * currently only the optional GCash block. Rendered as an alert inside the
+   * card, because a message placed outside it lands below the fold of this
+   * full-height layout and is never read.
+   */
+  warning?: string;
 }
 
-export function RegistrationSuccess({ firstname, role, details, message }: RegistrationSuccessProps) {
+export function RegistrationSuccess({
+  firstname,
+  role,
+  details,
+  message,
+  warning,
+}: RegistrationSuccessProps) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4 font-sans">
       <div
@@ -1052,6 +1066,16 @@ export function RegistrationSuccess({ firstname, role, details, message }: Regis
           </span>
         </div>
 
+        {warning && (
+          <p
+            role="alert"
+            className="flex items-start gap-2.5 rounded-2xl border border-danger/30 bg-danger-soft p-3.5 text-left text-xs leading-relaxed text-danger"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{warning}</span>
+          </p>
+        )}
+
         <p className="text-xs text-muted-foreground">
           {message || 'You can now proceed to sign in and explore the platform.'}
         </p>
@@ -1060,7 +1084,7 @@ export function RegistrationSuccess({ firstname, role, details, message }: Regis
           <Button
             size="lg"
             pill={false}
-            className="w-full h-12 text-sm font-bold tracking-wide shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-accent)]"
+            className="w-full h-12 text-sm font-bold tracking-wide bg-[#F4BE4D] text-[#121008] hover:bg-[#E5B23E] hover:shadow-[0_4px_24px_rgba(244,190,77,0.25)] active:scale-[0.99] transition-all"
             trailingIcon={<ArrowRight className="h-4 w-4" />}
           >
             Proceed to Sign In

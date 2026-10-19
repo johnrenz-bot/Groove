@@ -3,13 +3,17 @@
 -- ==============================================================================
 
 -- 1. Ensure System Settings Exist
-INSERT INTO public.system_settings (key, value)
+INSERT INTO public.system_settings (key, value, previous_contact_email, contact_email_updated_at)
 VALUES 
-    ('theme', 'light'),
-    ('app_name', 'Groove Performing Arts'),
-    ('support_email', 'support@groovesystem.com'),
-    ('openrouter_model', 'deepseek/deepseek-chat')
-ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+    ('theme', 'light', NULL, NULL),
+    ('app_name', 'Groove Performing Arts', NULL, NULL),
+    ('support_email', 'support@groovesystem.com', NULL, NULL),
+    ('openrouter_model', 'deepseek/deepseek-chat', NULL, NULL),
+    ('contact_email', 'grooveyyph@gmail.com', 'Groove1152000@gmail.com', NOW())
+ON CONFLICT (key) DO UPDATE SET
+    value = EXCLUDED.value,
+    previous_contact_email = COALESCE(system_settings.previous_contact_email, 'Groove1152000@gmail.com'),
+    contact_email_updated_at = COALESCE(system_settings.contact_email_updated_at, NOW());
 
 -- 2. Ensure initial announcement exists
 INSERT INTO public.announcements (title, message, author, cta_label, cta_url)

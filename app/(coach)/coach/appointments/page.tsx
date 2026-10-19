@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
@@ -8,10 +8,8 @@ import {
   MapPin,
   MessageSquare,
   Star,
-  Check,
-  X,
-  CheckCircle2,
   Loader2,
+  RefreshCw,
   CalendarDays,
 } from 'lucide-react';
 import { Appointment, Profile } from '@/lib/types';
@@ -19,10 +17,51 @@ import { createClient } from '@/lib/supabase/client';
 import { isVerified, verificationStatusOf } from '@/features/verification/services/verification';
 import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
+import { BookingProgress } from '@/features/appointments/components/BookingProgress';
+import { BookingAgreementPanel } from '@/features/appointments/components/BookingAgreementPanel';
+import {
+  availableActions,
+  statusMeta,
+  BOOKING_STAGES,
+  type AppointmentStatus,
+} from '@/features/appointments/services/bookingStatus';
+import {
+  acceptBooking,
+  loadBookings,
+  stampsFor,
+  transitionBooking,
+  type BookingDetail,
+} from '@/features/appointments/services/bookingService';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
+import { cn } from '@/components/shared/cn';
+import { getInitials } from '@/lib/utils';
+
+/**
+ * A coach's booking requests: accept, decline, complete, and sign.
+ *
+ * WHAT CHANGED AND WHY
+ *   1. Filters compared a human label to an enum label by lowercasing both, which
+ *      silently never matched 'Agreement Required' (a space, not an underscore).
+ *      Filters are now the enum labels themselves, rendered through
+ *      `statusMeta` so the reader sees a sentence and the code sees the label.
+ *   2. Accept/Decline/Complete wrote status and then sent a notification by hand.
+ *      The database already notifies both parties from `notify_booking_parties`,
+ *      so a manual insert meant every accepted booking produced TWO
+ *      notifications. The manual writes are gone; the database is the only sender.
+ *   3. Errors that were only logged are now shown, and every write is followed by
+ *      a reload rather than a local patch — `guard_booking_transition` stamps
+ *      lifecycle columns and writes a `booking_events` row on every move, so a
+ *      patch would leave the progress timeline disagreeing with the badge.
+ *   4. Progress and the audit trail are rendered. `booking_events` was already
+ *      readable by participants and was simply never queried.
+ *   5. The agreement is readable and signable from here, not only from messages.
+ *
+ * The transition ORDER for accepting is the database's, not this file's: see
+ * `acceptBooking` — pending -> accepted -> (agreement written) -> agreement_required.
+ */
 
 /**
  * Derive the agreement body from the coach's own published terms.
@@ -52,7 +91,6 @@ async function buildAgreementTerms(
   const noticeDays = coachRow?.notice_days ?? null;
   const freeMethod = coachRow?.cancellation_method ?? null;
 
-  // Whichever notice window the coach actually published.
   const noticeWindow = noticeDays
     ? `${noticeDays} day${noticeDays === 1 ? '' : 's'} before the session`
     : noticeHours
@@ -78,9 +116,8 @@ async function buildAgreementTerms(
     'Either party: give notice as described in the cancellation terms above when cancelling.',
   ].join('\n');
 
-  // Combine date + start_time into a timestamp for scheduled_at. start_time is
-  // stored as free text ('10:00'), so it is parsed defensively and simply left
-  // null when it is not HH:MM rather than producing a wrong instant.
+  // start_time is stored as free text ('10:00'), so it is parsed defensively and
+  // simply left null when it is not HH:MM rather than producing a wrong instant.
   let scheduledAt: string | null = null;
   const hhmm = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(appt.start_time ?? '');
   if (hhmm && appt.date) {
@@ -116,249 +153,200 @@ async function buildAgreementTerms(
   };
 }
 
+const BADGE_VARIANT: Record<string, BadgeVariant> = {
+  pending: 'pending',
+  accepted: 'scheduled',
+  agreement_required: 'pending',
+  confirmed: 'confirmed',
+  completed: 'completed',
+  declined: 'cancelled',
+  cancelled: 'neutral',
+};
+
+/** Filter pills. Enum labels, so the comparison can never silently miss. */
+const FILTERS: string[] = ['All', ...BOOKING_STAGES, 'declined', 'cancelled'];
+
 export default function CoachAppointmentsPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [bookings, setBookings] = useState<BookingDetail[]>([]);
   const [coachProfile, setCoachProfile] = useState<Profile | null>(null);
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
   const [actionError, setActionError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
-  const fetchAppointments = useCallback(async () => {
+  /*
+   * The loader deliberately performs NO synchronous setState — see the same note
+   * on the client page. `loading` starts true, and the refresh path owns its own
+   * spinner from an event handler.
+   */
+  const fetchBookings = useCallback(async () => {
     try {
-      setLoading(true);
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
-      if (!user) return;
+      if (!user) {
+        setActionError('Sign in to see your coaching requests.');
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
-      setCoachProfile(profile);
-      setCurrentUser(profile);
+      setCoachProfile(profile as Profile);
+      setActionError(null);
 
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          *,
-          client:client_id(*)
-        `)
-        .eq('coach_id', user.id)
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-      setAppointments(data || []);
+      setBookings(await loadBookings(supabase, user.id, 'coach'));
     } catch (err) {
-      console.error('Error fetching appointments:', err);
+      setActionError(err instanceof Error ? err.message : 'Your requests could not be loaded.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
-
-  const handleUpdateStatus = async (
-    appt: Appointment,
-    newStatus: 'declined' | 'completed' | 'cancelled'
-  ) => {
+  /** Reload after a write. Spinner state lives here, in the event handler. */
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
     try {
-      setActionLoading(appt.id);
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: newStatus })
-        .eq('id', appt.id);
-
-      // `guard_booking_confirmation` in the database refuses a confirm when the
-      // coach or the client is unverified. That failure is turned into a message
-      // the coach can read, instead of disappearing into console.error.
-      if (error) {
-        setActionError(
-          /verified/i.test(error.message)
-            ? 'You cannot accept this session yet. Account verification is required before bookings can be confirmed.'
-            : error.message
-        );
-        return;
-      }
-
-      // Notify client
-      const statusTitles: Record<string, string> = {
-        declined: 'Session Request Declined',
-        completed: 'Coaching Session Completed',
-        cancelled: 'Session Cancelled by Coach',
-      };
-
-      await supabase.from('notifications').insert({
-        user_id: appt.client_id,
-        title: statusTitles[newStatus] || 'Appointment Updated',
-        message: `Coach ${coachProfile?.firstname || ''} marked your session on ${appt.date} as ${newStatus}.`,
-        cta_url: '/client/appointments',
-      });
-
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === appt.id ? { ...a, status: newStatus } : a))
-      );
-
-      // Trigger achievement check when session is completed
-      if (newStatus === 'completed' && currentUser) {
-        try {
-          const { updateAchievementsAfterBookingConfirmed } = await import('@/app/actions/achievements');
-          // Coach gets first booking achievement
-          await updateAchievementsAfterBookingConfirmed(currentUser.id, 'coach', appt.id);
-          // Client gets first booking achievement
-          await updateAchievementsAfterBookingConfirmed(appt.client_id, 'client', appt.id);
-        } catch (e) {
-          console.error('Failed to update achievements:', e);
-        }
-      }
-    } catch (err) {
-      console.error('Error updating status:', err);
-      setActionError(
-        err instanceof Error ? err.message : 'The booking status could not be updated.'
-      );
+      await fetchBookings();
     } finally {
-      setActionLoading(null);
+      setRefreshing(false);
     }
-  };
+  }, [fetchBookings]);
+
+  /*
+   * Mount fetch. Deferred by a tick for the same reason as on the client page —
+   * see the note there.
+   */
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void fetchBookings();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchBookings]);
 
   const coachIsVerified = isVerified(coachProfile);
+  const coachSuspended = coachProfile?.status === 'suspended';
 
   /**
-   * Accept a pending request.
-   *
-   * Three separate writes, in this order, because the database state machine
-   * enforces the order: guard_booking_transition() allows
-   * pending -> accepted -> agreement_required and refuses everything else. It
-   * used to be a single `pending -> confirmed`, which the guard rejected with
-   *   ERROR: Illegal booking transition pending -> confirmed
-   *
-   * The agreement is created BETWEEN the two moves rather than after both,
-   * because a booking sitting at 'agreement_required' with no agreement row is
-   * a dead end: the both-signed trigger can never fire without one, so the
-   * booking could never be confirmed.
-   *
-   * 'confirmed' is never written from here. It is set only by the database once
-   * both parties have signed.
+   * Every write ends in a reload. `guard_booking_transition` writes a
+   * `booking_events` row and stamps a lifecycle column on each move, so a local
+   * patch would leave the timeline and the badge telling different stories.
    */
-  const handleAccept = async (appt: Appointment) => {
+  const afterWrite = useCallback(async () => {
+    await refresh();
+  }, [refresh]);
+
+  /**
+   * Accept a pending request, or push an accepted one on to the agreement.
+   *
+   * The three-step order is `acceptBooking`'s, mirroring the database guard:
+   * pending -> accepted, then the agreement row, then accepted ->
+   * agreement_required. Each step is a compare-and-set, so a double-click cannot
+   * accept twice, and the agreement is written BETWEEN the moves because a
+   * booking at 'agreement_required' with no agreement is a dead end.
+   */
+  const handleAccept = async (detail: BookingDetail) => {
+    setBusyId(detail.appointment.id);
+    setActionError(null);
     try {
-      setActionLoading(appt.id);
-      setActionError(null);
-
       const supabase = createClient();
-
-      // --- 1. pending -> accepted -------------------------------------------
-      // `.eq('status', 'pending')` makes this a compare-and-set. If the row is
-      // no longer pending the update matches nothing, `.single()` raises, and a
-      // double-click cannot accept twice.
-      const { error: acceptErr } = await supabase
-        .from('appointments')
-        .update({ status: 'accepted' })
-        .eq('id', appt.id)
-        .eq('status', 'pending')
-        .select('id')
-        .single();
-
-      if (acceptErr) {
+      const terms = await buildAgreementTerms(supabase, detail.appointment);
+      if (terms.error) {
         setActionError(
-          /Illegal booking transition/i.test(acceptErr.message)
-            ? 'This request has already moved on. Refresh to see its current status.'
-            : acceptErr.message
+          `Request accepted, but the agreement could not be created (${terms.error}). Open it from the booking to send the agreement.`
         );
+        await afterWrite();
         return;
       }
 
-      // --- 2. create the agreement -------------------------------------------
-      // Idempotent: a partial unique index allows one agreement per booking, so
-      // a retry must reuse the existing row rather than hit a constraint error.
-      const { data: existingAgreement } = await supabase
-        .from('agreements')
-        .select('id')
-        .eq('appointment_id', appt.id)
-        .maybeSingle();
-
-      if (!existingAgreement) {
-        const terms = await buildAgreementTerms(supabase, appt);
-        if (terms.error) {
-          // The booking is already 'accepted'. That is a legitimate resting
-          // state, so report it rather than pretending the accept failed.
-          setActionError(
-            `Request accepted, but the agreement could not be created (${terms.error}). Open it from the booking to send the agreement.`
-          );
-          setAppointments((prev) =>
-            prev.map((a) => (a.id === appt.id ? { ...a, status: 'accepted' } : a))
-          );
-          return;
-        }
-        const { error: agreementErr } = await supabase
-          .from('agreements')
-          .insert({ ...terms.row, client_id: appt.client_id, coach_id: appt.coach_id, appointment_id: appt.id });
-        if (agreementErr) {
-          setActionError(
-            `Request accepted, but the agreement could not be created (${agreementErr.message}).`
-          );
-          setAppointments((prev) =>
-            prev.map((a) => (a.id === appt.id ? { ...a, status: 'accepted' } : a))
-          );
-          return;
-        }
-      }
-
-      // --- 3. accepted -> agreement_required ---------------------------------
-      // Only once the agreement exists. Both parties now need to sign.
-      const { error: sendErr } = await supabase
-        .from('appointments')
-        .update({ status: 'agreement_required' })
-        .eq('id', appt.id)
-        .eq('status', 'accepted');
-
-      if (sendErr) {
-        setActionError(
-          `Request accepted, but sending the agreement failed (${sendErr.message}).`
-        );
-        setAppointments((prev) =>
-          prev.map((a) => (a.id === appt.id ? { ...a, status: 'accepted' } : a))
-        );
-        return;
-      }
-
-      await supabase.from('notifications').insert({
-        user_id: appt.client_id,
-        title: 'Session Request Accepted',
-        message: `Coach ${coachProfile?.firstname || ''} accepted your request for ${appt.date}. An agreement is ready for both of you to sign.`,
-        cta_url: '/client/appointments',
+      const { agreementError } = await acceptBooking(supabase, {
+        appointment: detail.appointment,
+        agreementRow: terms.row,
       });
-
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === appt.id ? { ...a, status: 'agreement_required' } : a))
-      );
+      if (agreementError) setActionError(agreementError);
+      await afterWrite();
     } catch (err) {
-      console.error('Error accepting request:', err);
-      setActionError(
-        err instanceof Error ? err.message : 'The request could not be accepted.'
-      );
+      setActionError(err instanceof Error ? err.message : 'The request could not be accepted.');
+      await afterWrite();
     } finally {
-      setActionLoading(null);
+      setBusyId(null);
     }
   };
 
-  // Pills are human labels ('Agreement Required'), statuses are enum labels
-  // ('agreement_required'). Comparing them case-insensitively is not enough —
-  // the space and the underscore differ — so normalise both to underscores.
-  const normalise = (s: string) => s.trim().toLowerCase().replace(/\s+/g, '_');
+  const handleTransition = async (
+    detail: BookingDetail,
+    target: AppointmentStatus,
+    reason?: string | null
+  ) => {
+    setBusyId(detail.appointment.id);
+    setActionError(null);
+    try {
+      const supabase = createClient();
+      await transitionBooking(supabase, {
+        appointmentId: detail.appointment.id,
+        from: detail.appointment.status,
+        to: target,
+        reason,
+      });
 
-  const filteredAppointments = appointments.filter((a) => {
-    if (statusFilter === 'All') return true;
-    return normalise(a.status) === normalise(statusFilter);
-  });
+      // Achievements are keyed off completion. Notification is NOT sent here:
+      // notify_booking_parties already tells the client, and a second manual
+      // insert made every completed session notify twice.
+      if (target === 'completed' && coachProfile) {
+        try {
+          const { updateAchievementsAfterBookingConfirmed } = await import(
+            '@/app/actions/achievements'
+          );
+          await updateAchievementsAfterBookingConfirmed(
+            coachProfile.id,
+            'coach',
+            detail.appointment.id
+          );
+          await updateAchievementsAfterBookingConfirmed(
+            detail.appointment.client_id,
+            'client',
+            detail.appointment.id
+          );
+        } catch {
+          // A badge that fails to sync must not undo a completed session.
+        }
+      }
+
+      await afterWrite();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'The booking could not be updated.');
+      await afterWrite();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleCancel = async (detail: BookingDetail) => {
+    const reason =
+      window.prompt('Add a short reason for cancelling (optional). Shared with the client.', '') ?? null;
+    if (reason === null) return;
+    await handleTransition(detail, 'cancelled', reason.trim() || null);
+  };
+
+  const counts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const b of bookings) {
+      map.set(b.appointment.status, (map.get(b.appointment.status) ?? 0) + 1);
+    }
+    return map;
+  }, [bookings]);
+
+  const visible = useMemo(
+    () =>
+      statusFilter === 'All'
+        ? bookings
+        : bookings.filter((b) => b.appointment.status === statusFilter),
+    [bookings, statusFilter]
+  );
 
   return (
     <div className="space-y-6 sm:space-y-7">
@@ -367,19 +355,33 @@ export default function CoachAppointmentsPage() {
         title="Coaching Requests &amp; Schedule"
         description="Manage booking requests, accept rehearsal schedules, and coordinate with clients."
         action={
-          <Link
-            href="/coach/calendar"
-            className="inline-flex h-10 select-none items-center justify-center gap-2 rounded-full border border-border bg-transparent px-5 text-sm font-semibold tracking-[-0.01em] text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:bg-muted active:translate-y-0"
-          >
-            <Calendar className="h-4 w-4 text-accent-text" aria-hidden="true" />
-            Calendar View
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              disabled={refreshing}
+              aria-label="Refresh requests"
+              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-transparent text-foreground transition hover:border-border-strong hover:bg-muted disabled:opacity-60"
+            >
+              <RefreshCw
+                className={cn('h-4 w-4 text-accent-text', refreshing && 'animate-spin')}
+                aria-hidden="true"
+              />
+            </button>
+            <Link
+              href="/coach/calendar"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border bg-transparent px-5 text-sm font-semibold tracking-[-0.01em] text-foreground transition-all duration-200 hover:border-border-strong hover:bg-muted"
+            >
+              <Calendar className="h-4 w-4 text-accent-text" aria-hidden="true" />
+              Calendar View
+            </Link>
+          </div>
         }
       />
 
-      {/* An unverified coach cannot confirm bookings, so say so before the
-          buttons are pressed. Declining and cancelling stay available. */}
-      {!loading && coachProfile && !isVerified(coachProfile) && (
+      {/* An unverified coach cannot change bookings. Declining and cancelling
+          stay available, which is what `availableActions` encodes. */}
+      {!loading && coachProfile && !coachIsVerified && (
         <VerificationRequiredNotice
           gate={{
             allowed: false,
@@ -395,37 +397,50 @@ export default function CoachAppointmentsPage() {
       {actionError && (
         <div
           role="alert"
-          className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
+          className="flex items-start justify-between gap-3 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
         >
-          {actionError}
+          <span>{actionError}</span>
+          <button
+            type="button"
+            onClick={() => void afterWrite()}
+            className="shrink-0 cursor-pointer font-semibold underline underline-offset-2"
+          >
+            Retry
+          </button>
         </div>
       )}
 
-        {/* Status Filter Pills with live counts */}
-      <div className="g-scroll -mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1">
-        {['All', 'Pending', 'Accepted', 'Agreement Required', 'Confirmed', 'Completed', 'Declined', 'Cancelled'].map((status) => {
+      {/* Filters */}
+      <div
+        role="group"
+        aria-label="Filter requests by status"
+        className="g-scroll -mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1"
+      >
+        {FILTERS.map((status) => {
           const isActive = statusFilter === status;
           const count =
-            status === 'All'
-              ? appointments.length
-              : appointments.filter((a) => normalise(a.status) === normalise(status)).length;
+            status === 'All' ? bookings.length : (counts.get(status as AppointmentStatus) ?? 0);
+          if (status !== 'All' && count === 0) return null;
 
           return (
             <button
               key={status}
+              type="button"
               onClick={() => setStatusFilter(status)}
               aria-pressed={isActive}
-              className={`min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
+              className={cn(
+                'inline-flex min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition',
                 isActive
                   ? 'border-accent-border bg-accent-soft text-accent-text'
                   : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
-              }`}
+              )}
             >
-              <span>{status}</span>
+              <span>{status === 'All' ? 'All' : statusMeta(status).label}</span>
               <span
-                className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                className={cn(
+                  'rounded-full px-1.5 py-0.2 text-[10px] font-bold',
                   isActive ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
-                }`}
+                )}
               >
                 {count}
               </span>
@@ -458,27 +473,29 @@ export default function CoachAppointmentsPage() {
             </div>
           ))}
         </div>
-      ) : filteredAppointments.length === 0 ? (
+      ) : visible.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="h-6 w-6" />}
           title="No appointments found"
-          description={`You do not have any ${statusFilter !== 'All' ? statusFilter.toLowerCase() : ''} requests at this time.`}
+          description={
+            statusFilter === 'All'
+              ? 'You have no coaching requests at this time.'
+              : `You have no ${statusMeta(statusFilter).label.toLowerCase()} requests.`
+          }
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:gap-5">
-          {filteredAppointments.map((appt) => {
-            // 'accepted' and 'agreement_required' are real enum labels. Without
-            // entries here they would render as the fallback badge and read as
-            // an unknown state.
-            const statusVariant: Record<string, BadgeVariant> = {
-              pending: 'pending',
-              accepted: 'confirmed',
-              agreement_required: 'pending',
-              confirmed: 'confirmed',
-              completed: 'completed',
-              declined: 'cancelled',
-              cancelled: 'neutral',
-            };
+          {visible.map((detail) => {
+            const appt = detail.appointment;
+            const meta = statusMeta(appt.status);
+            const busy = busyId === appt.id;
+
+            const actions = availableActions({
+              status: appt.status,
+              role: 'coach',
+              coachVerified: coachIsVerified,
+              suspended: coachSuspended,
+            });
 
             return (
               <article
@@ -489,30 +506,25 @@ export default function CoachAppointmentsPage() {
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-accent-border bg-accent-soft text-sm font-bold text-accent-text">
                       {appt.client?.photo_url ? (
-                        <img
-                          src={appt.client.photo_url}
-                          alt={appt.name}
-                          className="h-full w-full object-cover"
-                        />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={appt.client.photo_url} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <span>{appt.name?.[0] || 'C'}</span>
+                        <span>{getInitials(appt.name, '')}</span>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="truncate text-sm font-bold text-foreground">
-                        {appt.name}
-                      </h3>
+                      <h3 className="truncate text-sm font-bold text-foreground">{appt.name}</h3>
                       <p className="truncate text-xs text-muted-foreground">
                         {appt.session_type} ·{' '}
-                        <span className="font-semibold text-accent-text">{appt.talent || 'Dance'}</span> · Level:{' '}
-                        {appt.experience}
+                        <span className="font-semibold text-accent-text">{appt.talent || 'Dance'}</span>{' '}
+                        · Level: {appt.experience}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={statusVariant[appt.status] || 'neutral'} dot>
-                      {appt.status}
+                    <Badge variant={BADGE_VARIANT[appt.status] ?? 'neutral'} dot>
+                      {meta.label}
                     </Badge>
                     {appt.client?.account_verified ? (
                       <VerifiedBadge verified size="sm" label="Verified client" />
@@ -537,7 +549,9 @@ export default function CoachAppointmentsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                    <span className="truncate">{appt.address}</span>
+                    <span className="truncate">
+                      {appt.is_online ? 'Online session' : appt.address}
+                    </span>
                   </div>
                 </div>
 
@@ -564,7 +578,41 @@ export default function CoachAppointmentsPage() {
                   </div>
                 )}
 
-                {/* Action Buttons */}
+                {/* Progress + audit trail */}
+                <div className="mt-4 border-t border-divider pt-4">
+                  <BookingProgress
+                    status={appt.status}
+                    stamps={stampsFor(appt)}
+                    events={detail.events}
+                    loading={loading}
+                    names={
+                      appt.client?.id && appt.coach_id
+                        ? { [appt.client.id]: appt.name || 'Client', [appt.coach_id]: 'You' }
+                        : {}
+                    }
+                  />
+                </div>
+
+                {/* Agreement */}
+                {detail.agreement && (
+                  <div className="mt-4">
+                    <BookingAgreementPanel
+                      agreement={detail.agreement}
+                      bookingStatus={appt.status}
+                      userId={coachProfile?.id ?? ''}
+                      onChanged={() => void afterWrite()}
+                    />
+                  </div>
+                )}
+
+                {appt.cancellation_reason && meta.isTerminal && (
+                  <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3.5 text-xs leading-relaxed">
+                    <span className="font-semibold text-muted-foreground">Cancellation note: </span>
+                    <span className="text-foreground">{appt.cancellation_reason}</span>
+                  </div>
+                )}
+
+                {/* Actions */}
                 <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-divider pt-4">
                   <Link
                     href={`/messages?user=${appt.client_id}`}
@@ -574,69 +622,46 @@ export default function CoachAppointmentsPage() {
                     Message Student
                   </Link>
 
-                  {appt.status === 'pending' && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUpdateStatus(appt, 'declined')}
-                        disabled={actionLoading === appt.id}
-                        className="border-danger/40 text-danger hover:bg-danger-soft hover:text-danger"
-                        icon={<X className="h-3.5 w-3.5" aria-hidden="true" />}
-                      >
-                        Decline
-                      </Button>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => handleAccept(appt)}
-                        disabled={actionLoading === appt.id || !coachIsVerified}
-                        title={
-                          coachIsVerified
-                            ? 'Accept this request and send the agreement for both parties to sign'
-                            : 'Complete account verification to accept bookings'
-                        }
-                        icon={<Check className="h-3.5 w-3.5" aria-hidden="true" />}
-                      >
-                        {coachIsVerified ? 'Accept Request' : 'Verify to Accept'}
-                      </Button>
-                    </>
-                  )}
-
-                  {/* Accepted but the agreement has not gone out yet. Retrying is
-                      safe: handleAccept reuses an existing agreement row. */}
-                  {appt.status === 'accepted' && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleAccept(appt)}
-                      disabled={actionLoading === appt.id}
-                      icon={<Check className="h-3.5 w-3.5" aria-hidden="true" />}
-                    >
-                      Send Agreement
-                    </Button>
-                  )}
-
                   {/* Waiting on the two signatures. Confirming is the database's
-                      job, not this button's. */}
+                      job, so there is deliberately no Confirm button here. */}
                   {appt.status === 'agreement_required' && (
                     <p className="flex items-center gap-1.5 text-xs font-semibold text-accent-text">
                       <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                      Agreement sent — waiting for both signatures
+                      Waiting for both signatures
                     </p>
                   )}
 
-                  {appt.status === 'confirmed' && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleUpdateStatus(appt, 'completed')}
-                      disabled={actionLoading === appt.id}
-                      icon={<CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
-                    >
-                      Mark Completed
-                    </Button>
-                  )}
+                  {actions.map((spec) => {
+                    const blocked = Boolean(spec.blockedReason);
+                    return (
+                      <Button
+                        key={spec.action}
+                        variant={
+                          spec.variant === 'primary'
+                            ? 'primary'
+                            : spec.variant === 'danger'
+                              ? 'outline'
+                              : 'outline'
+                        }
+                        size="sm"
+                        disabled={busy || blocked}
+                        title={spec.blockedReason ?? undefined}
+                        loading={busy && spec.action === 'accept'}
+                        className={
+                          spec.variant === 'danger'
+                            ? 'border-danger/40 text-danger hover:bg-danger-soft hover:text-danger'
+                            : undefined
+                        }
+                        onClick={() => {
+                          if (spec.action === 'accept') void handleAccept(detail);
+                          else if (spec.action === 'cancel') void handleCancel(detail);
+                          else void handleTransition(detail, spec.target);
+                        }}
+                      >
+                        {spec.action === 'accept' && !coachIsVerified ? 'Verify to accept' : spec.label}
+                      </Button>
+                    );
+                  })}
                 </div>
               </article>
             );

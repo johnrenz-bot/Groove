@@ -12,5 +12,12 @@ import React from 'react';
  * resolve exactly as before.
  */
 export default function AuthGroupLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <div
+      data-theme="dark"
+      className="groove-auth dark min-h-screen bg-[#08090b] text-[#f5f5f5] antialiased selection:bg-[#F4BE4D]/30 selection:text-[#F4BE4D]"
+    >
+      {children}
+    </div>
+  );
 }

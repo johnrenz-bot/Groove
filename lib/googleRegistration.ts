@@ -85,6 +85,9 @@ export async function startGoogleRegistration(role: GoogleRole): Promise<void> {
       redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
         googleCompletionPath(role)
       )}&role=${role}`,
+      queryParams: {
+        prompt: 'select_account',
+      },
     },
   });
 
@@ -214,6 +217,30 @@ export async function completeGoogleRegistration(
     };
   }
 
+  // Also check if user has an established profile under the other role:
+  const oppositeRole: GoogleRole = role === 'coach' ? 'client' : 'coach';
+  const oppositeTable = subProfileTable(oppositeRole);
+  const { data: oppositeSubProfile } = await supabase
+    .from(oppositeTable)
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (oppositeSubProfile && profileRole === oppositeRole) {
+    const isEstablishedClient =
+      existingProfile.firstname !== 'User' ||
+      Boolean(existingProfile.lastname) ||
+      Boolean((existingProfile as Record<string, unknown>).address_summary);
+
+    if (oppositeRole === 'coach' || isEstablishedClient) {
+      return {
+        status: 'wrong-role',
+        actualRole: oppositeRole,
+        attempted: role,
+      };
+    }
+  }
+
   if (existingSubProfile) {
     // Already set up under this role. Refresh only what Google is authoritative
     // about (verified email) and leave everything else alone.
@@ -276,6 +303,24 @@ export async function completeGoogleRegistration(
     );
   }
 
+  // Best-effort welcome email for newly created accounts (non-blocking)
+  if (email) {
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          name: firstname && firstname !== 'User' ? firstname : undefined,
+        }),
+      });
+    } catch {
+      // Swallowed on purpose: welcome email delivery failure must not block registration
+    }
+  }
+
   return { status: 'created', role };
 }
 
@@ -303,6 +348,9 @@ export async function startGoogleSignIn(next?: string): Promise<void> {
     provider: 'google',
     options: {
       redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(target)}`,
+      queryParams: {
+        prompt: 'select_account',
+      },
     },
   });
 

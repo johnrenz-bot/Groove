@@ -16,6 +16,7 @@ import {
 import { AdminEmptyState, AdminErrorState, AdminToast } from '@/components/admin/AdminStates';
 import { AdminSkeletonStat } from '@/components/admin/AdminPrimitives';
 import { AdminUserDrawer } from '@/components/admin/AdminUserDrawer';
+import { AdminCreateUserModal } from '@/components/admin/AdminCreateUserModal';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { fetchUsers, type AdminUserRecord } from '@/lib/admin/service';
 import { useAdminData } from '@/lib/admin/useAdminData';
@@ -49,6 +50,7 @@ export default function AdminUsersPage() {
   const [talentFilter, setTalentFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<AdminUserRecord | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -233,6 +235,12 @@ export default function AdminUsersPage() {
         description="Every registered account across all roles. Review verification documents, edit profiles, and control account access."
       />
 
+      <div className="flex justify-end">
+        <Button onClick={() => setCreateOpen(true)} icon={<Users className="h-4 w-4" />}>
+          Add account
+        </Button>
+      </div>
+
       {/* Summary strip */}
       {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -389,6 +397,17 @@ export default function AdminUsersPage() {
         }}
         onDelete={handleDelete}
         busyKey={deletingId}
+      />
+
+      <AdminCreateUserModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(created) => {
+          setToast('Account created.');
+          logAction('create', 'profile', (created as { id?: string })?.id ?? null, 'Created a new account');
+          notifyChange();
+          refresh();
+        }}
       />
 
       <AdminToast message={toast} onDismiss={() => setToast(null)} />

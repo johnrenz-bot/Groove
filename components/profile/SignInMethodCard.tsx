@@ -61,39 +61,41 @@ export function SignInMethodCard({
         </span>
       </header>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-4.5 shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface shadow-xs">
-            {isGoogle ? (
-              <GoogleIcon className="h-6 w-6" />
-            ) : isGithub ? (
-              <svg className="h-6 w-6 fill-foreground" viewBox="0 0 24 24">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-              </svg>
-            ) : (
-              <Mail className="h-6 w-6 text-accent-text" />
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-foreground">{providerName}</h3>
-              <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
-                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                Connected
-              </span>
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4.5 shadow-xs">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3.5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface shadow-xs">
+              {isGoogle ? (
+                <GoogleIcon className="h-6 w-6" />
+              ) : isGithub ? (
+                <svg className="h-6 w-6 fill-foreground" viewBox="0 0 24 24">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                </svg>
+              ) : (
+                <Mail className="h-6 w-6 text-accent-text" />
+              )}
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">{providerType}</p>
-            {email && (
-              <p className="mt-0.5 text-[11px] text-subtle-foreground font-mono">{email}</p>
-            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground">{providerName}</h3>
+                <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                  Connected
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">{providerType}</p>
+              {email && (
+                <p className="mt-0.5 break-all text-[11px] font-mono text-subtle-foreground sm:truncate">{email}</p>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-            <span>Active &amp; Verified</span>
-          </span>
+          <div className="flex justify-start sm:justify-end">
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+              <span>Active &amp; Verified</span>
+            </span>
+          </div>
         </div>
       </div>
     </section>

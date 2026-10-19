@@ -3,16 +3,22 @@
 import { useState } from 'react';
 import { startGoogleRegistration, type GoogleRole } from '@/lib/googleRegistration';
 
+import { Loader2 } from 'lucide-react';
+
+// TODO: Set to true once Google OAuth is configured in Supabase and tested.
+const GOOGLE_OAUTH_ENABLED = false;
+
 interface GoogleRegisterButtonProps {
   role: GoogleRole;
-  /** Shown under the button, e.g. "as a Client". */
+  /** Custom label, e.g. "Register as Client in seconds". */
   label?: string;
+  className?: string;
 }
 
 /** Google's brand mark. Inlined so no external image request is made. */
-function GoogleMark() {
+function GoogleMark({ className = 'h-5 w-5 shrink-0' }: { className?: string }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+    <svg className={className} viewBox="0 0 18 18" aria-hidden="true" focusable="false">
       <path
         fill="#4285F4"
         d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z"
@@ -34,24 +40,25 @@ function GoogleMark() {
 }
 
 /**
- * "Create an account with Google" for the registration pages.
+ * "Continue with Google" for the registration pages.
  *
  * Email/password registration is untouched: this sits beside the existing form
  * and starts a separate OAuth handshake. Errors are surfaced in place rather
  * than thrown, because a failed OAuth start leaves the user still on the form
  * with their input intact and nothing else to react to.
  */
-export function GoogleRegisterButton({ role, label }: GoogleRegisterButtonProps) {
+export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegisterButtonProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const buttonText = label || `Continue with Google as ${role === 'coach' ? 'Coach' : 'Performer'}`;
+
   const handleClick = async () => {
+    if (!GOOGLE_OAUTH_ENABLED) return;
     setBusy(true);
     setError(null);
     try {
       await startGoogleRegistration(role);
-      // Normally unreachable: a successful start navigates away. Kept so that if
-      // the navigation is blocked the button does not stay spinning forever.
       setBusy(false);
     } catch (err: unknown) {
       const message =
@@ -68,18 +75,44 @@ export function GoogleRegisterButton({ role, label }: GoogleRegisterButtonProps)
       <button
         type="button"
         onClick={handleClick}
-        disabled={busy}
-        className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={busy || !GOOGLE_OAUTH_ENABLED}
+        aria-disabled={!GOOGLE_OAUTH_ENABLED || busy}
+        aria-label={
+          !GOOGLE_OAUTH_ENABLED
+            ? 'Google sign-up is not yet available'
+            : busy
+            ? 'Connecting to Google…'
+            : buttonText
+        }
+        title={!GOOGLE_OAUTH_ENABLED ? 'Google sign-up is coming soon' : undefined}
+        className={`group relative flex h-12 w-full items-center justify-center gap-3 rounded-xl border px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F4BE4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090b] ${
+          !GOOGLE_OAUTH_ENABLED
+            ? 'cursor-not-allowed border-[#1e2029] bg-[#0e0f14] text-[#4a4a55] opacity-60 select-none'
+            : 'cursor-pointer border-[#2a2c38] bg-[#121319] text-[#f5f5f5] hover:border-[#F4BE4D]/60 hover:bg-[#181a22] hover:shadow-[0_4px_20px_-4px_rgba(244,190,77,0.15)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
+        } ${className}`}
       >
-        <GoogleMark />
-        {busy ? 'Connecting to Google…' : 'Create an account with Google'}
-        {label ? <span className="font-normal text-muted-foreground">{label}</span> : null}
+        {busy ? (
+          <Loader2 className="h-5 w-5 animate-spin text-[#F4BE4D]" aria-hidden="true" />
+        ) : (
+          <GoogleMark />
+        )}
+        <span className="tracking-tight transition-colors group-hover:text-white">
+          {busy
+            ? 'Connecting to Google…'
+            : !GOOGLE_OAUTH_ENABLED
+            ? `${buttonText} (Coming Soon)`
+            : buttonText}
+        </span>
       </button>
 
       {error ? (
-        <p role="alert" className="mt-2 text-center text-xs text-danger">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="mt-2.5 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs font-medium text-danger"
+        >
           {error}
-        </p>
+        </div>
       ) : null}
     </div>
   );

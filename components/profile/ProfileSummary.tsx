@@ -122,22 +122,32 @@ export function VerificationStatus({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
         <StatusTile
           icon={emailVerified ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
           tone={emailVerified ? 'success' : 'warning'}
           label="Email Verified"
           value={emailVerified ? 'Confirmed' : 'Pending confirmation'}
         />
-        <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3">
-          <VerificationStatusBadge status={effectiveStatus} />
-          <span className="text-[11px] text-muted-foreground">
-            {effectiveStatus === 'verified'
-              ? 'Booking is available'
-              : effectiveStatus === 'rejected'
-                ? 'Needs correction'
-                : 'Booking is unavailable'}
-          </span>
+        <div className="flex h-full min-w-0 flex-col gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <span className="text-accent-text">
+              <ShieldAlert className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1 text-xs font-semibold text-foreground break-words">
+              Booking
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <VerificationStatusBadge status={effectiveStatus} />
+            <span className="text-[11px] text-muted-foreground break-words">
+              {effectiveStatus === 'verified'
+                ? 'Booking is available'
+                : effectiveStatus === 'rejected'
+                  ? 'Needs correction'
+                  : 'Booking is unavailable'}
+            </span>
+          </div>
         </div>
         {status && (
           <StatusTile
@@ -180,11 +190,11 @@ function StatusTile({
   }[tone];
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3">
-      <span className={toneClass}>{icon}</span>
-      <span className="min-w-0">
-        <span className="block text-xs font-semibold text-foreground">{label}</span>
-        <span className="block truncate text-[11px] text-muted-foreground">{value}</span>
+    <div className="flex h-full min-w-0 items-center gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3">
+      <span className={`shrink-0 ${toneClass}`}>{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-semibold text-foreground break-words">{label}</span>
+        <span className="block text-[11px] text-muted-foreground break-words">{value}</span>
       </span>
     </div>
   );

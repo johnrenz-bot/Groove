@@ -184,9 +184,14 @@ function Hero({ role }: { role: HubRole }) {
         <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-12">
           <div>
             <Kicker>Groove Performing Arts</Kicker>
+            {/* Was `text-[2rem] sm:text-[2.6rem] lg:text-[3rem]` — arbitrary PX,
+                so it ignored the 14px root and stayed the largest heading on the
+                site at 48px. Moved onto the re-based `text-*` scale, which lands
+                this at 21 / 24.5 / 31.5px: an H2, not a hero, which is what a
+                section intro should be. */}
             <h1
               id="hub-hero-heading"
-              className="mt-4 text-[2rem] font-bold leading-[1.1] tracking-[-0.035em] text-foreground sm:text-[2.6rem] lg:text-[3rem]"
+              className="mt-4 text-2xl font-bold leading-[1.1] tracking-[-0.035em] text-foreground sm:text-3xl lg:text-4xl"
             >
               Filipino Performing Arts, Philippines
             </h1>
@@ -1124,7 +1129,7 @@ export function PerformingArtsHub({ role }: { role: HubRole }) {
               Back to Groove home
             </Link>
             <a
-              href="mailto:Groove1152000@gmail.com?subject=Performing%20Arts%20hub%20—%20correction%20or%20resource"
+              href="mailto:grooveyyph@gmail.com?subject=Performing%20Arts%20hub%20—%20correction%20or%20resource"
               className="inline-flex h-9 items-center rounded-full border border-border px-4 text-xs font-semibold text-foreground transition-colors hover:border-accent-border hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Suggest a correction
