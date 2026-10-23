@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Globe, Share2, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
 
 export interface ProfileLinks {
   website?: string | null;
@@ -54,84 +55,75 @@ export function ProfileLinksCard({
 
   if (editing) {
     return (
-      <section className={`g-card p-6 ${className}`} aria-label="Profile links editor">
-        <header className="mb-5 border-b border-divider pb-4">
-          <div className="flex items-center gap-2">
-            <LinkIcon className="h-4 w-4 text-accent-text" />
-            <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">
-              Public Links &amp; Profiles
-            </h2>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Add your personal website, social media, or GitHub profile (optional).
-          </p>
-        </header>
+      <Panel className={className} aria-label="Profile links editor">
+        <PanelHeader
+          icon={<LinkIcon className="h-4 w-4" />}
+          title="Public Links & Profiles"
+          info="Add a personal website, social media profile, or GitHub account to your public profile. Every field is optional, and links open in a new tab."
+          infoShort="Optional public links shown on your profile."
+        />
+        <PanelBody>
+          <div className="space-y-4 text-xs">
+            <div>
+              <label className="g-label flex items-center gap-1.5" htmlFor="link-website">
+                <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>Personal Website (Optional)</span>
+              </label>
+              <input
+                id="link-website"
+                type="url"
+                placeholder="https://yourportfolio.com"
+                value={links.website || ''}
+                onChange={(e) => onChange?.({ ...links, website: e.target.value })}
+                className="g-input"
+              />
+            </div>
 
-        <div className="space-y-4 text-xs">
-          <div>
-            <label className="g-label flex items-center gap-1.5" htmlFor="link-website">
-              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Personal Website (Optional)</span>
-            </label>
-            <input
-              id="link-website"
-              type="url"
-              placeholder="https://yourportfolio.com"
-              value={links.website || ''}
-              onChange={(e) => onChange?.({ ...links, website: e.target.value })}
-              className="g-input"
-            />
-          </div>
+            <div>
+              <label className="g-label flex items-center gap-1.5" htmlFor="link-social">
+                <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>Social Media Profile (Optional)</span>
+              </label>
+              <input
+                id="link-social"
+                type="url"
+                placeholder="https://instagram.com/yourhandle"
+                value={links.social_link || ''}
+                onChange={(e) => onChange?.({ ...links, social_link: e.target.value })}
+                className="g-input"
+              />
+            </div>
 
-          <div>
-            <label className="g-label flex items-center gap-1.5" htmlFor="link-social">
-              <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Social Media Profile (Optional)</span>
-            </label>
-            <input
-              id="link-social"
-              type="url"
-              placeholder="https://instagram.com/yourhandle"
-              value={links.social_link || ''}
-              onChange={(e) => onChange?.({ ...links, social_link: e.target.value })}
-              className="g-input"
-            />
+            <div>
+              <label className="g-label flex items-center gap-1.5" htmlFor="link-github">
+                <GithubIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>GitHub Profile (Optional)</span>
+              </label>
+              <input
+                id="link-github"
+                type="url"
+                placeholder="https://github.com/yourusername"
+                value={links.github || ''}
+                onChange={(e) => onChange?.({ ...links, github: e.target.value })}
+                className="g-input"
+              />
+            </div>
           </div>
-
-          <div>
-            <label className="g-label flex items-center gap-1.5" htmlFor="link-github">
-              <GithubIcon className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>GitHub Profile (Optional)</span>
-            </label>
-            <input
-              id="link-github"
-              type="url"
-              placeholder="https://github.com/yourusername"
-              value={links.github || ''}
-              onChange={(e) => onChange?.({ ...links, github: e.target.value })}
-              className="g-input"
-            />
-          </div>
-        </div>
-      </section>
+        </PanelBody>
+      </Panel>
     );
   }
 
   return (
-    <section className={`g-card p-6 ${className}`} aria-label="Public links">
-      <header className="mb-5 border-b border-divider pb-4">
-        <div className="flex items-center gap-2">
-          <LinkIcon className="h-4 w-4 text-accent-text" />
-          <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">
-            Links &amp; Socials
-          </h2>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Verified external profiles and portfolio links.
-        </p>
-      </header>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <Panel className={className} aria-label="Public links">
+      <PanelHeader
+        icon={<LinkIcon className="h-4 w-4" />}
+        title="Links & Socials"
+        info="External profiles and portfolio links shared on your public profile. Each link opens in a new tab."
+        infoShort="External profiles and portfolio links."
+      />
+      <PanelBody>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {links.website && (
           <a
             href={normalizeUrl(links.website)}
@@ -203,7 +195,8 @@ export function ProfileLinksCard({
             <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground" />
           </a>
         )}
-      </div>
-    </section>
+        </div>
+      </PanelBody>
+    </Panel>
   );
 }

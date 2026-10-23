@@ -18,6 +18,8 @@ import {
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { StatCard } from '@/components/ui/StatCard';
+import { InfoTip } from '@/components/ui/InfoTip';
 import { Badge } from '@/components/ui/Badge';
 import { AdminErrorState } from '@/components/admin/AdminStates';
 import { AdminSkeletonStat, AdminSkeletonRows } from '@/components/admin/AdminPrimitives';
@@ -183,43 +185,27 @@ export default function AdminDashboardPage() {
             onRetry={overview.refresh}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="g-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {metrics.map((metric) => {
               const Icon = metric.icon;
+              const accentColor =
+                metric.tone === 'danger'
+                  ? 'red'
+                  : metric.tone === 'warning'
+                    ? 'yellow'
+                    : metric.tone === 'success'
+                      ? 'green'
+                      : 'blue';
               return (
-                <Link
+                <StatCard
                   key={metric.key}
+                  icon={<Icon className="h-4 w-4" />}
+                  value={metric.value}
+                  label={metric.label}
+                  sub={metric.hint}
+                  accentColor={accentColor}
                   href={metric.href}
-                  className="g-card g-card-hover group flex flex-col p-5 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border',
-                        metric.tone === 'danger' && 'border-danger/30 bg-danger-soft text-danger',
-                        metric.tone === 'warning' &&
-                          'border-warning/30 bg-warning-soft text-warning',
-                        metric.tone === 'success' &&
-                          'border-success/30 bg-success-soft text-success',
-                        (!metric.tone || metric.tone === 'default') &&
-                          'border-accent-border bg-accent-soft text-accent-text'
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <ArrowUpRight className="h-4 w-4 shrink-0 text-subtle-foreground transition-colors group-hover:text-accent-text" />
-                  </div>
-                  <p className="mt-4 text-2xl font-bold tabular-nums tracking-[-0.03em] text-foreground">
-                    {metric.value}
-                  </p>
-                  <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                    {metric.label}
-                  </p>
-                  <p className="mt-1.5 text-[11px] leading-relaxed text-subtle-foreground">
-                    {metric.hint}
-                  </p>
-                </Link>
+                />
               );
             })}
           </div>
@@ -452,8 +438,7 @@ function AttentionCard({
   tone: 'warning' | 'danger';
 }) {
   return (
-    <Link
-      href={href}
+    <div
       className={cn(
         'g-card g-card-hover group flex items-start gap-3.5 p-5 transition-colors',
         tone === 'danger' ? 'border-danger/30' : 'border-warning/30'
@@ -471,16 +456,26 @@ function AttentionCard({
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-foreground">{title}</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
-        <span className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-accent-text">
-          {label} <ArrowUpRight className="h-3.5 w-3.5" />
-        </span>
+        <div className="flex items-start gap-2">
+          <Link
+            href={href}
+            className="text-sm font-bold text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            {title}
+          </Link>
+          <InfoTip title={title} short={description} details={description} />
+        </div>
+        <Link
+          href={href}
+          className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-accent-text"
+        >
+          {label} <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none" />
+        </Link>
       </div>
       <ArrowUpRight
         aria-hidden="true"
         className="mt-0.5 hidden h-4 w-4 shrink-0 text-subtle-foreground transition-colors group-hover:text-accent-text sm:block"
       />
-    </Link>
+    </div>
   );
 }

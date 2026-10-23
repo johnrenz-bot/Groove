@@ -1,41 +1,58 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
 
 export interface PanelCardProps {
   icon: React.ReactNode;
   title: string;
+  /** @deprecated Explanations now live behind the info trigger. */
   subtitle?: string;
+  /** Longer explanation for the info modal. */
+  info?: React.ReactNode;
+  infoShort?: string;
   viewAllHref?: string;
   viewAllLabel?: string;
   children: React.ReactNode;
 }
 
-export function PanelCard({ icon, title, subtitle, viewAllHref, viewAllLabel = 'View all', children }: PanelCardProps) {
+/**
+ * Dashboard panel used by the client and coach homes. Backed by the shared
+ * Panel so headers, spacing and disclosure behaviour cannot drift.
+ */
+export function PanelCard({
+  icon,
+  title,
+  subtitle,
+  info,
+  infoShort,
+  viewAllHref,
+  viewAllLabel = 'View all',
+  children,
+}: PanelCardProps) {
   return (
-    <section className="overflow-hidden rounded-[14px] border border-border bg-card shadow-[0_1px_2px_rgba(20,40,75,0.06),0_8px_24px_rgba(20,40,75,0.05)]">
-      <header className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent-text">
-            {icon}
-          </span>
-          <div>
-            <h3 className="text-sm font-bold text-foreground">{title}</h3>
-            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
-          </div>
-        </div>
-        {viewAllHref && (
-          <Link
-            href={viewAllHref}
-            className="flex items-center gap-1 text-xs font-semibold text-accent-text transition hover:underline"
-          >
-            {viewAllLabel}
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
-        )}
-      </header>
-      <div className="p-5 sm:p-6">{children}</div>
-    </section>
+    <Panel>
+      <PanelHeader
+        icon={icon}
+        title={title}
+        info={info ?? subtitle}
+        infoShort={infoShort}
+        action={
+          viewAllHref ? (
+            <Link
+              href={viewAllHref}
+              className="flex items-center gap-1 rounded-full px-1 text-xs font-semibold text-accent-text transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              {viewAllLabel}
+              <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+          ) : undefined
+        }
+      />
+      <PanelBody>{children}</PanelBody>
+    </Panel>
   );
 }
 

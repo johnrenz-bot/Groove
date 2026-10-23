@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, QrCode, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
 import {
   clearGCashQr,
   clearGCashQrImage,
@@ -378,23 +379,24 @@ export function GCashQrCard({
   }
 
   return (
-    <section className="g-card p-6">
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-divider pb-4">
-        <div>
-          <h2 className="text-base font-bold text-foreground">GCash QR Code</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Optional. Share a scannable GCash QR so sessions can be paid without exchanging numbers.
-          </p>
-        </div>
-        {hasRecord && !error && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success-soft px-2.5 py-0.5 text-[11px] font-semibold text-success">
-            <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
-            Saved
-          </span>
-        )}
-      </header>
-
-      <div className="mt-5 space-y-4">
+    <Panel>
+      <PanelHeader
+        title="GCash QR Code"
+        info={
+          'Optional. Share a scannable GCash QR so sessions can be paid without exchanging numbers.\n\nYour QR image is stored in a private bucket and is not published anywhere else on Groove. It is only rendered for you, from a short-lived signed link.'
+        }
+        infoShort="Optional scannable GCash QR for direct payments."
+        action={
+          hasRecord && !error ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success-soft px-2.5 py-0.5 text-[11px] font-semibold text-success">
+              <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+              Saved
+            </span>
+          ) : undefined
+        }
+      />
+      <PanelBody>
+        <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="gcash-name" className="g-label">
@@ -481,12 +483,9 @@ export function GCashQrCard({
           </Button>
         </div>
 
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
-          Your QR image is stored in a private bucket and is not published anywhere else on
-          Groove. It is only rendered for you, from a short-lived signed link.
-        </p>
-      </div>
-    </section>
+        </div>
+      </PanelBody>
+    </Panel>
   );
 }
 

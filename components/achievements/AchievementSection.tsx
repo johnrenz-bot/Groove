@@ -10,6 +10,7 @@ import { AchievementWithProgress, UserBadgeStatus } from '@/lib/achievements/typ
 import { getBadgeName, getBadgeDescription } from '@/lib/achievements/definitions';
 import { refreshAchievements } from '@/app/actions/achievements';
 import { Button } from '@/components/ui/Button';
+import { InfoTip } from '@/components/ui/InfoTip';
 
 /**
  * Task navigation URLs by role
@@ -162,12 +163,16 @@ export function AchievementSection({
     <section className={cn('space-y-6', className)} aria-labelledby="achievements-heading">
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <h2 id="achievements-heading" className="text-lg font-bold tracking-[-0.01em] text-foreground">
-            {isCoach ? 'Coach' : 'Performer'} Achievements
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Complete tasks to earn your {badgeType} badge
-          </p>
+          <div className="flex items-center gap-2">
+            <h2 id="achievements-heading" className="text-lg font-bold tracking-[-0.01em] text-foreground">
+              {isCoach ? 'Coach' : 'Performer'} Achievements
+            </h2>
+            <InfoTip
+              title={`${isCoach ? 'Coach' : 'Performer'} Achievements`}
+              short={`Complete tasks to earn your ${badgeType} badge.`}
+              details={`Complete every task in this checklist to earn your ${badgeType} badge. Progress saves automatically, and earned badges appear on your public profile.`}
+            />
+          </div>
         </div>
         <Button
           variant="outline"

@@ -1191,6 +1191,21 @@ textarea {
   }
 }
 
+/* On a phone the bell is not the right-most control — the account pill and the
+   burger sit after it — so `right: 0` against the bell's wrapper pushed a
+   21rem panel off the LEFT of the viewport. Below `sm` the panel anchors to the
+   viewport gutters instead, the same width rule the account panel uses. */
+@media (max-width: 639px) {
+  .g-notif-panel {
+    position: fixed;
+    top: calc(var(--hx-header-h, 4rem) + 0.5rem);
+    right: var(--hx-gutter, 1rem);
+    left: var(--hx-gutter, 1rem);
+    width: auto;
+    max-height: min(26rem, calc(100dvh - var(--hx-header-h, 4rem) - 1.5rem));
+  }
+}
+
 .g-notif-head {
   display: flex;
   flex-shrink: 0;
@@ -4276,6 +4291,37 @@ select.g-input option {
   white-space: nowrap;
 }
 
+/* Public landing lockup: the mascot mark followed by the real GroovePH
+   wordmark asset and the "Performing Arts" strapline. The image keeps its
+   transparent background and intrinsic width; the subtitle is live text so it
+   stays crisp when the root font size changes. */
+.hx-logo-wordmark {
+  display: block;
+  width: 8.5rem;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.hx-logo-word--image {
+  overflow: visible;
+  padding: 0;
+}
+.hx-logo--landing {
+  gap: 0.5rem;
+}
+.hx-logo--landing .hx-logo-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+}
+.hx-logo--landing .hx-logo-sub {
+  margin-top: -0.1rem;
+  padding-left: 0.1rem;
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  color: rgba(247, 240, 225, 0.62);
+}
+
 /* The shimmer. One sweep across the lockup every ~7s, then nothing for the
    rest of the cycle — a continuous shine reads as "loading", and a logo is
    never loading. The mark and the wordmark run on different phases so the two
@@ -4335,6 +4381,87 @@ select.g-input option {
   }
 }
 
+/* Role headers (admin, client, coach) and every other page that uses the shared
+   bar carry the same complete lockup as the public landing bar: mascot mark +
+   GroovePH wordmark + "Performing Arts". It is slightly denser than the landing
+   version so the role nav and action cluster keep their room at 1024px. */
+.hx-logo--header {
+  gap: 0.5rem;
+}
+.hx-logo--header .hx-logo-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+}
+.hx-logo--header .hx-logo-word {
+  display: block;
+}
+.hx-logo--header .hx-logo-wordmark {
+  width: 7rem;
+}
+.hx-logo--header .hx-logo-sub {
+  display: block;
+  margin-top: -0.05rem;
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+}
+@media (max-width: 400px) {
+  .hx-logo--header {
+    gap: 0.375rem;
+  }
+  .hx-logo--header .hx-logo-mark {
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 0.625rem;
+  }
+  .hx-logo--header .hx-logo-wordmark {
+    width: 4rem;
+  }
+  .hx-logo--header .hx-logo-sub {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+}
+@media (max-width: 370px) {
+  .hx-logo--header {
+    gap: 0.25rem;
+  }
+  .hx-logo--header .hx-logo-mark {
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: 0.55rem;
+  }
+  .hx-logo--header .hx-logo-wordmark {
+    width: 3.25rem;
+  }
+  .hx-logo--header .hx-logo-sub {
+    font-size: 6px;
+    letter-spacing: 0.02em;
+  }
+  /* The complete brand lockup needs ~30px more than the old mark-only brand.
+     Give it back from the action cluster's spacing and control width at the
+     narrowest phones, without dropping Search, theme, auth or the drawer. */
+  .hx-header[data-variant='app'] .hx-header-inner {
+    --hx-gutter: 1rem;
+    gap: 0.375rem;
+  }
+  .hx-header[data-variant='app'] .hx-header-actions,
+  .hx-header[data-variant='app'] .hx-auth {
+    gap: 0.25rem;
+  }
+  .hx-header[data-variant='app'] .hx-search-btn,
+  .hx-header[data-variant='app'] .hx-theme-toggle,
+  .hx-header[data-variant='app'] .hx-burger {
+    width: 2.125rem;
+    height: 2.125rem;
+    min-height: 2.125rem;
+  }
+  .hx-header[data-variant='app'] .hx-auth-link {
+    height: 2.125rem;
+    padding-inline: 0.5rem;
+  }
+}
+
 /* --- Nav row + the sliding active pill -------------------------------------- */
 
 .hx-header-nav {
@@ -4368,9 +4495,9 @@ select.g-input option {
 
 /* The pill is the CSS equivalent of Framer Motion's layoutId. framer-motion is
    not a dependency here and a ~34KB runtime for one shared-element transition is
-   a bad trade, so the same effect is a translated, resized span with a
-   spring-ish cubic-bezier. `--hx-pill-spring` overshoots slightly, which is what
-   makes it read as a spring rather than as a slide. */
+   a bad trade, so the same effect is a translated, resized span. It uses the
+   shared nav easing (ease-out, no overshoot) so a pointer crossing the row reads
+   as one continuous glide rather than a bounce. */
 .hx-pill {
   position: absolute;
   top: 0;
@@ -4384,9 +4511,9 @@ select.g-input option {
   opacity: 0;
   will-change: transform, width;
   transition:
-    transform 420ms cubic-bezier(0.22, 1.2, 0.36, 1),
-    width 420ms cubic-bezier(0.22, 1.2, 0.36, 1),
-    opacity 180ms ease;
+    transform 260ms var(--nav-ease),
+    width 260ms var(--nav-ease),
+    opacity 160ms ease;
 }
 .hx-pill[data-active] {
   opacity: 1;
@@ -4520,6 +4647,19 @@ select.g-input option {
 
 /* --- Panels ---------------------------------------------------------------- */
 
+/* ANCHORING.
+   `.hx-panel` is `position: absolute`, so without a positioned ancestor it
+   escaped to the nearest one — `.hx-header`, which is `position: sticky`. That
+   made every panel measure from the bar instead of from its trigger: the
+   Dashboard panel centred on the page rather than on its button, and the
+   account panel's `right: 0` landed on the viewport edge instead of under the
+   avatar. Giving each trigger wrapper its own containing block is the whole
+   fix; the offsets below then do what they say. */
+.hx-dropdown,
+.hx-account-wrap {
+  position: relative;
+}
+
 /* One class for the dropdown panel and the account panel, exactly as the old
    header did with `.g-panel`. Two near-identical blocks would drift.
 
@@ -4564,7 +4704,17 @@ select.g-input option {
 .hx-dropdown .hx-panel {
   right: auto;
   left: 50%;
-  transform: translateX(-50%);
+  /* The collision correction measured in `NavDropdown` is added to the centring
+     translate. Without it the longest admin menu could not be pulled back
+     inside a laptop's viewport, because the value was calculated but never
+     referenced here. */
+  transform: translateX(calc(-50% + var(--hx-panel-shift, 0px)));
+  /* The admin Dashboard menu now carries every console destination, so it can
+     be taller than a short laptop viewport. A ceiling plus its own scroll keeps
+     the last rows reachable instead of painting them below the fold. */
+  max-height: calc(100vh - var(--hx-header-h) - 1.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Open/close is a fade + a short rise + a slight scale, inside the 150–200ms
@@ -4606,21 +4756,21 @@ select.g-input option {
 @keyframes hx-panel-in-centred {
   from {
     opacity: 0;
-    transform: translate(-50%, -6px) scale(0.97);
+    transform: translate(calc(-50% + var(--hx-panel-shift, 0px)), -6px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(calc(-50% + var(--hx-panel-shift, 0px)), 0) scale(1);
   }
 }
 @keyframes hx-panel-out-centred {
   from {
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(calc(-50% + var(--hx-panel-shift, 0px)), 0) scale(1);
   }
   to {
     opacity: 0;
-    transform: translate(-50%, -4px) scale(0.98);
+    transform: translate(calc(-50% + var(--hx-panel-shift, 0px)), -4px) scale(0.98);
   }
 }
 
@@ -4981,10 +5131,45 @@ select.g-input option {
   max-height: calc(100vh - var(--hx-header-h) - 2rem);
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Collision correction from `UserMenu`, which measures the panel after mount
+     and writes a negative offset when the trigger sits too close to the right
+     edge. `right: 0` is inherited from `.hx-panel`, so this is a leftward nudge
+     only — never a re-anchor. */
+  transform: translateX(var(--hx-account-shift, 0px));
   /* The panel's own token set, re-pointed once here rather than at each use:
      inside a panel the presence dot and the avatar ring sit on the panel, not on
      the translucent bar. */
   box-shadow: var(--shadow-panel);
+}
+
+/* The shared enter/exit keyframes end on a bare `translateY`, which would erase
+   the horizontal correction above. These two carry the offset through every
+   frame instead. */
+.hx-panel--account[data-state='open'] {
+  animation-name: hx-account-in;
+}
+.hx-panel--account[data-state='closed'] {
+  animation-name: hx-account-out;
+}
+@keyframes hx-account-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--hx-account-shift, 0px), -6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(var(--hx-account-shift, 0px), 0) scale(1);
+  }
+}
+@keyframes hx-account-out {
+  from {
+    opacity: 1;
+    transform: translate(var(--hx-account-shift, 0px), 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--hx-account-shift, 0px), -4px) scale(0.98);
+  }
 }
 
 /* THE IDENTITY BLOCK.
@@ -5194,8 +5379,9 @@ select.g-input option {
   border-color: var(--accent-hover);
 }
 @media (max-width: 400px) {
-  .hx-auth-link span,
-  .hx-auth-link svg {
+  /* Hide the LABEL, keep the icon. This rule used to hide both, which left two
+     empty 38px pills with no way to tell Sign In from Get started. */
+  .hx-auth-link span {
     display: none;
   }
   .hx-auth-link {
@@ -6854,24 +7040,212 @@ select.g-input option {
 /* --- Public header + footer, landing only ------------------------------- */
 
 /* The bar is shared with the dashboards, so only its landing appearance is
-   tuned here: quieter links, calmer auth buttons, no shadow until scrolled. */
+   tuned here. The landing page opens on a cinematic dark hero, so the bar is
+   kept a near-black surface with cream type and a restrained gold primary
+   action — the same language as the hero, independent of the visitor's theme.
+   Dashboards are untouched. */
 .groove-landing .hx-header-inner {
   max-width: 1240px;
 }
-.groove-landing .hx-link--anchor {
-  color: var(--ld-body);
-  font-size: 14px;
+.groove-landing .hx-header {
+  background-color: rgba(7, 7, 9, 0.86);
+  border-bottom-color: rgba(247, 240, 225, 0.1);
+  color: #f7f0e1;
+}
+.groove-landing .hx-header[data-scrolled] {
+  background-color: rgba(7, 7, 9, 0.96);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.32);
+}
+.groove-landing .hx-header .hx-logo:focus-visible {
+  outline-color: #d8b15a;
+}
+.groove-landing .hx-header .hx-link {
+  padding-inline: 0.5rem;
+  color: rgba(247, 240, 225, 0.72);
+  font-size: 13.5px;
+  letter-spacing: 0;
+}
+.groove-landing .hx-header .hx-link:hover,
+.groove-landing .hx-header .hx-link[data-active='true'] {
+  background-color: rgba(247, 240, 225, 0.07);
+  color: #f7f0e1;
+}
+.groove-landing .hx-header .hx-link--anchor {
+  color: rgba(247, 240, 225, 0.72);
+  font-size: 13.5px;
   font-weight: 500;
 }
-.groove-landing .hx-link--anchor:hover {
-  color: var(--ld-ink);
+.groove-landing .hx-header .hx-link--anchor:hover {
+  background-color: rgba(247, 240, 225, 0.07);
+  color: #f7f0e1;
 }
+/* Text-only anchors keep the centre compact; the dropdown trigger and About
+   still read as links without spending width on repeated icons. */
+.groove-landing .hx-header-nav .hx-link-icon {
+  display: none;
+}
+.groove-landing .hx-header .hx-link-caret {
+  color: rgba(247, 240, 225, 0.55);
+}
+.groove-landing .hx-header .hx-pill {
+  background-color: rgba(216, 177, 90, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(216, 177, 90, 0.28);
+}
+.groove-landing .hx-header .hx-search-btn,
+.groove-landing .hx-header .hx-theme-toggle,
+.groove-landing .hx-header .hx-burger {
+  border-color: rgba(247, 240, 225, 0.14);
+  background-color: rgba(247, 240, 225, 0.04);
+  color: rgba(247, 240, 225, 0.76);
+}
+.groove-landing .hx-header .hx-search-btn:hover,
+.groove-landing .hx-header .hx-theme-toggle:hover,
+.groove-landing .hx-header .hx-burger:hover {
+  border-color: rgba(216, 177, 90, 0.4);
+  background-color: rgba(247, 240, 225, 0.09);
+  color: #f7f0e1;
+}
+.groove-landing .hx-header .hx-search-kbd {
+  border-color: rgba(247, 240, 225, 0.14);
+  background-color: rgba(247, 240, 225, 0.06);
+  color: rgba(247, 240, 225, 0.55);
+}
+.groove-landing .hx-header .hx-search-btn:focus-visible,
+.groove-landing .hx-header .hx-theme-toggle:focus-visible,
+.groove-landing .hx-header .hx-burger:focus-visible,
+.groove-landing .hx-header .hx-auth-link:focus-visible {
+  outline-color: #d8b15a;
+}
+.groove-landing .hx-header .hx-auth-link,
 .groove-landing .hx-auth-link {
   min-height: 40px;
   padding: 0 16px;
   border-radius: 9999px;
+  border-color: rgba(247, 240, 225, 0.18);
+  background-color: transparent;
+  color: #f7f0e1;
   font-size: 14px;
   font-weight: 500;
+}
+.groove-landing .hx-header .hx-auth-link:hover,
+.groove-landing .hx-auth-link:hover {
+  border-color: rgba(216, 177, 90, 0.45);
+  background-color: rgba(247, 240, 225, 0.08);
+}
+.groove-landing .hx-header .hx-auth-link--primary,
+.groove-landing .hx-auth-link--primary {
+  border-color: #d8b15a;
+  background-color: #d8b15a;
+  color: #17130b;
+  font-weight: 700;
+}
+.groove-landing .hx-header .hx-auth-link--primary:hover,
+.groove-landing .hx-auth-link--primary:hover {
+  border-color: #e7c574;
+  background-color: #e7c574;
+  color: #17130b;
+}
+/* The landing bar carries the brand lockup, six centre links and four actions.
+   Search therefore stays a 38px icon button here (with its accessible name and
+   tooltip) rather than spending ~130px on a label and shortcut. This is what
+   keeps the centre links from running under the actions at 1280px. */
+.groove-landing .hx-header .hx-search-btn {
+  width: 2.375rem;
+  padding-inline: 0;
+  justify-content: center;
+}
+.groove-landing .hx-header .hx-search-text,
+.groove-landing .hx-header .hx-search-kbd {
+  display: none;
+}
+
+/* Panels opened from the dark landing bar follow the same surface, so an open
+   Community menu does not flash a light sheet against the hero. */
+.groove-landing .hx-panel {
+  border-color: rgba(247, 240, 225, 0.12);
+  background-color: #0c0c0f;
+  color: #f7f0e1;
+}
+.groove-landing .hx-panel .hx-menu-item {
+  color: rgba(247, 240, 225, 0.76);
+}
+.groove-landing .hx-panel .hx-menu-item:hover,
+.groove-landing .hx-panel .hx-menu-item:focus-visible {
+  background-color: rgba(247, 240, 225, 0.07);
+  color: #f7f0e1;
+}
+.groove-landing .hx-panel .hx-panel-heading {
+  color: rgba(247, 240, 225, 0.52);
+}
+
+/* Three tiers of breathing room:
+   - 1280px+ : four anchors + Community + About
+   - 1024–1279px : anchors only; the route links stay in the drawer
+   - below 1024px : the drawer owns the whole menu */
+@media (max-width: 1279px) {
+  .groove-landing .hx-header-nav > .hx-dropdown,
+  .groove-landing .hx-header-nav > [data-nav-id='about'] {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  /* The dashboards keep the mark alone on a phone; the landing lockup keeps the
+     wordmark and its strapline so the public brand is always complete. */
+  .groove-landing .hx-header .hx-logo-sub {
+    display: block;
+  }
+  .groove-landing .hx-header .hx-auth-link {
+    padding-inline: 0.625rem;
+  }
+  .groove-landing .hx-header .hx-auth-link span {
+    display: none;
+  }
+  .groove-landing .hx-header .hx-search-btn {
+    width: 2.375rem;
+    padding-inline: 0;
+    justify-content: center;
+  }
+  .groove-landing .hx-header .hx-search-text,
+  .groove-landing .hx-header .hx-search-kbd {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .groove-landing .hx-header .hx-logo-mark {
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+  /* The shared header rule hides `.hx-logo-word` at this width. On the landing
+     bar the lockup has room for the compact wordmark, so restore it instead of
+     dropping back to the bare mascot. */
+  .groove-landing .hx-header .hx-logo-word {
+    display: block;
+  }
+  .groove-landing .hx-header .hx-logo-wordmark {
+    width: 4.5rem;
+  }
+  .groove-landing .hx-header .hx-logo--landing {
+    gap: 0.375rem;
+  }
+  .groove-landing .hx-header .hx-logo-sub {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+  .groove-landing .hx-header .hx-auth-link,
+  .groove-landing .hx-header .hx-search-btn,
+  .groove-landing .hx-header .hx-theme-toggle,
+  .groove-landing .hx-header .hx-burger {
+    width: 1.875rem;
+    height: 1.875rem;
+    min-height: 1.875rem;
+    padding-inline: 0.375rem;
+  }
+  .groove-landing .hx-header-inner {
+    --hx-gutter: 1rem;
+    gap: 0.375rem;
+  }
 }
 
 .groove-landing .ld-footer {
@@ -6949,24 +7323,546 @@ select.g-input option {
   }
 }
 
-/* Accent radial glow behind hero — only in dark-ish contexts */
-.groove-landing .ld-hero::after {
-  content: '';
-  position: absolute;
-  inset: -20% -10% auto -10%;
-  height: 60%;
-  pointer-events: none;
-  z-index: -1;
-  background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--accent-soft), transparent 70%);
-  opacity: 0.6;
+/* ======================================================================
+   CINEMATIC HERO — redesigned 2026.
+   Full-image, edge-to-edge, 85-95vh hero. No sun. Image centrepiece.
+   ====================================================================== */
+
+/* The hero now acts as a full viewport image container */
+.ld-hero-cinematic {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  /* Height is set inline: clamp(560px, 90vh, 1100px) */
 }
-@media (prefers-reduced-motion: reduce) {
-  .groove-landing .ld-hero::after {
-    opacity: 0.3;
+
+/* Headline on top of the hero image */
+.ld-hero-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(201, 162, 74, 0.35);
+  background: rgba(201, 162, 74, 0.12);
+  color: rgba(247, 240, 225, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ld-hero-h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.75rem, 6.5vw, 5.5rem);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  max-width: 14ch;
+}
+@media (max-width: 640px) {
+  .ld-hero-h1 {
+    font-size: clamp(2.25rem, 10vw, 3.5rem);
+    letter-spacing: -0.03em;
   }
 }
 
-/* Section divider accent lines */
+.ld-hero-h1-accent {
+  display: block;
+  /* Warm cream with gold tint — reads as premium, not neon */
+  background: linear-gradient(135deg, rgba(247,240,225,1) 0%, rgba(201,162,74,0.95) 60%, rgba(247,240,225,0.85) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ld-hero-lead {
+  margin: 0;
+  color: rgba(247, 240, 225, 0.75);
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.65;
+  max-width: 52ch;
+  text-wrap: pretty;
+}
+@media (max-width: 640px) {
+  .ld-hero-lead {
+    font-size: 0.9375rem;
+    max-width: 42ch;
+  }
+}
+
+/* Primary CTA on the hero — high contrast for photo backgrounds */
+.ld-hero-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.875rem;
+  padding: 0 1.5rem;
+  border: 1px solid rgba(201, 162, 74, 0.6);
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(201,162,74,0.95), rgba(180,135,50,0.95));
+  color: rgba(10, 8, 6, 0.95);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 4px 20px -4px rgba(201, 162, 74, 0.5);
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 150ms ease;
+}
+.ld-hero-btn-primary:hover {
+  background: linear-gradient(135deg, rgba(220,180,90,0.98), rgba(201,162,74,0.98));
+  box-shadow: 0 8px 32px -8px rgba(201, 162, 74, 0.6);
+  transform: translateY(-1px);
+}
+.ld-hero-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Secondary CTA — ghost/outline on the hero */
+.ld-hero-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.875rem;
+  padding: 0 1.375rem;
+  border: 1px solid rgba(247, 240, 225, 0.3);
+  border-radius: 9999px;
+  background: rgba(247, 240, 225, 0.08);
+  color: rgba(247, 240, 225, 0.88);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 150ms ease;
+}
+.ld-hero-btn-secondary:hover {
+  background: rgba(247, 240, 225, 0.15);
+  border-color: rgba(247, 240, 225, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Trust row in the hero */
+.ld-hero-trust {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: rgba(247, 240, 225, 0.55);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Hero Stats strip — glass pill row at the bottom of the hero ─── */
+.ld-hero-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 1.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 16px;
+  background: rgba(10, 8, 6, 0.55);
+  border: 1px solid rgba(247, 240, 225, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(247, 240, 225, 0.06);
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .ld-hero-stats {
+    gap: 0;
+    padding: 0.625rem 1rem;
+    width: 100%;
+    justify-content: space-around;
+  }
+}
+
+.ld-hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.25rem 1.25rem;
+  position: relative;
+}
+@media (max-width: 600px) {
+  .ld-hero-stat {
+    padding: 0.25rem 0.625rem;
+    flex: 1;
+  }
+}
+
+.ld-hero-stat-rule {
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(247,240,225,0.2), transparent);
+}
+
+.ld-hero-stat-value {
+  color: rgba(247, 240, 225, 0.95);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 600px) {
+  .ld-hero-stat-value {
+    font-size: 1.125rem;
+  }
+}
+
+.ld-hero-stat-label {
+  color: rgba(247, 240, 225, 0.5);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* Light mode adaptation for hero stats */
+.light .ld-hero-stats,
+:root[data-theme="light"] .ld-hero-stats,
+:root[data-theme="classic"] .ld-hero-stats {
+  background: rgba(252, 248, 239, 0.82);
+  border-color: rgba(221, 209, 184, 0.6);
+  box-shadow: 0 4px 24px -8px rgba(53, 53, 53, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.light .ld-hero-stat-value,
+:root[data-theme="light"] .ld-hero-stat-value,
+:root[data-theme="classic"] .ld-hero-stat-value {
+  color: rgba(10, 8, 6, 0.92);
+}
+.light .ld-hero-stat-label,
+:root[data-theme="light"] .ld-hero-stat-label,
+:root[data-theme="classic"] .ld-hero-stat-label {
+  color: rgba(10, 8, 6, 0.5);
+}
+.light .ld-hero-stat-rule,
+:root[data-theme="light"] .ld-hero-stat-rule,
+:root[data-theme="classic"] .ld-hero-stat-rule {
+  background: linear-gradient(to bottom, transparent, rgba(10,8,6,0.18), transparent);
+}
+
+/* ======================================================================
+   WHY GROOVE — pull-quote + stats grid redesign
+   ====================================================================== */
+
+/* Pull-quote accent strip */
+.ld-why-pullquote {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  background: rgba(var(--accent-rgb, 201 162 74), 0.05);
+  border: 1px solid rgba(var(--accent-rgb, 201 162 74), 0.15);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.ld-why-pullquote__bar {
+  flex-shrink: 0;
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, var(--accent), rgba(var(--accent-rgb, 201 162 74), 0.3));
+}
+
+.ld-why-pullquote__text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.ld-why-pullquote__pct {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-text);
+  letter-spacing: -0.02em;
+}
+
+/* Why Groove stat card */
+.ld-why-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.125rem;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+.ld-why-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-md), 0 0 24px rgba(var(--accent-rgb, 201 162 74), 0.1);
+  transform: translateY(-2px);
+}
+
+.ld-why-card__icon {
+  display: inline-flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.ld-why-card__value {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  transition: color 200ms ease;
+}
+@media (max-width: 640px) {
+  .ld-why-card__value {
+    font-size: 1.75rem;
+  }
+}
+
+.ld-why-card__label {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  line-height: 1.3;
+}
+
+/* Attribution footnote */
+.ld-why-attribution {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--muted);
+}
+
+/* ======================================================================
+   DISCIPLINES — asymmetric grid
+   ====================================================================== */
+
+.ld-disciplines-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .ld-disciplines-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (min-width: 1024px) {
+  .ld-disciplines-grid {
+    grid-template-columns: 1.4fr 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+  .ld-disciplines-featured {
+    grid-row: 1 / 3;
+    grid-column: 1;
+  }
+  .ld-disciplines-featured .ld-media {
+    min-height: 36rem;
+  }
+}
+
+.ld-disciplines-featured .ld-media {
+  min-height: 28rem;
+}
+
+/* Glass genre pill — used inside media cards on dark photo */
+.ld-pill-glass {
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ======================================================================
+   HOW IT WORKS — horizontal timeline
+   ====================================================================== */
+
+.ld-how-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .ld-how-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .ld-how-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.ld-how-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.375rem;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+.ld-how-card:hover {
+  border-color: var(--step-accent, var(--accent-border));
+  box-shadow: var(--shadow-md), 0 0 30px rgba(var(--accent-rgb, 201 162 74), 0.1);
+  transform: translateY(-2px);
+}
+
+/* Connector line — visible on desktop, hidden on mobile */
+.ld-how-connector {
+  display: none;
+  position: absolute;
+  top: 2rem;
+  right: -0.75rem;
+  width: 1.5rem;
+  height: 1px;
+  background: linear-gradient(to right, var(--accent-border), transparent);
+  z-index: 1;
+}
+@media (min-width: 1024px) {
+  .ld-how-connector {
+    display: block;
+  }
+}
+
+/* Step number badge */
+.ld-how-num {
+  display: inline-flex;
+  width: 2.375rem;
+  height: 2.375rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--step-accent, var(--accent-border));
+  background: color-mix(in srgb, var(--step-accent, var(--accent)) 12%, transparent);
+  color: var(--step-accent, var(--accent-text));
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.ld-how-card:hover .ld-how-num {
+  background: color-mix(in srgb, var(--step-accent, var(--accent)) 20%, transparent);
+}
+
+/* ======================================================================
+   FINAL CTA — dark panel with pattern
+   ====================================================================== */
+
+.ld-cta-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 4.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  /* Dark surface, distinct from the page */
+  background: color-mix(in srgb, var(--card) 60%, rgba(10,8,6,0.6) 40%);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  box-shadow: var(--shadow-xl, 0 25px 60px -15px rgba(0,0,0,0.5));
+}
+@media (max-width: 640px) {
+  .ld-cta-panel {
+    padding: 3rem 1.25rem;
+    border-radius: 18px;
+  }
+}
+
+/* Pattern overlay inside the CTA panel */
+.ld-cta-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  color: var(--foreground);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
+}
+
+/* Gold accent bar — top edge of the CTA panel */
+.ld-cta-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,162,74,0.7) 30%, rgba(201,162,74,0.7) 70%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ld-cta-heading {
+  margin: 0;
+  color: var(--foreground);
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  max-width: 22ch;
+}
+
+/* Gold-tinted primary CTA button (used in FinalCta) */
+.ld-btn--gold {
+  background: linear-gradient(135deg, rgba(201,162,74,0.95), rgba(180,135,50,0.95));
+  border-color: rgba(201,162,74,0.5);
+  color: rgba(10,8,6,0.95);
+  box-shadow: 0 4px 18px -4px rgba(201,162,74,0.45);
+}
+.ld-btn--gold:hover {
+  background: linear-gradient(135deg, rgba(220,180,90,0.98), rgba(201,162,74,0.98));
+  box-shadow: 0 8px 28px -8px rgba(201,162,74,0.55);
+}
+
+/* ======================================================================
+   Section divider accent lines (re-added after cleanup)
+   ====================================================================== */
+
 .groove-landing .ld-section + .ld-band,
 .groove-landing .ld-band + .ld-section {
   position: relative;
@@ -6987,6 +7883,25 @@ select.g-input option {
   box-shadow:
     var(--shadow-md),
     0 0 30px rgba(var(--accent-rgb), 0.12);
+}
+
+/* ======================================================================
+   REDUCED MOTION — collapse all new hero/section animations
+   ====================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .ld-hero-cinematic [style*="animation"],
+  .ld-hero-cinematic .animate-ping,
+  .ld-hero-cinematic .animate-bounce {
+    animation: none !important;
+  }
+  .ld-hero-btn-primary:hover,
+  .ld-hero-btn-secondary:hover {
+    transform: none;
+  }
+  .ld-why-card:hover,
+  .ld-how-card:hover {
+    transform: none;
+  }
 }
 
 /* ==============================================================================
@@ -7030,6 +7945,49 @@ select.g-input option {
   --accent-border: rgba(244, 190, 77, 0.32);
   --ring: rgba(244, 190, 77, 0.35);
 
+  /* Re-point the Tailwind colour variables on this element as well. `@theme`
+     resolves `--color-*: var(--*)` on :root, so utilities like `bg-card` and
+     `text-foreground` would otherwise keep the page theme's palette (cream in
+     Light) while the auth surface stayed charcoal — producing unreadable
+     dark-on-dark labels and white cards inside the dark shell. Same fix and
+     rationale as `.g-agreement-paper` below. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-divider: var(--divider);
+  --color-input: var(--input);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-text: var(--accent-text);
+  --color-primary-soft: var(--accent-soft);
+  --color-primary-border: var(--accent-border);
+
   background-color: #08090b;
   color: #f5f5f5;
 }
@@ -7055,12 +8013,6 @@ select.g-input option {
 .groove-auth .g-input:focus {
   border-color: #F4BE4D;
   box-shadow: 0 0 0 3px rgba(244, 190, 77, 0.22);
-}
-
-.groove-auth .au-mark {
-  border-color: rgba(244, 190, 77, 0.25);
-  background-color: #121319;
-  box-shadow: 0 4px 16px rgba(244, 190, 77, 0.1);
 }
 
 .groove-auth .au-eyebrow {
@@ -7116,6 +8068,48 @@ select.g-input option {
   }
 }
 
+/* Auth pages and the registration success card use the same complete lockup as
+   the site header: mascot mark + GroovePH wordmark + strapline. */
+.au-brand-lockup,
+.au-success-lockup {
+  gap: 0.5rem;
+}
+.au-brand-lockup .hx-logo-mark,
+.au-success-lockup .hx-logo-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+}
+.au-brand-lockup .hx-logo-word,
+.au-success-lockup .hx-logo-word {
+  display: block;
+}
+.au-brand-lockup .hx-logo-wordmark,
+.au-success-lockup .hx-logo-wordmark {
+  width: 7rem;
+}
+.au-brand-lockup .hx-logo-sub,
+.au-success-lockup .hx-logo-sub {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+}
+@media (max-width: 639px) {
+  .au-topbar {
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  .au-brand-lockup .hx-logo-wordmark,
+  .au-success-lockup .hx-logo-wordmark {
+    width: 5.5rem;
+  }
+  .au-brand-lockup .hx-logo-sub,
+  .au-success-lockup .hx-logo-sub {
+    font-size: 7px;
+    letter-spacing: 0.08em;
+  }
+}
+
 .au-stack {
   position: relative;
   z-index: 1;
@@ -7131,32 +8125,12 @@ select.g-input option {
 .au-stack--wide {
   max-width: 760px;
 }
-
-/* The mascot lockup, in the slot the reference gives its own mark. It is the
-   only brand element above the form, so it carries the page's personality
-   without a photograph competing with the fields.
-
-   88px -> 3.5rem (56px). The mark is decorative; it was competing with the form
-   for attention and pushing the first field below the fold on a laptop. */
-.au-mark {
-  display: flex;
-  width: 3.5rem;
-  height: 3.5rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background-color: var(--card);
-  box-shadow: var(--shadow-sm);
+.au-stack--registration {
+  /* A long multi-section form reads best in a single comfortable column. 760px
+     keeps paired fields usable without stretching every input across the page. */
+  max-width: 760px;
+  gap: 1.25rem;
 }
-.au-mark img {
-  width: 2.5rem;
-  height: 2.5rem;
-  object-fit: contain;
-}
-
 .au-eyebrow {
   display: inline-flex;
   align-self: flex-start;
@@ -7203,7 +8177,303 @@ select.g-input option {
   background-color: var(--card);
   box-shadow: var(--shadow-sm);
 }
+.au-card--registration {
+  padding: 1.75rem;
+}
+@media (max-width: 640px) {
+  .au-card--registration {
+    padding: 1.125rem;
+  }
+}
 
+/* ==========================================================================
+   REGISTRATION-SPECIFIC COMPONENTS
+   Step indicators, section headings, oauth card, divider, brand lockup.
+   ========================================================================== */
+.reg-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.reg-progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+.reg-progress-meta > span:first-child {
+  color: var(--foreground);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+}
+.reg-progress-percent {
+  color: var(--subtle-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.reg-progress-track {
+  height: 5px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+}
+.reg-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  transition: width 240ms ease;
+}
+
+/* Step rail. Items are quiet by default; only the current step gets a surface,
+   so the eye lands on one place instead of three competing cards. */
+.reg-step-list {
+  display: grid;
+  grid-template-columns: repeat(var(--reg-step-count, 3), minmax(0, 1fr));
+  gap: 0.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.reg-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  width: 100%;
+  min-height: 3.75rem;
+  padding: 0.5rem 0.375rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background-color: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+  text-align: center;
+}
+.reg-step:hover:not(:disabled) {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+.reg-step--active {
+  border-color: var(--accent-border);
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+}
+.reg-step--complete {
+  color: var(--foreground);
+}
+.reg-step--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.reg-step-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.reg-step--active .reg-step-circle {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+  border-color: var(--accent);
+}
+.reg-step--complete .reg-step-circle {
+  background-color: var(--success-soft);
+  color: var(--success);
+  border-color: var(--success);
+}
+.reg-step-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.reg-step-detail {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.65rem;
+  color: var(--subtle-foreground);
+  line-height: 1.25;
+}
+@media (max-width: 640px) {
+  .reg-step {
+    min-height: 3.25rem;
+    gap: 0.3rem;
+    padding: 0.4rem 0.15rem;
+  }
+  .reg-step-label {
+    font-size: 0.6875rem;
+  }
+  .reg-step-detail {
+    display: none;
+  }
+  .reg-step-header-title {
+    font-size: 1.125rem;
+  }
+}
+
+/* Step heading — same phrasing as the rail so the two can never disagree. */
+.reg-step-header {
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+.reg-step-header-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.reg-step-header-rule {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+.reg-step-header-title {
+  margin: 0.3rem 0 0;
+  color: var(--foreground);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+.reg-step-header-description {
+  margin: 0.2rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* Numbered section heading. The badge is the anchor; the icon stays with the
+   title so the heading reads as one compact line on narrow screens. */
+.reg-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+.reg-section-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.85rem;
+  height: 1.4rem;
+  margin-top: 0.05rem;
+  padding: 0 0.35rem;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.reg-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  scroll-margin-top: 5.5rem;
+}
+.reg-section-description {
+  margin: 0.15rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* One-line required-field legend instead of a full-width panel. */
+.reg-required-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.reg-required-star {
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.reg-oauth-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--muted);
+  padding: 0.875rem 1rem;
+}
+.reg-oauth-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 8px;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.9375rem;
+}
+.reg-soft-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.reg-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--subtle-foreground);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+.reg-divider::before,
+.reg-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+.reg-required-note {
+  /* au-note already styles; keep hook */
+}
 .au-note {
   display: flex;
   gap: 0.75rem;
@@ -7233,15 +8503,6 @@ select.g-input option {
   }
   .au-card {
     padding: 1rem;
-  }
-  .au-mark {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 16px;
-  }
-  .au-mark img {
-    width: 2.125rem;
-    height: 2.125rem;
   }
 }
 

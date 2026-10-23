@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/components/shared/cn';
+import { InfoTip } from '@/components/ui/InfoTip';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -49,6 +50,13 @@ export interface CardHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   className?: string;
   icon?: React.ReactNode;
   title?: React.ReactNode;
+  /** Longer explanation shown from the info trigger. */
+  info?: React.ReactNode;
+  /** Tooltip line; falls back to a stringified `info`. */
+  infoShort?: string;
+  /** Modal heading; defaults to a text title. */
+  infoTitle?: string;
+  /** @deprecated Subtitles are no longer rendered inline. Pass `info`. */
   subtitle?: React.ReactNode;
   action?: React.ReactNode;
 }
@@ -58,11 +66,18 @@ export function CardHeader({
   className = '',
   icon,
   title,
+  info,
+  infoShort,
+  infoTitle,
   subtitle,
   action,
   ...props
 }: CardHeaderProps) {
-  const hasParts = Boolean(title || icon || subtitle || action);
+  const details = info ?? subtitle;
+  const short =
+    infoShort ?? (typeof details === 'string' ? details : undefined);
+  const heading = infoTitle ?? (typeof title === 'string' ? title : 'About this card');
+  const hasParts = Boolean(title || icon || details || action);
 
   return (
     <div
@@ -76,7 +91,7 @@ export function CardHeader({
         <>
           <div className="flex min-w-0 items-center gap-3">
             {icon && <IconBadge icon={icon} />}
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
               {typeof title === 'string' ? (
                 <h3 className="truncate text-base font-bold tracking-[-0.01em] text-foreground">
                   {title}
@@ -84,9 +99,9 @@ export function CardHeader({
               ) : (
                 title
               )}
-              {subtitle && (
-                <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
-              )}
+              {details ? (
+                <InfoTip title={heading} short={short} details={details} />
+              ) : null}
             </div>
           </div>
           {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}

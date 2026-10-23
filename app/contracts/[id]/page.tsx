@@ -9,7 +9,7 @@ import {
   Shield,
   Loader2,
 } from 'lucide-react';
-import { SiteHeader } from '@/components/layout/SiteHeader';
+import { AppHeader } from '@/components/header/AppHeader';
 import SignaturePadModal from '@/components/shared/SignaturePadModal';
 import { Agreement, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
@@ -194,10 +194,10 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="min-h-screen bg-background pb-16 text-foreground">
-      <SiteHeader />
+      <AppHeader />
 
       {/* ── Document. A ~70ch measure keeps the clauses readable. ── */}
-      <main className="mx-auto max-w-3xl px-4 pt-8 md:px-8 md:pt-10">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-4 pt-8 md:px-8 md:pt-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => router.back()}

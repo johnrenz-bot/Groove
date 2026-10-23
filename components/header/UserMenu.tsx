@@ -1,56 +1,41 @@
 'use client';
 
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  ChevronDown,
-  LogOut,
-  Pencil,
-  Repeat2,
-  Settings2,
-  Sparkles,
-  User,
-} from 'lucide-react';
+import { ChevronDown, Loader2, LogOut, Sparkles } from 'lucide-react';
 
 import { getInitials } from '@/lib/utils';
 import type { Profile } from '@/lib/types';
-import { ROLE_META } from '@/components/header/roleMeta';
 import { PresenceDot, StatusSelect } from '@/components/shared/StatusSelect';
 import { ThemeModeSelect } from '@/components/theme/ThemeModeSelect';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { SoundInfoTip } from '@/features/sound/components/SoundInfoTip';
 import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { usePresence } from '@/features/presence/hooks/usePresence';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { greetingFor } from '@/lib/header/accountPill';
 export { greetingFor };
+import type { AppHeaderConfig } from './appHeaderConfig';
+import { translateAccountItem } from './headerText';
 import type { NavRole } from './navConfig';
 
 /**
- * `greetingFor` lives in `lib/header/accountPill.ts` so that
- * `scripts/verify-header-contract.ts` can assert it under plain Node, which
- * cannot load a `.tsx` module. It is re-exported here because that has always
- * been where consumers have imported it from.
+ * The account cluster: avatar trigger + its panel.
  *
- * Its sibling `showsIdentityPill` used to live beside it and decided whether
- * the trigger showed the name and role line. It is gone: the trigger is now
- * avatar + dot + chevron for every role, unconditionally, so there was no rule
- * left to keep and a dead predicate that still answered "yes for coach" would
- * have been a trap for the next person to touch this file.
- */
-/**
- * The account cluster: identity pill + its panel.
+ * The panel is a dialog, not a menu, because it deliberately mixes destinations
+ * (Profile, Settings, Billing, Help) with real controls (status, language,
+ * appearance, sound). A `role="menu"` may only contain menu items; a dialog can
+ * hold the whole account surface without lying to a screen reader.
  *
- * This is a DIALOG, not a menu, and that is deliberate. `role="menu"` may only
- * contain menu items, and this panel deliberately mixes links, a sign-out
- * button, a status selector and a three-option theme radiogroup — which a menu
- * cannot legally contain. The old header reached the same conclusion; keeping
- * the same reasoning here means the two headers do not disagree with each other
- * about what this panel is for a screen reader.
+ * The destination list comes from `config.avatarMenuItems`; the component does
+ * not know which role it is drawing. Only the sign-out action is special because
+ * it has a pending state.
  */
 export function UserMenu({
   role,
   user,
+  config,
   open,
   onOpen,
   onClose,
@@ -59,53 +44,25 @@ export function UserMenu({
 }: {
   role: NavRole;
   user: Profile | null;
-  /**
-   * Open state, decided by `<Header>`.
-   *
-   * The header holds one value for every surface in the bar. When this panel
-   * kept its own, the Community menu and the account menu had no idea the other
-   * existed and both stayed on screen at once, overlapping.
-   *
-   * Outside-click is therefore handled by the header, not here: "outside" has
-   * to mean outside the WHOLE bar, otherwise a click on a nav trigger is outside
-   * this panel and two handlers race over one click.
-   */
+  config: AppHeaderConfig;
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
-  onLogout: () => void;
+  onLogout: () => Promise<void> | void;
   onNavigate?: () => void;
 }) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   const [hour, setHour] = useState(() => new Date().getHours());
-  /**
-   * WHEN THE PHOTO FAILS.
-   *
-   * `user.photo_url` being null is only half the failure mode: the column can
-   * hold a path that 404s, or a private Supabase Storage object whose signed URL
-   * has expired. Either way the trigger must not show a broken-image glyph, so
-   * the image element reports its own failure and the initials take over.
-   *
-   * Declared here, with the other hooks, rather than next to the JSX that uses
-   * it: this component returns early when there is no session, and a hook
-   * declared after an early return changes the hook count between renders.
-   */
-  const [avatarFailed, setAvatarFailed] = useState(false);
+  const [rightOffset, setRightOffset] = useState(0);
+  const [signingOut, setSigningOut] = useState(false);
   const menuId = useId();
 
-  // Presence is read from the shared realtime store rather than fetched here, so
-  // this dot, the status selector below it and every other presence surface in
-  // the app all render the same value and update together.
-  //
-  // Every hook runs before the `if (!user) return null` below. React's rules of
-  // hooks do not care that the early return looks harmless: on a render where
-  // `user` is briefly null the hook count would change and React would discard
-  // the component's state.
   const myPresence = usePresence(user?.id, user?.status);
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   useEffect(() => {
-    const interval = setInterval(() => setHour(new Date().getHours()), 60000);
+    const interval = setInterval(() => setHour(new Date().getHours()), 60_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -124,149 +81,151 @@ export function UserMenu({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onClose]);
 
+  /**
+   * Keep the panel inside the viewport. The trigger is near the right edge, so
+   * the only usual correction is moving the panel left; the negative branch
+   * covers a very narrow window where even `right: 0` would overflow.
+   *
+   * The offset is measured from the WRAPPER, not from the panel's rect: the
+   * panel already carries the previous correction as a transform, and rect
+   * would include it, so every resize would compound the shift. `offsetWidth`
+   * and the wrapper's right edge are the untransformed geometry.
+   */
+  const positionPanel = React.useCallback(() => {
+    const panel = panelRef.current;
+    const wrap = triggerRef.current?.parentElement;
+    if (!panel || !wrap) return;
+
+    const gutter = 8;
+    const right = wrap.getBoundingClientRect().right;
+    const width = panel.offsetWidth;
+    let next = 0;
+
+    // `right: 0` puts the panel's right edge on the wrapper's. A negative
+    // translate moves it back inside the viewport.
+    const overflowRight = right - (window.innerWidth - gutter);
+    if (overflowRight > 0) next = -overflowRight;
+
+    const leftAfter = right + next - width;
+    if (leftAfter < gutter) next += gutter - leftAfter;
+
+    setRightOffset((current) => (Math.abs(current - next) < 1 ? current : next));
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    positionPanel();
+  }, [open, positionPanel]);
+
+  useEffect(() => {
+    if (!open) return;
+    // The viewport can change while the panel is open (rotation, window snap,
+    // devtools). Re-measure so the correction never becomes stale.
+    window.addEventListener('resize', positionPanel);
+    return () => window.removeEventListener('resize', positionPanel);
+  }, [open, positionPanel]);
+
   if (!user) return null;
 
-  const meta = ROLE_META[role === 'guest' ? 'client' : role];
   const displayName = user.firstname || 'Artist';
-  const avatar = user.photo_url;
-  const showAvatarImage = Boolean(avatar) && !avatarFailed;
+  const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await onLogout();
+    } finally {
+      // If the route did not change (a failed sign-out), the button must not stay
+      // disabled forever.
+      setSigningOut(false);
+    }
+  };
 
-  /**
-   * The trigger is AVATAR + DOT + CHEVRON and nothing else.
-   *
-   * The name and role line used to render beside the avatar. They made the one
-   * control in the bar whose width depends on the length of a person's name, so
-   * a long name pushed the bar wider and the nav with it — which is what moved
-   * navigation sideways between pages. Removing the text makes the cluster a
-   * fixed 2.25rem hit target, identical to Search and the bell.
-   *
-   * Nothing is lost: the panel below opens on the same click and leads with the
-   * full name, email, role badge and greeting, and the trigger carries an
-   * `aria-label` so it is still a control a screen-reader user can name.
-   */
   const triggerLabel = t('header.openAccountMenu', 'Open account menu');
+  const accountItems = config.avatarMenuItems.filter((item) => item.href && !item.action);
 
   return (
-    <div className="relative">
+    <div className="hx-account-wrap">
       <button
         ref={triggerRef}
         type="button"
         onClick={() => (open ? onClose() : onOpen())}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        aria-label={triggerLabel}
+        aria-label={`${triggerLabel} — ${displayName}`}
         className="hx-account"
       >
-        {/* Positioning context for the presence dot. The dot itself is a static
-            inline span (`.g-presence-dot`), so without `hx-presence` on the
-            wrapper it would sit BESIDE the avatar instead of on its corner —
-            which is exactly the overlap this pill used to have. */}
         <span className="hx-avatar-wrap">
-          {showAvatarImage ? (
-            <Image
-              src={avatar as string}
-              alt=""
-              width={34}
-              height={34}
-              className="hx-avatar-img"
-              onError={() => setAvatarFailed(true)}
-            />
-          ) : (
-            /* Initials fallback. A member with no `photo_url`, or with one that
-               fails to load, still gets a real, visible identity here rather
-               than a broken image or an empty circle — and the same fallback is
-               repeated, larger, in the panel. */
-            <span className="hx-avatar" aria-hidden="true">
-              {getInitials(user.firstname, user.lastname)}
-            </span>
-          )}
+          <Avatar user={user} size={34} />
           <span className="hx-presence">
             <PresenceDot status={myPresence} size="sm" />
           </span>
         </span>
-
-        {/* `.hx-caret` rotates 180° off `[aria-expanded='true']`, so the chevron
-            tracks the panel for pointer and keyboard alike with no extra state. */}
         <ChevronDown className="hx-caret" aria-hidden="true" />
       </button>
 
       {open && (
         <div
+          ref={panelRef}
           id={menuId}
           role="dialog"
           aria-label={t('header.accountTitle', 'Account')}
           className="hx-panel hx-panel--account"
+          style={{ ['--hx-account-shift' as string]: `${rightOffset}px` }}
         >
           <div className="hx-panel-head">
-            {showAvatarImage ? (
-              <Image
-                src={avatar as string}
-                alt=""
-                width={40}
-                height={40}
-                className="hx-account-avatar-img"
-                onError={() => setAvatarFailed(true)}
-              />
-            ) : (
-              <span className="hx-account-avatar">
-                {getInitials(user.firstname, user.lastname)}
-              </span>
-            )}
+            <Avatar user={user} size={44} />
             <div className="hx-account-identity">
-              <p className="hx-account-fullname">
-                {`${user.firstname} ${user.lastname}`.trim()}
-              </p>
+              <p className="hx-account-fullname">{`${user.firstname} ${user.lastname}`.trim()}</p>
               <p className="hx-account-email">{user.email || `#${user.custom_id || '0000'}`}</p>
               <span className="hx-account-badge">
                 <Sparkles className="h-3 w-3" aria-hidden="true" />
-                {meta.label}
+                {config.roleLabel}
               </span>
-              {/* The greeting lives here on desktop, where there is no drawer to
-                  put it in, so the role difference is visible at every width. */}
-              <p className="hx-account-greeting">
-                {greetingFor(role, displayName, hour)}
-              </p>
+              <p className="hx-account-greeting">{greetingFor(role, displayName, hour)}</p>
             </div>
           </div>
 
           <div className="hx-panel-body">
-            <Link href={meta.profile} className="hx-menu-item" onClick={onNavigate}>
-              <User className="hx-menu-item-icon" aria-hidden="true" />
-              {t('header.profile', 'Profile')}
-            </Link>
-            <Link href={meta.editProfile} className="hx-menu-item" onClick={onNavigate}>
-              <Pencil className="hx-menu-item-icon" aria-hidden="true" />
-              {role === 'coach'
-                ? t('header.editCoachProfile', meta.editProfileLabel)
-                : t('header.editClientProfile', meta.editProfileLabel)}
-            </Link>
-            <Link href={meta.settings} className="hx-menu-item" onClick={onNavigate}>
-              <Settings2 className="hx-menu-item-icon" aria-hidden="true" />
-              {t('header.accountSettings', 'Account Settings')}
-            </Link>
-            <SwitchRoleItem role={role} onNavigate={onNavigate} />
+            {accountItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href as string}
+                  className="hx-menu-item"
+                  onClick={onNavigate}
+                  style={{ ['--item-index' as string]: String(index) }}
+                >
+                  <Icon className="hx-menu-item-icon" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block truncate">
+                      {translateAccountItem(role, language, item)}
+                    </span>
+                    {item.description && (
+                      <span className="mt-0.5 block truncate text-[11px] font-medium text-subtle-foreground">
+                        {item.description}
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Status, Language, Appearance and Sound are account-level preferences about how
-              this member is reachable and how the app behaves for them — the same
-              class of thing as the theme chooser, not a destination. They are
-              grouped here rather than in the nav for that reason, and they are
-              REPEATED in the drawer because on a phone the drawer is the
-              primary surface and this panel is not reachable there. */}
           <div className="hx-account-section">
-            <p className="hx-account-section-label">{t('header.status', 'Status')}</p>
+            <p className="hx-account-section-label">{t('header.preferences', 'Preferences')}</p>
             <div className="hx-account-section-body">
               <StatusSelect userId={user.id} fallbackStatus={user.status} />
             </div>
           </div>
 
-            <div className="hx-account-section">
-              <p className="hx-account-section-label">Language / Wika</p>
-              <div className="hx-account-section-body">
-                <LanguageSwitcher />
-              </div>
+          <div className="hx-account-section">
+            <p className="hx-account-section-label">Language / Wika</p>
+            <div className="hx-account-section-body">
+              <LanguageSwitcher />
             </div>
+          </div>
 
           <div className="hx-account-section">
             <p className="hx-account-section-label">{t('header.appearance', 'Appearance')}</p>
@@ -276,16 +235,29 @@ export function UserMenu({
           </div>
 
           <div className="hx-account-section">
-            <p className="hx-account-section-label">{t('header.sound', 'Sound')}</p>
+            <div className="mb-1.5 flex items-center gap-1.5 [&>p]:mb-0">
+              <p className="hx-account-section-label">{t('header.sound', 'Sound')}</p>
+              <SoundInfoTip />
+            </div>
             <div className="hx-account-section-body">
               <SoundToggle />
             </div>
           </div>
 
           <div className="hx-panel-foot">
-            <button type="button" onClick={onLogout} className="hx-menu-item hx-menu-item--danger">
-              <LogOut className="hx-menu-item-icon" aria-hidden="true" />
-              {t('header.signOut', 'Sign Out')}
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              disabled={signingOut}
+              aria-busy={signingOut}
+              className="hx-menu-item hx-menu-item--danger"
+            >
+              {signingOut ? (
+                <Loader2 className="hx-menu-item-icon animate-spin" aria-hidden="true" />
+              ) : (
+                <LogOut className="hx-menu-item-icon" aria-hidden="true" />
+              )}
+              {signingOut ? t('header.signingOut', 'Signing out…') : t('header.signOut', 'Sign out')}
             </button>
           </div>
         </div>
@@ -295,76 +267,55 @@ export function UserMenu({
 }
 
 /**
- * "Switch role" — shown ONLY when switching is genuinely possible.
- *
- * `profiles` carries a single `role` column and the Supabase middleware gates
- * `/coach/*` and `/client/*` on it, so a user cannot actually hold two portals
- * at once by changing a preference in a menu. Making this entry unconditional
- * would mean offering a link that the middleware immediately bounces back, which
- * is worse than not offering it.
- *
- * It therefore renders only when the signed-in user really does have BOTH a
- * `coach_profiles` and a `client_profiles` row — the one signal in the current
- * schema that means they are entitled to both portals. Today registration
- * creates exactly one of the two, so this renders for nobody and costs nothing;
- * it is here so that when dual-profile accounts do exist, the control is already
- * correct rather than needing to be retrofitted.
- *
- * A true switch would additionally need `profiles.role` to be written and the
- * session refreshed — an auth change, deliberately out of scope here.
+ * Avatar with a real loading state. The initials sit underneath the image, so a
+ * slow connection sees a deliberate identity rather than a blank circle, and a
+ * failed image simply keeps them.
  */
-function SwitchRoleItem({ role, onNavigate }: { role: NavRole; onNavigate?: () => void }) {
-  const [canSwitch, setCanSwitch] = useState(false);
-
-  useEffect(() => {
-    if (role === 'guest') return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
-        if (!authUser || cancelled) return;
-        const [{ count: coachRows }, { count: clientRows }] = await Promise.all([
-          supabase
-            .from('coach_profiles')
-            .select('id', { count: 'exact', head: true })
-            .eq('id', authUser.id),
-          supabase
-            .from('client_profiles')
-            .select('id', { count: 'exact', head: true })
-            .eq('id', authUser.id),
-        ]);
-        if (!cancelled) setCanSwitch(Boolean(coachRows && clientRows));
-      } catch {
-        // A failed capability probe must never surface an error in the header;
-        // the entry simply stays hidden, which is the safe default.
-        if (!cancelled) setCanSwitch(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [role]);
-
-  if (!canSwitch) return null;
-
-  const target = role === 'coach' ? ROLE_META.client : ROLE_META.coach;
-
-  return (
-    <Link href={target.path} className="hx-menu-item" onClick={onNavigate}>
-      <Repeat2 className="hx-menu-item-icon" aria-hidden="true" />
-      <SwitchRoleLabel role={role} fallback={target.label} />
-    </Link>
-  );
+export function Avatar({ user, size = 34 }: { user: Profile; size?: number }) {
+  if (!user.photo_url) {
+    return (
+      <span
+        className="hx-avatar"
+        style={{ width: size, height: size }}
+        aria-hidden="true"
+      >
+        {getInitials(user.firstname, user.lastname)}
+      </span>
+    );
+  }
+  return <AvatarImage key={user.photo_url} user={user} size={size} />;
 }
 
-function SwitchRoleLabel({ role, fallback }: { role: NavRole; fallback: string }) {
-  const { t } = useLanguage();
+function AvatarImage({ user, size }: { user: Profile; size: number }) {
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
+
   return (
-    <>{role === 'coach' ? t('header.switchToClient', fallback) : t('header.switchToCoach', fallback)}</>
+    <span
+      className="hx-avatar-frame"
+      data-state={status}
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    >
+      {status !== 'error' && (
+        <Image
+          src={user.photo_url as string}
+          alt=""
+          width={size}
+          height={size}
+          className="hx-avatar-img"
+          onLoad={() => setStatus('loaded')}
+          onError={() => setStatus('error')}
+        />
+      )}
+      {status !== 'loaded' && (
+        <>
+          <span className="hx-avatar hx-avatar--fallback">
+            {getInitials(user.firstname, user.lastname)}
+          </span>
+          {status === 'loading' && <span className="hx-avatar-shimmer" aria-hidden="true" />}
+        </>
+      )}
+    </span>
   );
 }
 

@@ -192,6 +192,7 @@ const ADMIN_KEY_BY_HREF: Record<string, string> = {
 };
 
 const ADMIN_GROUP_KEYS: Record<string, string> = {
+  Overview: 'overview',
   People: 'people',
   Operations: 'operations',
   Platform: 'platform',

@@ -8,6 +8,7 @@ import { resubmitVerification } from '@/lib/admin/service';
 import { VERIFICATION_BUCKET } from '@/lib/utils';
 import { requiredDocuments, type RequiredDocument } from '../services/verification';
 import { cn } from '@/components/shared/cn';
+import { InfoTip } from '@/components/ui/InfoTip';
 
 /**
  * Document upload for correcting a verification submission.
@@ -209,12 +210,20 @@ export function VerificationDocumentsUpload({
         <h3 className="text-sm font-bold text-foreground">
           {status === 'rejected' ? 'Correct your documents' : 'Submit your documents'}
         </h3>
+        <InfoTip
+          title={status === 'rejected' ? 'Correct your documents' : 'Submit your documents'}
+          short={
+            status === 'rejected'
+              ? 'Replace rejected documents and send your account back for review.'
+              : 'Upload every required document to complete verification.'
+          }
+          details={
+            status === 'rejected'
+              ? 'Replace anything the administrator rejected, then send your account back for review. PDF, JPG, PNG or WebP, up to 5 MB each.'
+              : 'Upload every required document to complete your verification. PDF, JPG, PNG or WebP, up to 5 MB each.'
+          }
+        />
       </div>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        {status === 'rejected'
-          ? 'Replace anything the administrator rejected, then send your account back for review. PDF, JPG, PNG or WebP, up to 5 MB each.'
-          : 'Upload every required document to complete your verification. PDF, JPG, PNG or WebP, up to 5 MB each.'}
-      </p>
 
       {error && (
         <div

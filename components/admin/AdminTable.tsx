@@ -4,6 +4,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, ArrowUpDown, type LucideIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { Panel, PanelHeader } from '@/components/ui/Panel';
 import { cn } from '@/components/shared/cn';
 
 /**
@@ -52,6 +53,11 @@ export function AdminTable<T extends { id: string | number }>({
   onSortChange,
   className = '',
   footer,
+  title,
+  info,
+  infoShort,
+  icon,
+  headerActions,
 }: {
   columns: AdminColumn<T>[];
   rows: T[];
@@ -65,12 +71,29 @@ export function AdminTable<T extends { id: string | number }>({
   onSortChange?: (key: string) => void;
   className?: string;
   footer?: React.ReactNode;
+  /** Optional Panel header. Tables are panels too, not loose grid cards. */
+  title?: React.ReactNode;
+  info?: React.ReactNode;
+  infoShort?: string;
+  icon?: React.ReactNode;
+  headerActions?: React.ReactNode;
 }) {
   const visibleCount = columns.filter((c) => !c.hideBelow).length;
+  const header =
+    title !== undefined ? (
+      <PanelHeader
+        icon={icon}
+        title={title}
+        info={info}
+        infoShort={infoShort}
+        action={headerActions}
+      />
+    ) : null;
 
   if (loading) {
     return (
-      <div className={cn('g-card overflow-hidden', className)}>
+      <Panel className={cn('overflow-hidden', className)}>
+        {header}
         <div className="flex gap-4 border-b border-border bg-muted px-5 py-3.5">
           {columns.map((c) => (
             <div key={c.key} className={cn('flex-1', c.hideBelow && HIDE_CLASS[c.hideBelow])}>
@@ -87,16 +110,22 @@ export function AdminTable<T extends { id: string | number }>({
             ))}
           </div>
         ))}
-      </div>
+      </Panel>
     );
   }
 
   if (rows.length === 0) {
-    return <div className={className}>{empty ?? <EmptyState title="No records" />}</div>;
+    return (
+      <Panel className={className}>
+        {header}
+        <div className="p-4">{empty ?? <EmptyState title="No records" />}</div>
+      </Panel>
+    );
   }
 
   return (
-    <div className={cn('g-card overflow-hidden', className)}>
+    <Panel className={cn('overflow-hidden', className)}>
+      {header}
       {/* Horizontal scroll containment: on a phone this scrolls sideways instead
           of breaking the dashboard layout. */}
       <div className="g-scroll w-full overflow-x-auto">
@@ -167,7 +196,7 @@ export function AdminTable<T extends { id: string | number }>({
           {footer}
         </div>
       )}
-    </div>
+    </Panel>
   );
 }
 

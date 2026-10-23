@@ -3,6 +3,7 @@
 import React from 'react';
 import { CheckCircle2, Clock, ShieldAlert, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
 import { ProfileFieldRow } from '@/lib/profileFields';
 import { VerificationStatusBadge } from '@/features/verification/components/VerifiedBadge';
 
@@ -25,33 +26,29 @@ export function ProfileSummary({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="g-card p-6">
-      <header className="mb-5 border-b border-divider pb-4">
-        <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">{title}</h2>
-        {description && (
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
-        )}
-      </header>
+    <Panel>
+      <PanelHeader title={title} info={description} infoTitle={title} />
+      <PanelBody>
+        <dl className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+          {rows.map((row) => (
+            <div key={row.label} className="min-w-0">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground">
+                {row.label}
+              </dt>
+              <dd className="mt-1 break-words text-sm font-medium text-foreground">
+                {row.value === '' || row.value === null || row.value === undefined ? (
+                  <span className="text-subtle-foreground">Not provided</span>
+                ) : (
+                  row.value
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
 
-      <dl className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
-        {rows.map((row) => (
-          <div key={row.label} className="min-w-0">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground">
-              {row.label}
-            </dt>
-            <dd className="mt-1 break-words text-sm font-medium text-foreground">
-              {row.value === '' || row.value === null || row.value === undefined ? (
-                <span className="text-subtle-foreground">Not provided</span>
-              ) : (
-                row.value
-              )}
-            </dd>
-          </div>
-        ))}
-      </dl>
-
-      {children && <div className="mt-6 border-t border-divider pt-5">{children}</div>}
-    </section>
+        {children && <div className="mt-6 border-t border-divider pt-5">{children}</div>}
+      </PanelBody>
+    </Panel>
   );
 }
 
@@ -88,86 +85,89 @@ export function VerificationStatus({
   const effectiveStatus = accountVerified ? 'verified' : verificationStatus;
 
   return (
-    <section className="g-card p-6">
-      <header className="mb-5 flex items-center gap-2 border-b border-divider pb-4">
-        <ShieldAlert className="h-4 w-4 text-accent-text" aria-hidden="true" />
-        <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">
-          Verification Status
-        </h2>
-        <span className="ml-auto text-[11px] font-medium text-subtle-foreground">Read-only</span>
-      </header>
-
-      {/* A rejection has to be actionable, so the reason is shown here rather
-          than only existing in an admin table. This is the whole point of
-          storing it. */}
-      {effectiveStatus === 'rejected' && rejectionReason && (
-        <div
-          role="status"
-          className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4"
-        >
-          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-danger">
-            <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
-            Verification rejected
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-foreground">{rejectionReason}</p>
-          {rejectedDocument && (
-            <p className="mt-1.5 text-[11px] font-semibold text-muted-foreground">
-              Document: {rejectedDocument}
+    <Panel>
+      <PanelHeader
+        icon={<ShieldAlert className="h-4 w-4" />}
+        title="Verification Status"
+        info="These flags are written by the registration process and by admin approval. They are read-only and cannot be edited from your account."
+        infoShort="Verified by registration and admin approval — read-only."
+        action={
+          <span className="text-[11px] font-medium text-subtle-foreground">Read-only</span>
+        }
+      />
+      <PanelBody>
+        {/* A rejection has to be actionable, so the reason is shown here rather
+            than only existing in an admin table. This is the whole point of
+            storing it. */}
+        {effectiveStatus === 'rejected' && rejectionReason && (
+          <div
+            role="status"
+            className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4"
+          >
+            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-danger">
+              <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              Verification rejected
             </p>
-          )}
-          <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
-            Booking stays unavailable until this is corrected. Upload the corrected documents
-            above, then an administrator will review your account again.
-          </p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
-        <StatusTile
-          icon={emailVerified ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
-          tone={emailVerified ? 'success' : 'warning'}
-          label="Email Verified"
-          value={emailVerified ? 'Confirmed' : 'Pending confirmation'}
-        />
-        <div className="flex h-full min-w-0 flex-col gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <span className="text-accent-text">
-              <ShieldAlert className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1 text-xs font-semibold text-foreground break-words">
-              Booking
-            </span>
+            <p className="mt-2 text-sm leading-relaxed text-foreground">{rejectionReason}</p>
+            {rejectedDocument && (
+              <p className="mt-1.5 text-[11px] font-semibold text-muted-foreground">
+                Document: {rejectedDocument}
+              </p>
+            )}
+            <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
+              Booking stays unavailable until this is corrected. Upload the corrected documents
+              above, then an administrator will review your account again.
+            </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <VerificationStatusBadge status={effectiveStatus} />
-            <span className="text-[11px] text-muted-foreground break-words">
-              {effectiveStatus === 'verified'
-                ? 'Booking is available'
-                : effectiveStatus === 'rejected'
-                  ? 'Needs correction'
-                  : 'Booking is unavailable'}
-            </span>
-          </div>
-        </div>
-        {status && (
-          <StatusTile
-            icon={<ShieldAlert className="h-4 w-4" />}
-            tone={status === 'suspended' ? 'danger' : 'neutral'}
-            label="Account Status"
-            value={status.charAt(0).toUpperCase() + status.slice(1)}
-          />
         )}
-        {extraRows.map((row) => (
+
+        <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
           <StatusTile
-            key={row.label}
-            icon={row.uploaded ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
-            tone={row.uploaded ? 'success' : 'neutral'}
-            label={row.label}
-            value={row.uploaded ? 'Submitted' : 'Not submitted'}
+            icon={emailVerified ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+            tone={emailVerified ? 'success' : 'warning'}
+            label="Email Verified"
+            value={emailVerified ? 'Confirmed' : 'Pending confirmation'}
           />
-        ))}
-      </div>
-    </section>
+          <div className="flex h-full min-w-0 flex-col gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span className="text-accent-text">
+                <ShieldAlert className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1 text-xs font-semibold text-foreground break-words">
+                Booking
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <VerificationStatusBadge status={effectiveStatus} />
+              <span className="text-[11px] text-muted-foreground break-words">
+                {effectiveStatus === 'verified'
+                  ? 'Booking is available'
+                  : effectiveStatus === 'rejected'
+                    ? 'Needs correction'
+                    : 'Booking is unavailable'}
+              </span>
+            </div>
+          </div>
+          {status && (
+            <StatusTile
+              icon={<ShieldAlert className="h-4 w-4" />}
+              tone={status === 'suspended' ? 'danger' : 'neutral'}
+              label="Account Status"
+              value={status.charAt(0).toUpperCase() + status.slice(1)}
+            />
+          )}
+          {extraRows.map((row) => (
+            <StatusTile
+              key={row.label}
+              icon={row.uploaded ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+              tone={row.uploaded ? 'success' : 'neutral'}
+              label={row.label}
+              value={row.uploaded ? 'Submitted' : 'Not submitted'}
+            />
+          ))}
+        </div>
+      </PanelBody>
+    </Panel>
   );
 }
 

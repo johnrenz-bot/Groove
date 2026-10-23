@@ -369,6 +369,15 @@ export function UserDirectory({
       ) : (
         <>
           <AdminTable
+            title={`${role === 'coach' ? 'Coach' : 'Client'} records`}
+            icon={role === 'coach' ? <Sparkles className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+            info={description}
+            infoShort={`Search, verify and manage every registered ${role}.`}
+            headerActions={
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {filtered.length} record{filtered.length === 1 ? '' : 's'}
+              </span>
+            }
             columns={columns}
             rows={slice}
             rowKey={(u) => u.id}

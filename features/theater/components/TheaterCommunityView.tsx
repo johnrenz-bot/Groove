@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { TheaterCommunityHero } from './TheaterCommunityHero';
 import { SectionHeader } from '@/features/dance/components/SectionHeader';
 import { TheaterOrgLogoBar } from './TheaterOrgLogoBar';
 import { TheaterUpdatesFilterBar } from './TheaterUpdatesFilterBar';
@@ -17,19 +16,27 @@ import type { DanceOrg } from '@/lib/dance/types';
 import { VERIFIED_THEATER_ORGS, THEATER_ORGANIZATIONS } from '../data/theaterOrgs';
 import { OrgLogoCarouselClient } from '@/features/dance/components/OrgLogoCarouselClient';
 import { PerformingArtsNewsHubGuide } from '@/features/performing-arts/components/PerformingArtsNewsHubGuide';
+import { DisciplinePageHeader } from '@/features/performing-arts/components/DisciplinePageHeader';
+import { DisciplineHighlights } from '@/features/performing-arts/components/DisciplineHighlights';
+import { AttributionFooter } from '@/features/performing-arts/components/AttributionFooter';
+import {
+  DISCIPLINE_PAGES,
+  type DisciplineHighlight,
+} from '@/features/performing-arts/data/disciplineMeta';
 import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
   AlertCircle,
   SearchX,
+  Sparkles,
   ChevronRight as ChevronRightSmall,
 } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
 
 function Breadcrumb() {
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
+    <nav aria-label="Breadcrumb">
       <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <li>
           <Link
@@ -66,13 +73,35 @@ interface TheaterCommunityViewProps {
 }
 
 export function TheaterCommunityView({ initialOrgs = VERIFIED_THEATER_ORGS }: TheaterCommunityViewProps) {
-  // Filter States
-  const [region, setRegion] = useState<string>('all');
-  const [category, setCategory] = useState<string>('all');
-  const [selectedOrg, setSelectedOrg] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [language, setLanguage] = useState<'en' | 'tl'>('en');
-  const [page, setPage] = useState<number>(1);
+  // Filter states initialize directly from the URL on mount. Reading them in a
+  // lazy initializer avoids a second render (and a duplicate fetch) that the
+  // old "set state in an effect" pass caused.
+  const [region, setRegion] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    return new URLSearchParams(window.location.search).get('region') || 'all';
+  });
+  const [category, setCategory] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    return new URLSearchParams(window.location.search).get('category') || 'all';
+  });
+  const [selectedOrg, setSelectedOrg] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    return new URLSearchParams(window.location.search).get('org') || 'all';
+  });
+  const [searchQuery, setSearchQuery] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('q') || '';
+  });
+  const [language, setLanguage] = useState<'en' | 'tl'>(() => {
+    if (typeof window === 'undefined') return 'en';
+    const lang = new URLSearchParams(window.location.search).get('lang');
+    return lang === 'tl' ? 'tl' : 'en';
+  });
+  const [page, setPage] = useState<number>(() => {
+    if (typeof window === 'undefined') return 1;
+    const p = Number(new URLSearchParams(window.location.search).get('page'));
+    return p > 0 ? p : 1;
+  });
 
   // Data States
   const [updates, setUpdates] = useState<DanceUpdateRecord[]>([]);
@@ -85,25 +114,6 @@ export function TheaterCommunityView({ initialOrgs = VERIFIED_THEATER_ORGS }: Th
   const [eventsLoading, setEventsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>('Recently verified');
-
-  // Read initial parameters from URL
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const regParam = params.get('region');
-    const catParam = params.get('category');
-    const orgParam = params.get('org');
-    const qParam = params.get('q');
-    const langParam = params.get('lang');
-    const pageParam = params.get('page');
-
-    if (regParam) setRegion(regParam);
-    if (catParam) setCategory(catParam);
-    if (orgParam) setSelectedOrg(orgParam);
-    if (qParam) setSearchQuery(qParam);
-    if (langParam === 'en' || langParam === 'tl') setLanguage(langParam);
-    if (pageParam && Number(pageParam) > 0) setPage(Number(pageParam));
-  }, []);
 
   // Sync state to URL params
   useEffect(() => {
@@ -165,7 +175,7 @@ export function TheaterCommunityView({ initialOrgs = VERIFIED_THEATER_ORGS }: Th
           setLastUpdated('Recently verified');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load theater updates:', err);
       setError('Unable to load latest theater updates. Please try again.');
     } finally {
@@ -207,12 +217,16 @@ export function TheaterCommunityView({ initialOrgs = VERIFIED_THEATER_ORGS }: Th
     }
   }, []);
 
+  // The timer keeps the effect body free of synchronous state updates and
+  // coalesces rapid filter changes into one fetch.
   useEffect(() => {
-    fetchUpdates();
+    const timer = window.setTimeout(fetchUpdates, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchUpdates]);
 
   useEffect(() => {
-    fetchUpcomingEvents();
+    const timer = window.setTimeout(fetchUpcomingEvents, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchUpcomingEvents]);
 
   const handleSelectRegion = (reg: string) => {
@@ -243,26 +257,60 @@ export function TheaterCommunityView({ initialOrgs = VERIFIED_THEATER_ORGS }: Th
     setPage(1);
   };
 
+  /**
+   * Top cards route into the existing live feed. `filter` is the same category
+   * and search the filter bar already understands, so no new API surface is
+   * introduced.
+   */
+  const handleHighlightSelect = (item: DisciplineHighlight) => {
+    handleSelectCategory(item.filter.category ?? 'all');
+    handleSearchChange(item.filter.query ?? '');
+    const target = document.getElementById('latest-updates');
+    if (!target) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  };
+
   const orgsCount = useMemo(() => THEATER_ORGANIZATIONS.length - 1, []);
+  const pageMeta = DISCIPLINE_PAGES.theater;
 
   return (
-    <div className="space-y-10 pb-12 sm:space-y-12">
+    <div className="space-y-6 pb-10 sm:space-y-8">
       <Breadcrumb />
 
-      <TheaterCommunityHero
-        totalUpdatesCount={total}
-        totalEventsCount={upcomingEvents.length}
-        federationsCount={orgsCount}
+      {/* Slim page header: title, audience, verification, counters, actions */}
+      <DisciplinePageHeader
+        eyebrow={pageMeta.eyebrow}
+        title={pageMeta.title}
+        accent={pageMeta.titleAccent}
+        audience={pageMeta.audience}
+        verifiedLabel="Editorial-verified against official production companies and festival sources"
         lastUpdated={lastUpdated}
+        stats={[
+          { label: 'Companies', value: orgsCount },
+          { label: 'Upcoming', value: upcomingEvents.length },
+          { label: 'Dispatches', value: total },
+        ]}
+        primaryCta={{
+          label: pageMeta.primaryCtaLabel,
+          href: pageMeta.primaryCtaHref,
+        }}
+        secondaryCta={{
+          label: pageMeta.findCoachesLabel,
+          href: pageMeta.findCoachesHref,
+        }}
+        secondaryIcon={Sparkles}
       />
+
+      {/* Main content cards, immediately below the header */}
+      <DisciplineHighlights items={pageMeta.highlights} onSelect={handleHighlightSelect} />
 
       <OrgLogoCarouselClient
         orgs={initialOrgs && initialOrgs.length > 0 ? initialOrgs : VERIFIED_THEATER_ORGS}
       />
-      <p className="mx-auto -mt-6 max-w-3xl text-center text-[11px] leading-relaxed text-muted-foreground">
-        Logos, company names, and producer trademarks belong to their respective owners. Groove is an independent
-        directory and is not affiliated with or endorsed by these theater organizations.
-      </p>
 
       <TheaterOrgLogoBar selectedOrg={selectedOrg} onSelectOrg={handleSelectOrg} />
 
@@ -399,12 +447,11 @@ export function TheaterCommunityView({ initialOrgs = VERIFIED_THEATER_ORGS }: Th
       <PerformingArtsNewsHubGuide discipline="theater" />
 
       {/* Page attribution footer */}
-      <footer aria-label="Theater community attribution" className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-6">
-        <p className="mx-auto max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
-          Logos, company names, and producer trademarks belong to their respective owners. Groove is an independent
-          directory and is not affiliated with or endorsed by these theater organizations.
-        </p>
-      </footer>
+      <AttributionFooter label="Theater community attribution">
+        Logos, company names, and producer trademarks belong to their respective owners. Groove is
+        an independent directory and is not affiliated with or endorsed by these theater
+        organizations.
+      </AttributionFooter>
     </div>
   );
 }

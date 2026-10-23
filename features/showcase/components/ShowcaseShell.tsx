@@ -3,8 +3,9 @@
 /**
  * The shared Showcase shell used by `/coach/talents` and `/client/talent`.
  *
- * Both pages render this, so the compact header, the music bar, the two-column
- * split, the sticky panel and the mobile stacking order cannot drift apart. What
+ * Both pages render this, so the compact header, the floating player, the
+ * two-column split, the sticky panel and the mobile stacking order cannot drift
+ * apart. What
  * is passed in is the data and the role, never the presentation.
  *
  * LAYOUT
@@ -16,7 +17,7 @@
  *              rail on a phone fights the page scroll and the bottom dock.
  */
 
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import type { Profile } from '@/lib/types';
@@ -27,7 +28,7 @@ import { CommunityLeaderboard } from '@/features/community/components/CommunityL
 import { TambayanPulseCard } from '@/features/community/components/TambayanPulseCard';
 import { useBackgroundMusic, type BackgroundMusic } from '../hooks/useBackgroundMusic';
 import { useTalentSelection } from '../hooks/useTalentSelection';
-import { MusicHubBar } from './MusicHubBar';
+import { MusicMiniPlayer } from './MusicMiniPlayer';
 import { TalentBannerPanel } from './TalentBannerPanel';
 
 export interface ShowcaseShellProps {
@@ -46,8 +47,12 @@ export interface ShowcaseShellProps {
   loading?: boolean;
   /** Optional existing BackgroundMusic instance if managed by parent route */
   music?: BackgroundMusic;
-  /** When true, omits rendering MusicHubBar inside ShowcaseShell (e.g. if parent renders it) */
-  hideMusicBar?: boolean;
+  /**
+   * When true, omits the floating player inside ShowcaseShell. `/client/talent`
+   * sets this because its player must stay mounted across BOTH tabs, so it
+   * renders the same component at page level instead.
+   */
+  hideMusicPlayer?: boolean;
 }
 
 /**
@@ -63,9 +68,8 @@ export function ShowcaseShell({
   headerAction,
   loading = false,
   music: externalMusic,
-  hideMusicBar = false,
+  hideMusicPlayer = false,
 }: ShowcaseShellProps) {
-  const [hubOpen, setHubOpen] = useState(false);
   const { t } = useLanguage();
 
   const selection = useTalentSelection({ memberCommunity });
@@ -74,10 +78,6 @@ export function ShowcaseShell({
     community: memberCommunity,
   });
   const music = externalMusic ?? internalMusic;
-
-  const toggleHub = useCallback(() => {
-    setHubOpen((v) => !v);
-  }, []);
 
   const isDancerCircleActive =
     selection.selectedKey === 'dancer' || (!selection.selectedKey && memberCommunity === 'Dancer');
@@ -103,10 +103,9 @@ export function ShowcaseShell({
       {/* Community Rules directly below the header on the Dancer Circle. */}
       {isDancerCircleActive && <DancerCircleRules />}
 
-      {/* Modern, compact, collapsible music player for Groove Rehearsal Mix */}
-      {!hideMusicBar && (
-        <MusicHubBar music={music} onTogglePanel={toggleHub} panelOpen={hubOpen} />
-      )}
+      {/* Small floating player for Groove Rehearsal Mix. It is fixed-positioned,
+          so it adds no vertical space above the showcase heading. */}
+      {!hideMusicPlayer && <MusicMiniPlayer music={music} />}
 
       {loading ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">

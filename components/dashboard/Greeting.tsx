@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useSyncExternalStore } from 'react';
+import { InfoTip } from '@/components/ui/InfoTip';
 
 export interface GreetingProps {
   eyebrow: string;
@@ -70,7 +71,12 @@ export function Greeting({
           {greeting && <>{greeting}, </>}
           <span className="text-accent-text">{name}</span>
         </h1>
-        <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
+        <div className="mt-2 flex items-center gap-2">
+          <p className="text-xs font-medium text-muted-foreground">
+            {greeting ? 'Your workspace at a glance' : 'Your workspace'}
+          </p>
+          <InfoTip title="What you can do here" short={subtitle} details={subtitle} />
+        </div>
       </div>
 
       {/* Tagline — script font with hairlines, hidden under 900px */}

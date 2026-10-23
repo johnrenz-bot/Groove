@@ -5,44 +5,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from './cn';
+import { AmbientBackground } from './AmbientBackground';
+import { AnimatedLogo } from '@/components/header/AnimatedLogo';
 
 /**
  * THE AUTH SHELL — one component behind /login, /register/*,
  * /forgot-password and /reset-password.
  *
- * WHAT CHANGED, AND WHY
- *
- *   It used to be a two-column split: the form on the left, a full-height photo
- *   panel on the right with a quote card floating over it, and a dimmed theater
- *   photograph behind everything. That is three competing surfaces, and it made
- *   every route look like a different page — the long coach registration got the
- *   same fixed-height photo column as a two-field sign-in. It also pinned the
- *   whole subtree to a dark canvas, so the auth screens ignored the visitor's
- *   saved Light/Dark choice while every other route honoured it.
- *
- *   It is now ONE centred column, 460px, matching the rhythm of the landing
- *   page: brand mark, eyebrow, heading, one card, one quiet line underneath.
- *   Everything is drawn from tokens, so the auth routes now follow the theme
- *   like the rest of the app.
- *
- *   NOTHING WAS REMOVED. `image`, `imageAlt` and `quote` still arrive from every
- *   call site and still render: the image becomes the quiet backdrop texture and
- *   the quote becomes the single line below the card. A long form (`wide`)
- *   scrolls from the top rather than being centred, so a tall registration can
- *   never be pushed off-screen.
- *
- * THE `split` VARIANT
- *   `/login` opts in with `split`, and it is the only route that does. The
- *   centred column is the right answer for a form that is mostly fields — coach
- *   registration is nine of them — because a photo column beside it would just
- *   make the reader work. A sign-in is two fields and one button, which leaves
- *   a 460px column sitting alone in a wide viewport, so on large screens that
- *   one route gets the photograph back as a real, full-height panel rather than
- *   a 16% wash.
- *
- *   It collapses to the SAME single column below `lg`, so mobile, tablet and
- *   every other auth route are untouched. `image`, `quote` and `footer` keep
- *   working in both modes — in `split` the quote moves onto the photo panel.
+ * Enhanced with AmbientBackground for cinematic depth.
+ * Split layout on desktop: form panel + cinematic image panel.
+ * Glass form card with animated focus rings.
+ * Respects theme (light/dark) via CSS tokens.
  */
 export function AuthLayout({
   children,
@@ -50,12 +23,20 @@ export function AuthLayout({
   subtext,
   eyebrow,
   image = '/image/bg/hero-theater.jpg',
-  imageAlt = '',
   quote,
   footer,
-  centered = false,
   wide = false,
   split = false,
+  /**
+   * Registration-only presentation. It opts the shared card into the wider,
+   * quieter registration surface. The brand bar itself is identical on every
+   * auth route.
+   */
+  registration = false,
+  // Role-specific image panel content for registration pages
+  imagePanelTitle,
+  imagePanelDescription,
+  imagePanelImage,
 }: {
   children: React.ReactNode;
   title: React.ReactNode;
@@ -63,40 +44,43 @@ export function AuthLayout({
   eyebrow?: React.ReactNode;
   /** Decorative backdrop texture. Always decorative — never the only content. */
   image?: string;
-  imageAlt?: string;
   quote?: string;
   footer?: React.ReactNode;
-  /** Kept for call-site compatibility. Every mode is the centred column now. */
-  centered?: boolean;
   /** Wider column that scrolls from the top — for long multi-section forms. */
   wide?: boolean;
   /** Two-column composition on large screens: photo panel beside the form. */
   split?: boolean;
+  /** Use the registration-sized form surface. */
+  registration?: boolean;
+  /** Optional: title for the image panel (split mode) */
+  imagePanelTitle?: string;
+  /** Optional: description for the image panel (split mode) */
+  imagePanelDescription?: string;
+  /** Optional: custom image for the image panel (split mode) */
+  imagePanelImage?: string;
 }) {
   const stack = (
-    <div className={cn('au-stack', split ? 'au-stack--split' : wide ? 'au-stack--wide' : 'au-stack--narrow')}>
-      {/* Brand mark. Skipped on the wide registration forms, where it would
-          just push the first field further down the page. */}
-      {!wide && (
-        <span className="au-mark" aria-hidden="true">
-          <Image
-            src="/image/Logo/GroovePH-Logo.png"
-            alt=""
-            width={64}
-            height={64}
-            className="object-contain"
-            preload
-          />
-        </span>
+    <div
+      className={cn(
+        'au-stack',
+        split
+          ? 'au-stack--split'
+          : registration
+            ? 'au-stack--registration'
+            : wide
+              ? 'au-stack--wide'
+              : 'au-stack--narrow'
       )}
-
-      <header className="flex flex-col gap-3">
+    >
+      <header className={cn('flex flex-col gap-3', registration && 'au-registration-header')}>
         {eyebrow}
         <h1 className="au-title">{title}</h1>
         {subtext && <p className="au-lead">{subtext}</p>}
       </header>
 
-      <section className="au-card">{children}</section>
+      <section className={cn('au-card', registration && 'au-card--registration')}>
+        {children}
+      </section>
 
       {footer}
 
@@ -113,23 +97,16 @@ export function AuthLayout({
   );
 
   const brandBar = (
-    /* Brand bar. Compact, quiet, and the same on every auth route. */
+    /* Brand bar. The same mascot mark + GroovePH wordmark lockup on every auth
+       route, so login, registration and password recovery all carry the complete
+       brand rather than a different subset of it. */
     <div className="au-topbar">
-      <Link
+      <AnimatedLogo
         href="/"
-        className="inline-flex items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80"
-      >
-        {/* The wordmark is live text, not the logo PNG: that asset is the
-            1240x1240 mascot only, so rendering it at header size produced a
-            28px dot that read as a broken image next to the mascot slot below.
-            Type stays crisp, re-colours with the theme and costs no request. */}
-        <span className="text-[17px] font-semibold leading-none tracking-[-0.02em] text-foreground">
-          Groove
-        </span>
-        <span className="hidden text-[11px] font-medium uppercase leading-none tracking-[0.12em] text-subtle-foreground sm:inline">
-          Performing Arts
-        </span>
-      </Link>
+        variant="lockup"
+        subtitle="Performing Arts"
+        className="au-brand-lockup"
+      />
 
       <Link
         href="/"
@@ -144,55 +121,68 @@ export function AuthLayout({
     </div>
   );
 
+  // Split mode: form on left, cinematic image panel on right
   if (split) {
+    const panelImage = imagePanelImage || image || '/image/bg/hero-theater.jpg';
+    const panelTitle = imagePanelTitle || 'Move to your own rhythm.';
+    const panelDescription = imagePanelDescription || 'Discover verified coaches, book rehearsal studios, and grow your craft in Bulacan\'s premier performing arts hub.';
+
     return (
-      <div className="au-shell au-shell--split">
-        {/* No `.au-backdrop` here on purpose. It is `display: none` in split
-            mode (globals.css), so rendering it would still download and preload
-            a full-width photograph that never paints — which is exactly what
-            produced the browser's "not rendered at full viewport width" and
-            "preloaded but not used" warnings on /login. The photo lives on the
-            panel below; a second invisible copy is pure waste. */}
+      <div className={cn('au-shell au-shell--split', registration && 'au-shell--registration')}>
+        {/* Ambient background - auth variant (calmer, no particles) */}
+        <AmbientBackground variant="auth" className="au-ambient" />
 
         {brandBar}
 
         <main className="au-split">
-          <div className="au-split-form">{stack}</div>
+          <div className={cn('au-split-form', registration && 'au-split-form--registration')}>
+            {stack}
+          </div>
 
-          {/* The photograph, at full height and finally at a readable size. */}
+          {/* Cinematic image panel */}
           <aside className="au-split-visual" aria-hidden="true">
             <Image
-              src={image || '/image/bg/hero-theater.jpg'}
+              src={panelImage}
               alt=""
               fill
-              preload
+              priority
               sizes="(min-width: 1024px) 50vw, 0px"
               className="au-split-image"
             />
+            {/* Gradient overlay for text legibility */}
             <div className="au-split-scrim" />
-            {/* The movement motif. Purely decorative CSS — three nested arcs
-                that read as a body mid-turn, at a weight that never competes
-                with the form. */}
+            {/* Gold accent border on the inner edge */}
+            <div className="au-split-gold-edge" aria-hidden="true" />
+            {/* Subtle pattern */}
             <div className="au-split-pattern" />
-            {quote && (
-              <p className="au-split-quote">
-                <span className="au-split-quote-text">&ldquo;{quote}&rdquo;</span>
-                <span className="au-split-quote-place">San Jose del Monte, Bulacan</span>
-              </p>
-            )}
+            {/* Content overlay */}
+            <div className="au-split-content">
+              {quote && (
+                <p className="au-split-quote">
+                  <span className="au-split-quote-text">&ldquo;{quote}&rdquo;</span>
+                  <span className="au-split-quote-place">San Jose del Monte, Bulacan</span>
+                </p>
+              )}
+              <div className="au-split-tagline">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-[-0.02em] text-white">
+                  {panelTitle}
+                </h2>
+                <p className="mt-3 text-base sm:text-lg text-white/80 max-w-xs leading-relaxed">
+                  {panelDescription}
+                </p>
+              </div>
+            </div>
           </aside>
         </main>
       </div>
     );
   }
 
+  // Non-split mode: centered column with ambient background
   return (
-    <div className="au-shell">
-      {/* Decorative only: `aria-hidden` on the wrapper and an empty alt, so the
-          texture is never announced and never lands in the accessibility tree. */}
-      <div className="au-backdrop" aria-hidden="true">
-        {image ? <Image src={image} alt={imageAlt} fill preload sizes="100vw" /> : null}
-      </div>
+    <div className={cn('au-shell', registration && 'au-shell--registration')}>
+      {/* Ambient background - auth variant */}
+      <AmbientBackground variant="auth" className="au-ambient" />
 
       {brandBar}
 
@@ -201,7 +191,10 @@ export function AuthLayout({
           'relative z-10 flex w-full flex-1 flex-col items-center px-5 sm:px-6',
           // A long form must not be vertically centred — centring pushes its
           // first fields below the fold on a short viewport.
-          wide ? 'justify-start pb-12 pt-6 sm:pt-10' : 'justify-center pb-16 pt-4 sm:pt-8'
+          wide || registration
+            ? 'justify-start pb-12 pt-6 sm:pt-9'
+            : 'justify-center pb-16 pt-4 sm:pt-8',
+          registration && 'au-registration-main'
         )}
       >
         {stack}

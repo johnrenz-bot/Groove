@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, X, Languages } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
 
 const SINGING_CATEGORIES = [
@@ -26,20 +26,16 @@ interface SingingUpdatesFilterBarProps {
 }
 
 export function SingingUpdatesFilterBar({
-  region,
   category,
   searchQuery,
-  language,
-  onSelectRegion,
   onSelectCategory,
   onSearchChange,
-  onToggleLanguage,
   onClearFilters,
   hasActiveFilters,
 }: SingingUpdatesFilterBarProps) {
   return (
     <div className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
-      {/* Top Filter Controls: Search & Region & Language */}
+      {/* Top Filter Controls: Search & Reset */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Search Input */}
         <div className="relative w-full max-w-md" role="search">
@@ -67,79 +63,17 @@ export function SingingUpdatesFilterBar({
           )}
         </div>
 
-        {/* Region & Language Toggle Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Region Tabs */}
-          <div className="flex items-center rounded-full border border-border bg-muted/20 p-1" role="group" aria-label="Filter by region">
-            <button
-              type="button"
-              onClick={() => onSelectRegion('all')}
-              aria-pressed={region === 'all'}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
-                region === 'all'
-                  ? 'bg-accent text-accent-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              onClick={() => onSelectRegion('philippines')}
-              aria-pressed={region === 'philippines'}
-              className={cn(
-                'flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
-                region === 'philippines'
-                  ? 'bg-accent text-accent-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span>🇵🇭 PH</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onSelectRegion('international')}
-              aria-pressed={region === 'international'}
-              className={cn(
-                'flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
-                region === 'international'
-                  ? 'bg-accent text-accent-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span>🌐 Intl</span>
-            </button>
-          </div>
-
-          {/* Language Toggle (English vs Tagalog) */}
+        {/* Clear Filters Button */}
+        {hasActiveFilters && (
           <button
             type="button"
-            onClick={() => onToggleLanguage(language === 'en' ? 'tl' : 'en')}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
-              language === 'tl'
-                ? 'border-accent bg-accent/15 text-accent-text font-bold'
-                : 'border-border bg-muted/20 text-muted-foreground hover:text-foreground'
-            )}
-            title="Toggle between English and Tagalog summary"
+            onClick={onClearFilters}
+            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-border-strong hover:text-foreground"
           >
-            <Languages className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{language === 'en' ? 'EN' : 'TL (Filipino)'}</span>
+            <X className="h-3.5 w-3.5" />
+            <span>Reset</span>
           </button>
-
-          {/* Clear Filters Button */}
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={onClearFilters}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-border-strong hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-              <span>Reset</span>
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Category Pills */}

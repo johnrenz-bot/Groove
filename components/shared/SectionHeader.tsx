@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from './cn';
+import { InfoTip } from '@/components/ui/InfoTip';
 
 /**
  * The editorial section signature:
@@ -55,14 +56,26 @@ export function PageHeader({
   description,
   action,
   eyebrow,
+  info,
+  infoShort,
+  infoTitle,
   className = '',
 }: {
   title: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
   eyebrow?: string;
+  /** Optional override for the disclosure content; defaults to `description`. */
+  info?: React.ReactNode;
+  infoShort?: string;
+  infoTitle?: string;
   className?: string;
 }) {
+  const details = info ?? description;
+  const short =
+    infoShort ?? (typeof details === 'string' ? details : undefined);
+  const heading = infoTitle ?? (typeof title === 'string' ? title : 'Page details');
+
   return (
     <header
       className={cn(
@@ -72,12 +85,12 @@ export function PageHeader({
     >
       <div className="min-w-0">
         {eyebrow && <span className="g-eyebrow mb-3">{eyebrow}</span>}
-        <h1 className="g-title">{title}</h1>
-        {description && (
-          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
-            {description}
-          </p>
-        )}
+        <div className="flex items-center gap-2.5">
+          <h1 className="g-title">{title}</h1>
+          {details ? (
+            <InfoTip title={heading} short={short} details={details} className="mt-1" />
+          ) : null}
+        </div>
       </div>
       {action && <div className="flex shrink-0 items-center gap-3">{action}</div>}
     </header>

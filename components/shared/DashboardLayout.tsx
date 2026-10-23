@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SiteHeader } from '@/components/layout/SiteHeader';
+import { AppHeader } from '@/components/header/AppHeader';
 import { type DashboardRole } from '@/components/header/roleMeta';
 
 import { WelcomeModal } from '@/components/shared/WelcomeModal';
@@ -54,11 +54,11 @@ export function DashboardLayout({
           Cards, modals and panels keep their own opaque surfaces. */}
       <LoadingScreen minDuration={500} />
 
-      <SiteHeader homeHref={homeHref} />
+      <AppHeader homeHref={homeHref} />
 
       {showMaintenanceBanner && <MaintenanceBanner />}
 
-      <main className="relative z-10 flex-1 px-5 py-7 sm:px-8 sm:py-9">
+      <main id="main-content" tabIndex={-1} className="relative z-10 flex-1 px-5 py-7 sm:px-8 sm:py-9">
         <div className="mx-auto w-full max-w-[1240px]">{children}</div>
       </main>
 

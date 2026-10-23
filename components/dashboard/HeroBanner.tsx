@@ -4,9 +4,10 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Calendar } from 'lucide-react';
+import { InfoTip } from '@/components/ui/InfoTip';
 
 export interface HeroBannerProps {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: string;
   primaryCta: { label: string; href: string };
@@ -66,15 +67,22 @@ export function HeroBanner({
 
       {/* Content — vertically centered, compact so it fits the capped height */}
       <div className="relative z-10 flex h-full max-w-2xl flex-col justify-center px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-6">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/90 sm:text-xs">
-          {eyebrow}
-        </p>
-        <h2 className="mt-2 font-serif text-2xl font-bold leading-tight tracking-[-0.02em] text-white sm:mt-3 sm:text-3xl">
-          {title}
-        </h2>
-        <p className="mt-2 text-xs leading-relaxed text-white/80 sm:mt-3 sm:text-sm">
-          {description}
-        </p>
+        {eyebrow && (
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/90 sm:text-xs">
+            {eyebrow}
+          </p>
+        )}
+        <div className="mt-2 flex items-center gap-2 sm:mt-3">
+          <h2 className="font-serif text-2xl font-bold leading-tight tracking-[-0.02em] text-white sm:text-3xl">
+            {title}
+          </h2>
+          <InfoTip
+            title={title}
+            short={description}
+            details={description}
+            className="border-white/30 bg-black/40 text-white/80 hover:border-white/60 hover:bg-black/65 hover:text-white"
+          />
+        </div>
         <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:mt-5 sm:gap-3">
           <Link
             href={primaryCta.href}

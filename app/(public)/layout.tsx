@@ -18,8 +18,9 @@ import React from 'react';
  * used as a marker by the landing page's own `.groove-landing` rules, but it
  * forces nothing and this comment no longer pretends otherwise.
  *
- * The guest theme toggle that `PublicLayout`'s header renders is real, and it
- * works, because `<ThemeProvider>` lives in the root layout.
+ * The guest header no longer renders a theme toggle; the palette still follows
+ * the saved Light/Dark/System choice because `<ThemeProvider>` lives in the root
+ * layout.
  *
  * URLs are unchanged: `(public)` is a route group and contributes no path
  * segment, so /, /about, /faq, /login, /register/*, /forgot-password,

@@ -30,6 +30,7 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { HeroBanner } from '@/components/dashboard/HeroBanner';
 import { PanelCard } from '@/components/dashboard/PanelCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { SessionRow } from '@/components/dashboard/SessionRow';
 import { BadgeMiniWidget } from '@/components/dashboard/BadgeMiniWidget';
@@ -446,7 +447,7 @@ const [loadError, setLoadError] = useState<string | null>(null);
         />
 
         {/* Stat cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+        <div className="g-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
           <StatCard
             icon={<CalendarIcon className="h-5 w-5" />}
             value={appointments.length}
@@ -483,7 +484,6 @@ const [loadError, setLoadError] = useState<string | null>(null);
 
         {/* Hero banner */}
         <HeroBanner
-          eyebrow={t('home.heroCoachEyebrow', 'Coach Instructor for Workspace')}
           title={t('home.heroCoachTitle', 'Inspire the next generation of performers')}
           description={t(
             'home.heroCoachDesc',
@@ -504,31 +504,42 @@ const [loadError, setLoadError] = useState<string | null>(null);
             viewAllHref="/coach/talents"
             viewAllLabel={t('common.viewAll', 'View all')}
           >
-            <div className="grid grid-cols-2 gap-3.5">
-              {recommendedUsers.slice(0, 4).map((user) => (
-                <button
-                  key={user.id}
-                  type="button"
-                  onClick={() => setSelectedUser(user)}
-                  className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
-                >
-                  <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
-                    {user.photo_url ? (
-                      <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
-                    ) : (
-                      getInitials(user.firstname, user.lastname)
-                    )}
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
-                  </div>
-                  <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
-                    {user.firstname} {user.lastname}
-                  </p>
-                  <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    {user.role}
-                  </p>
-                </button>
-              ))}
-            </div>
+            {recommendedUsers.length === 0 ? (
+              <EmptyState
+                compact
+                icon={<Users className="h-5 w-5" />}
+                title="No students to show yet"
+                description="Active performers near San Jose del Monte will appear here as they join. Browse the community to discover new talent."
+                actionHref="/coach/talents"
+                action="Browse performers"
+              />
+            ) : (
+              <div className="grid grid-cols-2 gap-3.5">
+                {recommendedUsers.slice(0, 4).map((user) => (
+                  <button
+                    key={user.id}
+                    type="button"
+                    onClick={() => setSelectedUser(user)}
+                    className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
+                  >
+                    <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
+                      {user.photo_url ? (
+                        <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
+                      ) : (
+                        getInitials(user.firstname, user.lastname)
+                      )}
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
+                    </div>
+                    <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
+                      {user.firstname} {user.lastname}
+                    </p>
+                    <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                      {user.role}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
           </PanelCard>
 
           {/* Upcoming sessions panel */}

@@ -17,7 +17,7 @@ import { DashboardLayout } from '@/components/shared/DashboardLayout';
  */
 export function CoachLayout({ children }: { children: React.ReactNode }) {
   return (
-    <DashboardLayout role="coach" homeHref="/coach/home" showWelcomeModal>
+    <DashboardLayout role="coach" showWelcomeModal>
       {children}
     </DashboardLayout>
   );

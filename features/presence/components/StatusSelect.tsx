@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Loader2 } from 'lucide-react';
 import { SELF_ASSIGNABLE, statusMeta, type Presence } from '../utils/presence';
 import { usePresence, useSetPresence } from '../hooks/usePresence';
@@ -85,8 +85,62 @@ export function StatusSelect({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const optionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const meta = statusMeta(current);
+
+  const focusOption = useCallback((index: number) => {
+    const count = SELF_ASSIGNABLE.length;
+    const next = ((index % count) + count) % count;
+    optionRefs.current[SELF_ASSIGNABLE[next].value]?.focus();
+  }, []);
+
+  /**
+   * Open the list, focus the selected row, and dismiss on Escape or a click
+   * outside. `role="radio"` on a button does not inherit native arrow handling,
+   * so the menu below manages focus itself.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const selected = SELF_ASSIGNABLE.findIndex((option) => option.value === current);
+    const timer = window.setTimeout(() => focusOption(Math.max(0, selected)), 0);
+
+    const onPointerDown = (event: MouseEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('mousedown', onPointerDown);
+    };
+  }, [open, current, focusOption]);
+
+  const onMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const buttons = SELF_ASSIGNABLE.map((option) => optionRefs.current[option.value]).filter(
+      (node): node is HTMLButtonElement => Boolean(node)
+    );
+    const active = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        focusOption(active + 1);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        focusOption(active <= 0 ? SELF_ASSIGNABLE.length - 1 : active - 1);
+        break;
+      case 'Home':
+        event.preventDefault();
+        focusOption(0);
+        break;
+      case 'End':
+        event.preventDefault();
+        focusOption(SELF_ASSIGNABLE.length - 1);
+        break;
+    }
+  };
 
   const choose = async (next: Presence) => {
     if (next === current || saving) return;
@@ -108,16 +162,35 @@ export function StatusSelect({
   };
 
   return (
-    <div className="g-presence">
+    <div
+      className="g-presence"
+      ref={containerRef}
+      onKeyDown={(event) => {
+        // Handled here rather than on `document` so Escape closes the status
+        // list first; the drawer's own document listener would otherwise close
+        // the whole sheet at the same time.
+        if (event.key !== 'Escape' || !open) return;
+        event.stopPropagation();
+        setOpen(false);
+        triggerRef.current?.focus();
+      }}
+    >
       {/* The trigger. A <button> rather than a summary of a <details>, because
           the panel it opens is a radiogroup rather than a document section, and
           it needs to control its own open state for the Escape handling. */}
       <button
+        ref={triggerRef}
         type="button"
         className="g-presence-trigger"
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
         title={`Status: ${meta.label} — change`}
       >
         <PresenceDot status={current} />
@@ -133,16 +206,25 @@ export function StatusSelect({
       </button>
 
       {open && (
-        <div className="g-presence-menu" role="radiogroup" aria-label="Your status">
+        <div
+          className="g-presence-menu"
+          role="radiogroup"
+          aria-label="Your status"
+          onKeyDown={onMenuKeyDown}
+        >
           {SELF_ASSIGNABLE.map(({ value, label, hint }) => {
             const active = current === value;
             return (
               <button
                 key={value}
+                ref={(node) => {
+                  optionRefs.current[value] = node;
+                }}
                 type="button"
                 role="radio"
                 aria-checked={active}
-                // One tab stop for the group; arrow keys move within it natively.
+                // One tab stop for the group; the arrow keys handled above move
+                // focus within it and Enter/Space select.
                 tabIndex={active ? 0 : -1}
                 onClick={() => void choose(value)}
                 className="g-presence-option"

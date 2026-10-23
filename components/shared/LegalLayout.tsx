@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { SiteHeader } from '@/components/layout/SiteHeader';
+import { AppHeader } from '@/components/header/AppHeader';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { ArrowLeft, Menu, X } from 'lucide-react';
 import { Footer } from '@/components/shared/Footer';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { cn } from './cn';
 
 export interface LegalSection {
@@ -17,7 +16,7 @@ export interface LegalSection {
 /**
  * Long-form legal/document shell: comfortable reading width, a sticky table of
  * contents with scroll-spy, a reading-progress bar, a last-updated date, and
- * the shared theme toggle.
+ * the shared document controls.
  */
 export function LegalLayout({
   children,
@@ -164,12 +163,11 @@ export function LegalLayout({
           contents, reading progress), which belongs to the document rather than
           to the app.
 
-          `ThemeProvider` is here for the same reason it is in `PublicLayout`:
-          this layout mounts `SiteHeader` directly rather than through
-          `PublicLayout`, so without it the guest theme toggle would be inert on
-          the two legal pages. Same provider, same `groove-theme-mode` key. */}
+          `ThemeProvider` is here because this layout mounts `AppHeader`
+          directly rather than through `PublicLayout`; the header's theme-aware
+          controls read from the same provider and `groove-theme-mode` key. */}
       <ThemeProvider>
-        <SiteHeader />
+        <AppHeader />
       </ThemeProvider>
 
       {/* Document bar — back link + TOC + reading progress. */}
@@ -200,7 +198,6 @@ export function LegalLayout({
                 Contents
               </button>
             )}
-            <ThemeToggle />
           </div>
         </div>
 
@@ -222,7 +219,7 @@ export function LegalLayout({
         )}
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         {/* `py-10 sm:py-14 lg:py-16` was 40/56/64px against the old 16px root and
           scales to 35/49/56px on the new one — still the tallest vertical rhythm
           on any public route. Tightened to `py-8 sm:py-10 lg:py-12`. */}

@@ -85,18 +85,18 @@ export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegi
             : buttonText
         }
         title={!GOOGLE_OAUTH_ENABLED ? 'Google sign-up is coming soon' : undefined}
-        className={`group relative flex h-12 w-full items-center justify-center gap-3 rounded-xl border px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F4BE4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090b] ${
+        className={`group relative flex h-11 w-full items-center justify-center gap-3 rounded-lg border px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F4BE4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] ${
           !GOOGLE_OAUTH_ENABLED
-            ? 'cursor-not-allowed border-[#1e2029] bg-[#0e0f14] text-[#4a4a55] opacity-60 select-none'
-            : 'cursor-pointer border-[#2a2c38] bg-[#121319] text-[#f5f5f5] hover:border-[#F4BE4D]/60 hover:bg-[#181a22] hover:shadow-[0_4px_20px_-4px_rgba(244,190,77,0.15)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
+            ? 'cursor-not-allowed border-border bg-muted text-subtle-foreground opacity-75 select-none'
+            : 'cursor-pointer border-border bg-card text-foreground hover:border-accent-border hover:bg-muted active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
         } ${className}`}
       >
         {busy ? (
-          <Loader2 className="h-5 w-5 animate-spin text-[#F4BE4D]" aria-hidden="true" />
+          <Loader2 className="h-5 w-5 animate-spin text-accent-text" aria-hidden="true" />
         ) : (
           <GoogleMark />
         )}
-        <span className="tracking-tight transition-colors group-hover:text-white">
+        <span className="tracking-tight transition-colors group-hover:text-foreground">
           {busy
             ? 'Connecting to Google…'
             : !GOOGLE_OAUTH_ENABLED

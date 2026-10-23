@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { DanceCommunityHero } from './DanceCommunityHero';
 import { SectionHeader } from './SectionHeader';
 import { OrgLogoBar } from './OrgLogoBar';
 import { UpdatesFilterBar } from './UpdatesFilterBar';
@@ -17,12 +16,20 @@ import type { DanceOrg } from '@/lib/dance/types';
 import { VERIFIED_DANCE_ORGS } from '../data/danceOrgs';
 import { OrgLogoCarouselClient } from './OrgLogoCarouselClient';
 import { PerformingArtsNewsHubGuide } from '@/features/performing-arts/components/PerformingArtsNewsHubGuide';
+import { DisciplinePageHeader } from '@/features/performing-arts/components/DisciplinePageHeader';
+import { DisciplineHighlights } from '@/features/performing-arts/components/DisciplineHighlights';
+import { AttributionFooter } from '@/features/performing-arts/components/AttributionFooter';
+import {
+  DISCIPLINE_PAGES,
+  type DisciplineHighlight,
+} from '@/features/performing-arts/data/disciplineMeta';
 import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
   AlertCircle,
   SearchX,
+  Sparkles,
   ChevronRight as ChevronRightSmall,
 } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -33,8 +40,8 @@ import { EmptyState } from '@/components/shared/EmptyState';
  */
 function Breadcrumb() {
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
-      <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
+    <nav aria-label="Breadcrumb">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
         <li>
           <Link
             href="/users"
@@ -70,13 +77,35 @@ interface DanceCommunityViewProps {
 }
 
 export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceCommunityViewProps) {
-  // Filter States
-  const [region, setRegion] = useState<string>('all');
-  const [category, setCategory] = useState<string>('all');
-  const [selectedOrg, setSelectedOrg] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [language, setLanguage] = useState<'en' | 'tl'>('en');
-  const [page, setPage] = useState<number>(1);
+  // Filter states initialize directly from the URL on mount. Reading them in a
+  // lazy initializer avoids a second render (and a duplicate fetch) that the
+  // old "set state in an effect" pass caused.
+  const [region, setRegion] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    return new URLSearchParams(window.location.search).get('region') || 'all';
+  });
+  const [category, setCategory] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    return new URLSearchParams(window.location.search).get('category') || 'all';
+  });
+  const [selectedOrg, setSelectedOrg] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    return new URLSearchParams(window.location.search).get('org') || 'all';
+  });
+  const [searchQuery, setSearchQuery] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('q') || '';
+  });
+  const [language, setLanguage] = useState<'en' | 'tl'>(() => {
+    if (typeof window === 'undefined') return 'en';
+    const lang = new URLSearchParams(window.location.search).get('lang');
+    return lang === 'tl' ? 'tl' : 'en';
+  });
+  const [page, setPage] = useState<number>(() => {
+    if (typeof window === 'undefined') return 1;
+    const p = Number(new URLSearchParams(window.location.search).get('page'));
+    return p > 0 ? p : 1;
+  });
 
   // Data States
   const [updates, setUpdates] = useState<DanceUpdateRecord[]>([]);
@@ -89,25 +118,6 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
   const [eventsLoading, setEventsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>('Recently verified');
-
-  // Read initial parameters from URL
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const regParam = params.get('region');
-    const catParam = params.get('category');
-    const orgParam = params.get('org');
-    const qParam = params.get('q');
-    const langParam = params.get('lang');
-    const pageParam = params.get('page');
-
-    if (regParam) setRegion(regParam);
-    if (catParam) setCategory(catParam);
-    if (orgParam) setSelectedOrg(orgParam);
-    if (qParam) setSearchQuery(qParam);
-    if (langParam === 'en' || langParam === 'tl') setLanguage(langParam);
-    if (pageParam && Number(pageParam) > 0) setPage(Number(pageParam));
-  }, []);
 
   // Sync state to URL params cleanly
   useEffect(() => {
@@ -171,7 +181,7 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
           setLastUpdated('Recently verified');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load dance updates:', err);
       setError('Unable to load latest dance updates. Please try again.');
     } finally {
@@ -216,13 +226,16 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
     }
   }, []);
 
-  // Initial load & when filters change
+  // Initial load & when filters change. The timer keeps the effect body free of
+  // synchronous state updates and coalesces rapid filter changes into one fetch.
   useEffect(() => {
-    fetchUpdates();
+    const timer = window.setTimeout(fetchUpdates, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchUpdates]);
 
   useEffect(() => {
-    fetchUpcomingEvents();
+    const timer = window.setTimeout(fetchUpcomingEvents, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchUpcomingEvents]);
 
   // Reset pagination when filters change
@@ -254,35 +267,68 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
     setPage(1);
   };
 
+  /**
+   * The four top cards route into the existing live feed rather than opening a
+   * second, static collection. `filter` is the same category/search the filter
+   * bar already understands, so no new API surface is introduced.
+   */
+  const handleHighlightSelect = (item: DisciplineHighlight) => {
+    handleSelectCategory(item.filter.category ?? 'all');
+    handleSearchChange(item.filter.query ?? '');
+    const target = document.getElementById('latest-updates');
+    if (!target) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  };
+
   // Distinct federations count from tracked organizations
   const federationsCount = useMemo(() => ORGANIZATIONS.length, []);
+  const pageMeta = DISCIPLINE_PAGES.dance;
 
   return (
-    <div className="space-y-10 pb-12 sm:space-y-12">
+    <div className="space-y-6 pb-10 sm:space-y-8">
       {/* 0. Breadcrumb: Community / Performing Arts / Dance */}
       <Breadcrumb />
 
-      {/* 1. Hero Banner matching Groove theme */}
-      <DanceCommunityHero
-        totalUpdatesCount={total}
-        totalEventsCount={upcomingEvents.length}
-        federationsCount={federationsCount}
+      {/* 1. Slim page header: title, audience, verification, counters, actions */}
+      <DisciplinePageHeader
+        eyebrow={pageMeta.eyebrow}
+        title={pageMeta.title}
+        accent={pageMeta.titleAccent}
+        audience={pageMeta.audience}
+        verifiedLabel="Editorial-verified against official league and federation sources"
         lastUpdated={lastUpdated}
+        stats={[
+          { label: 'Leagues', value: federationsCount },
+          { label: 'Upcoming', value: upcomingEvents.length },
+          { label: 'Dispatches', value: total },
+        ]}
+        primaryCta={{
+          label: pageMeta.primaryCtaLabel,
+          href: pageMeta.primaryCtaHref,
+        }}
+        secondaryCta={{
+          label: pageMeta.findCoachesLabel,
+          href: pageMeta.findCoachesHref,
+        }}
+        secondaryIcon={Sparkles}
       />
 
-      {/* 1b. Official League Logo Carousel */}
+      {/* 2. Main content cards, immediately below the header */}
+      <DisciplineHighlights items={pageMeta.highlights} onSelect={handleHighlightSelect} />
+
+      {/* 3. Official League Logo Carousel */}
       <OrgLogoCarouselClient
         orgs={initialOrgs && initialOrgs.length > 0 ? initialOrgs : VERIFIED_DANCE_ORGS}
       />
-      <p className="mx-auto -mt-6 max-w-3xl text-center text-[11px] leading-relaxed text-muted-foreground">
-        Logos, names, and trademarks belong to their respective owners. Groove is an independent
-        directory and is not affiliated with or endorsed by these organizations.
-      </p>
 
-      {/* 2. Organization Logo Filter Bar */}
+      {/* 4. Organization Logo Filter Bar */}
       <OrgLogoBar selectedOrg={selectedOrg} onSelectOrg={handleSelectOrg} />
 
-      {/* 3. Upcoming / Past Events Showcase Grid */}
+      {/* 5. Upcoming / Past Events Showcase Grid */}
       <UpcomingEventsSection
         events={upcomingEvents}
         pastEvents={pastEvents}
@@ -293,7 +339,7 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
         onClearFilters={handleClearFilters}
       />
 
-      {/* 4. Latest Updates Section */}
+      {/* 6. Latest Updates Section */}
       <section id="latest-updates" aria-labelledby="latest-updates-title" className="scroll-mt-24">
         <SectionHeader
           eyebrow="Real-Time Discovery & Reporting"
@@ -410,19 +456,17 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
         )}
       </section>
 
-      {/* 5. Featured Crews & Match Recaps Roster */}
+      {/* 7. Featured Crews & Match Recaps Roster */}
       <FeaturedCrewsRoster />
 
-      {/* 6. Performing Arts News Hub Guide, Editorial Standards & Safety Disclaimer */}
+      {/* 8. Performing Arts News Hub Guide, Editorial Standards & Safety Disclaimer */}
       <PerformingArtsNewsHubGuide discipline="dance" />
 
       {/* Page attribution footer — not a duplicate of the site footer */}
-      <footer aria-label="Dance community attribution" className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-6">
-        <p className="mx-auto max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
-          Logos, names, and trademarks belong to their respective owners. Groove is an independent
-          directory and is not affiliated with or endorsed by these organizations.
-        </p>
-      </footer>
+      <AttributionFooter label="Dance community attribution">
+        Logos, names, and trademarks belong to their respective owners. Groove is an independent
+        directory and is not affiliated with or endorsed by these organizations.
+      </AttributionFooter>
     </div>
   );
 }

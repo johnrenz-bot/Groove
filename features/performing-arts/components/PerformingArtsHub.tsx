@@ -27,6 +27,7 @@ import {
   Newspaper,
   Library,
   HeartHandshake,
+  BookOpen,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/Badge';
@@ -224,6 +225,13 @@ function Hero({ role }: { role: HubRole }) {
                 <Search className="h-3.5 w-3.5" aria-hidden="true" />
                 Search the hub
               </a>
+              <Link
+                href="/community/performing-arts/history"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-5 text-[13px] font-semibold text-foreground transition-colors hover:border-accent-border hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                History &amp; learning
+              </Link>
             </div>
 
             <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-4 border-t border-border pt-6">

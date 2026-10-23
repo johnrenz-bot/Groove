@@ -17,7 +17,7 @@ import {
   X,
   FileSignature,
 } from 'lucide-react';
-import { SiteHeader } from '@/components/layout/SiteHeader';
+import { AppHeader } from '@/components/header/AppHeader';
 import { Message, Profile } from '@/lib/types';
 import { statusMeta } from '@/features/presence/utils/presence';
 import { usePresence } from '@/features/presence/hooks/usePresence';
@@ -388,9 +388,9 @@ function MessagesMessenger() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground overflow-hidden">
-      <SiteHeader />
+      <AppHeader />
 
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden px-3 py-3 sm:px-6 sm:py-5">
+      <main id="main-content" tabIndex={-1} className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden px-3 py-3 sm:px-6 sm:py-5">
         {/* Top header row */}
         <div className="mb-3 flex shrink-0 items-center justify-between gap-3 sm:mb-4">
           <div className="min-w-0">

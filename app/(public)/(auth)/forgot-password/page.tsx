@@ -66,7 +66,6 @@ export default function ForgotPasswordPage() {
   if (sentSuccess) {
     return (
       <AuthLayout
-        centered
         title="Check your inbox"
         subtext="We sent password recovery instructions to your email address."
         footer={backToSignIn}
@@ -98,7 +97,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout
-      centered
       title="Reset your password"
       subtext="Enter the email address on your account and we'll send you a recovery link."
       footer={backToSignIn}

@@ -11,7 +11,6 @@ import {
   Inbox,
   AlertCircle,
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/shared/DashboardLayout';
 import { FormError } from '@/components/ui/FormError';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -53,8 +52,9 @@ export default function AdminMessagesPage() {
    * down and rebuild it on every conversation switch.
    */
   const activeIdRef = useRef<string | null>(null);
-  activeIdRef.current = active?.id ?? null;
-  const activeId = active?.id ?? null;
+  useEffect(() => {
+    activeIdRef.current = active?.id ?? null;
+  }, [active?.id]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => threadEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
@@ -224,7 +224,6 @@ export default function AdminMessagesPage() {
   );
 
   return (
-    <DashboardLayout role="admin">
       <div className="space-y-5">
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
@@ -459,6 +458,5 @@ export default function AdminMessagesPage() {
           </section>
         </div>
       </div>
-    </DashboardLayout>
   );
 }

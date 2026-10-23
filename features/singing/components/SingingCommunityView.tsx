@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { SingingCommunityHero } from './SingingCommunityHero';
 import { SectionHeader } from '@/features/dance/components/SectionHeader';
 import { SingingOrgLogoBar } from './SingingOrgLogoBar';
 import { SingingUpdatesFilterBar } from './SingingUpdatesFilterBar';
@@ -17,19 +16,27 @@ import type { DanceOrg } from '@/lib/dance/types';
 import { VERIFIED_SINGING_ORGS, SINGING_ORGANIZATIONS } from '../data/singingOrgs';
 import { OrgLogoCarouselClient } from '@/features/dance/components/OrgLogoCarouselClient';
 import { PerformingArtsNewsHubGuide } from '@/features/performing-arts/components/PerformingArtsNewsHubGuide';
+import { DisciplinePageHeader } from '@/features/performing-arts/components/DisciplinePageHeader';
+import { DisciplineHighlights } from '@/features/performing-arts/components/DisciplineHighlights';
+import { AttributionFooter } from '@/features/performing-arts/components/AttributionFooter';
+import {
+  DISCIPLINE_PAGES,
+  type DisciplineHighlight,
+} from '@/features/performing-arts/data/disciplineMeta';
 import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
   AlertCircle,
   SearchX,
+  Sparkles,
   ChevronRight as ChevronRightSmall,
 } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
 
 function Breadcrumb() {
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
+    <nav aria-label="Breadcrumb">
       <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <li>
           <Link
@@ -166,7 +173,7 @@ export function SingingCommunityView({ initialOrgs = VERIFIED_SINGING_ORGS }: Si
           setLastUpdated('Recently verified');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load singing updates:', err);
       setError('Unable to load latest singing updates. Please try again.');
     } finally {
@@ -208,12 +215,16 @@ export function SingingCommunityView({ initialOrgs = VERIFIED_SINGING_ORGS }: Si
     }
   }, []);
 
+  // The timer keeps the effect body free of synchronous state updates and
+  // coalesces rapid filter changes into one fetch.
   useEffect(() => {
-    fetchUpdates();
+    const timer = window.setTimeout(fetchUpdates, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchUpdates]);
 
   useEffect(() => {
-    fetchUpcomingEvents();
+    const timer = window.setTimeout(fetchUpcomingEvents, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchUpcomingEvents]);
 
   const handleSelectRegion = (reg: string) => {
@@ -244,34 +255,67 @@ export function SingingCommunityView({ initialOrgs = VERIFIED_SINGING_ORGS }: Si
     setPage(1);
   };
 
+  /**
+   * Top cards route into the existing live feed. `filter` is the same category
+   * and search the filter bar already understands, so no new API surface is
+   * introduced.
+   */
+  const handleHighlightSelect = (item: DisciplineHighlight) => {
+    handleSelectCategory(item.filter.category ?? 'all');
+    handleSearchChange(item.filter.query ?? '');
+    const target = document.getElementById('latest-updates');
+    if (!target) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  };
+
   const orgsCount = useMemo(() => SINGING_ORGANIZATIONS.length - 1, []);
+  const pageMeta = DISCIPLINE_PAGES.singing;
 
   return (
-    <div className="space-y-10 pb-12 sm:space-y-12">
+    <div className="space-y-6 pb-10 sm:space-y-8">
       {/* 0. Breadcrumb */}
       <Breadcrumb />
 
-      {/* 1. Hero Banner */}
-      <SingingCommunityHero
-        totalUpdatesCount={total}
-        totalEventsCount={upcomingEvents.length}
-        federationsCount={orgsCount}
+      {/* 1. Slim page header: title, audience, verification, counters, actions */}
+      <DisciplinePageHeader
+        eyebrow={pageMeta.eyebrow}
+        title={pageMeta.title}
+        accent={pageMeta.titleAccent}
+        audience={pageMeta.audience}
+        verifiedLabel="Editorial-verified against official choral, conservatory, and competition sources"
         lastUpdated={lastUpdated}
+        stats={[
+          { label: 'Ensembles', value: orgsCount },
+          { label: 'Upcoming', value: upcomingEvents.length },
+          { label: 'Dispatches', value: total },
+        ]}
+        primaryCta={{
+          label: pageMeta.primaryCtaLabel,
+          href: pageMeta.primaryCtaHref,
+        }}
+        secondaryCta={{
+          label: pageMeta.findCoachesLabel,
+          href: pageMeta.findCoachesHref,
+        }}
+        secondaryIcon={Sparkles}
       />
 
-      {/* 1b. Official Vocal Organization Logo / Text-Pill Carousel */}
+      {/* 2. Main content cards, immediately below the header */}
+      <DisciplineHighlights items={pageMeta.highlights} onSelect={handleHighlightSelect} />
+
+      {/* 3. Official Vocal Organization Logo / Text-Pill Carousel */}
       <OrgLogoCarouselClient
         orgs={initialOrgs && initialOrgs.length > 0 ? initialOrgs : VERIFIED_SINGING_ORGS}
       />
-      <p className="mx-auto -mt-6 max-w-3xl text-center text-[11px] leading-relaxed text-muted-foreground">
-        Logos, names, and trademarks belong to their respective owners. Groove is an independent
-        directory and is not affiliated with or endorsed by these organizations.
-      </p>
 
-      {/* 2. Organization Filter Bar */}
+      {/* 4. Organization Filter Bar */}
       <SingingOrgLogoBar selectedOrg={selectedOrg} onSelectOrg={handleSelectOrg} />
 
-      {/* 3. Upcoming & Past Vocal Events Showcase Grid */}
+      {/* 5. Upcoming & Past Vocal Events Showcase Grid */}
       <SingingUpcomingEventsSection
         events={upcomingEvents}
         pastEvents={pastEvents}
@@ -282,7 +326,7 @@ export function SingingCommunityView({ initialOrgs = VERIFIED_SINGING_ORGS }: Si
         onClearFilters={handleClearFilters}
       />
 
-      {/* 4. Latest Updates Section */}
+      {/* 6. Latest Updates Section */}
       <section id="latest-updates" aria-labelledby="latest-updates-title" className="scroll-mt-24">
         <SectionHeader
           eyebrow="Real-Time Vocal Discovery & Reporting"
@@ -399,22 +443,20 @@ export function SingingCommunityView({ initialOrgs = VERIFIED_SINGING_ORGS }: Si
         )}
       </section>
 
-      {/* 5. Featured Vocal Ensembles Roster */}
+      {/* 7. Featured Vocal Ensembles Roster */}
       <FeaturedVocalistsRoster />
 
-      {/* 6. Vocal Technique, Warm-Ups & Training Hub */}
+      {/* 8. Vocal Technique, Warm-Ups & Training Hub */}
       <VocalTechniqueSection />
 
-      {/* 7. Performing Arts News Hub Guide, Editorial Standards & Safety Disclaimer */}
+      {/* 9. Performing Arts News Hub Guide, Editorial Standards & Safety Disclaimer */}
       <PerformingArtsNewsHubGuide discipline="singing" />
 
       {/* Page attribution footer */}
-      <footer aria-label="Singing community attribution" className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-6">
-        <p className="mx-auto max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
-          Logos, choral names, and trademarks belong to their respective owners. Groove is an independent
-          directory and is not affiliated with or endorsed by these choral organizations.
-        </p>
-      </footer>
+      <AttributionFooter label="Singing community attribution">
+        Logos, choral names, and trademarks belong to their respective owners. Groove is an
+        independent directory and is not affiliated with or endorsed by these choral organizations.
+      </AttributionFooter>
     </div>
   );
 }

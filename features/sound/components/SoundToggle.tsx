@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Volume2 } from 'lucide-react';
-import { useSoundPreference, prefersReducedMotion } from '../useGlobalClickSound';
+import { useSoundPreference } from '../useGlobalClickSound';
 
 /**
  * The sound on/off switch.
@@ -16,6 +16,10 @@ import { useSoundPreference, prefersReducedMotion } from '../useGlobalClickSound
  * the document listener, and a second copy of it would make every click play
  * twice. Reading the flag costs nothing; listening does.
  *
+ * Only the On/Off status is visible here. The explanation (including the
+ * reduced-motion note) lives in the shared <SoundInfoTip> beside each "Sound"
+ * heading, so this control stays a switch rather than a paragraph.
+ *
  * A switch rather than a two-button toggle because it is a single boolean and
  * `role="switch"` announces "on"/"off" directly. It is 44px tall, matching the
  * minimum touch target used by the rest of the header controls.
@@ -28,12 +32,8 @@ export function SoundToggle({ className = '' }: { className?: string }) {
       type="button"
       role="switch"
       aria-checked={enabled}
+      aria-label="Click sounds"
       onClick={() => setEnabled(!enabled)}
-      title={
-        enabled
-          ? 'Click sounds are on. Turn them off.'
-          : 'Click sounds are off. Turn them on.'
-      }
       className={`group inline-flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-left transition ${
         enabled
           ? 'text-foreground hover:bg-muted'
@@ -55,7 +55,6 @@ export function SoundToggle({ className = '' }: { className?: string }) {
         <span className="block text-xs font-semibold">Click sounds</span>
         <span className="block text-[11px] text-muted-foreground">
           {enabled ? 'On' : 'Off'}
-          {prefersReducedMotion() && enabled ? ' · reduced motion is on' : ''}
         </span>
       </span>
 

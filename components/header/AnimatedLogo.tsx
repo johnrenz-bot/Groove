@@ -26,14 +26,18 @@ import { cn } from '@/components/shared/cn';
 export function AnimatedLogo({
   href,
   subtitle,
-  /** `full` = mark + "Groove" (+ optional subtitle); `mark` = icon only. */
+  /**
+   * `full`  = mark + live "Groove" text (+ optional subtitle)
+   * `mark`  = icon only
+   * `lockup` = icon + the actual GroovePH wordmark asset + subtitle
+   */
   variant = 'full',
   className,
   onNavigate,
 }: {
   href: string;
   subtitle?: string;
-  variant?: 'full' | 'mark';
+  variant?: 'full' | 'mark' | 'lockup';
   className?: string;
   onNavigate?: () => void;
 }) {
@@ -41,12 +45,11 @@ export function AnimatedLogo({
     <Link
       href={href}
       onClick={onNavigate}
-      /* No aria-label: the lockup already reads "Groove" plus the optional
-         subtitle as its accessible name, and adding a label that paraphrases
-         that ("Groove — Performing Arts") makes the accessible name disagree
-         with the visible text, which is what
-         `label-content-name-mismatch` flags. Naming a link from its own content
-         is also what keeps it correct when `subtitle` changes with the role. */
+      /* The full lockup names itself from its visible wordmark. The mark-only
+         variant has no visible text — both the image and its wrapper are
+         decorative — so it needs an explicit accessible name or the logo link
+         is announced as an unlabelled link. */
+      aria-label={variant === 'mark' ? 'GroovePH home' : undefined}
       className={cn('hx-logo', className)}
     >
       <span className="hx-logo-mark" aria-hidden="true">
@@ -71,6 +74,21 @@ export function AnimatedLogo({
           {/* Second sweep, across the wordmark. Fires on a different phase from
               the mark's so the two never look like one synchronised animation. */}
           <span className="hx-logo-sheen hx-logo-sheen--word" aria-hidden="true" />
+        </span>
+      )}
+
+      {variant === 'lockup' && (
+        <span className="hx-logo-word hx-logo-word--image">
+          {/* The supplied GroovePH wordmark, kept as an asset rather than
+              re-typed: it carries the Philippine-flag PH that live text cannot. */}
+          <Image
+            src="/image/modal/grooveph-logo.png"
+            alt="GroovePH"
+            width={1024}
+            height={293}
+            className="hx-logo-wordmark"
+          />
+          {subtitle && <span className="hx-logo-sub">{subtitle}</span>}
         </span>
       )}
     </Link>

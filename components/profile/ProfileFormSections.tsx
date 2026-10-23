@@ -17,6 +17,7 @@
 
 import React from 'react';
 import { cn } from '@/components/shared/cn';
+import { InfoTip } from '@/components/ui/InfoTip';
 import {
   Mail,
   AtSign,
@@ -29,11 +30,16 @@ import {
   Check,
   AlertCircle,
 } from 'lucide-react';
-import { AddressSelector, type AddressData } from '@/components/auth/AddressSelector';
+import {
+  AddressSelector,
+  validateAddress,
+  type AddressData,
+} from '@/components/auth/AddressSelector';
 import {
   BIRTH_YEARS,
   MONTHS,
   CLIENT_TALENT_OPTIONS,
+  isClientTalentOption,
   COACH_SKILL_OPTIONS,
   COACH_DURATION_OPTIONS,
   COACH_PAYMENT_OPTIONS,
@@ -304,13 +310,13 @@ export function AddressSection({
   return (
     <fieldset className="space-y-4 border-t border-border pt-7" disabled={disabled}>
       <SectionHeading icon={<MapPin className="h-4 w-4 text-accent-text" aria-hidden="true" />}>
-        Service Location (San Jose del Monte, Bulacan)
+        Service Location
       </SectionHeading>
       <AddressSelector
         initialData={address}
         onChange={onChange}
         required
-        errors={{ barangay: errors?.barangay, street: errors?.street }}
+        errors={errors}
       />
     </fieldset>
   );
@@ -491,6 +497,14 @@ export function ClientTalentSection({
           aria-invalid={errors.talent ? 'true' : undefined}
           className={selectClasses}
         >
+          {/* Existing rows may still hold a now-retired interest. Render it so
+              the saved value is visible, but disabled — it cannot be chosen
+              again and Save will ask for a current option. */}
+          {talent && !isClientTalentOption(talent) && (
+            <option value={talent} disabled>
+              {talent} (no longer available)
+            </option>
+          )}
           {CLIENT_TALENT_OPTIONS.map((option) => (
             <option key={option} value={option}>
               {option}
@@ -761,11 +775,12 @@ export function VerificationReadOnly({
       <div className="flex items-center gap-2">
         <ShieldCheck className="h-4 w-4 text-accent-text" aria-hidden="true" />
         <h3 className="text-sm font-bold text-foreground">Identity Verification</h3>
+        <InfoTip
+          title="Identity Verification"
+          short="Documents submitted at registration — read-only."
+          details="These documents were collected during registration. Verification status is managed by Groove and cannot be changed from your profile."
+        />
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Documents submitted at registration. Verification status is managed by Groove and cannot be
-        changed from your profile.
-      </p>
       <dl className="mt-4 space-y-2">
         {rows.map((row) => (
           <div
@@ -806,6 +821,8 @@ export function validateProfileSections(input: {
   address: AddressData;
   /** Role-specific extras; each role supplies only its own. */
   bio?: string;
+  /** Client-only: `client_profiles.talent`. */
+  talent?: string;
   genres?: string[];
   service_fee?: string;
   payment_type?: string;
@@ -823,12 +840,9 @@ export function validateProfileSections(input: {
   if (!personal.birth_year || !personal.birth_month || !personal.birth_day) {
     errs.birth = VALIDATION_MESSAGES.birthRequired;
   }
-  if (!address.barangay_name) {
-    errs.barangay = VALIDATION_MESSAGES.barangayRequired;
-  }
-  if (!address.street.trim()) {
-    errs.street = VALIDATION_MESSAGES.streetRequired;
-  }
+  // Address rules are shared with Registration so SJDM and nationwide
+  // addresses cannot diverge between the two entry points.
+  Object.assign(errs, validateAddress(address));
   if (!isValidMobile(contact.contact)) {
     errs.contact = VALIDATION_MESSAGES.mobile;
   }
@@ -845,6 +859,11 @@ export function validateProfileSections(input: {
 
   if (input.bio !== undefined && input.bio.trim().length < 10) {
     errs.bio = VALIDATION_MESSAGES.bioRequired;
+  }
+  // Retired interests (e.g. "Musical Instruments") stay in old rows but cannot
+  // be saved back as a current selection.
+  if (input.talent !== undefined && !isClientTalentOption(input.talent)) {
+    errs.talent = 'Please choose a current primary performing interest.';
   }
   if (input.genres !== undefined && input.genres.length === 0) {
     errs.genres = 'Please select at least one genre.';

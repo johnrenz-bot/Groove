@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
+import { InfoTip } from '@/components/ui/InfoTip';
 import { Button } from '@/components/ui/Button';
 import {
   AdminTable,
@@ -298,14 +299,14 @@ export default function AdminVerificationPage() {
       )}
 
       {/* Requirement reminder — the rule the approve button enforces. */}
-      <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3.5">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          <strong className="font-semibold text-foreground">Approval requirements.</strong> A coach
-          needs a portfolio, a valid government ID, and a selfie holding that ID. A client needs a
-          valid government ID. Approval stays unavailable until every required document is
-          present — the database refuses it as well, not just this screen.
-        </p>
+      <div className="flex items-center gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-2.5">
+        <ShieldCheck className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
+        <span className="text-xs font-semibold text-foreground">Approval requirements</span>
+        <InfoTip
+          title="Approval requirements"
+          short="Coaches need a portfolio, government ID and ID selfie; clients need a government ID."
+          details="A coach needs a portfolio, a valid government ID, and a selfie holding that ID. A client needs a valid government ID. Approval stays unavailable until every required document is present — the database refuses it as well, not just this screen."
+        />
       </div>
 
       {/* Tabs + filters */}
@@ -366,6 +367,10 @@ export default function AdminVerificationPage() {
       ) : (
         <>
           <AdminTable
+            title="Verification queue"
+            icon={<ShieldCheck className="h-4 w-4" />}
+            info="Review the identity documents every coach and client submitted, then approve or reject with a reason they can act on."
+            infoShort="Identity submissions awaiting review."
             columns={columns}
             rows={slice}
             rowKey={(u) => u.id}

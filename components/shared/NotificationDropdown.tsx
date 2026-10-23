@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Notification } from '@/lib/types';
 import { formatTimeAgo } from '@/lib/utils';
-import { Bell, ExternalLink, Inbox, CheckCheck, X } from 'lucide-react';
+import { Bell, ChevronDown, ExternalLink, Inbox, CheckCheck, X } from 'lucide-react';
 
 interface NotificationDropdownProps {
   userId: string;
@@ -60,6 +60,8 @@ export function NotificationDropdown({
 }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showAll, setShowAll] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   /**
    * Open state, controlled or not.
@@ -124,7 +126,9 @@ export function NotificationDropdown({
 
   useEffect(() => {
     if (!userId) return;
-    fetchNotifications();
+    const timer = window.setTimeout(() => {
+      void fetchNotifications();
+    }, 0);
 
     const supabase = createClient();
     const channelName = `user-notifications-${userId}-${Date.now()}`;
@@ -153,6 +157,7 @@ export function NotificationDropdown({
       .subscribe();
 
     return () => {
+      window.clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [userId, fetchNotifications]);
@@ -172,9 +177,10 @@ export function NotificationDropdown({
   const close = useCallback(() => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
     setClosing(true);
-    window.setTimeout(() => {
+    closeTimer.current = window.setTimeout(() => {
       setOpen(false);
       setClosing(false);
+      setShowAll(false);
     }, EXIT_MS);
     // `open` is intentionally not a dependency: the timer is cancelled and
     // restarted on every call, so the callback stays stable and the Escape
@@ -186,6 +192,7 @@ export function NotificationDropdown({
   const show = useCallback(() => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
     setClosing(false);
+    setShowAll(false);
     setOpen(true);
   }, [setOpen]);
 
@@ -216,7 +223,10 @@ export function NotificationDropdown({
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
+      if (event.key === 'Escape') {
+        close();
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
@@ -224,10 +234,13 @@ export function NotificationDropdown({
 
   const mounted = open || closing;
   const unreadLabel = unreadCount > 0 ? `${unreadCount} unread` : 'none unread';
+  const visible = showAll ? notifications : notifications.slice(0, 5);
+  const hasMore = notifications.length > 5;
 
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => (open ? close() : show())}
         className="g-topbar-action relative cursor-pointer"
@@ -235,6 +248,7 @@ export function NotificationDropdown({
         aria-label={`Notifications (${unreadLabel})`}
         aria-expanded={open}
         aria-haspopup="dialog"
+        aria-controls={open ? 'hx-notifications-panel' : undefined}
       >
         <Bell className="h-[18px] w-[18px]" />
         {unreadCount > 0 && (
@@ -243,20 +257,29 @@ export function NotificationDropdown({
           </span>
         )}
       </button>
+      <span className="sr-only" role="status" aria-live="polite">
+        {unreadCount === 0 ? 'No unread notifications' : `${unreadCount} unread notifications`}
+      </span>
 
       {mounted && (
         <>
-          {/* Click-outside catcher. Transparent, and it sits below the panel so
-              it never steals a click meant for a notification or its link. */}
-          <button
-            type="button"
-            aria-label="Close notifications"
-            tabIndex={-1}
-            className="fixed inset-0 z-50 cursor-default bg-transparent"
-            onClick={close}
-          />
+          {/* Click-outside catcher for UNCONTROLLED callers only. The shared
+              header owns its own outside-click handling and passes `open`, so
+              rendering this there put a full-screen button above the bar and
+              swallowed the first click on whatever the user actually aimed at.
+              A caller that manages its own state still gets the old safety net. */}
+          {!controlled && (
+            <button
+              type="button"
+              aria-label="Close notifications"
+              tabIndex={-1}
+              className="fixed inset-0 z-50 cursor-default bg-transparent"
+              onClick={close}
+            />
+          )}
 
           <div
+            id="hx-notifications-panel"
             className="g-notif-panel"
             data-state={closing ? 'closed' : 'open'}
             role="dialog"
@@ -297,8 +320,8 @@ export function NotificationDropdown({
             </div>
 
             <div className="g-notif-list g-scroll">
-              {notifications.length > 0 ? (
-                notifications.map((notif) => (
+              {visible.length > 0 ? (
+                visible.map((notif, index) => (
                   <div
                     key={notif.id}
                     role="button"
@@ -312,6 +335,7 @@ export function NotificationDropdown({
                     }}
                     data-unread={!notif.read_at}
                     className="g-notif-item"
+                    style={{ ['--item-index' as string]: String(index) }}
                   >
                     <div className="flex items-start gap-2">
                       {notif.read_at ? (
@@ -365,6 +389,24 @@ export function NotificationDropdown({
                 </div>
               )}
             </div>
+
+            {hasMore && (
+              <button
+                type="button"
+                onClick={() => setShowAll((value) => !value)}
+                aria-expanded={showAll}
+                className="g-notif-viewall"
+              >
+                <span>
+                  {showAll ? 'Show latest five' : `View all ${notifications.length} notifications`}
+                </span>
+                <ChevronDown
+                  className="h-3.5 w-3.5 transition-transform duration-200"
+                  data-open={showAll || undefined}
+                  aria-hidden="true"
+                />
+              </button>
+            )}
           </div>
         </>
       )}

@@ -8,12 +8,11 @@ import { createClient } from '@/lib/supabase/client';
 import { isAdminIdentity } from '@/lib/admin/access';
 import type { UserRole } from '@/lib/types';
 import { AuthLayout } from '@/components/shared/AuthLayout';
-import { ImageCard } from '@/components/shared/ImageCard';
 import { FormField, PasswordInput } from '@/components/ui/FormField';
 import { FormError } from '@/components/ui/FormError';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
 import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
+import { RoleSelectionModal } from '@/features/auth/components/RoleSelectionModal';
 
 /**
  * Remember-me persistence keys.
@@ -75,14 +74,6 @@ function LoginForm() {
       );
     }
   }, [urlError]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowRoleModal(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   /** Focus the first invalid field so keyboard users land on the problem. */
   const focusFirstInvalid = () => {
@@ -256,6 +247,9 @@ function LoginForm() {
         subtext="Sign in to your GroovePH account to continue."
         image="/image/login/bright.jpeg"
         quote="Move to your own rhythm."
+        imagePanelTitle="Move to your own rhythm."
+        imagePanelDescription="Sign in to discover verified coaches, book rehearsal studios, and grow your craft in Bulacan's premier performing arts hub."
+        imagePanelImage="/image/login/bright.jpeg"
         footer={
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
@@ -437,65 +431,10 @@ function LoginForm() {
       </AuthLayout>
 
       {/* Role Selection Modal */}
-      <Modal
+      <RoleSelectionModal
         open={showRoleModal}
         onClose={() => setShowRoleModal(false)}
-        title={
-          <div className="flex flex-col gap-1 text-left sm:text-center">
-            <span className="g-eyebrow mx-auto mb-1">
-              <Sparkles className="h-3 w-3" aria-hidden="true" />
-              Join GroovePH
-            </span>
-            <span className="text-xl sm:text-2xl font-bold tracking-tight">Create your account</span>
-          </div>
-        }
-        description="Select your account type to begin your registration as a performer or coach."
-        size="lg"
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-2">
-          <ImageCard
-            overlay
-            href="/register/coach"
-            aspect="aspect-[4/3] sm:aspect-[16/10]"
-            image="/image/login/choreo.jpg"
-            alt="Coach / Choreographer registration"
-            name="Coach / Choreographer"
-            subtitle="Showcase your talents and manage bookings"
-            badges={
-              <span className="g-pill g-pill-accent text-[10px] font-bold uppercase tracking-wider">
-                Teach & Mentor
-              </span>
-            }
-            continuePill="Register as Coach"
-          />
-          <ImageCard
-            overlay
-            href="/register/client"
-            aspect="aspect-[4/3] sm:aspect-[16/10]"
-            image="/image/login/arti.jpg"
-            alt="Client / Performer registration"
-            name="Client / Performer"
-            subtitle="Discover mentors and book sessions"
-            badges={
-              <span className="g-pill g-pill-accent text-[10px] font-bold uppercase tracking-wider">
-                Learn & Perform
-              </span>
-            }
-            continuePill="Register as Performer"
-          />
-        </div>
-
-        <p className="mt-6 border-t border-divider pt-5 text-center text-xs text-muted-foreground">
-          Already have an account?{' '}
-          <Link
-            href="/login"
-            onClick={() => setShowRoleModal(false)}
-            className="font-semibold text-accent-text hover:underline underline-offset-4"
-          >
-            Sign in
-          </Link>
-        </p>
-      </Modal>
+      />
     </div>
   );
 }

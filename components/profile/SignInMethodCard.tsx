@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Mail, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
 
 interface SignInMethodCardProps {
   provider?: string | null;
@@ -45,23 +46,21 @@ export function SignInMethodCard({
   const providerType = isGoogle || isGithub ? 'OAuth Sign-in Provider' : 'Direct Email Authentication';
 
   return (
-    <section className={`g-card p-6 ${className}`} aria-label="Sign-in method">
-      <header className="mb-5 flex items-center justify-between border-b border-divider pb-4">
-        <div>
-          <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">
-            Sign-in Method
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            App Builders PH uses {providerName} to sign you in. It&apos;s your active sign-in method.
-          </p>
-        </div>
-        <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-          <ShieldCheck className="h-3.5 w-3.5 text-accent-text" />
-          <span>Secured</span>
-        </span>
-      </header>
-
-      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4.5 shadow-xs">
+    <Panel className={className} aria-label="Sign-in method">
+      <PanelHeader
+        icon={<ShieldCheck className="h-4 w-4" />}
+        title="Sign-in Method"
+        info={`App Builders PH uses ${providerName} to sign you in. This is your active sign-in method and is managed by the authentication provider.`}
+        infoShort={`${providerName} is your active sign-in method.`}
+        action={
+          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-accent-text" />
+            <span>Secured</span>
+          </span>
+        }
+      />
+      <PanelBody>
+        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4.5 shadow-xs">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3.5">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface shadow-xs">
@@ -97,7 +96,8 @@ export function SignInMethodCard({
             </span>
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </PanelBody>
+    </Panel>
   );
 }

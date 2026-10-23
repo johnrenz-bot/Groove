@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -9,8 +9,17 @@ import {
   PersonalData,
   ContactAccountData,
 } from '@/components/auth/RegistrationFormFields';
-import { AddressData, composeStreetLine } from '@/components/auth/AddressSelector';
-import { CLIENT_TALENT_OPTIONS, normalizeContactForStorage } from '@/lib/profileFields';
+import { RegistrationProgress } from '@/components/auth/RegistrationProgress';
+import {
+  AddressData,
+  composeStreetLine,
+  getServiceLocationMode,
+} from '@/components/auth/AddressSelector';
+import {
+  CLIENT_TALENT_OPTIONS,
+  isClientTalentOption,
+  normalizeContactForStorage,
+} from '@/lib/profileFields';
 import { AuthLayout } from '@/components/shared/AuthLayout';
 import { GoogleRegisterButton } from '@/components/shared/GoogleRegisterButton';
 import { Sparkles } from 'lucide-react';
@@ -23,19 +32,35 @@ import { getFeaturedLocationsDisplay, getFeaturedLocationsAddressSummary } from 
 // fenced with "GCASH-QR (temporarily disabled)" so the block can be restored by
 // uncommenting the original code, which is preserved in the project history.
 
+/**
+ * The performer form is a single page, so its progress rail maps to the five
+ * numbered sections rendered by RegistrationFormFields. The ids below are the
+ * heading ids that component already emits for its aria-labelledby wiring.
+ */
+const CLIENT_SECTIONS = [
+  { id: 1, label: 'About you', detail: 'Personal details', target: 'reg-legend-personal' },
+  { id: 2, label: 'Location', detail: 'Service area', target: 'reg-legend-address' },
+  { id: 3, label: 'Account', detail: 'Contact & login', target: 'reg-legend-contact' },
+  { id: 4, label: 'Verify ID', detail: 'ID upload', target: 'reg-legend-id' },
+  { id: 5, label: 'Review', detail: 'Terms & submit', target: 'reg-legend-terms' },
+] as const;
+
 export default function ClientRegistrationPage() {
   const [talent, setTalent] = useState('Dance');
+  const [activeSection, setActiveSection] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submitStage, setSubmitStage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // True when signUp() succeeded but the ID upload did not. The account exists in
-  // that state, so the message must not read as a retryable signup failure.
-  const [accountCreatedWithoutId, setAccountCreatedWithoutId] = useState(false);
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
   const [successData, setSuccessData] = useState<{
     firstname: string;
     username: string;
     email: string;
     talent: string;
+    location: string;
+    locationDisplay: string;
+    /** True when Supabase created the user but requires email confirmation. */
+    verificationRequired: boolean;
     // GCASH-QR (temporarily disabled): restore `gcashWarning?: string | null;`
     // here when the optional QR upload is re-enabled.
   } | null>(null);
@@ -47,6 +72,61 @@ export default function ClientRegistrationPage() {
   // policies are TO authenticated; the upload ran after signUp() returned a
   // session. Reinstate these five hooks exactly as they were to restore.
 
+  /**
+   * Keep the section rail in sync with the part of the single-page form the
+   * visitor is reading. The headings are rendered by RegistrationFormFields, so
+   * they are looked up after mount rather than passed down as refs.
+   */
+  useEffect(() => {
+    const elements = CLIENT_SECTIONS.map((section) =>
+      document.getElementById(section.target)
+    ).filter((element): element is HTMLElement => Boolean(element));
+
+    if (!elements.length || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const current = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (!current) return;
+
+        const section = CLIENT_SECTIONS.find(
+          (item) => item.target === current.target.id
+        );
+        if (section) setActiveSection(section.id);
+      },
+      { rootMargin: '-18% 0px -66% 0px', threshold: 0 }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+
+    // The final section is short, so it can never travel into the observer's
+    // narrow active band before the page bottoms out. Treat "at the bottom" as
+    // the review step explicitly; scrolling back up lets the observer resume.
+    const lastSection = CLIENT_SECTIONS[CLIENT_SECTIONS.length - 1];
+    const handleScroll = () => {
+      const atBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 8;
+      if (atBottom) setActiveSection(lastSection.id);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const goToSection = (id: number) => {
+    const section = CLIENT_SECTIONS.find((item) => item.id === id);
+    if (!section) return;
+    setActiveSection(id);
+    document.getElementById(section.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const handleSubmit = async (data: {
     personal: PersonalData;
     contact: ContactAccountData;
@@ -54,9 +134,22 @@ export default function ClientRegistrationPage() {
     idFile: File | null;
   }) => {
     if (loading) return;
+
+    // Defence in depth: the select only renders current options, but a stale or
+    // tampered value (for example a retired "Musical Instruments" choice) must
+    // never reach client_profiles.
+    if (!isClientTalentOption(talent)) {
+      setError('Please choose a current primary performing interest.');
+      return;
+    }
+
     setError(null);
-    setAccountCreatedWithoutId(false);
     setLoading(true);
+    setSubmitStage('Creating your account…');
+
+    // Tracks whether the auth row exists, so a later failure (profile, upload,
+    // sign-in for the upload) never reads as "try the whole signup again".
+    let accountCreated = false;
 
     try {
       const supabase = createClient();
@@ -133,6 +226,18 @@ export default function ClientRegistrationPage() {
         );
       }
 
+      // Supabase deliberately returns an obfuscated user with no identities when
+      // an address already exists and email confirmation is enabled. Treating
+      // that as a new signup would show a success screen for an account this
+      // visitor cannot use.
+      if (Array.isArray(authData.user.identities) && authData.user.identities.length === 0) {
+        throw new Error(
+          'That email address is already registered. Please sign in instead, or use a different email address.'
+        );
+      }
+
+      accountCreated = true;
+
       // Welcome email. Best-effort only: the account already exists at this point,
       // so a delivery failure must not abort the rest of the registration or turn a
       // successful signup into an error for the user. The inner catch is what makes
@@ -175,18 +280,62 @@ export default function ClientRegistrationPage() {
       // the ID upload runs against their own auth.uid() folder and the Storage
       // policy can enforce that ownership.
       const userId = authData.user.id;
+      const location =
+        getServiceLocationMode(data.address) === 'other'
+          ? data.address.address_summary
+          : getFeaturedLocationsAddressSummary();
+      const locationDisplay =
+        getServiceLocationMode(data.address) === 'other'
+          ? [data.address.city_name, data.address.province_name || data.address.region_name]
+              .filter(Boolean)
+              .join(', ')
+          : getFeaturedLocationsDisplay();
 
-      // signUp() only returns a session when email confirmation is disabled. When
-      // it is enabled the JWT is null and any Storage write would be evaluated as
-      // anon, so sign in explicitly to obtain the session the upload requires.
-      const hasSession = authData.session !== null;
-      if (!hasSession) {
+      // signUp() returns a session when email confirmation is disabled. When it
+      // is enabled the JWT is null, and Storage writes would be evaluated as
+      // anonymous. Do not attempt the upload in that case: report the verified
+      // backend state instead of pretending the account is fully set up.
+      const verificationRequired =
+        authData.session === null && !authData.user.email_confirmed_at;
+
+      if (verificationRequired) {
+        setSuccessData({
+          firstname: data.personal.firstname.trim(),
+          username: data.contact.username.trim().toLowerCase(),
+          email: data.contact.email.trim(),
+          talent,
+          location,
+          locationDisplay,
+          verificationRequired: true,
+        });
+        setRegisteredSuccess(true);
+        return;
+      }
+
+      if (authData.session === null) {
         const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
           email: data.contact.email.trim(),
           password: data.contact.password,
         });
 
         if (signInErr || !signInData.session) {
+          // Supabase's accurate "email not confirmed" response means the account
+          // exists but cannot upload yet. That is a pending-verification state,
+          // not a signup failure.
+          if (/email not confirmed/i.test(signInErr?.message ?? '')) {
+            setSuccessData({
+              firstname: data.personal.firstname.trim(),
+              username: data.contact.username.trim().toLowerCase(),
+              email: data.contact.email.trim(),
+              talent,
+              location,
+              locationDisplay,
+              verificationRequired: true,
+            });
+            setRegisteredSuccess(true);
+            return;
+          }
+
           throw new Error(
             'Your account was created, but we could not sign you in to upload your ID document. ' +
               'Please sign in and upload your ID from your profile.'
@@ -215,6 +364,7 @@ export default function ClientRegistrationPage() {
       // must not depend on Storage succeeding: with the upload first, an upload
       // failure aborted the whole handler and left only the trigger's partial
       // row, losing the name, DOB, contact and address the user had entered.
+      setSubmitStage('Saving your profile…');
       const { error: profileErr } = await supabase.from('profiles').upsert({
         id: userId,
         custom_id: random4Digit,
@@ -271,6 +421,7 @@ export default function ClientRegistrationPage() {
       const safeExt = /^[a-z0-9]{1,5}$/.test(fileExt) ? fileExt : 'jpg';
       const fileName = `clients/${userId}/${Date.now()}_${random4Digit}.${safeExt}`;
 
+      setSubmitStage('Uploading your ID securely…');
       try {
         const { data: storageData, error: storageErr } = await supabase.storage
           .from('verification-documents')
@@ -291,8 +442,7 @@ export default function ClientRegistrationPage() {
       } catch (storageErr) {
         // The account is already created at this point, so do not delete it and
         // do not present this as a registration failure the user can retry from
-        // scratch: tell them the account exists and the ID still needs upload.
-        setAccountCreatedWithoutId(true);
+        // scratch. The outer catch adds the account-created context.
         throw storageErr instanceof Error
           ? storageErr
           : new Error('Could not upload your ID document. Please try again.');
@@ -300,6 +450,7 @@ export default function ClientRegistrationPage() {
 
       // client_profiles has exactly three real columns (id, talent, valid_id_path);
       // nothing else may be sent, and valid_id_path is the raw Storage path.
+      setSubmitStage('Finalizing your account…');
       const { error: clientProfileErr } = await supabase.from('client_profiles').upsert({
         id: userId,
         talent: talent,
@@ -322,17 +473,22 @@ export default function ClientRegistrationPage() {
         username: data.contact.username.trim().toLowerCase(),
         email: data.contact.email.trim(),
         talent,
+        location,
+        locationDisplay,
+        verificationRequired: false,
       });
       setRegisteredSuccess(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      const alreadyExplainsAccount = /account was created|account exists/i.test(message);
       setError(
-        accountCreatedWithoutId
-          ? `${message} Your account was created successfully — sign in and upload your ID from your profile.`
+        accountCreated && !alreadyExplainsAccount
+          ? `${message} Your account was created — sign in and finish setup from your profile.`
           : message
       );
     } finally {
       setLoading(false);
+      setSubmitStage(null);
     }
   };
 
@@ -345,12 +501,26 @@ export default function ClientRegistrationPage() {
           { label: 'Username', value: successData.username },
           { label: 'Email', value: successData.email },
           { label: 'Primary Interest', value: successData.talent },
-          { label: 'Location', value: getFeaturedLocationsAddressSummary() },
+          { label: 'Location', value: successData.location },
+          ...(successData.verificationRequired
+            ? [{ label: 'ID document', value: 'Upload after sign-in', highlight: true }]
+            : []),
         ]}
+        verificationRequired={successData.verificationRequired}
+        email={successData.email}
+        verificationNote={
+          successData.verificationRequired
+            ? 'Then sign in and upload your ID from your profile to finish verification.'
+            : undefined
+        }
         // GCASH-QR (temporarily disabled): the conditional "GCash QR — not saved"
         // detail row and the matching `warning` prop that rendered beside it were
         // removed here. Restore both alongside `gcashWarning` above.
-        message={`You can now sign in to discover verified coaches, book live rehearsal sessions, and explore performing arts in ${getFeaturedLocationsDisplay()}.`}
+        message={
+          successData.verificationRequired
+            ? 'Your account is not active yet. Confirm your email first, then sign in to upload your ID and finish setup.'
+            : `You can now sign in to discover verified coaches, book live rehearsal sessions, and explore performing arts in ${successData.locationDisplay}.`
+        }
       />
     );
   }
@@ -358,6 +528,7 @@ export default function ClientRegistrationPage() {
   return (
     <AuthLayout
       wide
+      registration
       eyebrow={
         <span className="au-eyebrow">
           <Sparkles className="h-3 w-3" aria-hidden="true" />
@@ -365,7 +536,11 @@ export default function ClientRegistrationPage() {
         </span>
       }
       title="Join Groove System"
-      subtext={`Create your performer account to connect with verified coaches and book rehearsal sessions in ${getFeaturedLocationsDisplay()}.`}
+      subtext="Create your performer account to connect with verified coaches and book rehearsal sessions in San Jose del Monte and other locations in the Philippines."
+      // Image panel props for potential split mode or future enhancement
+      imagePanelTitle="Your stage awaits."
+      imagePanelDescription="Join performing artists across the Philippines. Connect with verified coaches, book studios, and sign digital contracts — all in one place."
+      imagePanelImage="/image/bg/hero-stage.jpg"
       footer={
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}
@@ -378,40 +553,51 @@ export default function ClientRegistrationPage() {
         </p>
       }
     >
-      {/* Fast Track with Google */}
-      <div className="mb-8 rounded-2xl border border-[#2a2c38] bg-[#121319]/80 p-5 shadow-sm backdrop-blur-sm">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F4BE4D]/15 text-[#F4BE4D] text-xs font-bold">
+      <RegistrationProgress
+        className="mb-5"
+        label="Performer registration"
+        status={`Section ${activeSection} of ${CLIENT_SECTIONS.length}`}
+        percent={(activeSection / CLIENT_SECTIONS.length) * 100}
+        activeId={activeSection}
+        onSelect={goToSection}
+        ariaLabel="Performer registration sections"
+        items={CLIENT_SECTIONS.map((section) => ({
+          id: section.id,
+          label: section.label,
+          detail: section.detail,
+        }))}
+      />
+
+      {/* Fast Track with Google. The provider remains disabled in the shared
+          button; the copy says so rather than promising an unavailable shortcut. */}
+      <div className="reg-oauth-card mb-4">
+        <div className="mb-2.5 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="reg-oauth-icon" aria-hidden="true">
               ⚡
             </span>
-            <h2 className="text-sm font-bold text-[#f5f5f5]">Fast-Track with Google</h2>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Fast-track with Google</h3>
+              <p className="text-[11px] text-muted-foreground">Optional shortcut</p>
+            </div>
           </div>
-          <span className="rounded-full border border-[#F4BE4D]/30 bg-[#F4BE4D]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#F4BE4D]">
-            Instant Setup
-          </span>
+          <span className="reg-soft-badge">Coming soon</span>
         </div>
-        <p className="mb-4 text-xs text-[#9e9ea8] leading-relaxed">
-          Create your performer account instantly with your Google profile. You can upload verification documents and fill in full address details later from your profile.
+        <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+          Google sign-up is not available yet. Use the full registration form below to create
+          your performer account and upload the ID required for verification.
         </p>
-        <GoogleRegisterButton
-          role="client"
-          label="Continue with Google as Performer"
-        />
+        <GoogleRegisterButton role="client" label="Continue with Google as Performer" />
       </div>
 
-      <div className="relative my-8 text-center">
-        <div className="absolute inset-0 flex items-center" aria-hidden="true">
-          <div className="w-full border-t border-[#262832]" />
-        </div>
-        <span className="relative bg-[#111218] px-4 text-[11px] font-semibold uppercase tracking-wider text-[#9e9ea8]">
-          or complete full registration with ID document
-        </span>
+      <div className="reg-divider my-4">
+        <span>or complete full registration with ID document</span>
       </div>
 
       <RegistrationFormFields
         role="client"
         loading={loading}
+        loadingLabel={submitStage ?? undefined}
         externalError={error}
         onSubmit={handleSubmit}
         submitLabel="Complete Client Registration"
@@ -424,6 +610,7 @@ export default function ClientRegistrationPage() {
               id="reg-talent"
               value={talent}
               onChange={(e) => setTalent(e.target.value)}
+              required
               className="g-input"
             >
               {CLIENT_TALENT_OPTIONS.map((option) => (

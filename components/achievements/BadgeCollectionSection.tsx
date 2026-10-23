@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { CheckCircle2, Circle, Lock, RefreshCw, Trophy } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
+import { InfoTip } from '@/components/ui/InfoTip';
 import { AchievementModal } from './AchievementModal';
 import { AchievementsModal } from './AchievementsModal';
 import { AchievementWithProgress, UserBadgeStatus } from '@/lib/achievements/types';
@@ -167,15 +168,19 @@ export function BadgeCollectionSection({
       {/* Section header */}
       <header className="flex items-center justify-between">
         <div>
-          <h2
-            id="badge-collection-heading"
-            className="text-lg font-bold tracking-[-0.01em] text-foreground"
-          >
-            Badge Collection
-          </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Complete tasks to earn badges and showcase your achievements
-          </p>
+          <div className="flex items-center gap-2">
+            <h2
+              id="badge-collection-heading"
+              className="text-lg font-bold tracking-[-0.01em] text-foreground"
+            >
+              Badge Collection
+            </h2>
+            <InfoTip
+              title="Badge Collection"
+              short="Complete tasks to earn badges and showcase your achievements."
+              details="Each badge tracks its own checklist. Complete every task to unlock it, then share it from your public profile. Progress saves automatically."
+            />
+          </div>
         </div>
         <button
           type="button"

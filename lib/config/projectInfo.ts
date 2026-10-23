@@ -1,6 +1,6 @@
 /**
  * Project Information for GroovePH
- * Single source of truth for the /about page and Grooveyy AI knowledge.
+ * Single source of truth for the /about-project page and Grooveyy AI knowledge.
  * Keep this in sync with the deployed platform capabilities.
  */
 

@@ -92,11 +92,13 @@ export function Footer({
     { label: 'Vocal Performance', href: '/community/performing-arts/singing' },
     { label: 'Acting & Stage Craft', href: '/community/performing-arts/acting' },
     { label: 'Theater & Production', href: '/community/performing-arts/theater' },
+    { label: 'History & Learning', href: '/community/performing-arts/history' },
     { label: 'Performing Arts PH', href: '/performing-arts-philippines' },
   ];
 
   const companyLinks = [
     { label: 'About Groove', href: '/about' },
+    { label: 'Capstone Project', href: '/about-project' },
     { label: 'Help & FAQ', href: '/faq' },
     { label: 'Member Directory', href: '/users' },
     { label: 'Performing Arts PH', href: '/performing-arts-philippines' },

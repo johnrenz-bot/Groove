@@ -9,7 +9,6 @@ import {
   Monitor,
   Eye,
   EyeOff,
-  Sparkles,
   RotateCcw,
   CheckCircle2,
   Calendar,
@@ -18,6 +17,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { Section } from '@/components/ui/Section';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -292,19 +292,16 @@ export default function AdminThemePage() {
       </Card>
 
       {/* CORE THEMES SECTION */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-foreground">Core Themes</h3>
-            <p className="text-xs text-muted-foreground">
-              Standard year-round appearance modes designed for high readability and performance.
-            </p>
-          </div>
+      <Section
+        title="Core Themes"
+        info="Standard year-round appearance modes designed for high readability and performance."
+        infoShort="Year-round appearance modes."
+        action={
           <span className="text-xs font-semibold text-muted-foreground">
             {coreThemes.length} Available
           </span>
-        </div>
-
+        }
+      >
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
           {coreThemes.map((themeItem) => (
             <ThemeCard
@@ -320,23 +317,15 @@ export default function AdminThemePage() {
             />
           ))}
         </div>
-      </div>
+      </Section>
 
       {/* SEASONAL THEMES SECTION */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-accent-text" />
-            <div>
-              <h3 className="text-lg font-bold text-foreground">Seasonal Themes & Events</h3>
-              <p className="text-xs text-muted-foreground">
-                Holiday and celebratory color palettes with coordinated accents and atmospheric styling.
-              </p>
-            </div>
-          </div>
-          <Badge variant="accent">Event Themes</Badge>
-        </div>
-
+      <Section
+        title="Seasonal Themes & Events"
+        info="Holiday and celebratory colour palettes with coordinated accents and atmospheric styling."
+        infoShort="Holiday and event colour palettes."
+        action={<Badge variant="accent">Event Themes</Badge>}
+      >
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           {seasonalThemes.map((themeItem) => (
             <ThemeCard
@@ -352,7 +341,7 @@ export default function AdminThemePage() {
             />
           ))}
         </div>
-      </div>
+      </Section>
 
       {/* ACCENT PALETTE (FOR CORE THEMES) & LOCK ENFORCEMENT */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

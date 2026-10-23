@@ -1,43 +1,37 @@
 'use client';
 
-import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
+import type { HeaderDropdownItem, HeaderNavItem } from './appHeaderConfig';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import {
-  hrefFor,
-  isDropdown,
-  type NavLeaf,
-  type NavRole,
-  type NavSection,
-} from './navConfig';
-import { translateIn, translateNavLeaf, useLanguage, dashboardLanguage } from '@/lib/i18n/LanguageProvider';
+  translateDropdownItem,
+  translateGroup,
+  translateSectionLabel,
+} from './headerText';
+import { isRouteActive } from './routeMatch';
+import { useLocationHash } from './useLocationHash';
+import type { NavRole } from './navConfig';
 
-/** Matches the 160ms panel transition in globals.css. */
+/** Matches the panel exit animation in globals.css. */
 const EXIT_MS = 160;
 
 /**
- * A dropdown trigger plus its panel.
+ * A top-level navigation trigger plus its panel.
  *
- * OPENS TWO WAYS, ON PURPOSE
- *   Hover is what a pointer wants: the panel appears under the cursor without a
- *   click, and moving into it is one motion. Click is what a keyboard wants, and
- *   what a touch device has no alternative to. Both drive the same state, so the
- *   two never disagree about whether something is open.
+ * Hover and click drive the same open state. The 220ms close delay is the hover
+ * intent: crossing the gap between trigger and panel must not dismiss the menu.
+ * A click that follows a hover is read as "pin it", not "toggle it shut".
  *
- *   The 120ms close delay exists for the gap between trigger and panel. Without
- *   it, a pointer travelling diagonally across that gap crosses a band where it
- *   is over neither, the menu closes, and the user has to come back for it.
- *
- * ARIA
- *   `aria-haspopup="menu"` + `aria-expanded` on the trigger, `role="menu"` on
- *   the panel, `role="menuitem"` on the links. Arrow keys move a roving
- *   highlight WITHOUT moving DOM focus (focus stays on the panel), which is the
- *   pattern a menu requires — moving focus into the list would make Tab behave
- *   unexpectedly and would strand a screen-reader user.
+ * The panel measures itself before paint and shifts horizontally when it would
+ * leave the viewport, so the right-most Community menu is not clipped on a
+ * laptop and the left-most Dashboard menu is not clipped on a phone.
  */
 export function NavDropdown({
-  section,
+  item,
+  items,
   role,
   pathname,
   active,
@@ -45,73 +39,46 @@ export function NavDropdown({
   onOpen,
   onClose,
   onNavigate,
+  onHover,
 }: {
-  section: NavSection;
+  item: HeaderNavItem;
+  items: HeaderDropdownItem[];
   role: NavRole;
-  /**
-   * Current path, passed in rather than read from `window`. Reading
-   * `window.location` during render would give the server a different answer
-   * than the client on the very first paint, which React reports as a
-   * hydration mismatch, and would silently mark the wrong item live after any
-   * client-side navigation.
-   */
   pathname: string;
-  /** True when the current route is inside this section. */
   active: boolean;
-  /**
-   * Whether this panel is open — decided by `<Header>`, not here.
-   *
-   * The header owns ONE value for every surface in the bar. When each dropdown
-   * kept its own `open`, two of them could be open at once: the menus did not
-   * know about each other, so opening the profile menu left the Community menu
-   * hanging underneath it, and the only visible symptom was two overlapping
-   * panels the user had to guess between.
-   */
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
   onNavigate?: () => void;
+  onHover?: () => void;
 }) {
-  // Kept mounted for EXIT_MS so the panel can animate out. Without this, closing
-  // is an instant disappearance and the whole bar feels like it blinks. This is
-  // the only piece of open-state kept locally, because it is about the ANIMATION
-  // rather than about which menu is open.
   const [mounted, setMounted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [shift, setShift] = useState(0);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   const closeTimer = useRef<number | null>(null);
-  /**
-   * Whether the CURRENT open state came from a hover.
-   *
-   * Without this, a pointer user breaks the menu: moving onto the trigger fires
-   * `mouseenter` and opens the panel, and the click that follows — which is what
-   * actually put the cursor there — then reads "already open" and closes it
-   * again. The menu appears and vanishes under one deliberate motion.
-   *
-   * So the click is read as "pin it open" when the hover already opened it, and
-   * as a genuine toggle otherwise. Touch and keyboard never set this, so they
-   * get the toggle they expect.
-   */
   const openedByHover = useRef(false);
+  const openRef = useRef(open);
   const menuId = useId();
 
-  const items = (section.items ?? []) as NavLeaf[];
-  const dropdown = isDropdown(section);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  const dropdown = Boolean(item.dropdown);
   const { language } = useLanguage();
-  // Guests (landing / public / auth) stay English-only by design.
-  const lang = dashboardLanguage(role, language);
-  const t = (key: string, fallback?: string) => translateIn(lang, key, fallback);
-  const sectionLabel = t(`nav.${section.id}`, section.label);
+  const hash = useLocationHash();
+  const label = translateSectionLabel(role, language, item.id, item.label);
 
   const clearTimers = useCallback(() => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
     closeTimer.current = null;
   }, []);
 
-  /** Parent closes us; we only handle the unmount delay and the highlight. */
   const close = useCallback(() => {
     clearTimers();
     openedByHover.current = false;
@@ -135,24 +102,67 @@ export function NavDropdown({
     clearTimers();
     openedByHover.current = false;
     closeTimer.current = window.setTimeout(() => {
+      // Moving from one trigger to its neighbour opens the neighbour first.
+      // The departing menu's delayed close must not then close the menu that
+      // just opened, so it only runs while this trigger is still the open one.
+      if (!openRef.current) return;
       onClose();
       setActiveIndex(-1);
     }, 220);
   }, [clearTimers, onClose]);
 
-  const cancelClose = useCallback(() => {
-    clearTimers();
-  }, [clearTimers]);
+  const cancelClose = useCallback(() => clearTimers(), [clearTimers]);
 
   useEffect(() => clearTimers, [clearTimers]);
 
-  // Escape returns focus to the trigger that opened the panel.
-  //
-  // Outside-click is NOT handled here: the header owns it, because "outside"
-  // has to mean outside the whole bar. A click on the profile trigger is
-  // outside THIS dropdown, so a per-dropdown handler would close the Community
-  // menu and then the click would open the profile menu — two handlers racing
-  // over one click.
+  // The header owns a single `openMenu`, so a route change or opening another
+  // surface flips `open` to false without calling this component's `close`.
+  // Unmount the panel after the exit animation in that case too; otherwise a
+  // closed panel stays in the DOM and can keep capturing pointer events.
+  useEffect(() => {
+    if (open || !mounted) return;
+    const timer = window.setTimeout(() => setMounted(false), EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [open, mounted]);
+
+  /**
+   * Collision-aware placement. Measured after mount and before paint, so the
+   * panel never appears clipped and then jumps inward.
+   *
+   * Measured from the WRAPPER's centre and `offsetWidth`, not from the panel's
+   * rect: the rect already contains the correction transform applied last time,
+   * so a resize would otherwise compound the shift.
+   */
+  const positionPanel = useCallback(() => {
+    const panel = panelRef.current;
+    const wrap = wrapperRef.current;
+    if (!panel || !wrap) return;
+
+    const wrapRect = wrap.getBoundingClientRect();
+    const centre = wrapRect.left + wrapRect.width / 2;
+    const width = panel.offsetWidth;
+    const gutter = 8;
+
+    let next = 0;
+    const left = centre - width / 2;
+    const right = centre + width / 2;
+    if (left < gutter) next = gutter - left;
+    else if (right > window.innerWidth - gutter) next = window.innerWidth - gutter - right;
+
+    setShift((current) => (Math.abs(current - next) < 1 ? current : next));
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open || !mounted) return;
+    positionPanel();
+  }, [open, mounted, items.length, positionPanel]);
+
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener('resize', positionPanel);
+    return () => window.removeEventListener('resize', positionPanel);
+  }, [open, positionPanel]);
+
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -176,7 +186,6 @@ export function NavDropdown({
     if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       openNow(0);
-      // Focus moves on the next frame so the panel exists in the DOM first.
       window.requestAnimationFrame(() => focusItem(0));
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
@@ -204,28 +213,24 @@ export function NavDropdown({
         focusItem(items.length - 1);
         break;
       case 'Tab':
-        // Tabbing out of a menu should close it, or the panel lingers over
-        // whatever the user moved to.
         close();
         break;
     }
   };
 
-  // A plain link (no items) is rendered as a link, not a button — the semantics
-  // of "this navigates" and "this opens a menu" are not interchangeable, and a
-  // button that navigates breaks middle-click and open-in-new-tab.
   if (!dropdown) {
     return (
       <Link
-        href={section.href ?? '#'}
-        data-nav-id={section.id}
+        href={item.href ?? '#'}
+        data-nav-id={item.id}
         data-active={active || undefined}
         aria-current={active ? 'page' : undefined}
         className="hx-link"
         onClick={onNavigate}
+        onMouseEnter={onHover}
       >
-        <section.icon className="hx-link-icon" aria-hidden="true" />
-        {sectionLabel}
+        <item.icon className="hx-link-icon" aria-hidden="true" />
+        {label}
       </Link>
     );
   }
@@ -238,22 +243,19 @@ export function NavDropdown({
       onMouseLeave={scheduleClose}
       onFocus={cancelClose}
       onBlur={(event) => {
-        // Only close when focus leaves the whole dropdown, not when it moves
-        // from the trigger to an item inside the panel.
         if (!event.currentTarget.contains(event.relatedTarget as Node)) close();
       }}
     >
       <button
         ref={triggerRef}
         type="button"
-        data-nav-id={section.id}
+        data-nav-id={item.id}
         data-active={active || undefined}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls={mounted ? menuId : undefined}
+        aria-current={active ? 'page' : undefined}
         onClick={() => {
-          // See `openedByHover`. A click that follows a hover means "keep it
-          // open", not "toggle it shut".
           if (openedByHover.current) {
             openedByHover.current = false;
             openNow();
@@ -265,69 +267,70 @@ export function NavDropdown({
         onMouseEnter={() => {
           openedByHover.current = true;
           openNow();
+          onHover?.();
         }}
         onKeyDown={onTriggerKeyDown}
         className="hx-link hx-link--trigger"
       >
-        <section.icon className="hx-link-icon" aria-hidden="true" />
-        {sectionLabel}
-        {/* The affordance that says "this opens something". It was removed in an
-            earlier revision because the old 0.875rem / 0.6-opacity glyph read as
-            a stray mark beside "Community", the longest label in the row. The
-            size was the fault, not the idea: `aria-haspopup` announces this to a
-            screen reader and to nobody else, and to a sighted user a trigger
-            without a caret is indistinguishable from a link. `.hx-link-caret` is
-            smaller, dimmer at rest, optically aligned, and rotates off
-            `[aria-expanded='true']`, so it reads correctly for mouse and keyboard
-            without a second copy of the state. */}
+        <item.icon className="hx-link-icon" aria-hidden="true" />
+        {label}
         <ChevronDown className="hx-link-caret" aria-hidden="true" />
       </button>
 
       {mounted && (
         <div
+          ref={panelRef}
           id={menuId}
           role="menu"
-          aria-label={sectionLabel}
+          aria-label={label}
           data-state={open ? 'open' : 'closed'}
           onKeyDown={onPanelKeyDown}
           className="hx-panel"
+          style={{ ['--hx-panel-shift' as string]: `${shift}px` }}
         >
-          {section.heading && (
-            <p className="hx-panel-heading" aria-hidden="true">
-              {t('nav.communityHeading', section.heading)}
-            </p>
-          )}
           <div className="hx-panel-body">
-            {items.map((item, index) => {
-              const href = hrefFor(item, role);
-              const { label, description } = translateNavLeaf(lang, item, role);
+            {items.map((entry, index) => {
+              const text = translateDropdownItem(role, language, entry);
+              const group = translateGroup(role, language, entry.group);
+              const showGroup =
+                Boolean(entry.group) &&
+                (index === 0 || items[index - 1]?.group !== entry.group);
+              const isCurrent = isRouteActive(entry.href, pathname, hash);
               return (
-                <Link
-                  key={item.id}
-                  ref={(node) => {
-                    itemRefs.current[index] = node;
-                  }}
-                  href={href}
-                  role="menuitem"
-                  tabIndex={activeIndex === index ? 0 : -1}
-                  aria-current={isRouteActive(href, pathname) ? 'page' : undefined}
-                  onClick={() => {
-                    onNavigate?.();
-                    close();
-                  }}
-                  className="hx-panel-item"
-                >
-                  <span className="hx-panel-item-icon" aria-hidden="true">
-                    <item.icon className="h-4 w-4" />
-                  </span>
-                  <span className="hx-panel-item-text">
-                    <span className="hx-panel-item-label">{label}</span>
-                    {description && (
-                      <span className="hx-panel-item-desc">{description}</span>
-                    )}
-                  </span>
-                  <ChevronRight className="hx-panel-item-arrow" aria-hidden="true" />
-                </Link>
+                <React.Fragment key={entry.id}>
+                  {showGroup && (
+                    <p className="hx-panel-heading" aria-hidden="true">
+                      {group}
+                    </p>
+                  )}
+                  <Link
+                    ref={(node) => {
+                      itemRefs.current[index] = node;
+                    }}
+                    href={entry.href}
+                    role="menuitem"
+                    tabIndex={activeIndex === index ? 0 : -1}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    onClick={() => {
+                      onNavigate?.();
+                      close();
+                    }}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    className="hx-panel-item"
+                    style={{ ['--item-index' as string]: String(index) }}
+                  >
+                    <span className="hx-panel-item-icon" aria-hidden="true">
+                      <entry.icon className="h-4 w-4" />
+                    </span>
+                    <span className="hx-panel-item-text">
+                      <span className="hx-panel-item-label">{text.label}</span>
+                      {text.description && (
+                        <span className="hx-panel-item-desc">{text.description}</span>
+                      )}
+                    </span>
+                    <ChevronRight className="hx-panel-item-arrow" aria-hidden="true" />
+                  </Link>
+                </React.Fragment>
               );
             })}
           </div>
@@ -335,17 +338,6 @@ export function NavDropdown({
       )}
     </div>
   );
-}
-
-/**
- * A route is current when it matches exactly or is an ancestor of the path.
- * The hash is stripped first: `/client/talent#directory` and `/client/talent`
- * are the same page, and a hash must not be mistaken for a different
- * destination — otherwise every tab of a tabbed page reads as "not here".
- */
-export function isRouteActive(href: string, pathname: string): boolean {
-  const [path] = href.split('#');
-  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 export default NavDropdown;

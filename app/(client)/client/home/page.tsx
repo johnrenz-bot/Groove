@@ -28,6 +28,7 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { HeroBanner } from '@/components/dashboard/HeroBanner';
 import { PanelCard } from '@/components/dashboard/PanelCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { SessionRow } from '@/components/dashboard/SessionRow';
 import { BadgeMiniWidget } from '@/components/dashboard/BadgeMiniWidget';
@@ -278,7 +279,7 @@ export default function ClientHomePage() {
         />
 
         {/* Stat cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+        <div className="g-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
           <StatCard
             icon={<Calendar className="h-5 w-5" />}
             value={upcomingAppointments.length}
@@ -322,7 +323,6 @@ export default function ClientHomePage() {
 
         {/* Hero banner */}
         <HeroBanner
-          eyebrow={t('home.heroClientEyebrow', 'Performer Workspace')}
           title={t('home.heroClientTitle', 'Find your coach. Own the stage.')}
           description={t(
             'home.heroClientDesc',
@@ -343,31 +343,42 @@ export default function ClientHomePage() {
             viewAllHref="/client/talent"
             viewAllLabel={t('common.viewAll', 'View all')}
           >
-            <div className="grid grid-cols-2 gap-3.5">
-              {recommendedCoaches.slice(0, 4).map((coach: FullCoach) => (
-                <button
-                  key={coach.id}
-                  type="button"
-                  onClick={() => setSelectedCoach(coach)}
-                  className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
-                >
-                  <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
-                    {coach.photo_url ? (
-                      <img src={coach.photo_url} alt={coach.firstname} className="h-full w-full object-cover" />
-                    ) : (
-                      getInitials(coach.firstname, coach.lastname)
-                    )}
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
-                  </div>
-                  <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
-                    {coach.firstname} {coach.lastname}
-                  </p>
-                  <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    {(coach as FullCoach).coach_profile?.talents || 'Coach'}
-                  </p>
-                </button>
-              ))}
-            </div>
+            {recommendedCoaches.length === 0 ? (
+              <EmptyState
+                compact
+                icon={<BadgeCheck className="h-5 w-5" />}
+                title="No coaches to show yet"
+                description="Verified coaches near San Jose del Monte will appear here as they join. Browse the full directory to explore every discipline."
+                actionHref="/client/talent"
+                action="Browse coaches"
+              />
+            ) : (
+              <div className="grid grid-cols-2 gap-3.5">
+                {recommendedCoaches.slice(0, 4).map((coach: FullCoach) => (
+                  <button
+                    key={coach.id}
+                    type="button"
+                    onClick={() => setSelectedCoach(coach)}
+                    className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
+                  >
+                    <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
+                      {coach.photo_url ? (
+                        <img src={coach.photo_url} alt={coach.firstname} className="h-full w-full object-cover" />
+                      ) : (
+                        getInitials(coach.firstname, coach.lastname)
+                      )}
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
+                    </div>
+                    <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
+                      {coach.firstname} {coach.lastname}
+                    </p>
+                    <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                      {(coach as FullCoach).coach_profile?.talents || 'Coach'}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
           </PanelCard>
 
           {/* Upcoming sessions panel */}

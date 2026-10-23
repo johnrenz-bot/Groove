@@ -34,11 +34,14 @@ import {
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { SoundInfoTip } from '@/features/sound/components/SoundInfoTip';
 import { SoundToggle } from '@/features/sound/components/SoundToggle';
 import { Button } from '@/components/ui/Button';
 import { PasswordInput } from '@/components/ui/FormField';
 import { FormError, FormSuccess } from '@/components/ui/FormError';
 import { Modal } from '@/components/ui/Modal';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
+import { InfoTip } from '@/components/ui/InfoTip';
 import { validatePasswordChange, type ProfileFieldErrors } from '@/components/profile/ProfileFormSections';
 import { isValidEmail, isValidUsername, VALIDATION_MESSAGES } from '@/lib/profileFields';
 
@@ -58,23 +61,10 @@ export function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="g-card p-6">
-      <header className="mb-5 flex items-start gap-3 border-b border-divider pb-4">
-        <span
-          aria-hidden="true"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text"
-        >
-          {icon}
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">{title}</h2>
-          {description && (
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
-          )}
-        </div>
-      </header>
-      {children}
-    </section>
+    <Panel>
+      <PanelHeader icon={icon} title={title} info={description} />
+      <PanelBody>{children}</PanelBody>
+    </Panel>
   );
 }
 
@@ -342,7 +332,7 @@ export function AppearanceSettings() {
     <SettingsSection
       icon={<Palette className="h-4 w-4" />}
       title="Appearance &amp; Sound"
-      description="Theme and interface sounds. These settings apply across Groove on this device."
+      description="Theme and interface preferences. These settings apply across Groove on this device."
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -360,6 +350,10 @@ export function AppearanceSettings() {
           menu toggle and this one read the same flag rather than keeping separate
           copies. */}
       <div className="mt-4 border-t border-divider pt-4">
+        <div className="mb-1 flex items-center gap-1.5">
+          <p className="text-sm font-semibold">Sound</p>
+          <SoundInfoTip />
+        </div>
         <SoundToggle />
       </div>
     </SettingsSection>
@@ -427,10 +421,14 @@ export function DangerZone({
           <TriangleAlert className="h-4 w-4" />
         </span>
         <div>
-          <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">Danger Zone</h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            These actions affect your access to Groove. Review before continuing.
-          </p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">Danger Zone</h2>
+            <InfoTip
+              title="Danger Zone"
+              short="These actions affect your access to Groove."
+              details="These actions affect your access to Groove. Signing out ends only the current session; requesting deletion creates a support ticket for an administrator to review. Review before continuing."
+            />
+          </div>
         </div>
       </header>
 

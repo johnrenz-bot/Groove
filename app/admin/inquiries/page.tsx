@@ -316,6 +316,10 @@ export default function AdminInquiriesPage() {
       ) : (
         <>
           <AdminTable
+            title="Inquiry records"
+            icon={<LifeBuoy className="h-4 w-4" />}
+            info="Every inquiry submitted from the public landing page and the in-app help form, with triage controls."
+            infoShort="All support tickets, filterable by status."
             columns={columns}
             rows={slice}
             rowKey={(t) => t.id}

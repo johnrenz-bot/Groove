@@ -349,6 +349,10 @@ export default function AdminTransactionsPage() {
 
       {active.loading ? (
         <AdminTable
+          title={isAgreements ? 'Signed agreements' : 'Client reviews'}
+          icon={<FileText className="h-4 w-4" />}
+          info="Every signed session agreement and every client review. Deleting a contract removes it from both parties' histories."
+          infoShort={isAgreements ? 'Signed session agreements.' : 'Feedback from completed sessions.'}
           columns={isAgreements ? agreementColumns : reviewColumns}
           rows={[]}
           rowKey={(r) => String((r as Agreement).id)}
@@ -359,6 +363,10 @@ export default function AdminTransactionsPage() {
       ) : (
         <>
           <AdminTable
+            title={isAgreements ? 'Signed agreements' : 'Client reviews'}
+            icon={<FileText className="h-4 w-4" />}
+            info="Every signed session agreement and every client review. Deleting a contract removes it from both parties' histories."
+            infoShort={isAgreements ? 'Signed session agreements.' : 'Feedback from completed sessions.'}
             columns={isAgreements ? agreementColumns : reviewColumns}
             rows={rows as (Agreement & Feedback)[]}
             rowKey={(r) => `${isAgreements ? 'ag' : 'fb'}-${r.id}`}

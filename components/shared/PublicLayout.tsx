@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Footer } from '@/components/shared/Footer';
-import { SiteHeader } from '@/components/layout/SiteHeader';
+import { AppHeader } from '@/components/header/AppHeader';
 
 /**
  * Shell for every public page: the shared header + content + minimal footer.
@@ -58,8 +58,8 @@ export function PublicLayout({
        Mounting another one here would shadow the root provider and split the
        theme state in two, which is the bug this paragraph is about. */
     <div className="flex min-h-screen flex-col font-sans text-foreground">
-      <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <AppHeader />
+      <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
       {showFooter && (
         <Footer className="mt-auto" showThemeToggle={false}>
           {footerExtra}

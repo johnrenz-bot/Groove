@@ -17,6 +17,7 @@
     "dance:verify": "node --experimental-strip-types --no-warnings scripts/verify-dance-dates.ts"
   },
   "dependencies": {
+    "@aivangogh/ph-address": "^2026.2.4",
     "@google/genai": "^2.28.0",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.4",

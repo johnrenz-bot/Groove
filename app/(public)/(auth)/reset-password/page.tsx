@@ -78,7 +78,6 @@ export default function ResetPasswordPage() {
   if (success) {
     return (
       <AuthLayout
-        centered
         title="Password updated"
         subtext="Your new password is active."
         footer={backToSignIn}
@@ -100,7 +99,6 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthLayout
-      centered
       title="Set a new password"
       subtext="Choose a secure password you haven't used before."
       footer={backToSignIn}

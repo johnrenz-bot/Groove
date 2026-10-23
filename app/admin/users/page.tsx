@@ -357,6 +357,15 @@ export default function AdminUsersPage() {
       ) : (
         <>
           <AdminTable
+            title="Account records"
+            icon={<Users className="h-4 w-4" />}
+            info="Every registered account across all roles. Review verification documents, edit profiles, and control account access."
+            infoShort="All accounts, filterable by role, status and verification."
+            headerActions={
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {filtered.length} record{filtered.length === 1 ? '' : 's'}
+              </span>
+            }
             columns={columns}
             rows={slice}
             rowKey={(u) => u.id}

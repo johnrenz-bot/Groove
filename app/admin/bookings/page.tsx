@@ -342,6 +342,15 @@ export default function AdminBookingsPage() {
       ) : (
         <>
           <AdminTable
+            title="Booking records"
+            icon={<Calendar className="h-4 w-4" />}
+            info="Every session request on the platform. Adjust status, inspect full booking detail, and remove cancelled records."
+            infoShort="All session requests, filterable by status and type."
+            headerActions={
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {filtered.length} record{filtered.length === 1 ? '' : 's'}
+              </span>
+            }
             columns={columns}
             rows={slice}
             rowKey={(b) => b.id}

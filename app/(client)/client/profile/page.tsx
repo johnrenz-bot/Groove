@@ -167,7 +167,7 @@ export default function ClientProfilePage() {
       barangay_code: data.barangay_code || '',
       barangay_name: data.barangay_name || '',
       street: data.street || '',
-      postal_code: data.postal_code || '3023',
+      postal_code: data.postal_code || '',
       address_summary: data.address_summary || '',
     });
     setTalent(cp?.talent || 'Dance');
@@ -308,7 +308,7 @@ export default function ClientProfilePage() {
     setFailure(null);
     setSuccess(null);
 
-    const nextErrors = validateProfileSections({ personal, contact, address });
+    const nextErrors = validateProfileSections({ personal, contact, address, talent });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       document.getElementById('profile-form')?.scrollIntoView({ behavior: 'smooth' });

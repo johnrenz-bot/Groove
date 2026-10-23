@@ -15,7 +15,7 @@ import {
   Users as UsersIcon,
   X,
 } from 'lucide-react';
-import { SiteHeader } from '@/components/layout/SiteHeader';
+import { AppHeader } from '@/components/header/AppHeader';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import {
   UserListItem,
@@ -299,9 +299,9 @@ export default function UsersDirectoryPage() {
 
   return (
     <div className="min-h-screen bg-background pb-16 text-foreground">
-      <SiteHeader />
+      <AppHeader />
 
-      <main className="mx-auto max-w-6xl px-4 pt-8 md:px-8 md:pt-10">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 pt-8 md:px-8 md:pt-10">
         <PageHeader
           eyebrow="Community"
           title="Members"

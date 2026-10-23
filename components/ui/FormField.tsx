@@ -175,42 +175,59 @@ export function PasswordStrength({ value, className = '' }: { value: string; cla
   );
 }
 
-/** Live pass/fail checklist. Unmet items show only once typing has begun. */
+/**
+ * Live pass/fail checklist. It is visible before typing as neutral guidance —
+ * that is a requirement list, not a validation warning — and marks items as
+ * they are met. An `id` lets the password input point at it with
+ * aria-describedby so the rules are announced with the field.
+ */
 export function PasswordRequirements({
   value,
   className = '',
+  id,
 }: {
   value: string;
   className?: string;
+  id?: string;
 }) {
-  if (!value) return null;
+  const hasValue = value.length > 0;
+
   return (
-    <ul className={cn('mt-3 grid gap-1.5 sm:grid-cols-2', className)}>
-      {PASSWORD_REQUIREMENTS.map((req) => {
-        const met = req.test(value);
-        return (
-          <li
-            key={req.id}
-            className={cn(
-              'flex items-center gap-1.5 text-xs transition-colors duration-150',
-              met ? 'text-success' : 'text-muted-foreground'
-            )}
-          >
-            <span
-              aria-hidden="true"
+    <div className={cn('mt-3', className)}>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
+        Password requirements
+      </p>
+      <ul id={id} className="grid gap-1.5 sm:grid-cols-2" aria-live="polite">
+        {PASSWORD_REQUIREMENTS.map((req) => {
+          const met = hasValue && req.test(value);
+          return (
+            <li
+              key={req.id}
               className={cn(
-                'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full',
-                met ? 'bg-success-soft text-success' : 'bg-muted text-subtle-foreground'
+                'flex items-center gap-1.5 text-xs transition-colors duration-150',
+                met ? 'text-success' : 'text-muted-foreground'
               )}
             >
-              {met ? <Check className="h-2.5 w-2.5" /> : <span className="block h-1 w-1 rounded-full bg-current" />}
-            </span>
-            <span>{req.label}</span>
-            <span className="sr-only">{met ? ' — met' : ' — not met yet'}</span>
-          </li>
-        );
-      })}
-    </ul>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full transition-colors',
+                  met ? 'bg-success-soft text-success' : 'bg-muted text-subtle-foreground'
+                )}
+              >
+                {met ? (
+                  <Check className="h-2.5 w-2.5" />
+                ) : (
+                  <span className="block h-1 w-1 rounded-full bg-current" />
+                )}
+              </span>
+              <span>{req.label}</span>
+              <span className="sr-only">{met ? ' — met' : ' — not met yet'}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -240,6 +257,8 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       id,
       className = '',
       value,
+      required,
+      'aria-describedby': ariaDescribedBy,
       ...props
     },
     ref
@@ -247,18 +266,32 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     const [revealed, setRevealed] = React.useState(false);
     const generatedId = React.useId();
     const inputId = id || generatedId;
+    const requirementsId = `${inputId}-requirements`;
     const current = typeof value === 'string' ? value : '';
-    const describedBy = error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined;
+    const describedBy =
+      [
+        error ? `${inputId}-error` : null,
+        hint ? `${inputId}-hint` : null,
+        showStrength ? requirementsId : null,
+        ariaDescribedBy,
+      ]
+        .filter(Boolean)
+        .join(' ') || undefined;
 
     return (
       <div>
-        {label && <Label htmlFor={inputId}>{label}</Label>}
+        {label && (
+          <Label htmlFor={inputId} required={required}>
+            {label}
+          </Label>
+        )}
         <div className="relative">
           <input
             ref={ref}
             id={inputId}
             type={revealed ? 'text' : 'password'}
             value={value}
+            required={required}
             aria-invalid={error ? 'true' : undefined}
             aria-describedby={describedBy}
             className={cn('g-input pr-11', error && 'border-danger', className)}
@@ -281,7 +314,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         </div>
 
         {showStrength && <PasswordStrength value={current} />}
-        {showStrength && <PasswordRequirements value={current} />}
+        {showStrength && <PasswordRequirements id={requirementsId} value={current} />}
 
         {error ? (
           <p id={`${inputId}-error`} className="g-field-error" role="alert">

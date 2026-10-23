@@ -5,10 +5,13 @@ import {
   CalendarDays,
   Drama,
   FileCheck,
+  HelpCircle,
+  History,
   Home,
   Info,
   LayoutDashboard,
   LifeBuoy,
+  MapPin,
   MessageSquare,
   Mic,
   Settings2,
@@ -187,7 +190,7 @@ export const NAV: NavSection[] = [
     id: 'community',
     label: 'Community',
     icon: Users,
-    roles: ['client', 'coach', 'guest'],
+    roles: ['client', 'coach', 'admin', 'guest'],
     heading: 'Performing Arts',
     hideOnLanding: true,
     items: [
@@ -197,7 +200,7 @@ export const NAV: NavSection[] = [
         label: 'Dance',
         href: '/community/performing-arts/dance',
         description: 'Hip-hop, contemporary & traditional choreography',
-        roles: ['client', 'coach', 'guest'],
+        roles: ['client', 'coach', 'admin', 'guest'],
         keywords: ['choreography', 'ballet', 'hiphop', 'contemporary'],
       },
       {
@@ -206,7 +209,7 @@ export const NAV: NavSection[] = [
         label: 'Singing',
         href: '/community/performing-arts/singing',
         description: 'Vocal coaching, harmonies & stage presence',
-        roles: ['client', 'coach', 'guest'],
+        roles: ['client', 'coach', 'admin', 'guest'],
         keywords: ['vocal', 'voice', 'opera', 'choir'],
       },
       {
@@ -215,7 +218,7 @@ export const NAV: NavSection[] = [
         label: 'Acting',
         href: '/community/performing-arts/acting',
         description: 'Method acting, character work & scene study',
-        roles: ['client', 'coach', 'guest'],
+        roles: ['client', 'coach', 'admin', 'guest'],
         keywords: ['drama', 'theatre', 'method', 'monologue'],
       },
       {
@@ -224,7 +227,7 @@ export const NAV: NavSection[] = [
         label: 'Theater',
         href: '/community/performing-arts/theater',
         description: 'Musical theatre, production & staging',
-        roles: ['client', 'coach', 'guest'],
+        roles: ['client', 'coach', 'admin', 'guest'],
         keywords: ['broadway', 'musical', 'stage', 'production'],
       },
       {
@@ -240,10 +243,19 @@ export const NAV: NavSection[] = [
           coach: '/coach/performing-arts-philippines',
         },
         description: 'Philippine performing-arts organisations & resources',
-        roles: ['client', 'coach', 'guest'],
+        roles: ['client', 'coach', 'admin', 'guest'],
         keywords: ['philippines', 'heritage', 'organisations', 'resources'],
       },
-      ],
+      {
+        id: 'pa-history',
+        icon: History,
+        label: 'History & Learning',
+        href: '/community/performing-arts/history',
+        description: 'Sourced overview of Philippine dance, music & theater',
+        roles: ['client', 'coach', 'admin', 'guest'],
+        keywords: ['history', 'heritage', 'timeline', 'learning', 'archives', 'sources'],
+      },
+    ],
   },
   {
     id: 'about',
@@ -251,7 +263,7 @@ export const NAV: NavSection[] = [
     icon: Info,
     href: '/about',
     description: 'Our story, mission, how it works & contact',
-    roles: ['client', 'coach', 'guest'],
+    roles: ['client', 'coach', 'admin', 'guest'],
     hideOnLanding: true,
   },
 
@@ -419,19 +431,21 @@ export const NAV: NavSection[] = [
  * between the logo and the auth buttons — so these fill the centre with the four
  * sections a visitor actually scrolls to.
  *
- * Every `id` here must exist as a `section id` in `app/page.tsx`. Nothing
+ * Every `id` here must exist as a `section id` on the landing page. Nothing
  * validates that at build time, so the list is short on purpose: four anchors
- * that a visitor can predict are better than eight that are half-wrong.
+ * that a visitor can predict are better than eight that are half-wrong. The
+ * `#studios` target is owned by `components/landing/StudiosPreview.tsx`, which
+ * must stay mounted in `LandingSections` for the link to have somewhere to go.
  *
  * Smooth scrolling is free — `globals.css` already sets
  * `html { scroll-behavior: smooth }` — so a plain `<a href="#id">` is all that
  * is needed. No scroll library, no JS.
  */
-export const LANDING_ANCHORS: Array<{ id: string; label: string }> = [
-  { id: 'disciplines', label: 'Disciplines' },
-  { id: 'studios', label: 'Studios' },
-  { id: 'coaches', label: 'Coaches' },
-  { id: 'how', label: 'How it works' },
+export const LANDING_ANCHORS: Array<{ id: string; label: string; icon: LucideIcon }> = [
+  { id: 'disciplines', label: 'Disciplines', icon: Sparkles },
+  { id: 'studios', label: 'Studios', icon: MapPin },
+  { id: 'coaches', label: 'Coaches', icon: Users },
+  { id: 'how', label: 'How It Works', icon: HelpCircle },
 ];
 
 /** Per-role override with a fallback to the base value. */

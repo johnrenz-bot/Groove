@@ -1,5 +1,6 @@
 import { Hero } from '@/components/landing/Hero';
 import { Disciplines } from '@/components/landing/Disciplines';
+import { StudiosPreview } from '@/components/landing/StudiosPreview';
 import { AudienceTabs } from '@/components/landing/AudienceTabs';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { WhyGroove } from '@/components/landing/WhyGroove';
@@ -7,6 +8,7 @@ import { FinalCta } from '@/components/landing/FinalCta';
 import { FaqTeaserSection } from '@/components/faq/FaqTeaserSection';
 import { Footer } from '@/components/shared/Footer';
 import { PublicLayout } from '@/components/shared/PublicLayout';
+import { AmbientBackground } from '@/components/shared/AmbientBackground';
 import { getLandingStats } from '@/components/landing/landingStats.server';
 
 /**
@@ -29,10 +31,12 @@ import { getLandingStats } from '@/components/landing/landingStats.server';
  * renders exactly one copy for the whole app, and a second one on `/` was
  * doubling the corner artwork over the hero.
  *
- * Section order is: hero, why groove (survey stats), disciplines, audience tabs,
- * how it works, FAQ, closing CTA, footer. The anchors (`#disciplines`,
- * `#coaches`, `#how`, `#faq`) and every outgoing link are unchanged:
- * the header, the footer and the dashboard all point at them.
+ * Section order is: hero, why groove (survey stats), disciplines, studios,
+ * audience tabs, how it works, FAQ, closing CTA, footer. The anchors
+ * (`#disciplines`, `#studios`, `#coaches`, `#how`, `#faq`) and every outgoing
+ * link are unchanged: the header, the footer and the dashboard all point at
+ * them. `StudiosPreview` owns `#studios`; without it the header's Studios link
+ * changed the hash but had nothing to scroll to.
  *
  * Server component: it awaits `getLandingStats()`, which is why the whole route
  * is dynamic.
@@ -41,12 +45,15 @@ export default async function LandingSections() {
   const stats = await getLandingStats();
 
   return (
-    <div data-public-theme="dark" className="groove-landing">
+    <div data-public-theme="dark" className="groove-landing relative">
+      {/* Cinematic ambient background */}
+      <AmbientBackground variant="landing" />
       <PublicLayout showFooter={false}>
-        <main id="main" className="flex-1">
+        <main id="main" className="flex-1 relative z-10">
           <Hero stats={stats} />
           <WhyGroove />
           <Disciplines />
+          <StudiosPreview />
           <AudienceTabs />
           <HowItWorks />
           <FaqTeaserSection />

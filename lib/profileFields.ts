@@ -20,14 +20,24 @@ import { DEFAULT_SKILLS_AND_GENRES, getAvailableSkills } from '@/lib/config/skil
 /* Option lists — identical to the registration forms                 */
 /* ------------------------------------------------------------------ */
 
-/** `client_profiles.talent` options, from /register/client. */
+/**
+ * `client_profiles.talent` options, from /register/client.
+ *
+ * "Musical Instruments" was intentionally retired from the registration
+ * interest list. Existing rows that still store it are left untouched in the
+ * database, but it is no longer offered or accepted as a new selection.
+ */
 export const CLIENT_TALENT_OPTIONS = [
   'Dance',
   'Singing',
   'Acting',
   'Theater',
-  'Musical Instruments',
 ] as const;
+
+/** True when `value` is one of the currently offered client interests. */
+export function isClientTalentOption(value: string | null | undefined): boolean {
+  return Boolean(value) && (CLIENT_TALENT_OPTIONS as readonly string[]).includes(value as string);
+}
 
 /** `coach_profiles.talents` — the single-select skill, from /register/coach. */
 export const COACH_SKILL_OPTIONS = getAvailableSkills();

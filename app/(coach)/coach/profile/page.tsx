@@ -186,7 +186,7 @@ export default function CoachProfilePage() {
       barangay_code: data.barangay_code || '',
       barangay_name: data.barangay_name || '',
       street: data.street || '',
-      postal_code: data.postal_code || '3023',
+      postal_code: data.postal_code || '',
       address_summary: data.address_summary || '',
     });
     setBio(data.bio || '');
@@ -794,7 +794,7 @@ export default function CoachProfilePage() {
           <div className="g-card p-6">
             <PersonalSection values={personal} errors={errors} onChange={setPersonal} />
             <div className="mt-7">
-              <AddressSection address={address} onChange={setAddress} />
+              <AddressSection address={address} onChange={setAddress} errors={errors} />
             </div>
             <div className="mt-7">
               <ContactSection values={contact} errors={errors} onChange={setContact} />
