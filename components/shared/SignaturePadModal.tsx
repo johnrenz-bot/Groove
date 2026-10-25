@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { Eraser, Check, FileSignature, AlertCircle } from 'lucide-react';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalIconTile } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
 interface SignaturePadModalProps {
@@ -57,9 +57,7 @@ export function SignaturePadModal({
       size="lg"
       title={
         <span className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
-            <FileSignature className="h-4 w-4" />
-          </span>
+          <ModalIconTile icon={FileSignature} />
           {title}
         </span>
       }

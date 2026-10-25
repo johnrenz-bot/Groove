@@ -18,6 +18,16 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 import { SmartQrViewerModal } from './SmartQrViewerModal';
 import {
   fetchGCashProfile,
@@ -47,6 +57,12 @@ export function GCashProfileSetup({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+
+  const { backdropProps: deleteBackdropProps } = useModalDismiss({
+    open: showConfirmDelete,
+    onClose: () => setShowConfirmDelete(false),
+    disabled: deleting,
+  });
 
   // Form state
   const [accountName, setAccountName] = useState('');
@@ -216,17 +232,17 @@ export function GCashProfileSetup({
   };
 
   return (
-    <section className="rounded-3xl border border-blue-500/20 bg-card p-6 shadow-sm transition hover:border-blue-500/40">
+    <section className="rounded-3xl border border-accent-border bg-card p-6 shadow-sm transition hover:border-accent">
       {/* Section Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent-text">
             <Smartphone className="h-5 w-5" />
           </span>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-foreground">GCash Payment Setup</h3>
-              <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-text">
                 Philippine Standard
               </span>
             </div>
@@ -245,7 +261,7 @@ export function GCashProfileSetup({
                 variant="outline"
                 size="sm"
                 onClick={() => setQrViewerOpen(true)}
-                icon={<Eye className="h-3.5 w-3.5 text-blue-500" />}
+                icon={<Eye className="h-3.5 w-3.5 text-accent-text" />}
               >
                 Smart QR View
               </Button>
@@ -417,7 +433,7 @@ export function GCashProfileSetup({
               type="checkbox"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-border accent-[var(--accent)] focus:ring-accent"
             />
             <label htmlFor="gcash-active" className="text-xs font-medium text-foreground cursor-pointer">
               Enable GCash as an active payment method for my profile
@@ -497,7 +513,7 @@ export function GCashProfileSetup({
                   variant="ghost"
                   size="sm"
                   onClick={() => setQrViewerOpen(true)}
-                  className="mt-1.5 px-0 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                  className="mt-1.5 px-0 text-xs font-semibold text-accent-text hover:opacity-80"
                 >
                   Open Smart Viewer →
                 </Button>
@@ -553,13 +569,26 @@ export function GCashProfileSetup({
 
       {/* Confirmation Modal for Deletion */}
       {showConfirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
-            <h4 className="text-base font-bold text-foreground">Remove GCash Details?</h4>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+        <div
+          className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gcash-delete-title"
+          {...deleteBackdropProps}
+        >
+          <div className={cn(MODAL_PANEL_CLASS, 'max-w-sm animate-in fade-in zoom-in-95 duration-300')}>
+            <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+              <h4 id="gcash-delete-title" className="min-w-0 text-base font-bold tracking-[-0.02em] text-foreground">
+                Remove GCash Details?
+              </h4>
+              <ModalCloseButton onClose={() => setShowConfirmDelete(false)} label="Close confirmation" />
+            </div>
+
+            <div className={cn(MODAL_BODY_CLASS, 'text-sm leading-relaxed text-muted-foreground')}>
               Are you sure you want to remove your GCash payment information? Clients and coaches will no longer be able to scan your QR code or view your GCash number.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
+            </div>
+
+            <div className={MODAL_FOOTER_CLASS}>
               <Button
                 variant="outline"
                 size="sm"
@@ -569,11 +598,10 @@ export function GCashProfileSetup({
                 Cancel
               </Button>
               <Button
-                variant="primary"
+                variant="danger"
                 size="sm"
                 onClick={handleDelete}
                 loading={deleting}
-                className="bg-danger hover:bg-danger/90 text-white"
               >
                 Yes, Remove
               </Button>

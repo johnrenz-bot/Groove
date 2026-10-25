@@ -6,20 +6,11 @@ import Link from 'next/link';
 import { ChevronDown, Loader2, LogIn, LogOut, Search, UserPlus, X } from 'lucide-react';
 
 import type { Profile } from '@/lib/types';
-import { PresenceDot, StatusSelect } from '@/components/shared/StatusSelect';
+import { usePresence } from '@/features/presence/hooks/usePresence';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeModeSelect } from '@/components/theme/ThemeModeSelect';
 import { SoundInfoTip } from '@/features/sound/components/SoundInfoTip';
 import { SoundToggle } from '@/features/sound/components/SoundToggle';
-import { usePresence } from '@/features/presence/hooks/usePresence';
-import { greetingFor } from './UserMenu';
-import { Avatar } from './UserMenu';
-import {
-  isHeaderNavActive,
-  navItemsForPath,
-  type AppHeaderConfig,
-  type HeaderDropdownItem,
-} from './appHeaderConfig';
-import type { NavRole } from './navConfig';
 import { useLanguage, translateIn, dashboardLanguage } from '@/lib/i18n/LanguageProvider';
 import {
   translateAccountItem,
@@ -29,15 +20,17 @@ import {
 } from './headerText';
 import { isRouteActive } from './routeMatch';
 import { useLocationHash } from './useLocationHash';
-import { LanguageSwitcher } from './LanguageSwitcher';
+import {
+  isHeaderNavActive,
+  navItemsForPath,
+  type AppHeaderConfig,
+  type HeaderDropdownItem,
+} from './appHeaderConfig';
+import type { NavRole } from './navConfig';
+import { AccountPanel } from './AccountPanel';
 
 /**
  * The sub-1024px navigation sheet.
- *
- * It is a real dialog: focus is moved in, Tab is trapped, Escape closes, the
- * body behind is locked and focus returns to the control that opened it. The
- * header passes the same role configuration the desktop bar uses, so the sheet
- * cannot list a destination the bar hides.
  */
 export function MobileDrawer({
   open,
@@ -101,12 +94,9 @@ export function MobileDrawer({
     document.addEventListener('keydown', onKeyDown);
     const previousOverflow = document.body.style.overflow;
     const previousHtmlOverflow = document.documentElement.style.overflow;
-    // Lenis scrolls the document element, so locking <body> alone is not enough.
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
 
-    // Focus synchronously. A rAF here was delayed whenever the tab was
-    // backgrounded, which left focus on the bell behind the open dialog.
     drawerRef.current
       ?.querySelector<HTMLElement>('[data-drawer-autofocus]')
       ?.focus();
@@ -232,11 +222,7 @@ function DrawerBody({
   signingOut: boolean;
 }) {
   const [query, setQuery] = useState('');
-  // Sections start closed: the sheet stays scannable, and opening one is an
-  // explicit tap rather than arriving with a dozen destinations already poured
-  // down the screen. A search query opens every matching section.
   const [openIds, setOpenIds] = useState<string[]>([]);
-  const myPresence = usePresence(user?.id, user?.status);
   const { language } = useLanguage();
   const lang = dashboardLanguage(role, language);
   const hash = useLocationHash();
@@ -288,9 +274,6 @@ function DrawerBody({
       <div className="hx-drawer-scroll g-scroll">
         <nav aria-label={t('drawer.mainNav', 'Main')}>
           {navItems.map((navItem, navIndex) => {
-            // Direct destinations and dropdown groups render in the same order
-            // the desktop bar uses — Dashboard, Community, About — rather than
-            // direct links first and groups afterwards.
             if (!navItem.dropdown) {
               const label = translateSectionLabel(role, language, navItem.id, navItem.label);
               if (q && !label.toLowerCase().includes(q)) return null;
@@ -316,8 +299,6 @@ function DrawerBody({
 
             const allItems = config.dropdownItems[navItem.dropdown] ?? [];
             const sectionLabel = translateSectionLabel(role, language, navItem.id, navItem.label);
-            // Typing the section name ("community") should reveal the section,
-            // not disappear because no individual child label contains it.
             const items = sectionLabel.toLowerCase().includes(q)
               ? allItems
               : allItems.filter(matches);
@@ -391,89 +372,15 @@ function DrawerBody({
       </div>
 
       <div className="hx-drawer-foot g-scroll">
-        {user ? (
-          <>
-            <div className="hx-drawer-identity">
-              <span className="hx-drawer-avatar-wrap">
-                <Avatar user={user} size={44} />
-                <span className="hx-presence">
-                  <PresenceDot status={myPresence} size="sm" />
-                </span>
-              </span>
-              <div className="hx-account-identity">
-                <p className="hx-account-fullname">{`${user.firstname} ${user.lastname}`.trim()}</p>
-                <p className="hx-account-email">{user.email || `#${user.custom_id || '0000'}`}</p>
-                <span className="hx-account-badge">{config.roleLabel}</span>
-                <p className="hx-drawer-greeting">
-                  {greetingFor(role, user.firstname || 'Artist', new Date().getHours())}
-                </p>
-              </div>
-            </div>
-
-            <div className="hx-drawer-section">
-              {config.avatarMenuItems
-                .filter((item) => item.href && !item.action)
-                .map((item) => (
-                  <Link
-                    key={item.id}
-                    href={item.href as string}
-                    onClick={onClose}
-                    className="hx-drawer-link"
-                  >
-                    <item.icon className="hx-drawer-link-icon" aria-hidden="true" />
-                    {translateAccountItem(role, language, item)}
-                  </Link>
-                ))}
-            </div>
-
-            <div className="hx-drawer-section">
-              <p className="hx-drawer-label">{t('header.preferences', 'Preferences')}</p>
-              <div className="hx-drawer-pref">
-                <StatusSelect userId={user.id} fallbackStatus={user.status} />
-                <LanguageSwitcher />
-                <ThemeModeSelect />
-                <div className="flex items-center gap-1.5 px-3 pt-1">
-                  <span className="text-xs font-semibold text-foreground">
-                    {t('header.sound', 'Sound')}
-                  </span>
-                  <SoundInfoTip />
-                </div>
-                <SoundToggle />
-              </div>
-            </div>
-
-            <div className="hx-drawer-section">
-              <button
-                type="button"
-                onClick={() => void onSignOut()}
-                disabled={signingOut}
-                aria-busy={signingOut}
-                className="hx-drawer-link hx-drawer-link--danger"
-              >
-                {signingOut ? (
-                  <Loader2 className="hx-drawer-link-icon animate-spin" aria-hidden="true" />
-                ) : (
-                  <LogOut className="hx-drawer-link-icon" aria-hidden="true" />
-                )}
-                {signingOut ? t('header.signingOut', 'Signing out…') : t('header.signOut', 'Sign out')}
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="hx-drawer-section hx-drawer-auth">
-            <Link href="/login" onClick={onClose} className="hx-drawer-auth-link">
-              <LogIn className="hx-drawer-link-icon" aria-hidden="true" />
-              Log in
-            </Link>
-            <Link
-              href="/register/client"
-              onClick={onClose}
-              className="hx-drawer-auth-link hx-drawer-auth-link--primary"
-            >
-              <UserPlus className="hx-drawer-link-icon" aria-hidden="true" />
-              Sign up
-            </Link>
-          </div>
+        {user && (
+          <AccountPanel
+            user={user}
+            role={role}
+            config={config}
+            pathname={pathname}
+            onLogout={onSignOut}
+            onNavigate={onClose}
+          />
         )}
       </div>
     </>

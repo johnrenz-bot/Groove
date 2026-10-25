@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  X,
   Search,
-  Filter,
   History,
   TrendingDown,
   TrendingUp,
@@ -15,6 +13,18 @@ import {
   Inbox,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_CARD_CLASS,
+  MODAL_CLOSE_BUTTON_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_ICON_TILE_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 import { PaymentTransactionCard } from './PaymentTransactionCard';
 import { fetchUserTransactions, formatPHP } from '../services/gcashService';
 import type { PaymentTransaction, PaymentStatus } from '../types';
@@ -109,55 +119,53 @@ export function PaymentHistoryModal({
     );
   };
 
+  const { backdropProps } = useModalDismiss({ open, onClose });
+
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in"
+      className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
       role="dialog"
       aria-modal="true"
       aria-labelledby="payment-history-title"
+      {...backdropProps}
     >
-      <div className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl max-h-[90vh]">
+      <div className={cn(MODAL_PANEL_CLASS, 'max-w-3xl max-h-[92vh] animate-in fade-in zoom-in-95 duration-300 sm:select-text')}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-divider bg-muted/40 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-              <History className="h-5 w-5" />
+        <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className={cn(MODAL_ICON_TILE_CLASS, 'h-10 w-10 rounded-2xl')}>
+              <History className="h-5 w-5" aria-hidden="true" />
             </span>
-            <div>
-              <h2 id="payment-history-title" className="text-base font-bold text-foreground">
+            <div className="min-w-0">
+              <h2 id="payment-history-title" className="text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
                 GCash Transaction History
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Real-time tracking of coaching session payments, requests, and verified proofs
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={loadTransactions}
               disabled={loading}
-              className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer disabled:opacity-40"
+              className={MODAL_CLOSE_BUTTON_CLASS}
+              aria-label="Refresh transactions"
               title="Refresh Transactions"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClose={onClose} label="Close transaction history" />
           </div>
         </div>
 
         {/* Summary Stat Tiles */}
         <div className="grid grid-cols-2 gap-3 border-b border-divider bg-muted/20 p-4 sm:grid-cols-4">
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-xs">
+          <div className={cn(MODAL_CARD_CLASS, 'p-3')}>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <TrendingUp className="h-3 w-3 text-success" /> Total Received
             </span>
@@ -166,16 +174,16 @@ export function PaymentHistoryModal({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-xs">
+          <div className={cn(MODAL_CARD_CLASS, 'p-3')}>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              <TrendingDown className="h-3 w-3 text-blue-500" /> Total Paid
+              <TrendingDown className="h-3 w-3 text-accent-text" /> Total Paid
             </span>
             <p className="mt-1 font-mono text-sm font-bold text-foreground">
               {formatPHP(stats.totalPaid)}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-xs">
+          <div className={cn(MODAL_CARD_CLASS, 'p-3')}>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3 text-success" /> Confirmed
             </span>
@@ -184,7 +192,7 @@ export function PaymentHistoryModal({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-xs">
+          <div className={cn(MODAL_CARD_CLASS, 'p-3')}>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <Clock className="h-3 w-3 text-warning" /> In-Flight
             </span>
@@ -205,7 +213,7 @@ export function PaymentHistoryModal({
                 onClick={() => setActiveFilter(f.value)}
                 className={`cursor-pointer shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${
                   activeFilter === f.value
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-accent text-accent-foreground shadow-xs'
                     : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
@@ -228,7 +236,7 @@ export function PaymentHistoryModal({
         </div>
 
         {/* Transaction Cards List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="g-scroll flex-1 overflow-y-auto p-4 space-y-3">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <Loader2 className="h-7 w-7 animate-spin text-accent-text mb-2" />
@@ -270,8 +278,8 @@ export function PaymentHistoryModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-divider bg-muted/20 px-6 py-3 text-xs text-muted-foreground">
-          <span>Showing {filtered.length} of {transactions.length} transactions</span>
+        <div className={cn(MODAL_FOOTER_CLASS, 'flex-col py-3 sm:flex-row sm:justify-between')}>
+          <span className="text-xs text-muted-foreground">Showing {filtered.length} of {transactions.length} transactions</span>
           <Button variant="outline" size="sm" onClick={onClose}>
             Close
           </Button>

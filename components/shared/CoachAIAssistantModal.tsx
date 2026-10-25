@@ -5,7 +5,6 @@ import Image from 'next/image';
 import {
   Bot,
   Send,
-  X,
   Sparkles,
   Loader2,
   MapPin,
@@ -14,6 +13,15 @@ import {
 } from 'lucide-react';
 import { MarkdownRenderer } from '@/features/groovey/components/MarkdownRenderer';
 import { getInitials } from '@/lib/utils';
+import {
+  ModalCloseButton,
+  MODAL_CLOSE_BUTTON_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 
 export interface CoachAIContext {
   id?: string;
@@ -199,10 +207,13 @@ function CoachAIModalContent({
       role="dialog"
       aria-modal="true"
       aria-label={`Ask AI about Coach ${coachName}`}
-      className="w-full max-w-lg h-[32rem] max-h-[92vh] flex flex-col bg-card border border-border rounded-3xl shadow-2xl overflow-hidden text-foreground animate-in zoom-in-95 duration-150"
+      className={cn(
+        MODAL_PANEL_CLASS,
+        'h-[32rem] max-h-[92vh] max-w-lg animate-in fade-in zoom-in-95 duration-300'
+      )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-border bg-muted/60 flex items-center justify-between gap-3 shrink-0">
+      <div className={cn(MODAL_HEADER_CLASS, 'items-center gap-3 p-4 sm:p-4')}>
         <div className="flex items-center gap-3 min-w-0">
           <div className="relative w-10 h-10 rounded-2xl bg-accent-soft border border-accent-border/60 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
             {coachContext?.photoUrl ? (
@@ -249,23 +260,17 @@ function CoachAIModalContent({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={handleResetChat}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            className={MODAL_CLOSE_BUTTON_CLASS}
+            aria-label="Reset conversation"
             title="Reset conversation"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4" aria-hidden="true" />
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-            aria-label="Close assistant"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <ModalCloseButton onClose={onClose} label="Close assistant" />
         </div>
       </div>
 
@@ -364,12 +369,22 @@ export function CoachAIAssistantModal({
   onClose,
   coachContext,
 }: CoachAIAssistantModalProps) {
+  const { backdropProps } = useModalDismiss({
+    open: isOpen,
+    onClose,
+    dismissOnBackdrop: false,
+  });
+
   if (!isOpen) return null;
 
   const coachKey = coachContext?.id || coachContext?.fullName || 'default-coach';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
+      role="presentation"
+      {...backdropProps}
+    >
       <CoachAIModalContent
         key={coachKey}
         coachContext={coachContext}

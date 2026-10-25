@@ -580,6 +580,7 @@ export default function CoachRegistrationPage() {
         email: step1Data.contact.email.trim(),
         password: step1Data.contact.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             role: 'coach',
             custom_id: random4Digit,
@@ -589,6 +590,7 @@ export default function CoachRegistrationPage() {
             username: step1Data.contact.username.trim().toLowerCase(),
             contact: formattedContact,
             talent: talentsString,
+            talents: talentsString,
             skill: selectedSkill,
             skills: [selectedSkill],
             genres: genresJSON,

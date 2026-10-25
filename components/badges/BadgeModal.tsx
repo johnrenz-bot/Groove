@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { CheckCircle2, Circle, X } from 'lucide-react';
+import { CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -103,7 +103,6 @@ export function BadgeModal({
       onClose={onClose}
       title={badgeType}
       size="md"
-      showClose={false}
       footer={footerContent}
     >
       {/*
@@ -114,8 +113,8 @@ export function BadgeModal({
         without scrolling when the task list is long.
       */}
 
-      {/* ── Extra header row: "Badge Earned" pill + close button ── */}
-      <div className="flex items-center justify-between gap-3 -mt-1 mb-4">
+      {/* ── "Badge Earned" pill (the shared Modal header owns the close control) ── */}
+      <div className="-mt-1 mb-4 flex items-center justify-between gap-3">
         <div>
           {isUnlocked && (
             <span className="inline-flex items-center rounded-full border border-success/20 bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
@@ -123,15 +122,6 @@ export function BadgeModal({
             </span>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          aria-label="Close dialog"
-          className="shrink-0"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </Button>
       </div>
 
       {/* ── Hero ── */}

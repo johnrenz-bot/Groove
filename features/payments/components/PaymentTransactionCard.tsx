@@ -60,7 +60,7 @@ export function PaymentTransactionCard({
         );
       case 'submitted':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-2.5 py-0.5 text-xs font-bold text-blue-600 dark:text-blue-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-bold text-accent-text">
             <Clock className="h-3.5 w-3.5" />
             Proof Submitted
           </span>
@@ -89,7 +89,7 @@ export function PaymentTransactionCard({
         {/* Top Header */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-text">
               <CreditCard className="h-4 w-4" />
             </span>
             <div className="min-w-0">
@@ -169,7 +169,7 @@ export function PaymentTransactionCard({
               variant="outline"
               size="sm"
               onClick={() => setQrViewerOpen(true)}
-              icon={<QrCode className="h-3.5 w-3.5 text-blue-500" />}
+              icon={<QrCode className="h-3.5 w-3.5 text-accent-text" />}
             >
               Smart QR
             </Button>

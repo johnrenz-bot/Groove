@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  X,
   ZoomIn,
   ZoomOut,
   RotateCcw,
@@ -13,9 +12,20 @@ import {
   Check,
   QrCode,
   ShieldCheck,
-  Smartphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_CLOSE_BUTTON_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_ICON_TILE_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 
 interface SmartQrViewerModalProps {
   open: boolean;
@@ -49,15 +59,7 @@ export function SmartQrViewerModal({
     }
   }, [open]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
+  const { backdropProps } = useModalDismiss({ open, onClose });
 
   if (!open) return null;
 
@@ -108,58 +110,55 @@ export function SmartQrViewerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-md animate-in fade-in duration-200"
+      className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
       role="dialog"
       aria-modal="true"
       aria-labelledby="smart-qr-title"
+      {...backdropProps}
     >
       <div
         ref={containerRef}
-        className={`relative flex w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-blue-500/30 bg-card shadow-2xl transition-all ${
-          isFullscreen ? 'h-full max-w-none rounded-none' : 'max-h-[90vh]'
-        }`}
+        className={cn(
+          MODAL_PANEL_CLASS,
+          'max-w-lg transition-all',
+          isFullscreen ? 'h-full max-w-none rounded-none' : 'max-h-[92vh]'
+        )}
       >
-        {/* Header with GCash blue signature gradient */}
-        <div className="relative flex items-center justify-between border-b border-border/80 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 px-6 py-4 text-white shadow-sm">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
-              <QrCode className="h-5 w-5 text-white" />
+        {/* Header */}
+        <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className={cn(MODAL_ICON_TILE_CLASS, 'h-10 w-10 rounded-2xl')}>
+              <QrCode className="h-5 w-5" aria-hidden="true" />
             </span>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+                <span className="rounded border border-accent-border bg-accent-soft px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent-text">
                   GCash
                 </span>
-                <h2 id="smart-qr-title" className="text-base font-bold text-white">
+                <h2 id="smart-qr-title" className="truncate text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
                   Smart QR Viewer
                 </h2>
               </div>
-              <p className="text-xs text-blue-100">Official Merchant / User QR Code</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Official Merchant / User QR Code</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="cursor-pointer rounded-xl p-2 text-white/80 transition hover:bg-white/20 hover:text-white"
+              className={MODAL_CLOSE_BUTTON_CLASS}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer rounded-xl p-2 text-white/80 transition hover:bg-white/20 hover:text-white"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClose={onClose} label="Close QR viewer" />
           </div>
         </div>
 
         {/* Content body */}
-        <div className="flex flex-1 flex-col overflow-y-auto p-6">
+        <div className={cn(MODAL_BODY_CLASS, 'flex flex-col')}>
           {/* Zoom & Action Toolbar */}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-2 text-xs">
             <div className="flex items-center gap-1">
@@ -291,8 +290,8 @@ export function SmartQrViewerModal({
           </div>
 
           {/* Security & Instructions Notice */}
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 text-xs text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 shrink-0 text-blue-500" />
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-accent-border bg-accent-soft/40 p-3 text-xs text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-accent-text" />
             <div className="space-y-1">
               <p className="font-semibold text-foreground">How to Pay:</p>
               <ol className="list-decimal pl-4 space-y-0.5 text-[11px] text-muted-foreground">
@@ -306,7 +305,7 @@ export function SmartQrViewerModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end border-t border-border bg-muted/20 px-6 py-3.5">
+        <div className={MODAL_FOOTER_CLASS}>
           <Button variant="outline" size="sm" onClick={onClose}>
             Close Viewer
           </Button>

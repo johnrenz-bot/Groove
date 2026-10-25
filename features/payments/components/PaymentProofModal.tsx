@@ -2,7 +2,6 @@
 
 import React, { useState, useRef } from 'react';
 import {
-  X,
   Upload,
   Check,
   Copy,
@@ -11,11 +10,20 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileCheck,
-  Loader2,
-  Eye,
   ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_ICON_TILE_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 import { SmartQrViewerModal } from './SmartQrViewerModal';
 import { submitPaymentProof, formatPHP } from '../services/gcashService';
 import type { PaymentTransaction } from '../types';
@@ -50,6 +58,13 @@ export function PaymentProofModal({
   const [qrViewerOpen, setQrViewerOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { backdropProps } = useModalDismiss({
+    open,
+    onClose,
+    disabled: submitting,
+    dismissOnBackdrop: false,
+  });
 
   if (!open) return null;
 
@@ -128,38 +143,34 @@ export function PaymentProofModal({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in"
+        className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
         role="dialog"
         aria-modal="true"
         aria-labelledby="payment-proof-title"
+        {...backdropProps}
       >
-        <div className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+        <div className={cn(MODAL_PANEL_CLASS, 'max-w-lg animate-in fade-in zoom-in-95 duration-300 sm:select-text')}>
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-divider bg-muted/40 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-                <FileCheck className="h-5 w-5" />
+          <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className={cn(MODAL_ICON_TILE_CLASS, 'h-10 w-10 rounded-2xl')}>
+                <FileCheck className="h-5 w-5" aria-hidden="true" />
               </span>
-              <div>
-                <h3 id="payment-proof-title" className="text-base font-bold text-foreground">
+              <div className="min-w-0">
+                <h3 id="payment-proof-title" className="text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
                   Upload GCash Payment Proof
                 </h3>
-                <p className="text-xs text-muted-foreground font-mono">
+                <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                   Ref: {transaction.transaction_reference}
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClose={onClose} label="Close payment proof" />
           </div>
 
           {/* Form Body */}
-          <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 max-h-[80vh]">
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
             {errorMsg && (
               <div className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
                 <AlertCircle className="h-4 w-4 shrink-0" />
@@ -205,7 +216,7 @@ export function PaymentProofModal({
                     variant="outline"
                     size="sm"
                     onClick={() => setQrViewerOpen(true)}
-                    icon={<QrCode className="h-3.5 w-3.5 text-blue-500" />}
+                    icon={<QrCode className="h-3.5 w-3.5 text-accent-text" />}
                   >
                     View QR
                   </Button>
@@ -338,8 +349,10 @@ export function PaymentProofModal({
               </div>
             </div>
 
+            </div>
+
             {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-2 border-t border-divider pt-4">
+            <div className={MODAL_FOOTER_CLASS}>
               <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={submitting}>
                 Cancel
               </Button>

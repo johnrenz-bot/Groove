@@ -32,6 +32,7 @@ import {
   VolumeX,
 } from 'lucide-react';
 
+import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import type { BackgroundMusic } from '@/features/showcase/hooks/useBackgroundMusic';
 import type { MusicTrack } from '../types';
@@ -93,8 +94,19 @@ export function MusicDetailsModal({
       size="lg"
       title="Groove Rehearsal Audio & Details"
       description="Studio-ready rehearsal tracks, choreography counts & playback controls"
+      footer={
+        <>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground sm:mr-auto">
+            <Sparkles className="h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Playback preserves seamlessly across coach and client showcase routes.</span>
+          </p>
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Done
+          </Button>
+        </>
+      }
     >
-      <div className="space-y-6 p-4 sm:p-6">
+      <div className="space-y-6">
         {/* Main Track Showcase: Cover Art + Info */}
         <div className="grid grid-cols-1 items-center gap-5 sm:grid-cols-[160px_1fr]">
           {/* Cover Art Artwork with Vinyl Glow */}
@@ -523,21 +535,6 @@ export function MusicDetailsModal({
               )}
             </div>
           )}
-        </div>
-
-        {/* Footer Note */}
-        <div className="flex items-center justify-between border-t border-border/60 pt-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-accent" />
-            <span>Playback preserves seamlessly across coach and client showcase routes.</span>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-border px-3.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition cursor-pointer"
-          >
-            Done
-          </button>
         </div>
       </div>
     </Modal>

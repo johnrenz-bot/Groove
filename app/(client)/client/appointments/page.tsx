@@ -2,95 +2,84 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  MessageSquare,
-  Star,
-  CalendarDays,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react';
+import { AlertCircle, Calendar, CalendarDays, Loader2, RefreshCw, Wifi } from 'lucide-react';
 import FeedbackModal from '@/features/appointments/components/FeedbackModal';
-import { BookingProgress } from '@/features/appointments/components/BookingProgress';
-import { BookingAgreementPanel } from '@/features/appointments/components/BookingAgreementPanel';
+import { BookingCard } from '@/features/appointments/components/BookingCard';
+import { BookingSummaryStrip } from '@/features/appointments/components/BookingSummaryStrip';
+import { BookingDetailsModal } from '@/features/appointments/components/BookingDetailsModal';
 import {
-  availableActions,
-  statusMeta,
+  BookingActionDialog,
+  type BookingDialogMode,
+} from '@/features/appointments/components/BookingActionDialog';
+import { RescheduleDialog } from '@/features/appointments/components/RescheduleDialog';
+import { StatusFilterBar } from '@/features/appointments/components/StatusFilterBar';
+import {
   BOOKING_STAGES,
-  type AppointmentStatus,
+  statusMeta,
 } from '@/features/appointments/services/bookingStatus';
 import {
   loadBookings,
+  requestReschedule,
   stampsFor,
   transitionBooking,
   type BookingDetail,
 } from '@/features/appointments/services/bookingService';
+import { encodeRescheduleRequest } from '@/features/appointments/services/rescheduleRequest';
+import { sortBookings } from '@/features/appointments/services/bookingTime';
+import { useNow } from '@/features/appointments/hooks/useNow';
+import { useBookingsLive } from '@/features/appointments/hooks/useBookingsLive';
+import { bookingGate, verificationStatusOf } from '@/features/verification/services/verification';
+import type { Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { Button } from '@/components/ui/Button';
-import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { cn } from '@/components/shared/cn';
-import { getInitials } from '@/lib/utils';
 
-/**
- * A client's bookings: stage, progress, agreement and the moves the database
- * will actually accept.
- *
- * WHAT CHANGED AND WHY
- *   1. Status filters used to omit `accepted` and `agreement_required`, so a
- *      client could not filter to the two stages their booking actually spends
- *      time in — and the raw enum label rendered in the pill.
- *   2. Cancel swallowed its error into console.error and then set local state to
- *      'cancelled' regardless, so a refused cancellation looked like it worked.
- *      Every write now goes through `transitionBooking`, which throws, and the
- *      page reloads from the database instead of patching a guess.
- *   3. The agreement was invisible here. A client at `agreement_required` had no
- *      way to read or sign it without finding the messages thread.
- *   4. No progress or history. `booking_events` was already readable by
- *      participants and simply was not being read.
- *
- * A client is never offered Accept, Decline or Complete: RLS splits those to the
- * coach, and `availableActions({ role: 'client' })` encodes that.
- */
-
-const BADGE_VARIANT: Record<string, BadgeVariant> = {
-  pending: 'pending',
-  accepted: 'scheduled',
-  agreement_required: 'pending',
-  confirmed: 'confirmed',
-  completed: 'completed',
-  declined: 'cancelled',
-  cancelled: 'neutral',
-};
-
-/** Filter pills. Includes every enum label, in pipeline order. */
 const FILTERS: string[] = ['All', ...BOOKING_STAGES, 'declined', 'cancelled'];
 
+const noop = () => {
+  /* Coach-only action: not rendered for a client, but the shared card requires it. */
+};
+
+interface DialogState {
+  id: number;
+  mode: BookingDialogMode;
+}
+
+/**
+ * A client's bookings: live status, progress, agreement and the moves the
+ * database will accept.
+ *
+ * WHAT IS NEW HERE
+ *   - Cards and the full details dialog share one `<BookingTracker>` and one
+ *     `<BookingActions>`, so the two views cannot disagree.
+ *   - Realtime keeps the list in step (with a 60s polling fallback).
+ *   - Cancel and reschedule are real writes with confirmation, not `window.prompt`.
+ *   - The reschedule flow records a REQUEST in the existing
+ *     `changes_requested_at` / `requested_changes_note` columns; there is no
+ *     `rescheduled` enum value, so it must never pretend the time moved.
+ *
+ * A client is never offered Accept, Decline or Complete: `availableActions`
+ * encodes that, and the coach page is the only caller that renders them.
+ */
 export default function ClientAppointmentsPage() {
   const [bookings, setBookings] = useState<BookingDetail[]>([]);
   const [viewerId, setViewerId] = useState<string | null>(null);
-  const [viewerSuspended, setViewerSuspended] = useState(false);
+  const [viewerProfile, setViewerProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('All');
   const [busyId, setBusyId] = useState<number | null>(null);
-  const [feedbackFor, setFeedbackFor] = useState<BookingDetail | null>(null);
+  const [feedbackId, setFeedbackId] = useState<number | null>(null);
+  const [detailsId, setDetailsId] = useState<number | null>(null);
+  const [dialog, setDialog] = useState<DialogState | null>(null);
+  const [rescheduleId, setRescheduleId] = useState<number | null>(null);
 
-  /*
-   * The loader deliberately performs NO synchronous setState.
-   *
-   * `useEffect(() => void load())` is the mount path, and a setState before the
-   * first `await` there is a cascading render the React compiler lint flags.
-   * `loading` already starts true, so the mount path needs no flag at all, and
-   * the refresh path sets its own from an event handler, which is the correct
-   * place for it. `error` is cleared after the first await, once we are already
-   * off the synchronous path.
-   */
-  const fetchBookings = useCallback(async () => {
+  const nowMs = useNow();
+
+  const fetchBookings = useCallback(async (silent = false) => {
     try {
       const supabase = createClient();
       const {
@@ -101,15 +90,15 @@ export default function ClientAppointmentsPage() {
         return;
       }
       setViewerId(user.id);
-      setError(null);
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('status')
+        .select('*')
         .eq('id', user.id)
         .maybeSingle();
-      setViewerSuspended(profile?.status === 'suspended');
+      if (profile) setViewerProfile(profile as Profile);
 
+      if (!silent) setError(null);
       setBookings(await loadBookings(supabase, user.id, 'client'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Your bookings could not be loaded.');
@@ -118,7 +107,7 @@ export default function ClientAppointmentsPage() {
     }
   }, []);
 
-  /** Reload after a write. Spinner state lives here, in the event handler. */
+  /** Manual reload: the only path that owns the spinner. */
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -128,15 +117,6 @@ export default function ClientAppointmentsPage() {
     }
   }, [fetchBookings]);
 
-  /*
-   * Mount fetch.
-   *
-   * Deferred by a tick, for two reasons. It keeps network I/O out of the commit
-   * phase, and it is the pattern /users already uses for its own mount fetch —
-   * `react-hooks/set-state-in-effect` cannot see across the async boundary of a
-   * loader, so calling one directly from an effect body trips it even when the
-   * first setState is already after an await.
-   */
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void fetchBookings();
@@ -144,13 +124,23 @@ export default function ClientAppointmentsPage() {
     return () => window.clearTimeout(timer);
   }, [fetchBookings]);
 
+  const liveRefresh = useCallback(() => {
+    void fetchBookings(true);
+  }, [fetchBookings]);
+
+  const { mode: liveMode } = useBookingsLive({
+    enabled: Boolean(viewerId),
+    viewerId,
+    role: 'client',
+    onRefresh: liveRefresh,
+  });
+
   // Achievements are keyed off a confirmed-or-completed booking. Kept exactly as
   // before, but only fires when the data actually changed into that shape.
   useEffect(() => {
     if (!viewerId || bookings.length === 0) return;
     const hasConfirmed = bookings.some(
-      (b) =>
-        b.appointment.status === 'confirmed' || b.appointment.status === 'completed'
+      (b) => b.appointment.status === 'confirmed' || b.appointment.status === 'completed'
     );
     if (!hasConfirmed) return;
     void (async () => {
@@ -165,6 +155,10 @@ export default function ClientAppointmentsPage() {
     })();
   }, [bookings, viewerId]);
 
+  const gate = bookingGate(viewerProfile);
+  const canWrite = gate.allowed;
+  const writeBlockedReason = gate.reason;
+
   const counts = useMemo(() => {
     const map = new Map<string, number>();
     for (const b of bookings) {
@@ -173,27 +167,47 @@ export default function ClientAppointmentsPage() {
     return map;
   }, [bookings]);
 
-  const visible = useMemo(
+  const filterOptions = useMemo(
     () =>
-      statusFilter === 'All'
-        ? bookings
-        : bookings.filter((b) => b.appointment.status === statusFilter),
-    [bookings, statusFilter]
+      FILTERS.map((status) => ({
+        value: status,
+        label: status === 'All' ? 'All' : statusMeta(status).label,
+        count: status === 'All' ? bookings.length : (counts.get(status) ?? 0),
+      })),
+    [bookings.length, counts]
   );
+
+  const visible = useMemo(() => {
+    const ordered = sortBookings(bookings, 'client', nowMs);
+    return statusFilter === 'All'
+      ? ordered
+      : ordered.filter((b) => b.appointment.status === statusFilter);
+  }, [bookings, nowMs, statusFilter]);
+
+  // Dialogs are keyed by id, not by a snapshot object: a realtime refresh must
+  // update the agreement and tracker inside an OPEN details dialog. A snapshot
+  // would keep showing "awaiting signatures" after the client had signed.
+  const detailsFor =
+    detailsId === null ? null : bookings.find((b) => b.appointment.id === detailsId) ?? null;
+  const rescheduleFor =
+    rescheduleId === null ? null : bookings.find((b) => b.appointment.id === rescheduleId) ?? null;
+  const feedbackFor =
+    feedbackId === null ? null : bookings.find((b) => b.appointment.id === feedbackId) ?? null;
+  const dialogDetail =
+    dialog === null ? null : bookings.find((b) => b.appointment.id === dialog.id) ?? null;
 
   /**
    * Run a status change, then RELOAD rather than patching local state.
    *
-   * Reloading is the point: the database stamps lifecycle columns and writes a
-   * `booking_events` row on every move, so a local patch would show a status the
-   * rest of the app has not caught up with — and the timeline would disagree with
-   * the badge.
+   * The database stamps lifecycle columns and writes a `booking_events` row on
+   * every move, so a local patch would show a status the rest of the app has not
+   * caught up with — and the timeline would disagree with the badge.
    */
   const runTransition = async (
     detail: BookingDetail,
-    target: AppointmentStatus,
+    target: 'cancelled' | 'declined' | 'completed',
     reason?: string | null
-  ) => {
+  ): Promise<boolean> => {
     setBusyId(detail.appointment.id);
     setError(null);
     try {
@@ -204,32 +218,98 @@ export default function ClientAppointmentsPage() {
         to: target,
         reason,
       });
-      await refresh();
+      await fetchBookings(true);
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The booking could not be updated.');
+      return false;
     } finally {
       setBusyId(null);
     }
   };
 
-  const onCancel = async (detail: BookingDetail) => {
-    const reason =
-      window.prompt(
-        'Add a short reason for cancelling (optional). This is shared with your coach.',
-        ''
-      ) ?? null;
-    if (reason === null) return; // dismissed
-    await runTransition(detail, 'cancelled', reason.trim() || null);
+  const handleDialogConfirm = async (reason: string | null): Promise<boolean> => {
+    if (!dialog || !dialogDetail) return false;
+    if (dialog.mode === 'cancel') {
+      return runTransition(dialogDetail, 'cancelled', reason);
+    }
+    return false;
   };
+
+  const openDialog = (detail: BookingDetail, mode: BookingDialogMode) => {
+    setDetailsId(null);
+    setError(null);
+    setDialog({ id: detail.appointment.id, mode });
+  };
+
+  const openReschedule = (detail: BookingDetail) => {
+    setDetailsId(null);
+    setError(null);
+    setRescheduleId(detail.appointment.id);
+  };
+
+  const submitReschedule = async (draft: {
+    requestedDate: string;
+    startTime: string;
+    endTime: string;
+    durationMinutes: number;
+    reason: string;
+  }): Promise<boolean> => {
+    if (!rescheduleFor) return false;
+    setBusyId(rescheduleFor.appointment.id);
+    setError(null);
+    try {
+      const supabase = createClient();
+      await requestReschedule(supabase, {
+        appointmentId: rescheduleFor.appointment.id,
+        fromStatus: rescheduleFor.appointment.status,
+        note: encodeRescheduleRequest(draft, new Date().toISOString()),
+      });
+      await fetchBookings(true);
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'The reschedule request could not be sent.');
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const emptyDescription =
+    statusFilter === 'All'
+      ? 'You have not booked a rehearsal session yet.'
+      : statusFilter === 'cancelled'
+        ? 'You have no cancelled sessions.'
+        : statusFilter === 'declined'
+          ? 'No coach has declined your requests.'
+          : `You have no ${statusMeta(statusFilter).label.toLowerCase()} sessions.`;
 
   return (
     <>
       <PageHeader
         eyebrow="Client Schedule"
         title="My Bookings &amp; Appointments"
-        description="Track rehearsal session statuses, sign agreements, and leave reviews."
+        description="Track rehearsal session statuses, sign agreements, reschedule, and leave reviews."
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
+              title={
+                liveMode === 'live'
+                  ? 'Connected to Supabase realtime. A 60-second poll runs as a fallback.'
+                  : 'Live channel is reconnecting. The page refreshes every 60 seconds.'
+              }
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full',
+                  liveMode === 'live' ? 'bg-success' : 'bg-warning'
+                )}
+              />
+              <Wifi className="h-3 w-3" aria-hidden="true" />
+              {liveMode === 'live' ? 'Live' : 'Auto-refresh'}
+            </span>
             <button
               type="button"
               onClick={() => void refresh()}
@@ -258,7 +338,10 @@ export default function ClientAppointmentsPage() {
           role="alert"
           className="mb-5 flex items-start justify-between gap-3 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
         >
-          <span>{error}</span>
+          <span className="flex items-start gap-2">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            {error}
+          </span>
           <button
             type="button"
             onClick={() => void refresh()}
@@ -269,46 +352,32 @@ export default function ClientAppointmentsPage() {
         </div>
       )}
 
-      {/* Status filters, now covering every enum label. */}
-      <div
-        role="group"
-        aria-label="Filter appointments by status"
-        className="g-scroll -mx-1 mb-6 flex gap-2 overflow-x-auto px-1 pb-2"
-      >
-        {FILTERS.map((status) => {
-          const isActive = statusFilter === status;
-          const count =
-            status === 'All'
-              ? bookings.length
-              : (counts.get(status as AppointmentStatus) ?? 0);
-          if (status !== 'All' && count === 0) return null;
+      {!loading && viewerProfile && !canWrite && (
+        <div className="mb-5 rounded-2xl border border-warning/30 bg-warning-soft px-4 py-3 text-xs leading-relaxed text-warning">
+          <span className="font-bold">Booking changes are locked. </span>
+          {verificationStatusOf(viewerProfile) === 'rejected'
+            ? 'Your verification was rejected. Correct the documents in your profile so an administrator can review them again.'
+            : 'Cancel and reschedule stay disabled until your account verification is approved.'}{' '}
+          Message your coach if something is urgent.
+          {gate.ctaHref && (
+            <Link href={gate.ctaHref} className="ml-1 font-bold underline underline-offset-2">
+              Go to profile
+            </Link>
+          )}
+        </div>
+      )}
 
-          return (
-            <button
-              key={status}
-              type="button"
-              aria-pressed={isActive}
-              onClick={() => setStatusFilter(status)}
-              className={cn(
-                'inline-flex min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition',
-                isActive
-                  ? 'border-accent-border bg-accent-soft text-accent-text'
-                  : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
-              )}
-            >
-              <span>{status === 'All' ? 'All' : statusMeta(status).label}</span>
-              <span
-                className={cn(
-                  'rounded-full px-1.5 py-0.2 text-[10px] font-bold',
-                  isActive ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
-                )}
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {!loading && bookings.length > 0 && (
+        <BookingSummaryStrip details={bookings} role="client" nowMs={nowMs} />
+      )}
+
+      <StatusFilterBar
+        options={filterOptions}
+        value={statusFilter}
+        onChange={setStatusFilter}
+        ariaLabel="Filter appointments by status"
+        className="mt-6 mb-5"
+      />
 
       {loading ? (
         <div className="space-y-4" role="status" aria-live="polite">
@@ -317,196 +386,131 @@ export default function ClientAppointmentsPage() {
             Loading your bookings…
           </p>
           {[0, 1, 2].map((i) => (
-            <div key={i} className="g-skeleton h-56 rounded-[20px]" />
+            <div key={i} className="space-y-4 rounded-[20px] border border-border bg-card p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="g-skeleton h-12 w-12 shrink-0 rounded-2xl" />
+                <div className="flex-1 space-y-2">
+                  <div className="g-skeleton h-4 w-1/3" />
+                  <div className="g-skeleton h-3 w-1/2" />
+                </div>
+                <div className="g-skeleton h-6 w-24 rounded-full" />
+              </div>
+              <div className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-3">
+                <div className="g-skeleton h-3.5 w-full" />
+                <div className="g-skeleton h-3.5 w-full" />
+                <div className="g-skeleton h-3.5 w-full" />
+              </div>
+              <div className="g-skeleton h-24 w-full rounded-2xl" />
+            </div>
           ))}
         </div>
       ) : visible.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="h-5 w-5" />}
-          title="No bookings found"
-          description={
-            statusFilter === 'All'
-              ? 'You have not booked a rehearsal session yet.'
-              : `You have no ${statusMeta(statusFilter).label.toLowerCase()} sessions.`
+          title={statusFilter === 'All' ? 'No bookings yet' : 'Nothing in this view'}
+          description={emptyDescription}
+          action={
+            statusFilter === 'All' ? (
+              <Link href="/client/talent">
+                <Button size="sm">Explore Coaches</Button>
+              </Link>
+            ) : (
+              <Button size="sm" variant="outline" onClick={() => setStatusFilter('All')}>
+                Show all bookings
+              </Button>
+            )
           }
-          actionHref="/client/talent"
-          action="Explore Coaches"
         />
       ) : (
         <div className="space-y-4 sm:space-y-5">
           {visible.map((detail) => {
-            const appt = detail.appointment;
-            const meta = statusMeta(appt.status);
-            const busy = busyId === appt.id;
-            const coachName =
-              [appt.coach?.firstname, appt.coach?.lastname].filter(Boolean).join(' ') ||
-              appt.coach?.username ||
-              'your coach';
-
-            const actions = availableActions({
-              status: appt.status,
-              role: 'client',
-              suspended: viewerSuspended,
-            });
-
+            const appointment = detail.appointment;
+            const busy = busyId === appointment.id;
             return (
-              <article
-                key={appt.id}
-                className="rounded-[20px] border border-border bg-card p-5 transition-colors hover:border-accent-border sm:p-6"
-              >
-                {/* Header */}
-                <div className="flex flex-col items-start justify-between gap-3 border-b border-divider pb-4 sm:flex-row sm:items-center">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted text-sm font-bold text-accent-text shadow-sm">
-                      {appt.coach?.photo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={appt.coach.photo_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <span>{getInitials(appt.coach?.firstname, appt.coach?.lastname)}</span>
-                      )}
-                    </span>
-                    <div className="min-w-0">
-                      <h3 className="truncate text-sm font-bold text-foreground sm:text-base">
-                        Session with {coachName}
-                      </h3>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {appt.session_type} ·{' '}
-                        <span className="font-semibold text-accent-text">{appt.talent || 'Dance'}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
-                    <Badge variant={BADGE_VARIANT[appt.status] ?? 'neutral'} dot>
-                      {meta.label}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Details */}
-                <dl className="grid grid-cols-1 gap-3 py-4 text-xs text-muted-foreground sm:grid-cols-3">
-                  <div className="flex items-center gap-2">
-                    <dt className="sr-only">Date</dt>
-                    <Calendar className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                    <dd className="tabular-nums font-medium text-foreground">
-                      {new Date(appt.date).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-                    </dd>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <dt className="sr-only">Time</dt>
-                    <Clock className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                    <dd className="tabular-nums font-medium text-foreground">
-                      {appt.start_time} - {appt.end_time}
-                    </dd>
-                  </div>
-                  <div className="flex min-w-0 items-center gap-2">
-                    <dt className="sr-only">Location</dt>
-                    <MapPin className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                    <dd className="truncate">
-                      {appt.is_online ? 'Online session' : appt.address}
-                    </dd>
-                  </div>
-                </dl>
-
-                {appt.purpose && (
-                  <div className="rounded-2xl border border-border bg-muted/60 p-3.5 text-xs leading-relaxed">
-                    <span className="font-semibold text-muted-foreground">Rehearsal Goal: </span>
-                    <span className="text-foreground">{appt.purpose}</span>
-                  </div>
-                )}
-
-                {/* Progress + audit trail */}
-                <div className="mt-4 border-t border-divider pt-4">
-                  <BookingProgress
-                    status={appt.status}
-                    stamps={stampsFor(appt)}
-                    events={detail.events}
-                    loading={loading}
-                  />
-                </div>
-
-                {/* Agreement */}
-                {detail.agreement && (
-                  <div className="mt-4">
-                    <BookingAgreementPanel
-                      agreement={detail.agreement}
-                      bookingStatus={appt.status}
-                      userId={viewerId ?? ''}
-                      onChanged={() => void refresh()}
-                    />
-                  </div>
-                )}
-
-                {appt.cancellation_reason && meta.isTerminal && (
-                  <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-3.5 text-xs leading-relaxed">
-                    <span className="font-semibold text-muted-foreground">Cancellation note: </span>
-                    <span className="text-foreground">{appt.cancellation_reason}</span>
-                  </div>
-                )}
-
-                {appt.feedback && (
-                  <div className="mt-4 space-y-1.5 rounded-2xl border border-warning/30 bg-warning-soft p-3.5 text-xs">
-                    <div className="flex items-center gap-1.5 font-bold text-warning">
-                      <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-                      <span className="tabular-nums">Your Review: {appt.rating} / 5 Stars</span>
-                    </div>
-                    <p className="leading-relaxed text-foreground/80">&ldquo;{appt.feedback}&rdquo;</p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-divider pt-4">
-                  <Link
-                    href={`/messages?user=${appt.coach_id}`}
-                    className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
-                  >
-                    <MessageSquare className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-                    Message Coach
-                  </Link>
-
-                  {appt.status === 'completed' && !appt.feedback && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      icon={<Star className="h-3.5 w-3.5" />}
-                      onClick={() => setFeedbackFor(detail)}
-                    >
-                      Leave Review
-                    </Button>
-                  )}
-
-                  {actions.map((spec) => (
-                    <Button
-                      key={spec.action}
-                      type="button"
-                      size="sm"
-                      variant={spec.variant === 'danger' ? 'outline' : 'primary'}
-                      disabled={busy || Boolean(spec.blockedReason)}
-                      title={spec.blockedReason ?? undefined}
-                      onClick={() =>
-                        spec.action === 'cancel' ? void onCancel(detail) : undefined
-                      }
-                      className={
-                        spec.variant === 'danger'
-                          ? 'border-danger/30 text-danger hover:bg-danger-soft'
-                          : undefined
-                      }
-                    >
-                      {spec.label}
-                    </Button>
-                  ))}
-                </div>
-              </article>
+              <BookingCard
+                key={appointment.id}
+                detail={detail}
+                role="client"
+                nowMs={nowMs}
+                stamp={stampsFor(appointment)}
+                busy={busy}
+                canWrite={canWrite}
+                writeBlockedReason={writeBlockedReason}
+                showReview={appointment.status === 'completed' && !appointment.feedback}
+                onOpenDetails={(item) => setDetailsId(item.appointment.id)}
+                onReview={(item) => setFeedbackId(item.appointment.id)}
+                onAccept={noop}
+                onDecline={noop}
+                onComplete={noop}
+                onApproveReschedule={noop}
+                onDismissReschedule={noop}
+                onCancel={(item) => openDialog(item, 'cancel')}
+                onReschedule={openReschedule}
+              />
             );
           })}
         </div>
       )}
 
+      <BookingDetailsModal
+        detail={detailsFor}
+        role="client"
+        nowMs={nowMs}
+        viewerId={viewerId ?? ''}
+        stamp={detailsFor ? stampsFor(detailsFor.appointment) : {}}
+        busy={Boolean(detailsFor && busyId === detailsFor.appointment.id)}
+        canWrite={canWrite}
+        writeBlockedReason={writeBlockedReason}
+        showReview={
+          Boolean(
+            detailsFor &&
+              detailsFor.appointment.status === 'completed' &&
+              !detailsFor.appointment.feedback
+          )
+        }
+        onClose={() => setDetailsId(null)}
+        onAccept={noop}
+        onDecline={noop}
+        onComplete={noop}
+        onApproveReschedule={noop}
+        onDismissReschedule={noop}
+        onCancel={(item) => openDialog(item, 'cancel')}
+        onReschedule={openReschedule}
+        onReview={(item) => {
+          setDetailsId(null);
+          setFeedbackId(item.appointment.id);
+        }}
+      />
+
+      {dialog && dialogDetail && (
+        <BookingActionDialog
+          detail={dialogDetail}
+          mode={dialog.mode}
+          nowMs={nowMs}
+          busy={busyId === dialogDetail.appointment.id}
+          errorMessage={error}
+          onClose={() => setDialog(null)}
+          onConfirm={handleDialogConfirm}
+        />
+      )}
+
+      {rescheduleFor && (
+        <RescheduleDialog
+          detail={rescheduleFor}
+          ownAppointments={bookings.map((item) => item.appointment)}
+          nowMs={nowMs}
+          busy={busyId === rescheduleFor.appointment.id}
+          errorMessage={error}
+          onClose={() => setRescheduleId(null)}
+          onSubmit={submitReschedule}
+        />
+      )}
+
       {feedbackFor && (
         <FeedbackModal
           appointment={feedbackFor.appointment}
-          isOpen={!!feedbackFor}
-          onClose={() => setFeedbackFor(null)}
+          isOpen={Boolean(feedbackFor)}
+          onClose={() => setFeedbackId(null)}
           onSuccess={() => void refresh()}
         />
       )}

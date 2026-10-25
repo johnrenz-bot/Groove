@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ExternalLink,
   FileText,
@@ -8,11 +8,18 @@ import {
   Loader2,
   Maximize2,
   ShieldAlert,
-  X,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { SIGNED_URL_TTL_SECONDS, VERIFICATION_BUCKET } from '@/lib/utils';
 import { cn } from '@/components/shared/cn';
+import {
+  ModalCloseButton,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
 
 /**
  * Secure preview of one private verification document.
@@ -266,69 +273,56 @@ export function DocumentLightbox({
   label: string;
   onClose: () => void;
 }) {
-  React.useEffect(() => {
-    if (!url) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [url, onClose]);
+  const { backdropProps } = useModalDismiss({ open: Boolean(url), onClose });
 
   if (!url) return null;
   const kind = classify(url);
 
   return (
     <div
-      className="fixed inset-0 z-[85] flex flex-col items-center justify-center gap-4 bg-overlay p-4 backdrop-blur-sm animate-in fade-in sm:p-8"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
+      role="dialog"
+      aria-modal="true"
+      aria-label={label}
+      {...backdropProps}
     >
-      <div className="flex w-full max-w-5xl items-center justify-between gap-4">
-        <p className="truncate text-sm font-bold text-foreground">{label}</p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close document viewer"
-          className="shrink-0 cursor-pointer rounded-full border border-border bg-card p-2 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+      <div className={cn(MODAL_PANEL_CLASS, 'max-w-5xl max-h-[92vh] animate-in fade-in zoom-in-95 duration-300')}>
+        <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-bold tracking-[-0.02em] text-foreground">{label}</h3>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Private verification document</p>
+          </div>
+          <ModalCloseButton onClose={onClose} label="Close document viewer" />
+        </div>
 
-      <div className="flex max-h-[80vh] w-full max-w-5xl flex-1 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card">
-        {kind === 'image' ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={url}
-            alt={label}
-            className="max-h-[80vh] w-auto max-w-full object-contain"
-          />
-        ) : kind === 'pdf' ? (
-          <iframe src={url} title={label} className="h-[80vh] w-full" />
-        ) : (
-          <a
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className="flex flex-col items-center gap-3 p-10 text-center text-sm text-foreground"
-          >
-            <FileText className="h-8 w-8 text-accent-text" aria-hidden="true" />
-            Open this document in a new tab
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-        )}
-      </div>
+        <div className="g-scroll flex min-h-0 flex-1 items-center justify-center overflow-auto bg-black/20">
+          {kind === 'image' ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={url}
+              alt={label}
+              className="max-h-[70vh] w-auto max-w-full object-contain"
+            />
+          ) : kind === 'pdf' ? (
+            <iframe src={url} title={label} className="h-[70vh] w-full" />
+          ) : (
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-3 p-10 text-center text-sm text-foreground"
+            >
+              <FileText className="h-8 w-8 text-accent-text" aria-hidden="true" />
+              Open this document in a new tab
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </a>
+          )}
+        </div>
 
-      <p className="text-[11px] text-muted-foreground">
-        This is a private document, served through a short-lived signed link. Do not share it.
-      </p>
+        <p className={cn(MODAL_FOOTER_CLASS, 'justify-start text-[11px] text-muted-foreground')}>
+          This is a private document, served through a short-lived signed link. Do not share it.
+        </p>
+      </div>
     </div>
   );
 }

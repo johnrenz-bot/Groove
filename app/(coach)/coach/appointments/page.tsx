@@ -3,64 +3,74 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
+  AlertCircle,
   Calendar,
+  CalendarDays,
   Clock,
-  MapPin,
-  MessageSquare,
-  Star,
   Loader2,
   RefreshCw,
-  CalendarDays,
+  Wifi,
 } from 'lucide-react';
-import { Appointment, Profile } from '@/lib/types';
+import type { Appointment, FullCoach } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import { isVerified, verificationStatusOf } from '@/features/verification/services/verification';
-import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
-import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
-import { BookingProgress } from '@/features/appointments/components/BookingProgress';
-import { BookingAgreementPanel } from '@/features/appointments/components/BookingAgreementPanel';
 import {
-  availableActions,
-  statusMeta,
+  coachBookingGate,
+  isVerified,
+  verificationStatusOf,
+} from '@/features/verification/services/verification';
+import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
+import { BookingCard } from '@/features/appointments/components/BookingCard';
+import { BookingSummaryStrip } from '@/features/appointments/components/BookingSummaryStrip';
+import { CoachAvailabilitySnapshot } from '@/features/appointments/components/CoachAvailabilitySnapshot';
+import { BookingDetailsModal } from '@/features/appointments/components/BookingDetailsModal';
+import {
+  BookingActionDialog,
+  type BookingDialogMode,
+} from '@/features/appointments/components/BookingActionDialog';
+import { StatusFilterBar } from '@/features/appointments/components/StatusFilterBar';
+import {
   BOOKING_STAGES,
-  type AppointmentStatus,
+  statusMeta,
 } from '@/features/appointments/services/bookingStatus';
 import {
   acceptBooking,
+  approveReschedule,
+  clearRescheduleRequest,
   loadBookings,
   stampsFor,
   transitionBooking,
   type BookingDetail,
 } from '@/features/appointments/services/bookingService';
+import { parseRescheduleRequest } from '@/features/appointments/services/rescheduleRequest';
+import {
+  parseBookingStart,
+  sortBookings,
+  timeToMinutes,
+} from '@/features/appointments/services/bookingTime';
+import { useNow } from '@/features/appointments/hooks/useNow';
+import { useBookingsLive } from '@/features/appointments/hooks/useBookingsLive';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { cn } from '@/components/shared/cn';
-import { getInitials } from '@/lib/utils';
 
 /**
- * A coach's booking requests: accept, decline, complete, and sign.
+ * A coach's booking requests: accept, decline, complete, sign, and answer
+ * reschedule requests.
  *
- * WHAT CHANGED AND WHY
- *   1. Filters compared a human label to an enum label by lowercasing both, which
- *      silently never matched 'Agreement Required' (a space, not an underscore).
- *      Filters are now the enum labels themselves, rendered through
- *      `statusMeta` so the reader sees a sentence and the code sees the label.
- *   2. Accept/Decline/Complete wrote status and then sent a notification by hand.
- *      The database already notifies both parties from `notify_booking_parties`,
- *      so a manual insert meant every accepted booking produced TWO
- *      notifications. The manual writes are gone; the database is the only sender.
- *   3. Errors that were only logged are now shown, and every write is followed by
- *      a reload rather than a local patch — `guard_booking_transition` stamps
- *      lifecycle columns and writes a `booking_events` row on every move, so a
- *      patch would leave the progress timeline disagreeing with the badge.
- *   4. Progress and the audit trail are rendered. `booking_events` was already
- *      readable by participants and was simply never queried.
- *   5. The agreement is readable and signable from here, not only from messages.
+ * WHAT IS NEW HERE
+ *   - The same `<BookingTracker>` / `<BookingCard>` / `<BookingActions>` as the
+ *     client page, so both sides of one booking see the same pipeline.
+ *   - A reschedule request is actionable: approve writes the new date/time into
+ *     the existing columns, keep-original clears the request. Neither invents a
+ *     status, because `appointment_status` has no `rescheduled` label.
+ *   - Decline/complete/cancel now use a confirmation dialog instead of
+ *     `window.prompt`, and a refused write leaves the dialog open.
+ *   - Realtime + a visible polling fallback keep incoming requests current.
  *
- * The transition ORDER for accepting is the database's, not this file's: see
- * `acceptBooking` — pending -> accepted -> (agreement written) -> agreement_required.
+ * Accept is still `acceptBooking`: pending -> accepted -> agreement written ->
+ * agreement_required, with each step a compare-and-set. The database remains the
+ * only sender of notifications, so there is no manual notification insert here.
  */
 
 /**
@@ -153,34 +163,32 @@ async function buildAgreementTerms(
   };
 }
 
-const BADGE_VARIANT: Record<string, BadgeVariant> = {
-  pending: 'pending',
-  accepted: 'scheduled',
-  agreement_required: 'pending',
-  confirmed: 'confirmed',
-  completed: 'completed',
-  declined: 'cancelled',
-  cancelled: 'neutral',
+const FILTERS: string[] = ['All', ...BOOKING_STAGES, 'declined', 'cancelled'];
+
+const noop = () => {
+  /* Client-only action: not rendered for a coach, but the shared card requires it. */
 };
 
-/** Filter pills. Enum labels, so the comparison can never silently miss. */
-const FILTERS: string[] = ['All', ...BOOKING_STAGES, 'declined', 'cancelled'];
+interface DialogState {
+  id: number;
+  mode: BookingDialogMode;
+}
 
 export default function CoachAppointmentsPage() {
   const [bookings, setBookings] = useState<BookingDetail[]>([]);
-  const [coachProfile, setCoachProfile] = useState<Profile | null>(null);
+  const [coachProfile, setCoachProfile] = useState<FullCoach | null>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [detailsId, setDetailsId] = useState<number | null>(null);
+  const [dialog, setDialog] = useState<DialogState | null>(null);
 
-  /*
-   * The loader deliberately performs NO synchronous setState — see the same note
-   * on the client page. `loading` starts true, and the refresh path owns its own
-   * spinner from an event handler.
-   */
-  const fetchBookings = useCallback(async () => {
+  const nowMs = useNow();
+
+  const fetchBookings = useCallback(async (silent = false) => {
     try {
       const supabase = createClient();
       const {
@@ -190,15 +198,16 @@ export default function CoachAppointmentsPage() {
         setActionError('Sign in to see your coaching requests.');
         return;
       }
+      setViewerId(user.id);
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, coach_profile:coach_profiles(*)')
         .eq('id', user.id)
         .single();
-      setCoachProfile(profile as Profile);
-      setActionError(null);
+      if (profile) setCoachProfile(profile as FullCoach);
 
+      if (!silent) setActionError(null);
       setBookings(await loadBookings(supabase, user.id, 'coach'));
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Your requests could not be loaded.');
@@ -207,7 +216,7 @@ export default function CoachAppointmentsPage() {
     }
   }, []);
 
-  /** Reload after a write. Spinner state lives here, in the event handler. */
+  /** Manual reload: the only path that owns the spinner. */
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -217,10 +226,6 @@ export default function CoachAppointmentsPage() {
     }
   }, [fetchBookings]);
 
-  /*
-   * Mount fetch. Deferred by a tick for the same reason as on the client page —
-   * see the note there.
-   */
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void fetchBookings();
@@ -228,17 +233,25 @@ export default function CoachAppointmentsPage() {
     return () => window.clearTimeout(timer);
   }, [fetchBookings]);
 
-  const coachIsVerified = isVerified(coachProfile);
-  const coachSuspended = coachProfile?.status === 'suspended';
+  const liveRefresh = useCallback(() => {
+    void fetchBookings(true);
+  }, [fetchBookings]);
 
-  /**
-   * Every write ends in a reload. `guard_booking_transition` writes a
-   * `booking_events` row and stamps a lifecycle column on each move, so a local
-   * patch would leave the timeline and the badge telling different stories.
-   */
+  const { mode: liveMode } = useBookingsLive({
+    enabled: Boolean(viewerId),
+    viewerId,
+    role: 'coach',
+    onRefresh: liveRefresh,
+  });
+
+  const gate = coachBookingGate(coachProfile);
+  const canWrite = gate.allowed;
+  const writeBlockedReason = gate.reason;
+  const coachIsVerified = isVerified(coachProfile);
+
   const afterWrite = useCallback(async () => {
-    await refresh();
-  }, [refresh]);
+    await fetchBookings(true);
+  }, [fetchBookings]);
 
   /**
    * Accept a pending request, or push an accepted one on to the agreement.
@@ -250,6 +263,7 @@ export default function CoachAppointmentsPage() {
    * booking at 'agreement_required' with no agreement is a dead end.
    */
   const handleAccept = async (detail: BookingDetail) => {
+    setDetailsId(null);
     setBusyId(detail.appointment.id);
     setActionError(null);
     try {
@@ -257,7 +271,7 @@ export default function CoachAppointmentsPage() {
       const terms = await buildAgreementTerms(supabase, detail.appointment);
       if (terms.error) {
         setActionError(
-          `Request accepted, but the agreement could not be created (${terms.error}). Open it from the booking to send the agreement.`
+          `The request was not accepted because the agreement terms could not be prepared (${terms.error}). Try again, or ask an administrator to check the coach profile.`
         );
         await afterWrite();
         return;
@@ -279,9 +293,9 @@ export default function CoachAppointmentsPage() {
 
   const handleTransition = async (
     detail: BookingDetail,
-    target: AppointmentStatus,
+    target: 'declined' | 'cancelled' | 'completed',
     reason?: string | null
-  ) => {
+  ): Promise<boolean> => {
     setBusyId(detail.appointment.id);
     setActionError(null);
     try {
@@ -317,19 +331,116 @@ export default function CoachAppointmentsPage() {
       }
 
       await afterWrite();
+      return true;
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'The booking could not be updated.');
       await afterWrite();
+      return false;
     } finally {
       setBusyId(null);
     }
   };
 
-  const handleCancel = async (detail: BookingDetail) => {
-    const reason =
-      window.prompt('Add a short reason for cancelling (optional). Shared with the client.', '') ?? null;
-    if (reason === null) return;
-    await handleTransition(detail, 'cancelled', reason.trim() || null);
+  const handleApproveReschedule = async (detail: BookingDetail): Promise<boolean> => {
+    const request = parseRescheduleRequest(
+      detail.appointment.requested_changes_note,
+      detail.appointment.changes_requested_at
+    );
+    if (!request?.requestedDate || !request.startTime || !request.endTime) {
+      setActionError(
+        'The requested time was not recorded in the note. Keep the original time and message the client to agree a new booking.'
+      );
+      return false;
+    }
+
+    const requestedStartAt = parseBookingStart(request.requestedDate, request.startTime);
+    const requestedEndAt = parseBookingStart(request.requestedDate, request.endTime);
+    if (
+      !requestedStartAt ||
+      !requestedEndAt ||
+      requestedEndAt.getTime() <= requestedStartAt.getTime()
+    ) {
+      setActionError(
+        'The requested time is incomplete. Keep the original time and message the client to agree a new booking.'
+      );
+      return false;
+    }
+    if (requestedStartAt.getTime() <= Date.now()) {
+      setActionError(
+        'That requested time has already passed. Keep the original time and message the client to agree a new booking.'
+      );
+      return false;
+    }
+
+    const requestedStart = timeToMinutes(request.startTime);
+    const requestedEnd = timeToMinutes(request.endTime);
+    const durationMinutes =
+      request.durationMinutes ??
+      (requestedStart !== null && requestedEnd !== null && requestedEnd > requestedStart
+        ? requestedEnd - requestedStart
+        : null);
+
+    setBusyId(detail.appointment.id);
+    setActionError(null);
+    try {
+      const supabase = createClient();
+      await approveReschedule(supabase, {
+        appointmentId: detail.appointment.id,
+        fromStatus: detail.appointment.status,
+        date: request.requestedDate,
+        startTime: request.startTime,
+        endTime: request.endTime,
+        durationMinutes,
+      });
+      await afterWrite();
+      return true;
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : 'The new time could not be approved.'
+      );
+      await afterWrite();
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDismissReschedule = async (detail: BookingDetail): Promise<boolean> => {
+    setBusyId(detail.appointment.id);
+    setActionError(null);
+    try {
+      const supabase = createClient();
+      await clearRescheduleRequest(supabase, {
+        appointmentId: detail.appointment.id,
+        fromStatus: detail.appointment.status,
+      });
+      await afterWrite();
+      return true;
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : 'The reschedule request could not be cleared.'
+      );
+      await afterWrite();
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDialogConfirm = async (reason: string | null): Promise<boolean> => {
+    if (!dialog || !dialogDetail) return false;
+    if (dialog.mode === 'cancel') return handleTransition(dialogDetail, 'cancelled', reason);
+    if (dialog.mode === 'decline') return handleTransition(dialogDetail, 'declined', reason);
+    if (dialog.mode === 'complete') return handleTransition(dialogDetail, 'completed');
+    if (dialog.mode === 'approve-reschedule') return handleApproveReschedule(dialogDetail);
+    if (dialog.mode === 'dismiss-reschedule') return handleDismissReschedule(dialogDetail);
+    return false;
+  };
+
+  const openDialog = (detail: BookingDetail, mode: BookingDialogMode) => {
+    setDetailsId(null);
+    setActionError(null);
+    setDialog({ id: detail.appointment.id, mode });
   };
 
   const counts = useMemo(() => {
@@ -340,22 +451,65 @@ export default function CoachAppointmentsPage() {
     return map;
   }, [bookings]);
 
-  const visible = useMemo(
+  const filterOptions = useMemo(
     () =>
-      statusFilter === 'All'
-        ? bookings
-        : bookings.filter((b) => b.appointment.status === statusFilter),
-    [bookings, statusFilter]
+      FILTERS.map((status) => ({
+        value: status,
+        label: status === 'All' ? 'All' : statusMeta(status).label,
+        count: status === 'All' ? bookings.length : (counts.get(status) ?? 0),
+      })),
+    [bookings.length, counts]
   );
+
+  const visible = useMemo(() => {
+    const ordered = sortBookings(bookings, 'coach', nowMs);
+    return statusFilter === 'All'
+      ? ordered
+      : ordered.filter((b) => b.appointment.status === statusFilter);
+  }, [bookings, nowMs, statusFilter]);
+
+  // Keyed by id so a realtime refresh updates an OPEN details dialog (a new
+  // signature, a cleared reschedule request) instead of leaving a stale copy.
+  const detailsFor =
+    detailsId === null ? null : bookings.find((b) => b.appointment.id === detailsId) ?? null;
+  const dialogDetail =
+    dialog === null ? null : bookings.find((b) => b.appointment.id === dialog.id) ?? null;
+
+  const emptyDescription =
+    statusFilter === 'All'
+      ? 'You have no coaching requests at this time.'
+      : statusFilter === 'cancelled'
+        ? 'You have no cancelled sessions.'
+        : statusFilter === 'declined'
+          ? 'You have not declined any requests.'
+          : `You have no ${statusMeta(statusFilter).label.toLowerCase()} requests.`;
 
   return (
     <div className="space-y-6 sm:space-y-7">
       <PageHeader
         eyebrow="Coaching Requests"
         title="Coaching Requests &amp; Schedule"
-        description="Manage booking requests, accept rehearsal schedules, and coordinate with clients."
+        description="Respond to requests, sign agreements, approve reschedules, and keep clients informed."
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
+              title={
+                liveMode === 'live'
+                  ? 'Connected to Supabase realtime. A 60-second poll runs as a fallback.'
+                  : 'Live channel is reconnecting. The page refreshes every 60 seconds.'
+              }
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full',
+                  liveMode === 'live' ? 'bg-success' : 'bg-warning'
+                )}
+              />
+              <Wifi className="h-3 w-3" aria-hidden="true" />
+              {liveMode === 'live' ? 'Live' : 'Auto-refresh'}
+            </span>
             <button
               type="button"
               onClick={() => void refresh()}
@@ -380,7 +534,8 @@ export default function CoachAppointmentsPage() {
       />
 
       {/* An unverified coach cannot change bookings. Declining and cancelling
-          stay available, which is what `availableActions` encodes. */}
+          stay available only because the database guard's actor check also
+          refuses them; the buttons explain why instead of disappearing. */}
       {!loading && coachProfile && !coachIsVerified && (
         <VerificationRequiredNotice
           gate={{
@@ -399,10 +554,13 @@ export default function CoachAppointmentsPage() {
           role="alert"
           className="flex items-start justify-between gap-3 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
         >
-          <span>{actionError}</span>
+          <span className="flex items-start gap-2">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            {actionError}
+          </span>
           <button
             type="button"
-            onClick={() => void afterWrite()}
+            onClick={() => void refresh()}
             className="shrink-0 cursor-pointer font-semibold underline underline-offset-2"
           >
             Retry
@@ -410,46 +568,26 @@ export default function CoachAppointmentsPage() {
         </div>
       )}
 
-      {/* Filters */}
-      <div
-        role="group"
-        aria-label="Filter requests by status"
-        className="g-scroll -mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1"
-      >
-        {FILTERS.map((status) => {
-          const isActive = statusFilter === status;
-          const count =
-            status === 'All' ? bookings.length : (counts.get(status as AppointmentStatus) ?? 0);
-          if (status !== 'All' && count === 0) return null;
+      {!loading && bookings.length > 0 && (
+        <BookingSummaryStrip details={bookings} role="coach" nowMs={nowMs} />
+      )}
 
-          return (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setStatusFilter(status)}
-              aria-pressed={isActive}
-              className={cn(
-                'inline-flex min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition',
-                isActive
-                  ? 'border-accent-border bg-accent-soft text-accent-text'
-                  : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
-              )}
-            >
-              <span>{status === 'All' ? 'All' : statusMeta(status).label}</span>
-              <span
-                className={cn(
-                  'rounded-full px-1.5 py-0.2 text-[10px] font-bold',
-                  isActive ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
-                )}
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {!loading && coachProfile && (
+        <CoachAvailabilitySnapshot
+          coach={coachProfile}
+          appointments={bookings}
+          nowMs={nowMs}
+        />
+      )}
 
-      {/* List */}
+      <StatusFilterBar
+        options={filterOptions}
+        value={statusFilter}
+        onChange={setStatusFilter}
+        ariaLabel="Filter requests by status"
+        className="mb-5"
+      />
+
       {loading ? (
         <div className="space-y-4" role="status" aria-live="polite">
           <p className="flex items-center justify-center gap-2 py-6 text-xs text-muted-foreground">
@@ -457,217 +595,115 @@ export default function CoachAppointmentsPage() {
             Loading appointment requests...
           </p>
           {[0, 1, 2].map((i) => (
-            <div key={i} className="space-y-3 rounded-[20px] border border-border bg-card p-5">
+            <div key={i} className="space-y-4 rounded-[20px] border border-border bg-card p-5 sm:p-6">
               <div className="flex items-center gap-3">
-                <div className="g-skeleton h-11 w-11 shrink-0 rounded-xl" />
+                <div className="g-skeleton h-12 w-12 shrink-0 rounded-full" />
                 <div className="flex-1 space-y-2">
                   <div className="g-skeleton h-4 w-1/3" />
                   <div className="g-skeleton h-3 w-1/2" />
                 </div>
+                <div className="g-skeleton h-6 w-24 rounded-full" />
               </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="g-skeleton h-3 w-full" />
-                <div className="g-skeleton h-3 w-full" />
-                <div className="g-skeleton h-3 w-full" />
+              <div className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-3">
+                <div className="g-skeleton h-3.5 w-full" />
+                <div className="g-skeleton h-3.5 w-full" />
+                <div className="g-skeleton h-3.5 w-full" />
               </div>
+              <div className="g-skeleton h-24 w-full rounded-2xl" />
             </div>
           ))}
         </div>
       ) : visible.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="h-6 w-6" />}
-          title="No appointments found"
-          description={
-            statusFilter === 'All'
-              ? 'You have no coaching requests at this time.'
-              : `You have no ${statusMeta(statusFilter).label.toLowerCase()} requests.`
+          title={statusFilter === 'All' ? 'No requests yet' : 'Nothing in this view'}
+          description={emptyDescription}
+          action={
+            statusFilter !== 'All' ? (
+              <Button size="sm" variant="outline" onClick={() => setStatusFilter('All')}>
+                Show all requests
+              </Button>
+            ) : (
+              <Link href="/coach/profile">
+                <Button size="sm" variant="outline">
+                  Review your coaching profile
+                </Button>
+              </Link>
+            )
           }
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:gap-5">
           {visible.map((detail) => {
-            const appt = detail.appointment;
-            const meta = statusMeta(appt.status);
-            const busy = busyId === appt.id;
-
-            const actions = availableActions({
-              status: appt.status,
-              role: 'coach',
-              coachVerified: coachIsVerified,
-              suspended: coachSuspended,
-            });
-
+            const appointment = detail.appointment;
+            const busy = busyId === appointment.id;
             return (
-              <article
-                key={appt.id}
-                className="rounded-[20px] border border-border bg-card p-5 transition-colors hover:border-accent-border sm:p-6"
-              >
-                <div className="flex flex-col justify-between gap-3 border-b border-divider pb-4 sm:flex-row sm:items-center">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-accent-border bg-accent-soft text-sm font-bold text-accent-text">
-                      {appt.client?.photo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={appt.client.photo_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <span>{getInitials(appt.name, '')}</span>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="truncate text-sm font-bold text-foreground">{appt.name}</h3>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {appt.session_type} ·{' '}
-                        <span className="font-semibold text-accent-text">{appt.talent || 'Dance'}</span>{' '}
-                        · Level: {appt.experience}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={BADGE_VARIANT[appt.status] ?? 'neutral'} dot>
-                      {meta.label}
-                    </Badge>
-                    {appt.client?.account_verified ? (
-                      <VerifiedBadge verified size="sm" label="Verified client" />
-                    ) : (
-                      <Badge variant="pending" dot>
-                        Client unverified
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 py-4 text-xs text-muted-foreground sm:grid-cols-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                    <span>{new Date(appt.date).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                    <span>
-                      {appt.start_time} - {appt.end_time}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-                    <span className="truncate">
-                      {appt.is_online ? 'Online session' : appt.address}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1 rounded-xl border border-border bg-muted/60 p-3.5 text-xs">
-                  <p>
-                    <span className="font-semibold text-muted-foreground">Session Goal: </span>
-                    <span className="text-foreground">{appt.purpose}</span>
-                  </p>
-                  {appt.message && (
-                    <p>
-                      <span className="font-semibold text-muted-foreground">Student Note: </span>
-                      <span className="italic text-muted-foreground">&ldquo;{appt.message}&rdquo;</span>
-                    </p>
-                  )}
-                </div>
-
-                {appt.feedback && (
-                  <div className="mt-4 space-y-1 rounded-xl border border-warning/30 bg-warning-soft p-3.5 text-xs">
-                    <div className="flex items-center gap-1 font-bold text-warning">
-                      <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-                      <span>Student Rating: {appt.rating} / 5</span>
-                    </div>
-                    <p className="text-muted-foreground">&ldquo;{appt.feedback}&rdquo;</p>
-                  </div>
-                )}
-
-                {/* Progress + audit trail */}
-                <div className="mt-4 border-t border-divider pt-4">
-                  <BookingProgress
-                    status={appt.status}
-                    stamps={stampsFor(appt)}
-                    events={detail.events}
-                    loading={loading}
-                    names={
-                      appt.client?.id && appt.coach_id
-                        ? { [appt.client.id]: appt.name || 'Client', [appt.coach_id]: 'You' }
-                        : {}
-                    }
-                  />
-                </div>
-
-                {/* Agreement */}
-                {detail.agreement && (
-                  <div className="mt-4">
-                    <BookingAgreementPanel
-                      agreement={detail.agreement}
-                      bookingStatus={appt.status}
-                      userId={coachProfile?.id ?? ''}
-                      onChanged={() => void afterWrite()}
-                    />
-                  </div>
-                )}
-
-                {appt.cancellation_reason && meta.isTerminal && (
-                  <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3.5 text-xs leading-relaxed">
-                    <span className="font-semibold text-muted-foreground">Cancellation note: </span>
-                    <span className="text-foreground">{appt.cancellation_reason}</span>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-divider pt-4">
-                  <Link
-                    href={`/messages?user=${appt.client_id}`}
-                    className="inline-flex h-9 min-h-[36px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
-                  >
-                    <MessageSquare className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-                    Message Student
-                  </Link>
-
-                  {/* Waiting on the two signatures. Confirming is the database's
-                      job, so there is deliberately no Confirm button here. */}
-                  {appt.status === 'agreement_required' && (
-                    <p className="flex items-center gap-1.5 text-xs font-semibold text-accent-text">
-                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                      Waiting for both signatures
-                    </p>
-                  )}
-
-                  {actions.map((spec) => {
-                    const blocked = Boolean(spec.blockedReason);
-                    return (
-                      <Button
-                        key={spec.action}
-                        variant={
-                          spec.variant === 'primary'
-                            ? 'primary'
-                            : spec.variant === 'danger'
-                              ? 'outline'
-                              : 'outline'
-                        }
-                        size="sm"
-                        disabled={busy || blocked}
-                        title={spec.blockedReason ?? undefined}
-                        loading={busy && spec.action === 'accept'}
-                        className={
-                          spec.variant === 'danger'
-                            ? 'border-danger/40 text-danger hover:bg-danger-soft hover:text-danger'
-                            : undefined
-                        }
-                        onClick={() => {
-                          if (spec.action === 'accept') void handleAccept(detail);
-                          else if (spec.action === 'cancel') void handleCancel(detail);
-                          else void handleTransition(detail, spec.target);
-                        }}
-                      >
-                        {spec.action === 'accept' && !coachIsVerified ? 'Verify to accept' : spec.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </article>
+              <BookingCard
+                key={appointment.id}
+                detail={detail}
+                role="coach"
+                nowMs={nowMs}
+                stamp={stampsFor(appointment)}
+                busy={busy}
+                canWrite={canWrite}
+                writeBlockedReason={writeBlockedReason}
+                onOpenDetails={(item) => setDetailsId(item.appointment.id)}
+                onAccept={(item) => void handleAccept(item)}
+                onDecline={(item) => openDialog(item, 'decline')}
+                onComplete={(item) => openDialog(item, 'complete')}
+                onCancel={(item) => openDialog(item, 'cancel')}
+                onReschedule={noop}
+                onApproveReschedule={(item) => openDialog(item, 'approve-reschedule')}
+                onDismissReschedule={(item) => openDialog(item, 'dismiss-reschedule')}
+                onReview={noop}
+              />
             );
           })}
         </div>
       )}
+
+      <BookingDetailsModal
+        detail={detailsFor}
+        role="coach"
+        nowMs={nowMs}
+        viewerId={viewerId ?? ''}
+        stamp={detailsFor ? stampsFor(detailsFor.appointment) : {}}
+        busy={Boolean(detailsFor && busyId === detailsFor.appointment.id)}
+        canWrite={canWrite}
+        writeBlockedReason={writeBlockedReason}
+        onClose={() => setDetailsId(null)}
+        onAccept={(item) => void handleAccept(item)}
+        onDecline={(item) => openDialog(item, 'decline')}
+        onComplete={(item) => openDialog(item, 'complete')}
+        onCancel={(item) => openDialog(item, 'cancel')}
+        onReschedule={noop}
+        onApproveReschedule={(item) => openDialog(item, 'approve-reschedule')}
+        onDismissReschedule={(item) => openDialog(item, 'dismiss-reschedule')}
+        onReview={noop}
+      />
+
+      {dialog && dialogDetail && (
+        <BookingActionDialog
+          detail={dialogDetail}
+          mode={dialog.mode}
+          nowMs={nowMs}
+          busy={busyId === dialogDetail.appointment.id}
+          errorMessage={actionError}
+          onClose={() => setDialog(null)}
+          onConfirm={handleDialogConfirm}
+        />
+      )}
+
+      {/* Kept for the same reason as the notice above: a coach who is waiting on
+          signatures should not wonder whether there is a Confirm button. */}
+      {!loading &&
+        bookings.some((detail) => detail.appointment.status === 'agreement_required') && (
+          <p className="flex items-center justify-center gap-1.5 pb-2 text-[11px] text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+            Confirmed is set automatically when both signatures are in. Waiting on signatures is
+            shown on each booking.
+          </p>
+        )}
     </div>
   );
 }

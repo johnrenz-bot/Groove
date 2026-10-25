@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useId, useState } from 'react';
-import { ArrowRight, Award, BadgeCheck, CalendarCheck, Check, Download, Share2, X } from 'lucide-react';
+import { ArrowRight, Award, BadgeCheck, CalendarCheck, Check, Download, Share2 } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalCloseButton } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
 interface AchievementModalProps {
@@ -131,7 +131,7 @@ export function AchievementModal({
     '--am-accent': isCoach ? 'var(--brand-sunburst)' : 'var(--success)',
     // globals.css sets a universal border-color outside @layer, which outranks
     // every Tailwind border-colour utility — so the panel hairline is set here.
-    borderColor: 'var(--glass-border)',
+    borderColor: 'var(--accent-border)',
     background: [
       'radial-gradient(56% 32% at 50% 9%, color-mix(in srgb, var(--am-accent) 7%, transparent) 0%, transparent 72%)',
       'linear-gradient(180deg, color-mix(in srgb, var(--card) 77%, #000) 0%, var(--card) 42%, color-mix(in srgb, var(--card) 99%, #fff) 100%)',
@@ -145,7 +145,7 @@ export function AchievementModal({
       size="sm"
       showClose={false}
       aria-labelledby={titleId}
-      className="max-w-[440px] rounded-3xl sm:rounded-3xl"
+      className="max-w-[440px] rounded-t-3xl sm:rounded-3xl"
       style={panelStyle}
     >
       {/* The negative margins cancel the scroll container's padding so the
@@ -160,14 +160,11 @@ export function AchievementModal({
             settle 24px lower than its own slot and land on the badge. */}
         <div className="pointer-events-none sticky top-[-20px] z-30 -mx-6 flex h-10 self-stretch items-center justify-end px-6 sm:top-[-24px] sm:-mx-7 sm:px-7">
           <span aria-hidden="true" className="am-top-rule absolute inset-x-0 top-0 h-px" />
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close achievement dialog"
-            className="pointer-events-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
+          <ModalCloseButton
+            onClose={onClose}
+            label="Close achievement dialog"
+            className="pointer-events-auto"
+          />
         </div>
 
         {/* Badge — the focal point. */}

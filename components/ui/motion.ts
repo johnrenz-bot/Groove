@@ -49,7 +49,7 @@ export const backdropVariants: Variants = {
   hidden: { opacity: 0, backdropFilter: 'blur(0px)' },
   visible: {
     opacity: 1,
-    backdropFilter: 'blur(6px)',
+    backdropFilter: 'blur(12px)',
     transition: { duration: DURATION.modal, ease: EASE_OUT },
   },
   exit: {

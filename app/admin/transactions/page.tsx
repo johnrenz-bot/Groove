@@ -8,6 +8,16 @@ import { AgreementSignature } from '@/features/booking/components/AgreementSigna
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
+import {
   AdminTable,
   AdminTabs,
   Pagination,
@@ -57,6 +67,11 @@ export default function AdminTransactionsPage() {
   /** Which agreement's signatures are being viewed, if any. Read-only. */
   const [signatureViewer, setSignatureViewer] = useState<Agreement | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const { backdropProps: signatureBackdropProps } = useModalDismiss({
+    open: Boolean(signatureViewer),
+    onClose: () => setSignatureViewer(null),
+  });
 
   const agreements = useAdminData(() => fetchAgreements(), [revision]);
   const feedback = useAdminData(() => fetchFeedback(), [revision]);
@@ -407,67 +422,63 @@ export default function AdminTransactionsPage() {
           never writes, so an admin inspecting a contract cannot alter it. */}
       {signatureViewer && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
+          className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
           role="dialog"
           aria-modal="true"
           aria-label="Agreement signatures"
+          {...signatureBackdropProps}
         >
-          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-3 border-b border-border pb-4">
-              <div>
-                <h3 className="text-base font-bold text-foreground">Agreement signatures</h3>
+          <div className={cn(MODAL_PANEL_CLASS, 'max-w-lg animate-in fade-in zoom-in-95 duration-300')}>
+            <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+              <div className="min-w-0">
+                <h3 className="text-base font-bold tracking-[-0.02em] text-foreground">Agreement signatures</h3>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
                   Contract #{signatureViewer.id} · {fullName(signatureViewer.client)} &amp;{' '}
                   {fullName(signatureViewer.coach)}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSignatureViewer(null)}
-                aria-label="Close"
-                className="cursor-pointer rounded-lg px-2 py-1 text-lg leading-none text-muted-foreground transition hover:bg-muted hover:text-foreground"
-              >
-                ×
-              </button>
+              <ModalCloseButton onClose={() => setSignatureViewer(null)} label="Close signatures" />
             </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <AgreementSignature
-                role="Client"
-                path={signatureViewer.client_signature_path}
-                signedAt={signatureViewer.client_signed_at}
-              />
-              <AgreementSignature
-                role="Coach"
-                path={signatureViewer.coach_signature_path}
-                signedAt={signatureViewer.coach_signed_at}
-              />
+            <div className={cn(MODAL_BODY_CLASS, 'space-y-5')}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <AgreementSignature
+                  role="Client"
+                  path={signatureViewer.client_signature_path}
+                  signedAt={signatureViewer.client_signed_at}
+                />
+                <AgreementSignature
+                  role="Coach"
+                  path={signatureViewer.coach_signature_path}
+                  signedAt={signatureViewer.coach_signed_at}
+                />
+              </div>
+
+              <dl className="space-y-1.5 border-t border-border pt-4 text-[12px]">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">Agreement status</dt>
+                  <dd className="font-semibold text-foreground">
+                    {signatureViewer.status ?? '—'}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">Countersigned</dt>
+                  <dd className="font-semibold text-foreground">
+                    {signatureViewer.countersigned_at
+                      ? new Date(signatureViewer.countersigned_at).toLocaleString('en-PH')
+                      : '—'}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">Version</dt>
+                  <dd className="font-semibold text-foreground">
+                    {signatureViewer.version ?? '—'}
+                  </dd>
+                </div>
+              </dl>
             </div>
 
-            <dl className="mt-5 space-y-1.5 border-t border-border pt-4 text-[12px]">
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Agreement status</dt>
-                <dd className="font-semibold text-foreground">
-                  {signatureViewer.status ?? '—'}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Countersigned</dt>
-                <dd className="font-semibold text-foreground">
-                  {signatureViewer.countersigned_at
-                    ? new Date(signatureViewer.countersigned_at).toLocaleString('en-PH')
-                    : '—'}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Version</dt>
-                <dd className="font-semibold text-foreground">
-                  {signatureViewer.version ?? '—'}
-                </dd>
-              </div>
-            </dl>
-
-            <div className="mt-5 flex justify-end border-t border-border pt-4">
+            <div className={MODAL_FOOTER_CLASS}>
               <Button variant="outline" onClick={() => setSignatureViewer(null)}>
                 Close
               </Button>

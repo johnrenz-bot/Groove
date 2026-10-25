@@ -50,18 +50,21 @@ import { isValidEmail, isValidUsername, VALIDATION_MESSAGES } from '@/lib/profil
 /* ------------------------------------------------------------------ */
 
 export function SettingsSection({
+  id,
   icon,
   title,
   description,
   children,
 }: {
+  /** Optional anchor so the account menu can deep-link to one section. */
+  id?: string;
   icon: React.ReactNode;
   title: string;
   description?: string;
   children: React.ReactNode;
 }) {
   return (
-    <Panel>
+    <Panel id={id} className={id ? 'scroll-mt-28' : undefined}>
       <PanelHeader icon={icon} title={title} info={description} />
       <PanelBody>{children}</PanelBody>
     </Panel>
@@ -330,6 +333,7 @@ export function ProfileSettingsLink({
 export function AppearanceSettings() {
   return (
     <SettingsSection
+      id="appearance"
       icon={<Palette className="h-4 w-4" />}
       title="Appearance &amp; Sound"
       description="Theme and interface preferences. These settings apply across Groove on this device."

@@ -25,6 +25,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Appointment, Agreement } from '@/lib/types';
+import { isActiveStatus } from './bookingTime';
 import type { BookingEvent } from './bookingStatus';
 
 /** The columns the lifecycle stamps live in, aliased to the stage name. */
@@ -178,10 +179,21 @@ export async function transitionBooking(
     reason?: string | null;
   }
 ): Promise<void> {
-  const patch: Record<string, unknown> = { status: args.to };
+  const patch: Record<string, unknown> = {
+    status: args.to,
+    // Keep the dashboard's "Updated … ago" label tied to the write that just
+    // happened, even if the deployment has no generic updated_at trigger.
+    updated_at: new Date().toISOString(),
+  };
   if (args.to === 'cancelled' && args.reason) {
     patch.cancellation_reason = args.reason;
     patch.cancelled_by = null; // set by the database when it can identify the actor
+  }
+  if (args.to === 'cancelled' || args.to === 'declined' || args.to === 'completed') {
+    // A terminal move makes an open reschedule request moot. Clear it in the
+    // same write so a closed booking cannot keep offering "Approve new time".
+    patch.changes_requested_at = null;
+    patch.requested_changes_note = null;
   }
 
   const { data, error } = await supabase
@@ -251,7 +263,7 @@ export async function acceptBooking(
   if (from === 'pending') {
     const { data: acceptedRow, error: acceptErr } = await supabase
       .from('appointments')
-      .update({ status: 'accepted' })
+      .update({ status: 'accepted', updated_at: new Date().toISOString() })
       .eq('id', appointment.id)
       .eq('status', 'pending')
       .select('id')
@@ -292,7 +304,10 @@ export async function acceptBooking(
   // --- 3. accepted -> agreement_required ------------------------------------
   const { data: moved, error: sendErr } = await supabase
     .from('appointments')
-    .update({ status: 'agreement_required' })
+    .update({
+      status: 'agreement_required',
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', appointment.id)
     .eq('status', 'accepted')
     .select('id')
@@ -312,6 +327,133 @@ export async function acceptBooking(
   }
 
   return { agreementError: null };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reschedule requests                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Record a requested new time on an existing booking.
+ *
+ * This is deliberately NOT a status write. `appointment_status` has no
+ * `rescheduled` label and `guard_booking_transition` would reject one, so the
+ * request uses the two columns migration 02 already provides:
+ * `changes_requested_at` and `requested_changes_note`. The booking keeps its
+ * current status and its current time until the coach approves the change.
+ *
+ * The `status` comparison makes the request conditional on the booking not
+ * having moved since the card was rendered, the same compare-and-set discipline
+ * as `transitionBooking`.
+ */
+export async function requestReschedule(
+  supabase: SupabaseClient,
+  args: {
+    appointmentId: number;
+    fromStatus: string;
+    /** Encoded with `encodeRescheduleRequest`. */
+    note: string;
+  }
+): Promise<void> {
+  if (!isActiveStatus(args.fromStatus)) {
+    throw new Error('This booking is closed, so a new time cannot be requested.');
+  }
+
+  const requestedAt = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({
+      changes_requested_at: requestedAt,
+      requested_changes_note: args.note,
+      updated_at: requestedAt,
+    })
+    .eq('id', args.appointmentId)
+    .eq('status', args.fromStatus)
+    .select('id')
+    .maybeSingle();
+
+  if (error) throw new Error(explainBookingError(error));
+  if (!data) {
+    throw new Error(
+      'This booking has already moved to another status. Refresh to see where it is now.'
+    );
+  }
+}
+
+/**
+ * Approve a pending reschedule request by moving the booking's date and time.
+ *
+ * The status does not change, so the state-machine trigger does not fire and no
+ * `booking_events` row is written. The booking's own `updated_at` is stamped in
+ * the same statement, which is why the UI can honestly say "Updated … ago"; no
+ * lifecycle event is invented for the move. The request columns are cleared at
+ * the same time, so the banner cannot outlive the approval.
+ */
+export async function approveReschedule(
+  supabase: SupabaseClient,
+  args: {
+    appointmentId: number;
+    fromStatus: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    /** From the request note, so the stored duration cannot disagree with end_time. */
+    durationMinutes?: number | null;
+  }
+): Promise<void> {
+  if (!isActiveStatus(args.fromStatus)) {
+    throw new Error('This booking is closed, so a new time cannot be approved.');
+  }
+
+  const patch: Record<string, unknown> = {
+    date: args.date,
+    start_time: args.startTime,
+    end_time: args.endTime,
+    changes_requested_at: null,
+    requested_changes_note: null,
+    updated_at: new Date().toISOString(),
+  };
+  if (args.durationMinutes != null) patch.duration_minutes = args.durationMinutes;
+
+  const { data, error } = await supabase
+    .from('appointments')
+    .update(patch)
+    .eq('id', args.appointmentId)
+    .eq('status', args.fromStatus)
+    .select('id')
+    .maybeSingle();
+
+  if (error) throw new Error(explainBookingError(error));
+  if (!data) {
+    throw new Error(
+      'This booking has already moved to another status. Refresh to see where it is now.'
+    );
+  }
+}
+
+/** Clear a request without moving the booking — "keep the original time". */
+export async function clearRescheduleRequest(
+  supabase: SupabaseClient,
+  args: { appointmentId: number; fromStatus: string }
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({
+      changes_requested_at: null,
+      requested_changes_note: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', args.appointmentId)
+    .eq('status', args.fromStatus)
+    .select('id')
+    .maybeSingle();
+
+  if (error) throw new Error(explainBookingError(error));
+  if (!data) {
+    throw new Error(
+      'This booking has already moved to another status. Refresh to see where it is now.'
+    );
+  }
 }
 
 /** The lifecycle timestamp columns for a row, keyed by stage. */

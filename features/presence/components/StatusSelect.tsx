@@ -4,36 +4,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Loader2 } from 'lucide-react';
 import { SELF_ASSIGNABLE, statusMeta, type Presence } from '../utils/presence';
 import { usePresence, useSetPresence } from '../hooks/usePresence';
+import { cn } from '@/components/shared/cn';
 
 /**
  * Presence selector for coaches and clients.
- *
- * This writes the column that already exists — `public.profiles.status`, a
- * `user_status` enum — rather than adding one. It is the same field the header
- * already touched on sign-out (`AppTopNav.handleLogout` writes `status:
- * 'offline'`), so this control completes a half-built feature instead of
- * introducing a parallel one.
- *
- * WHY ONLY FOUR OF THE SEVEN ENUM VALUES
- *   The enum carries seven values, but three of them are not presence:
- *   `pending` and `suspended` are lifecycle states owned by verification and
- *   moderation, and `active` is the enum default rather than something a user
- *   picks. A coach choosing "Active" would be writing a value that means
- *   something else to every other reader of the column. So the control offers
- *   exactly the four values a person can meaningfully set for themselves:
- *   online, away, busy, offline — in that order, most-available first.
- *
- * LIVE, NOT JUST SAVED
- *   The current value is read from the shared realtime store, so this selector
- *   agrees with every other presence surface in the app, and a change made in
- *   another tab or on another page is reflected here without a refresh.
- *
- * NOT OPTIMISTIC BEFORE THE WRITE
- *   The chosen value is applied only after Supabase confirms the row was really
- *   updated. A dot that says "Online" on a row the database refused is a lie, and
- *   the common failure here is permanent (an RLS policy), so a rollback would
- *   only flicker. While saving, every option is disabled so a double click cannot
- *   queue two writes.
  */
 
 /** The indicator, shared by the option rows and the account trigger. */
@@ -48,9 +22,13 @@ export function PresenceDot({
   const meta = statusMeta(status);
   return (
     <span
-      className={`g-presence-dot g-presence-dot--${meta.value}${
-        size === 'sm' ? ' g-presence-dot-sm' : ''
-      }`}
+      className={cn(
+        'rounded-full ring-2 ring-card',
+        size === 'sm' ? 'h-2 w-2' : 'h-2.5 w-2.5',
+        meta.value === 'online' ? 'bg-success' :
+        meta.value === 'away' ? 'bg-warning' :
+        meta.value === 'busy' ? 'bg-danger' : 'bg-muted-foreground'
+      )}
       role="img"
       aria-label={`Status: ${meta.label}`}
       title={`Status: ${meta.label}`}
@@ -61,16 +39,6 @@ export function PresenceDot({
 /**
  * The collapsed presence control: one row showing ONLY the current status,
  * which opens the option list when activated.
- *
- * The previous version rendered all four options permanently. That is a lot of
- * permanent surface for a value that changes rarely, and it pushed the rest of
- * the account panel down. So the trigger is a single menu item — "● Online" —
- * and the four options only exist while the submenu is open.
- *
- * The trigger keeps `aria-haspopup` and `aria-expanded` so assistive tech
- * announces the relationship, and the option list is a real `radiogroup` with
- * roving tabindex, which is the honest pattern for "exactly one of these is
- * active".
  */
 export function StatusSelect({
   userId,
@@ -97,11 +65,6 @@ export function StatusSelect({
     optionRefs.current[SELF_ASSIGNABLE[next].value]?.focus();
   }, []);
 
-  /**
-   * Open the list, focus the selected row, and dismiss on Escape or a click
-   * outside. `role="radio"` on a button does not inherit native arrow handling,
-   * so the menu below manages focus itself.
-   */
   useEffect(() => {
     if (!open) return;
     const selected = SELF_ASSIGNABLE.findIndex((option) => option.value === current);
@@ -139,14 +102,13 @@ export function StatusSelect({
         event.preventDefault();
         focusOption(SELF_ASSIGNABLE.length - 1);
         break;
+      default:
+        return;
     }
   };
 
   const choose = async (next: Presence) => {
     if (next === current || saving) return;
-    // Close immediately: the menu has done its job, and leaving it open over a
-    // panel the user is about to leave is noise. The row keeps the spinner until
-    // the write resolves, so the pending state is still visible on the trigger.
     setOpen(false);
     setSaving(true);
     setError(null);
@@ -163,25 +125,22 @@ export function StatusSelect({
 
   return (
     <div
-      className="g-presence"
+      className="relative"
       ref={containerRef}
       onKeyDown={(event) => {
-        // Handled here rather than on `document` so Escape closes the status
-        // list first; the drawer's own document listener would otherwise close
-        // the whole sheet at the same time.
         if (event.key !== 'Escape' || !open) return;
         event.stopPropagation();
         setOpen(false);
         triggerRef.current?.focus();
       }}
     >
-      {/* The trigger. A <button> rather than a summary of a <details>, because
-          the panel it opens is a radiogroup rather than a document section, and
-          it needs to control its own open state for the Escape handling. */}
       <button
         ref={triggerRef}
         type="button"
-        className="g-presence-trigger"
+        className={cn(
+          'flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1 text-[11px] font-bold transition-all hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          open && 'ring-1 ring-accent-border'
+        )}
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -193,13 +152,16 @@ export function StatusSelect({
         }}
         title={`Status: ${meta.label} — change`}
       >
-        <PresenceDot status={current} />
-        <span className="g-presence-trigger-label">{meta.label}</span>
+        <PresenceDot status={current} size="sm" />
+        <span className="text-foreground">{meta.label}</span>
         {saving ? (
-          <Loader2 className="g-spin h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" aria-hidden="true" />
         ) : (
           <ChevronDown
-            className={`g-presence-caret ${open ? 'g-presence-caret-open' : ''}`}
+            className={cn(
+              'h-3 w-3 text-muted-foreground transition-transform duration-200',
+              open && 'rotate-180'
+            )}
             aria-hidden="true"
           />
         )}
@@ -207,7 +169,7 @@ export function StatusSelect({
 
       {open && (
         <div
-          className="g-presence-menu"
+          className="absolute right-0 top-full z-[110] mt-1 w-40 rounded-2xl border border-accent-border bg-card/95 shadow-xl backdrop-blur-md p-1 animate-in fade-in zoom-in-95 duration-150"
           role="radiogroup"
           aria-label="Your status"
           onKeyDown={onMenuKeyDown}
@@ -223,16 +185,18 @@ export function StatusSelect({
                 type="button"
                 role="radio"
                 aria-checked={active}
-                // One tab stop for the group; the arrow keys handled above move
-                // focus within it and Enter/Space select.
                 tabIndex={active ? 0 : -1}
                 onClick={() => void choose(value)}
-                className="g-presence-option"
-                data-active={active || undefined}
+                className={cn(
+                  'flex items-center justify-between w-full rounded-xl px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  active ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted/50'
+                )}
                 title={hint}
               >
-                <PresenceDot status={value} />
-                <span className="g-presence-label">{label}</span>
+                <div className="flex items-center gap-2">
+                  <PresenceDot status={value} size="sm" />
+                  <span>{label}</span>
+                </div>
                 {active && <Check className="h-3 w-3 shrink-0" aria-hidden="true" />}
               </button>
             );
@@ -240,9 +204,8 @@ export function StatusSelect({
         </div>
       )}
 
-      {/* role="status" so a failure is announced without stealing focus. */}
       {error && (
-        <p role="status" className="g-presence-error">
+        <p role="status" className="absolute top-full right-0 mt-1 text-[10px] font-medium text-danger whitespace-nowrap">
           {error}
         </p>
       )}

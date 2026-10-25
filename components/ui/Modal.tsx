@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
@@ -14,20 +15,11 @@ export interface ModalProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
   description?: React.ReactNode;
   children?: React.ReactNode;
   footer?: React.ReactNode;
-  // '2xl' was already in SIZES below but missing from the union, so the widest
-  // panel the verification review needs could not be requested by type.
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
   showClose?: boolean;
-  /**
-   * Opt-in Framer entrance/exit (fade + blur backdrop, 0.96 -> 1 panel rise).
-   * Off by default so every existing dialog keeps its exact current behaviour.
-   */
   animated?: boolean;
-  /** Id for the description paragraph, so the panel can point at it. */
   descriptionId?: string;
-  /** Replaces the static header sun. Callers own its motion and `aria-hidden`. */
   headerAccent?: React.ReactNode;
-  /** Extra classes for the scrollable body (safe-area padding, full-bleed grids). */
   bodyClassName?: string;
 }
 
@@ -37,23 +29,290 @@ const SIZES = {
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
   '2xl': 'max-w-5xl',
-  // Opt-in widest panel (role chooser). The theme's rem is 14px, so
-  // `max-w-6xl` lands at 1008px — inside the 960–1040px brief. Existing
-  // `2xl` callers keep their previous 896px width.
   '3xl': 'max-w-6xl',
 } as const;
 
-/**
- * Open dialogs, oldest first.
- *
- * InfoTip renders a dialog from inside another dialog, so a keystroke reaches
- * both panels. Only the top entry may handle Escape or trap Tab — otherwise
- * one Escape would close the explanation AND the surface it explains, and two
- * traps would fight over where focus lands.
- */
 const dialogStack: symbol[] = [];
 
-/** Rounded glass modal with overlay, fixed header, scrollable body, sticky footer, Escape handling, and focus containment. */
+/*
+ * Body scroll lock shared by `Modal` and the custom layouts that cannot use it.
+ * A counter rather than a boolean so stacked dialogs restore the page exactly
+ * once — after the last one closes — regardless of which unmounts first.
+ */
+let scrollLockCount = 0;
+let scrollLockOverflow = '';
+
+function lockBodyScroll() {
+  if (typeof document === 'undefined') return;
+  if (scrollLockCount === 0) {
+    scrollLockOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.body.setAttribute('data-modal-open', 'true');
+  }
+  scrollLockCount += 1;
+}
+
+function unlockBodyScroll() {
+  if (typeof document === 'undefined') return;
+  scrollLockCount = Math.max(0, scrollLockCount - 1);
+  if (scrollLockCount === 0) {
+    document.body.style.overflow = scrollLockOverflow;
+    document.body.removeAttribute('data-modal-open');
+  }
+}
+
+/* ============================================================================
+   THE WELCOME MODAL DESIGN LANGUAGE.
+
+   The Welcome Modal is the reference implementation for every dialog in the
+   product. These constants are that reference's measurements pulled out into
+   one place — charcoal `--card` surfaces, an `--accent-border` hairline, the
+   soft accent glow instead of a hard drop shadow, cream primary actions and a
+   circular muted close control. Components import them rather than copying the
+   strings, so a future change to the reference lands everywhere at once.
+
+   Every value is a theme token, not a literal colour: both the dark default and
+   the `.light` palette restyle the same classes with no per-theme branching.
+   ========================================================================== */
+
+/** Full-screen scrim: dimmed, blurred, and never clicks through to the page. */
+export const MODAL_OVERLAY_CLASS =
+  'g-modal-overlay fixed inset-0 z-[80] flex items-end justify-center bg-black/60 p-0 backdrop-blur-md select-none sm:items-center sm:p-4 motion-reduce:animate-none';
+
+/** The dialog surface: rounded, hairline border, accent glow, bounded height. */
+export const MODAL_PANEL_CLASS =
+  'g-modal-panel relative flex max-h-[90dvh] w-full max-w-[95vw] flex-col overflow-hidden rounded-t-3xl border border-accent-border bg-card text-foreground shadow-[0_0_60px_-12px_var(--accent-soft)] sm:rounded-3xl';
+
+/** Header band with the Welcome Modal's quiet diagonal accent wash. */
+export const MODAL_HEADER_CLASS =
+  'relative flex shrink-0 items-start justify-between gap-4 overflow-hidden border-b border-divider bg-gradient-to-br from-accent-soft/60 via-card to-card px-6 py-4.5 sm:px-7';
+
+/** The single close affordance every dialog uses. */
+export const MODAL_CLOSE_BUTTON_CLASS =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-50';
+
+/** Scrollable body. `g-scroll` keeps the scrollbar on the product's palette. */
+export const MODAL_BODY_CLASS =
+  'g-scroll flex-1 min-h-0 overflow-y-auto px-6 py-5 sm:px-7 sm:py-6';
+
+/** Action bar: stacked on phones, one right-aligned row from `sm` up. */
+export const MODAL_FOOTER_CLASS =
+  'flex shrink-0 flex-col-reverse gap-3 border-t border-divider bg-muted/40 px-6 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-7';
+
+/** Inset content card (the Welcome Modal's Grooveyy AI panel). */
+export const MODAL_CARD_CLASS =
+  'rounded-2xl border border-accent-border bg-accent-soft/40 p-4';
+
+/** Icon chip used by steps, headers and empty states. */
+export const MODAL_ICON_TILE_CLASS =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text';
+
+/** Quiet secondary chip (the Welcome Modal's AI prompt chips). */
+export const MODAL_CHIP_CLASS =
+  'rounded-full border border-border bg-card px-3 py-1 text-[11px] font-medium text-foreground transition hover:border-accent-border hover:bg-accent-soft';
+
+/**
+ * Modal Design System Sub-components
+ */
+
+export function ModalCloseButton({
+  onClose,
+  label = 'Close dialog',
+  className,
+  disabled,
+}: {
+  onClose: () => void;
+  label?: string;
+  className?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label={label}
+      disabled={disabled}
+      className={cn(MODAL_CLOSE_BUTTON_CLASS, className)}
+    >
+      <X className="h-4 w-4" aria-hidden="true" />
+    </button>
+  );
+}
+
+export function ModalHeader({
+  title,
+  description,
+  onClose,
+  showClose = true,
+  headerAccent,
+  titleId,
+  className,
+}: {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  onClose?: () => void;
+  showClose?: boolean;
+  headerAccent?: React.ReactNode;
+  /** Ties the heading to `aria-labelledby` on the dialog panel. */
+  titleId?: string;
+  className?: string;
+}) {
+  return (
+    <header className={cn(MODAL_HEADER_CLASS, className)}>
+      {headerAccent ?? (
+        <PhilippineSunMark
+          size={120}
+          className="absolute -right-8 -top-8 h-28 w-28 text-[#C9A24C] opacity-[0.14]"
+        />
+      )}
+      <div className="relative min-w-0 flex-1">
+        {title && (
+          <h2
+            id={titleId}
+            className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl"
+          >
+            {title}
+          </h2>
+        )}
+        {description && (
+          <div className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            {description}
+          </div>
+        )}
+      </div>
+      {showClose && onClose && <ModalCloseButton onClose={onClose} />}
+    </header>
+  );
+}
+
+export function ModalSection({
+  children,
+  className,
+  step,
+  icon,
+  title,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  step?: number;
+  icon?: React.ReactNode;
+  title?: React.ReactNode;
+}) {
+  return (
+    <div className={cn('space-y-4 py-3', className)}>
+      {(title || step || icon) && (
+        <div className="flex items-center gap-2 mb-2 font-semibold text-xs tracking-wide uppercase text-foreground">
+          {step && (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-[10px] font-bold text-accent-text">
+              {step}
+            </span>
+          )}
+          {icon}
+          {title && <span>{title}</span>}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+export function ModalCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn(MODAL_CARD_CLASS, className)}>{children}</div>;
+}
+
+export function ModalIconTile({
+  icon: Icon,
+  children,
+  className,
+}: {
+  icon: React.ElementType;
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={cn(MODAL_ICON_TILE_CLASS, className)}>
+      {children || <Icon className="h-4 w-4" aria-hidden="true" />}
+    </span>
+  );
+}
+
+export function ModalFooter({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <footer className={cn(MODAL_FOOTER_CLASS, className)}>{children}</footer>;
+}
+
+export interface UseModalDismissOptions {
+  /** Whether the dialog is currently visible. */
+  open: boolean;
+  onClose: () => void;
+  /** Blocks Escape + backdrop dismissal, e.g. while a request is in flight. */
+  disabled?: boolean;
+  /**
+   * Whether clicking the overlay closes the dialog. Form dialogs that would
+   * lose typed input set this to `false`; Escape and the close button still work.
+   */
+  dismissOnBackdrop?: boolean;
+}
+
+/**
+ * Escape, body-scroll lock and backdrop dismissal for the custom modal layouts
+ * that cannot use `<Modal>` (nested lightboxes, signature viewers, inline
+ * confirmations). It registers in the same dialog stack as `Modal`, so only the
+ * top-most dialog reacts to Escape and the page unlocks after the last close.
+ *
+ * Call it unconditionally at the top of the component and gate on `open`.
+ */
+export function useModalDismiss({
+  open,
+  onClose,
+  disabled = false,
+  dismissOnBackdrop = true,
+}: UseModalDismissOptions) {
+  const onCloseRef = useRef(onClose);
+  const disabledRef = useRef(disabled);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    disabledRef.current = disabled;
+  }, [disabled]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const token = Symbol('custom-dialog');
+    dialogStack.push(token);
+    const isTop = () => dialogStack[dialogStack.length - 1] === token;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !isTop() || disabledRef.current) return;
+      e.preventDefault();
+      onCloseRef.current();
+    };
+
+    document.addEventListener('keydown', onKey);
+    lockBodyScroll();
+
+    return () => {
+      const index = dialogStack.lastIndexOf(token);
+      if (index !== -1) dialogStack.splice(index, 1);
+      document.removeEventListener('keydown', onKey);
+      unlockBodyScroll();
+    };
+  }, [open]);
+
+  return {
+    /** Spread onto the overlay; a click outside the panel closes the dialog. */
+    backdropProps: {
+      onClick: (event: React.MouseEvent<HTMLElement>) => {
+        if (!dismissOnBackdrop || disabled || event.target !== event.currentTarget) return;
+        onClose();
+      },
+    },
+  };
+}
+
 export function Modal({
   open,
   onClose,
@@ -75,10 +334,12 @@ export function Modal({
   const titleId = React.useId();
   const reduceMotion = useReducedMotion();
   const onCloseRef = useRef(onClose);
+  const [mounted, setMounted] = useState(false);
 
-  // Call sites almost always pass an inline `onClose`. Keeping it in a ref means
-  // a parent re-render while the dialog is open cannot tear down/re-run the
-  // focus trap and steal focus back to the trigger.
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
@@ -113,13 +374,9 @@ export function Modal({
     };
     document.addEventListener('keydown', onKey);
 
-    const body = document.body;
-    const prev = body.style.overflow;
-    body.style.overflow = 'hidden';
-    body.setAttribute('data-modal-open', 'true');
+    lockBodyScroll();
 
     const timer = window.setTimeout(() => {
-      // A nested dialog may have opened first; it owns the initial focus.
       if (!isTop()) return;
       panelRef.current
         ?.querySelector<HTMLElement>(
@@ -133,16 +390,11 @@ export function Modal({
       if (index !== -1) dialogStack.splice(index, 1);
       document.removeEventListener('keydown', onKey);
       window.clearTimeout(timer);
-      // An inner dialog closing must not unlock the page behind its parent.
-      if (dialogStack.length === 0) {
-        body.style.overflow = prev;
-        body.removeAttribute('data-modal-open');
-      }
+      unlockBodyScroll();
       triggerRef.current?.focus();
     };
   }, [open]);
 
-  /** Reduced motion gets the same state changes with no travel. */
   const panelVariants: Variants = reduceMotion
     ? {
         hidden: { opacity: 0 },
@@ -159,99 +411,54 @@ export function Modal({
     : backdropVariants;
 
   const overlayClassName = cn(
-    'g-modal-overlay fixed inset-0 z-[70] flex items-center justify-center bg-[var(--overlay)] p-3 sm:p-5 select-none sm:select-text',
-    animated
-      ? // Framer owns opacity + blur when animated.
-        ''
-      : 'backdrop-blur-sm transition-opacity duration-200 animate-in fade-in'
+    MODAL_OVERLAY_CLASS,
+    !animated && 'animate-in fade-in'
   );
 
   const panelClassName = cn(
-    /* `g-modal-panel` carries the mobile bottom-sheet treatment, which is why
-       this is a named class and not a pile of responsive utilities: the sheet
-       shape needs a `::before` handle and a max-height in `dvh`, neither of
-       which is expressible as a Tailwind class here. */
-    'g-modal-panel relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-[var(--shadow-lg)] sm:rounded-2xl',
-    !animated && 'transition-all duration-200 animate-in fade-in zoom-in-95',
+    MODAL_PANEL_CLASS,
+    !animated && 'transition-all duration-200 animate-in fade-in zoom-in-95 motion-reduce:animate-none',
     SIZES[size],
     className
   );
 
-  /**
-   * A dialog with no visible title still needs an accessible name. Callers such
-   * as the command palette render their own header and pass `aria-label`; the
-   * old order spread props first and then wrote `undefined` over that label, so
-   * the dialog shipped unnamed. Resolve it once, here.
-   */
-  const resolvedAriaLabel =
-    typeof title === 'string' ? title : (props['aria-label'] as string | undefined);
-  const resolvedDescribedBy =
-    descriptionId ?? (props['aria-describedby'] as string | undefined);
+  const resolvedAriaLabel = typeof title === 'string' ? title : (props['aria-label'] as string | undefined);
+  const resolvedDescribedBy = descriptionId ?? (props['aria-describedby'] as string | undefined);
 
   const content = (
     <>
       {(title || showClose) && (
-        <header className="relative flex shrink-0 items-start justify-between gap-4 overflow-hidden border-b border-divider bg-card px-6 py-4.5 sm:px-7">
-          {/* Philippine sun accent — gold, cropped top-right, faint enough
-              to never fight the title in either theme. */}
-          {headerAccent ?? (
-            <PhilippineSunMark
-              size={120}
-              className="absolute -right-8 -top-8 h-28 w-28 text-[#C9A24C] opacity-[0.14]"
-            />
-          )}
-          <div className="relative min-w-0 flex-1">
-            {title && (
-              <h2 id={titleId} className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl">
-                {title}
-              </h2>
-            )}
-            {description && (
-              typeof description === 'string' ? (
-                <p id={descriptionId} className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                  {description}
-                </p>
-              ) : (
-                <div id={descriptionId} className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                  {description}
-                </div>
-              )
-            )}
-          </div>
-          {showClose && (
-            // `p-2.5` not `p-2`: 7px padding either side of a `h-5` glyph
-            // lands at 31.5px, half a pixel under the 32px hit target.
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close dialog"
-              className="-mr-1 -mt-1 shrink-0 cursor-pointer rounded-full p-2.5 text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          )}
-        </header>
+        <ModalHeader
+          title={title}
+          description={description}
+          onClose={onClose}
+          showClose={showClose}
+          headerAccent={headerAccent}
+          titleId={titleId}
+        />
       )}
 
       <div
         data-lenis-prevent
-        className={cn('g-scroll flex-1 min-h-0 overflow-y-auto px-6 py-5 sm:px-7 sm:py-6', bodyClassName)}
+        className={cn(MODAL_BODY_CLASS, bodyClassName)}
       >
         {children}
       </div>
 
       {footer && (
-        <footer className="flex shrink-0 items-center justify-end gap-3 border-t border-divider bg-muted/40 px-6 py-4 sm:px-7">
+        <ModalFooter>
           {footer}
-        </footer>
+        </ModalFooter>
       )}
     </>
   );
 
+  if (!mounted) return null;
+
   if (!animated) {
     if (!open) return null;
 
-    return (
+    return createPortal(
       <div
         data-lenis-prevent
         className={overlayClassName}
@@ -272,11 +479,12 @@ export function Modal({
         >
           {content}
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -312,7 +520,8 @@ export function Modal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

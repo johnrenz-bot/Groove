@@ -14,7 +14,6 @@ import {
   MapPin,
   CheckCircle2,
   Send,
-  Ticket as TicketIcon,
   Maximize2,
   Users,
   HelpCircle,
@@ -106,42 +105,46 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
       onClose={onClose}
       size="md"
       title={
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-bold text-foreground">
-            {user.photo_url ? (
-              <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
-            ) : (
-              getInitials(user.firstname, user.lastname)
-            )}
-          </div>
-          <div className="min-w-0">
-            <h2 className="flex items-center gap-1.5 text-sm font-bold text-foreground">
-              <span className="truncate">{user.firstname} {user.lastname}</span>
-              <VerifiedIcon verified={user.account_verified} className="h-3.5 w-3.5" />
-            </h2>
-            <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-text">{user.role}</p>
-          </div>
-        </div>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
+            {user.firstname} {user.lastname}
+          </span>
+          <VerifiedIcon verified={user.account_verified} className="h-3.5 w-3.5 shrink-0" />
+        </span>
+      }
+      description={
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {user.role}
+        </span>
+      }
+      headerAccent={
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-accent-border bg-accent-soft text-sm font-bold text-accent-text">
+          {user.photo_url ? (
+            <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
+          ) : (
+            getInitials(user.firstname, user.lastname)
+          )}
+        </span>
       }
       footer={
-        <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <>
           <Link
             href={`/messages?user=${user.id}`}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-card px-5 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
           >
             Message
           </Link>
           <Link
             href={`/userprofile/${user.id}`}
-            className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover"
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-accent px-5 text-xs font-bold text-accent-foreground shadow-[var(--shadow-sm)] transition hover:bg-accent-hover"
           >
             View Profile
           </Link>
-        </div>
+        </>
       }
     >
-      <div className="space-y-3 py-1">
-        <div className="space-y-2 rounded-2xl border border-border bg-muted p-4">
+      <div className="space-y-3">
+        <div className="space-y-2 rounded-2xl border border-border bg-muted/30 p-4">
           <p className="flex items-start gap-2 text-xs text-muted-foreground">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
             <span>{user.city_name || user.address_summary || 'San Jose del Monte, Bulacan'}</span>
@@ -196,13 +199,30 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
       open={true}
       onClose={onClose}
       size="md"
-      title={
-        <div className="flex items-center gap-2.5">
-          <TicketIcon className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-          <span>Submit Support Ticket</span>
-        </div>
-      }
+      title="Submit Support Ticket"
       description="Our administration team is here to assist with studio listings and coach operations."
+      footer={
+        success ? (
+          <Button variant="outline" size="md" onClick={onClose}>
+            Close
+          </Button>
+        ) : (
+          <>
+            <Button type="button" variant="outline" size="md" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="coach-support-ticket-form"
+              variant="primary"
+              size="md"
+              loading={loading}
+            >
+              Send Ticket
+            </Button>
+          </>
+        )
+      }
     >
       {success ? (
         <div className="space-y-2 py-8 text-center">
@@ -211,9 +231,9 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
           <p className="text-xs text-muted-foreground">Our administration will follow up promptly.</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form id="coach-support-ticket-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
           {error && (
-            <div className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
+            <div className="rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
               {error}
             </div>
           )}
@@ -246,15 +266,6 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
               placeholder="Describe your inquiry, studio issue, or schedule question..."
               className="g-input w-full p-3 resize-none text-xs leading-relaxed"
             />
-          </div>
-
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-border">
-            <Button type="button" variant="outline" size="sm" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" size="sm" loading={loading}>
-              Send Ticket
-            </Button>
           </div>
         </form>
       )}

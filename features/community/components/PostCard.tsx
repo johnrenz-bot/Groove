@@ -36,6 +36,16 @@ import type { Comment, CommunityPost } from '@/lib/types';
 import { getInitials } from '@/lib/utils';
 import { isVideoPath } from '../utils/communityMedia';
 import { cn } from '@/components/shared/cn';
+import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
 
 const MEDIA_MAX_H = 'max-h-[420px]';
 
@@ -99,6 +109,15 @@ export function PostCard({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const { backdropProps: deleteBackdropProps } = useModalDismiss({
+    open: showDeleteModal,
+    onClose: () => setShowDeleteModal(false),
+  });
+  const { backdropProps: infoBackdropProps } = useModalDismiss({
+    open: showInfoModal,
+    onClose: () => setShowInfoModal(false),
+  });
 
   // Close dropdown menu when clicking outside
   useEffect(() => {
@@ -464,41 +483,44 @@ export function PostCard({
           role="dialog"
           aria-modal="true"
           aria-labelledby={`delete-title-${post.id}`}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in-0 duration-150"
+          className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
+          {...deleteBackdropProps}
         >
-          <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger-soft text-danger">
-                <Trash2 className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <h3 id={`delete-title-${post.id}`} className="text-sm font-bold text-foreground">
+          <div className={cn(MODAL_PANEL_CLASS, 'max-w-sm animate-in zoom-in-95 duration-300')}>
+            <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-danger/30 bg-danger-soft text-danger">
+                  <Trash2 className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <h3 id={`delete-title-${post.id}`} className="min-w-0 text-base font-bold tracking-[-0.02em] text-foreground">
                   Delete Post?
                 </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Are you sure you want to delete this community post? This action will permanently remove it from the showcase and cannot be undone.
-                </p>
               </div>
+              <ModalCloseButton onClose={() => setShowDeleteModal(false)} label="Close delete confirmation" />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-1 border-t border-border/50">
-              <button
-                type="button"
+            <div className={cn(MODAL_BODY_CLASS, 'text-sm leading-relaxed text-muted-foreground')}>
+              Are you sure you want to delete this community post? This action will permanently remove it from the showcase and cannot be undone.
+            </div>
+
+            <div className={MODAL_FOOTER_CLASS}>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowDeleteModal(false)}
-                className="rounded-lg border border-border bg-muted/50 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={() => {
                   setShowDeleteModal(false);
                   onDelete();
                 }}
-                className="rounded-lg bg-danger px-4 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-danger/90 active:scale-95"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -510,32 +532,26 @@ export function PostCard({
           role="dialog"
           aria-modal="true"
           aria-labelledby={`info-title-${post.id}`}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in-0 duration-150"
+          className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
+          {...infoBackdropProps}
         >
-          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-border/70 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent-border/60 bg-accent-soft text-accent-text">
-                  <Info className="h-4 w-4" />
+          <div className={cn(MODAL_PANEL_CLASS, 'max-w-md animate-in fade-in zoom-in-95 duration-300')}>
+            <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
+                  <Info className="h-4 w-4" aria-hidden="true" />
                 </div>
-                <div>
-                  <h3 id={`info-title-${post.id}`} className="text-sm font-bold text-foreground">
+                <div className="min-w-0">
+                  <h3 id={`info-title-${post.id}`} className="text-base font-bold tracking-[-0.02em] text-foreground">
                     Post Information
                   </h3>
-                  <p className="text-[11px] text-muted-foreground">Public showcase details</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">Public showcase details</p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowInfoModal(false)}
-                className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition"
-                aria-label="Close"
-              >
-                <CancelIcon className="h-4 w-4" />
-              </button>
+              <ModalCloseButton onClose={() => setShowInfoModal(false)} label="Close post information" />
             </div>
 
-            <div className="space-y-2 text-xs">
+            <div className={cn(MODAL_BODY_CLASS, 'space-y-2 text-xs')}>
               <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
                 <span className="text-muted-foreground font-medium">Author</span>
                 <span className="font-semibold text-foreground">
@@ -584,14 +600,14 @@ export function PostCard({
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-border/50">
-              <button
-                type="button"
+            <div className={MODAL_FOOTER_CLASS}>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => setShowInfoModal(false)}
-                className="rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent-hover transition shadow-sm"
               >
                 Done
-              </button>
+              </Button>
             </div>
           </div>
         </div>

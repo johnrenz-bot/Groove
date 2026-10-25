@@ -1,25 +1,54 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  X,
-  Calendar,
-  Clock,
-  MapPin,
-  Sparkles,
   AlertCircle,
+  Calendar,
+  CalendarDays,
   CheckCircle2,
-  ShieldCheck,
-  Loader2,
-  Phone,
-  Target,
   FileText,
+  Info,
+  Loader2,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  UserRound,
 } from 'lucide-react';
-import { FullCoach, Profile } from '@/lib/types';
+import type { Appointment, FullCoach, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import { bookingGate, coachBookingGate, type VerificationGate } from '@/features/verification/services/verification';
+import {
+  bookingGate,
+  coachBookingGate,
+  type VerificationGate,
+} from '@/features/verification/services/verification';
+import {
+  isValidEmail,
+  isValidMobile,
+  normalizeContactForInput,
+  normalizeContactForStorage,
+} from '@/lib/profileFields';
 import { Button } from '@/components/ui/Button';
+import { Modal, ModalHeader, ModalSection, ModalCard, ModalFooter } from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
+import { formatCurrency } from '@/lib/utils';
+import { explainBookingError } from '../services/bookingService';
+import {
+  clientBusyWindowsForDate,
+  buildTimeSlots,
+  composeCoachLocation,
+  composeProfileAddress,
+  formatBookingDate,
+  formatClock,
+  formatDuration,
+  minutesToTime,
+  overlaps,
+  parseBookingStart,
+  parseDurationMinutes,
+  timeToMinutes,
+} from '../services/bookingTime';
 
 interface BookingModalProps {
   coach: FullCoach;
@@ -28,151 +57,497 @@ interface BookingModalProps {
   onSuccess?: () => void;
 }
 
-const COMMON_SJDM_STUDIOS = [
-  'Star Studio, Tungkong Mangga, SJDM',
-  'SJDM Performing Arts Space, Muzon',
-  'Groove Hub Rehearsal Hall, SJDM',
-  'Online 1-on-1 Studio Session',
-];
+const SESSION_TYPES = [
+  { value: 'Face to Face Rehearsal', online: false, label: 'Face to face' },
+  { value: 'Online 1-on-1 Coaching', online: true, label: 'Online' },
+  { value: 'Studio Workshop', online: false, label: 'Studio workshop' },
+  { value: 'Choreography Routine', online: false, label: 'Choreography routine' },
+] as const;
+
+const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Professional'] as const;
+
+const CHIP_OPEN_MINUTES = 8 * 60;
+const CHIP_CLOSE_MINUTES = 20 * 60;
+
+function localDateValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function pickFirstAvailableStart(args: {
+  date: string;
+  durationMinutes: number;
+  nowMs: number;
+  earliestMs: number;
+  busy: ReturnType<typeof clientBusyWindowsForDate>;
+}): string {
+  const slots = buildTimeSlots({
+    ...args,
+    openMinutes: CHIP_OPEN_MINUTES,
+    closeMinutes: CHIP_CLOSE_MINUTES,
+  });
+  return slots.find((slot) => !slot.disabled)?.start ?? slots[0]?.start ?? '09:00';
+}
+
+function firstBookableDate(args: {
+  nowMs: number;
+  earliestMs: number;
+  durationMinutes: number;
+  busy?: ReturnType<typeof clientBusyWindowsForDate>;
+}): string {
+  const start = new Date(Math.max(args.nowMs, args.earliestMs));
+  for (let offset = 0; offset < 21; offset += 1) {
+    const day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + offset);
+    const value = localDateValue(day);
+    const slots = buildTimeSlots({
+      date: value,
+      durationMinutes: args.durationMinutes,
+      nowMs: args.nowMs,
+      earliestMs: args.earliestMs,
+      busy: args.busy ?? [],
+      openMinutes: CHIP_OPEN_MINUTES,
+      closeMinutes: CHIP_CLOSE_MINUTES,
+    });
+    if (slots.some((slot) => !slot.disabled)) return value;
+  }
+  return localDateValue(start);
+}
+
+function ProfileTag({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-accent-border bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent-text">
+      <UserRound className="h-2.5 w-2.5" aria-hidden="true" />
+      From your profile
+    </span>
+  );
+}
+
+function FieldError({ id, message }: { id?: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} role="alert" className="mt-1 flex items-start gap-1 text-[11px] font-medium text-danger">
+      <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+      {message}
+    </p>
+  );
+}
 
 export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const coachProfile = coach.coach_profile;
+  const coachDisplayName =
+    [coach.firstname, coach.lastname].filter(Boolean).join(' ') || coach.username || 'Coach';
+  const durationMinutes = parseDurationMinutes(coachProfile?.duration);
+  const rate = coachProfile?.service_fee ?? null;
+  const rateLabel = rate === null ? 'Rate on request' : formatCurrency(rate);
+  const coachLocation = composeCoachLocation(coach);
+  const noticeMs =
+    (coachProfile?.notice_days ?? 0) * 24 * 60 * 60 * 1000 +
+    (coachProfile?.notice_hours ?? 0) * 60 * 60 * 1000;
 
-  // Default to tomorrow's date
-  const tomorrow = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  }, []);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, [isOpen]);
 
-  const [date, setDate] = useState(tomorrow);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
-  const [sessionType, setSessionType] = useState('Face to Face Rehearsal');
-  const [talent, setTalent] = useState(coach.coach_profile?.talents?.split(',')[0] || 'Dance');
-  const [experience, setExperience] = useState('Beginner');
+  const earliestMs = nowMs + noticeMs;
+
+  const initialDate = useMemo(
+    () =>
+      firstBookableDate({
+        nowMs,
+        earliestMs,
+        durationMinutes,
+      }),
+    [durationMinutes, earliestMs, nowMs]
+  );
+
+  const [date, setDate] = useState(initialDate);
+  const [startTime, setStartTime] = useState(() =>
+    pickFirstAvailableStart({
+      date: initialDate,
+      durationMinutes,
+      nowMs,
+      earliestMs: nowMs + noticeMs,
+      busy: [],
+    })
+  );
+
+  const endTime = useMemo(() => {
+    const start = timeToMinutes(startTime);
+    return start === null ? '' : minutesToTime(start + durationMinutes);
+  }, [durationMinutes, startTime]);
+
+  const [sessionType, setSessionType] = useState<(typeof SESSION_TYPES)[number]['value']>(
+    SESSION_TYPES[0].value
+  );
+  const isOnline = sessionType === SESSION_TYPES[1].value;
+
+  const [talent, setTalent] = useState(
+    coachProfile?.talents?.split(',')[0]?.trim() || 'Dance'
+  );
+  const [experience, setExperience] = useState<string>(EXPERIENCE_LEVELS[0]);
   const [purpose, setPurpose] = useState('');
   const [message, setMessage] = useState('');
-  const [address, setAddress] = useState('Star Studio, Tungkong Mangga, SJDM');
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
+  const [address, setAddress] = useState('');
+
+  const [nameEdited, setNameEdited] = useState(false);
+  const [emailEdited, setEmailEdited] = useState(false);
+  const [contactEdited, setContactEdited] = useState(false);
+  const [addressEdited, setAddressEdited] = useState(false);
 
   const [clientProfile, setClientProfile] = useState<Profile | null>(null);
-  const [gateResolved, setGateResolved] = useState(false);
+  const [ownAppointments, setOwnAppointments] = useState<Appointment[]>([]);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [attempted, setAttempted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [createdReference, setCreatedReference] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
 
-    void (async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user || cancelled) return;
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        if (!cancelled && profile) {
-          setClientProfile(profile as Profile);
-          if (profile.contact_number) {
-            setContact(profile.contact_number);
+    const timer = window.setTimeout(() => {
+      const openNow = Date.now();
+      const openEarliest = openNow + noticeMs;
+      const openDate = firstBookableDate({
+        nowMs: openNow,
+        earliestMs: openEarliest,
+        durationMinutes,
+      });
+
+      setNowMs(openNow);
+      setSuccess(false);
+      setCreatedReference(null);
+      setError(null);
+      setWarning(null);
+      setProfileError(null);
+      setClientProfile(null);
+      setOwnAppointments([]);
+      setAttempted(false);
+      setProfileLoading(true);
+      setPurpose('');
+      setMessage('');
+      setTalent(coachProfile?.talents?.split(',')[0]?.trim() || 'Dance');
+      setExperience(EXPERIENCE_LEVELS[0]);
+      setSessionType(SESSION_TYPES[0].value);
+      setDate(openDate);
+      setStartTime(
+        pickFirstAvailableStart({
+          date: openDate,
+          durationMinutes,
+          nowMs: openNow,
+          earliestMs: openEarliest,
+          busy: [],
+        })
+      );
+
+      void (async () => {
+        try {
+          const supabase = createClient();
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user || cancelled) return;
+
+          const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (cancelled) return;
+          if (profileErr) {
+            setProfileError(profileErr.message);
+          } else if (profile) {
+            const typed = profile as Profile;
+            setClientProfile(typed);
+            setName([typed.firstname, typed.lastname].filter(Boolean).join(' ').trim());
+            setEmail(typed.email || user.email || '');
+            setContact(normalizeContactForInput(typed.contact));
+            setAddress(composeProfileAddress(typed));
+            setNameEdited(false);
+            setEmailEdited(false);
+            setContactEdited(false);
+            setAddressEdited(false);
+          }
+
+          const { data: appointments } = await supabase
+            .from('appointments')
+            .select('id,date,start_time,end_time,status,coach_id')
+            .eq('client_id', user.id)
+            .in('status', ['pending', 'accepted', 'agreement_required', 'confirmed']);
+
+          if (cancelled) return;
+          const rows = (appointments ?? []) as Appointment[];
+          setOwnAppointments(rows);
+
+          const windows = clientBusyWindowsForDate(rows, openDate);
+          const slots = buildTimeSlots({
+            date: openDate,
+            durationMinutes,
+            nowMs: Date.now(),
+            earliestMs: Date.now() + noticeMs,
+            busy: windows,
+            openMinutes: CHIP_OPEN_MINUTES,
+            closeMinutes: CHIP_CLOSE_MINUTES,
+          });
+          setStartTime((current) => {
+            const selected = slots.find((slot) => slot.start === current);
+            if (selected && !selected.disabled) return current;
+            return slots.find((slot) => !slot.disabled)?.start ?? current;
+          });
+        } catch (err) {
+          if (!cancelled) {
+            setProfileError(
+              err instanceof Error ? err.message : 'Your profile could not be loaded.'
+            );
+          }
+        } finally {
+          if (!cancelled) {
+            setProfileLoading(false);
           }
         }
-      } catch {
-        if (!cancelled) setClientProfile(null);
-      } finally {
-        if (!cancelled) setGateResolved(true);
-      }
-    })();
+      })();
+    }, 0);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
-  }, [isOpen]);
+  }, [isOpen, coach.id]);
 
-  // Calculate session duration in hours / minutes
-  const sessionDuration = useMemo(() => {
-    if (!startTime || !endTime) return null;
-    const [startH, startM] = startTime.split(':').map(Number);
-    const [endH, endM] = endTime.split(':').map(Number);
-    const totalMinutes = endH * 60 + endM - (startH * 60 + startM);
-    if (totalMinutes <= 0) return null;
-    const h = Math.floor(totalMinutes / 60);
-    const m = totalMinutes % 60;
-    if (h > 0 && m > 0) return `${h}h ${m}m`;
-    if (h > 0) return `${h} ${h === 1 ? 'hour' : 'hours'}`;
-    return `${m} mins`;
-  }, [startTime, endTime]);
+  const dateOptions = useMemo(() => {
+    const firstDay = new Date(Math.max(nowMs, earliestMs));
+    return Array.from({ length: 21 }, (_, index) => {
+      const day = new Date(
+        firstDay.getFullYear(),
+        firstDay.getMonth(),
+        firstDay.getDate() + index
+      );
+      const value = localDateValue(day);
+      const dayEnd = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate(),
+        23,
+        59,
+        59,
+        999
+      ).getTime();
+      return {
+        value,
+        weekday: day.toLocaleDateString(undefined, { weekday: 'short' }),
+        day: day.getDate(),
+        month: day.toLocaleDateString(undefined, { month: 'short' }),
+        disabled: dayEnd < earliestMs,
+      };
+    });
+  }, [earliestMs, nowMs]);
 
-  const isTimeInvalid = useMemo(() => {
-    if (!startTime || !endTime) return false;
-    return endTime <= startTime;
-  }, [startTime, endTime]);
+  const busyWindows = useMemo(
+    () => clientBusyWindowsForDate(ownAppointments, date),
+    [date, ownAppointments]
+  );
 
-  if (!isOpen) return null;
+  const chipSlots = useMemo(
+    () =>
+      buildTimeSlots({
+        date,
+        durationMinutes,
+        nowMs,
+        earliestMs,
+        busy: busyWindows,
+        openMinutes: CHIP_OPEN_MINUTES,
+        closeMinutes: CHIP_CLOSE_MINUTES,
+      }),
+    [busyWindows, date, durationMinutes, earliestMs, nowMs]
+  );
 
-  if (isOpen && !gateResolved) {
+  const startAt = parseBookingStart(date, startTime);
+  const endAt = parseBookingStart(date, endTime);
+  const noticeLabel = [
+    coachProfile?.notice_days ? `${coachProfile.notice_days}d` : '',
+    coachProfile?.notice_hours ? `${coachProfile.notice_hours}h` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const conflict = useMemo(() => {
+    if (!startAt || !endAt) return null;
     return (
-      <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md">
-        <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground rounded-2xl border border-border bg-card p-6 shadow-xl">
-          <Loader2 className="g-spin h-6 w-6 text-accent" aria-hidden="true" />
-          <span>Verifying booking eligibility…</span>
-        </div>
-      </div>
+      busyWindows.find((window) => overlaps(startAt, endAt, window.start, window.end)) ?? null
     );
-  }
+  }, [busyWindows, endAt, startAt]);
+
+  const errors = useMemo(() => {
+    const next: Record<string, string> = {};
+    const startMinutes = timeToMinutes(startTime);
+    if (name.trim().length < 2) next.name = 'Enter the name the coach should expect.';
+    if (!isValidEmail(email)) next.email = 'Enter a valid email address.';
+    if (!isValidMobile(contact)) {
+      next.contact = 'Use a 10-digit Philippine mobile number starting with 9 (e.g. 9171234567).';
+    }
+    if (!isOnline && address.trim().length < 5) {
+      next.address = 'Enter the studio or meeting address.';
+    }
+    if (purpose.trim().length < 5) {
+      next.purpose = 'Tell the coach what you want to work on.';
+    }
+    if (!date) next.date = 'Choose a session date.';
+    if (startMinutes === null) {
+      next.startTime = 'Choose a start time.';
+    } else if (startMinutes + durationMinutes > 24 * 60) {
+      next.startTime = 'That session would run past midnight. Choose an earlier start time.';
+    }
+    if (startAt && startAt.getTime() <= nowMs) {
+      next.startTime = 'That start time has already passed. Choose a later time.';
+    } else if (startAt && startAt.getTime() < earliestMs) {
+      next.startTime = `This coach needs ${noticeLabel || 'a notice period'}. Choose a later time.`;
+    }
+    if (conflict) {
+      next.startTime = `You already have a booking at ${conflict.label ?? 'that time'}. Choose another time.`;
+    }
+    return next;
+  }, [
+    address,
+    conflict,
+    contact,
+    date,
+    durationMinutes,
+    earliestMs,
+    email,
+    isOnline,
+    name,
+    noticeLabel,
+    nowMs,
+    purpose,
+    startAt,
+    startTime,
+  ]);
+
+  const valid = Object.keys(errors).length === 0;
 
   const clientCheck = bookingGate(clientProfile);
   const coachCheck = coachBookingGate(coach);
-  const gate: VerificationGate = !clientCheck.allowed
-    ? clientCheck
-    : !coachCheck.allowed
-      ? {
-          allowed: false,
-          reason:
-            'This coach is not verified yet, so bookings cannot be accepted. Please choose a verified coach.',
-          ctaHref: null,
-        }
-      : { allowed: true, reason: null, ctaHref: null };
+  let gate: VerificationGate;
+  if (profileLoading && !clientProfile) {
+    gate = { allowed: true, reason: null, ctaHref: null };
+  } else if (!profileLoading && profileError && !clientProfile) {
+    gate = {
+      allowed: false,
+      reason:
+        'Your profile could not be loaded, so your verification status cannot be checked. Close this dialog and open it again to retry.',
+      ctaHref: null,
+    };
+  } else if (!clientCheck.allowed) {
+    gate = clientCheck;
+  } else if (!coachCheck.allowed) {
+    gate = {
+      allowed: false,
+      reason:
+        'This coach is not verified yet, so bookings cannot be accepted. Please choose a verified coach.',
+      ctaHref: null,
+    };
+  } else {
+    gate = { allowed: true, reason: null, ctaHref: null };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isTimeInvalid) {
-      setError('Session end time must be later than start time.');
-      return;
+  const resetAndClose = () => {
+    if (loading) return;
+    const closeNow = Date.now();
+    const closeEarliest = closeNow + noticeMs;
+    const closeDate = firstBookableDate({
+      nowMs: closeNow,
+      earliestMs: closeEarliest,
+      durationMinutes,
+    });
+    setNowMs(closeNow);
+    setSuccess(false);
+    setCreatedReference(null);
+    setError(null);
+    setWarning(null);
+    setAttempted(false);
+    setLoading(false);
+    setProfileLoading(true);
+    setProfileError(null);
+    setClientProfile(null);
+    setOwnAppointments([]);
+    setName('');
+    setEmail('');
+    setContact('');
+    setAddress('');
+    setNameEdited(false);
+    setEmailEdited(false);
+    setContactEdited(false);
+    setAddressEdited(false);
+    setPurpose('');
+    setMessage('');
+    setTalent(coachProfile?.talents?.split(',')[0]?.trim() || 'Dance');
+    setExperience(EXPERIENCE_LEVELS[0]);
+    setSessionType(SESSION_TYPES[0].value);
+    setDate(closeDate);
+    setStartTime(
+      pickFirstAvailableStart({
+        date: closeDate,
+        durationMinutes,
+        nowMs: closeNow,
+        earliestMs: closeEarliest,
+        busy: [],
+      })
+    );
+    onClose();
+  };
+
+  const handleDateChange = (nextDate: string) => {
+    setDate(nextDate);
+    const windows = clientBusyWindowsForDate(ownAppointments, nextDate);
+    const slots = buildTimeSlots({
+      date: nextDate,
+      durationMinutes,
+      nowMs,
+      earliestMs,
+      busy: windows,
+      openMinutes: CHIP_OPEN_MINUTES,
+      closeMinutes: CHIP_CLOSE_MINUTES,
+    });
+    const selected = slots.find((slot) => slot.start === startTime);
+    if (!selected || selected.disabled) {
+      const first = slots.find((slot) => !slot.disabled);
+      if (first) setStartTime(first.start);
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAttempted(true);
+    if (!valid || loading) return;
 
     setLoading(true);
     setError(null);
+    setWarning(null);
 
     try {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      if (!user) throw new Error('Please sign in to book a session.');
 
-      if (!user) {
-        throw new Error('Please login to book an appointment.');
-      }
-
-      const { data: currentClient } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      const clientName = currentClient
-        ? `${currentClient.firstname} ${currentClient.lastname}`.trim()
-        : user.email || 'Client';
-
-      const submitGate = bookingGate((currentClient as Profile) ?? null);
+      const submitGate = bookingGate(clientProfile);
       if (!submitGate.allowed) {
-        throw new Error(submitGate.reason ?? 'Your account is not verified yet.');
+        throw new Error(submitGate.reason ?? 'Your account cannot book right now.');
       }
       if (!coach.account_verified) {
         throw new Error(
@@ -180,13 +555,19 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
         );
       }
 
-      if (!user.email) {
-        throw new Error(
-          'Your account has no email address, which is required for a booking. Please add one in your profile settings.'
-        );
+      const clientName =
+        name.trim() ||
+        [clientProfile?.firstname, clientProfile?.lastname].filter(Boolean).join(' ') ||
+        user.email ||
+        'Client';
+      const bookingEmail = email.trim() || user.email || clientProfile?.email || '';
+      if (!bookingEmail) {
+        throw new Error('Your account has no email address. Add one in your profile settings.');
       }
 
-      const { error: insertError } = await supabase
+      const finalAddress = isOnline ? 'Online session' : address.trim();
+
+      const { data: created, error: insertError } = await supabase
         .from('appointments')
         .insert({
           coach_id: coach.id,
@@ -197,403 +578,634 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
           session_type: sessionType,
           talent,
           experience,
-          purpose,
-          message,
-          address,
-          contact,
+          purpose: purpose.trim(),
+          message: message.trim() || null,
+          address: finalAddress,
+          contact: normalizeContactForStorage(contact),
           status: 'pending',
           name: clientName,
-          email: user.email,
+          email: bookingEmail,
+          rate,
+          duration_minutes: durationMinutes,
+          location: isOnline ? 'Online' : finalAddress,
+          is_online: isOnline,
         })
-        .select()
+        .select('id, appointment_id')
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) throw new Error(explainBookingError(insertError));
 
-      // Create notification for coach
-      await supabase.from('notifications').insert({
-        user_id: coach.id,
-        title: 'New Session Request Received',
-        message: `${clientName} sent a booking request for ${talent} on ${date} at ${startTime}.`,
-        cta_url: '/coach/appointments',
-      });
+      try {
+        const { error: notifyError } = await supabase.from('notifications').insert({
+          user_id: coach.id,
+          title: 'New Session Request Received',
+          message: `${clientName} sent a booking request for ${talent} on ${formatBookingDate(
+            date
+          )} at ${formatClock(startTime)}.`,
+          cta_url: '/coach/appointments',
+        });
+        if (notifyError) {
+          setWarning(
+            'Your request was saved, but the in-app notification could not be created. The coach will still see the booking on their dashboard.'
+          );
+        }
+      } catch {
+        setWarning(
+          'Your request was saved, but the in-app notification could not be created. The coach will still see the booking on their dashboard.'
+        );
+      }
 
+      setCreatedReference(
+        typeof created?.appointment_id === 'number' ? created.appointment_id : null
+      );
       setSuccess(true);
-      if (onSuccess) onSuccess();
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-      }, 2200);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to create appointment.';
-      setError(msg);
+      onSuccess?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'The booking request could not be sent.');
     } finally {
       setLoading(false);
     }
   };
 
-  /**
- * The rate shown in the booking summary. `?? 500` used to quote a price the
- * coach had never published; with no fee on file the modal now says so, which
- * is also the only honest thing to put on a screen whose next button creates a
- * contract.
- */
-const rate = coach.coach_profile?.service_fee ?? null;
-const rateLabel = rate === null ? 'Rate on request' : `₱${rate.toLocaleString()}`;
+  const selectedType = SESSION_TYPES.find((type) => type.value === sessionType) ?? SESSION_TYPES[0];
+  const paymentNote =
+    coachProfile?.payment_type === 'online'
+      ? `Online payment${coachProfile.payment_handle ? ` via ${coachProfile.payment_handle}` : ' — confirm the handle with your coach'}.`
+      : coachProfile?.payment_type === 'cash'
+        ? 'Cash on session.'
+        : 'Payment method to be confirmed with your coach.';
+  const talentOptions = coachProfile?.talents
+    ? coachProfile.talents
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [talent];
+
+  const disabled = profileLoading || !gate.allowed || loading || !valid;
+
+  const footer = success ? (
+    <ModalFooter>
+      <div className="flex w-full flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-muted-foreground">
+          {createdReference !== null
+            ? `Booking reference #${String(createdReference).padStart(5, '0')}`
+            : 'Your request is in your appointments.'}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="rounded-full" type="button" size="sm" onClick={resetAndClose}>
+            Close
+          </Button>
+          <Link href="/client/appointments">
+            <Button variant="primary" className="rounded-full" type="button" size="sm" icon={<CalendarDays className="h-3.5 w-3.5" />}>
+              Track my bookings
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </ModalFooter>
+  ) : !gate.allowed ? (
+    <ModalFooter>
+      <div className="flex w-full justify-end">
+        <Button variant="outline" className="rounded-full" type="button" size="sm" onClick={resetAndClose}>
+          Close
+        </Button>
+      </div>
+    </ModalFooter>
+  ) : (
+    <ModalFooter>
+      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-semibold text-foreground">
+            <Calendar className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+            {formatBookingDate(date)} · {formatClock(startTime)} – {formatClock(endTime)}
+          </p>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+            <span>{formatDuration(durationMinutes)}</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-bold text-accent-text">{rateLabel}</span>
+            <span aria-hidden="true">·</span>
+            <span>{selectedType.label}</span>
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-full"
+            size="sm"
+            onClick={resetAndClose}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="booking-form"
+            variant="primary"
+            className="rounded-full"
+            size="sm"
+            loading={loading}
+            disabled={disabled}
+            title={
+              profileLoading
+                ? 'Loading your profile…'
+                : !gate.allowed
+                  ? gate.reason ?? undefined
+                  : !valid
+                    ? 'Complete the highlighted fields first.'
+                    : undefined
+            }
+          >
+            {loading ? 'Sending request…' : 'Confirm Booking'}
+          </Button>
+        </div>
+      </div>
+    </ModalFooter>
+  );
 
   return (
-    <div
-      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/65 p-3 backdrop-blur-md transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !loading) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Book session with Coach ${coach.firstname}`}
+    <Modal
+      open={isOpen}
+      onClose={resetAndClose}
+      animated
+      size="lg"
+      title={`Book Session with ${coachDisplayName}`}
+      description={`${sessionType} · ${coachLocation || 'Service area not published'}`}
+      footer={footer}
     >
-      <div className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl animate-in zoom-in-95 duration-200 sm:rounded-3xl">
-        {/* Fixed Header */}
-        <header className="flex shrink-0 items-center justify-between border-b border-divider bg-card px-5 py-4 sm:px-7 sm:py-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted font-bold text-accent-text shadow-sm">
-              {coach.photo_url ? (
-                <img src={coach.photo_url} alt="" className="h-full w-full object-cover" />
-              ) : (
-                coach.firstname?.[0]
-              )}
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="truncate text-base font-bold text-foreground sm:text-lg">
-                  Book Session with Coach {coach.firstname}
-                </h3>
-                <span className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent-text">
-                  {rateLabel}
-                </span>
-              </div>
-              <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5 text-accent-text" />
-                San Jose del Monte Coaching Hub
-              </p>
-            </div>
+      {success ? (
+        <ModalSection className="py-12 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-success/30 bg-success-soft text-success">
+            <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
           </div>
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="cursor-pointer rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
-            aria-label="Close booking modal"
+          <h3 className="mt-4 text-xl font-bold text-foreground">Booking request sent</h3>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            Coach {coachDisplayName} has been asked for a {formatDuration(durationMinutes)}{' '}
+            {talent} session on <strong className="text-foreground">{formatBookingDate(date)}</strong>{' '}
+            at <strong className="text-foreground">{formatClock(startTime)}</strong>. Nothing is
+            confirmed until they accept and both agreements are signed.
+          </p>
+          {warning && (
+            <ModalCard className="mt-3 mx-auto max-w-md border-warning/30 bg-warning-soft text-warning">
+              <div className="flex items-start gap-2 text-[11px] leading-relaxed">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {warning}
+              </div>
+            </ModalCard>
+          )}
+          <Link
+            href="/client/appointments"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-foreground"
           >
-            <X className="h-5 w-5" />
-          </button>
-        </header>
+            <Calendar className="h-4 w-4 text-accent-text" aria-hidden="true" />
+            Track status under Appointments
+          </Link>
+        </ModalSection>
+      ) : profileLoading ? (
+        <ModalSection className="space-y-4">
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin text-accent-text" aria-hidden="true" />
+            Loading your profile and the coach&apos;s booking details…
+          </p>
+          <div className="g-skeleton h-24 rounded-2xl" />
+          <div className="g-skeleton h-24 rounded-2xl" />
+          <div className="g-skeleton h-24 rounded-2xl" />
+        </ModalSection>
+      ) : !gate.allowed ? (
+        <ModalSection className="py-12 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-warning/30 bg-warning-soft text-warning">
+            <AlertCircle className="h-7 w-7" aria-hidden="true" />
+          </div>
+          <h3 className="mt-4 text-lg font-bold text-foreground">Booking unavailable</h3>
+          <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            {gate.reason}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {gate.ctaHref && (
+              <Link href={gate.ctaHref}>
+                <Button variant="primary" className="rounded-full" icon={<ShieldCheck className="h-4 w-4" />}>Go to profile verification</Button>
+              </Link>
+            )}
+            <Button variant="outline" className="rounded-full" onClick={resetAndClose}>
+              Close
+            </Button>
+          </div>
+        </ModalSection>
+      ) : (
+        <form id="booking-form" onSubmit={handleSubmit} className="space-y-4 text-xs" noValidate>
+          {profileError && (
+            <ModalCard className="border-warning/30 bg-warning-soft text-warning">
+              <div className="flex items-start gap-2 text-[11px] leading-relaxed">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                Your saved details could not be loaded ({profileError}). You can still fill the form
+                in manually.
+              </div>
+            </ModalCard>
+          )}
+          {error && (
+            <ModalCard className="border-danger/30 bg-danger-soft text-danger">
+              <div className="flex items-start gap-2 text-[11px] leading-relaxed">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                {error}
+              </div>
+            </ModalCard>
+          )}
 
-        {/* Modal Body */}
-        <div className="g-scroll flex-1 min-h-0 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
-          {!gate.allowed ? (
-            <div className="py-10 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-warning/30 bg-warning-soft text-warning shadow-sm">
-                <AlertCircle className="h-7 w-7" />
-              </div>
-              <h4 className="mt-4 text-lg font-bold text-foreground">Booking Unavailable</h4>
-              <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                {gate.reason}
-              </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                {gate.ctaHref && (
-                  <Link href={gate.ctaHref}>
-                    <Button icon={<ShieldCheck className="h-4 w-4" />}>
-                      Go to profile verification
-                    </Button>
-                  </Link>
-                )}
-                <Button variant="outline" onClick={onClose}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          ) : success ? (
-            <div className="py-10 text-center space-y-3.5">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-success/30 bg-success-soft text-success shadow-sm animate-in zoom-in-75">
-                <CheckCircle2 className="h-9 w-9" />
-              </div>
-              <h4 className="text-xl font-bold text-foreground">Booking Request Sent!</h4>
-              <p className="mx-auto max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                Coach {coach.firstname} has been notified for your {talent} session on{' '}
-                <strong className="text-foreground">{date}</strong> at{' '}
-                <strong className="text-foreground">{startTime}</strong>.
-              </p>
-              <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-foreground">
-                <Calendar className="h-4 w-4 text-accent-text" />
-                Track status under Appointments
-              </div>
-            </div>
-          ) : (
-            <form id="booking-form" onSubmit={handleSubmit} className="space-y-5 text-xs">
-              {error && (
-                <div
-                  role="alert"
-                  className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger"
-                >
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Step 1: Schedule & Duration */}
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-3.5 sm:p-5">
-                <div className="flex items-center justify-between border-b border-divider pb-2.5">
-                  <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-text">
-                    <Calendar className="h-4 w-4" />
-                    1. Rehearsal Schedule &amp; Time
+          {/* ── 1. Date and time ── */}
+          <ModalSection
+            step={1}
+            icon={<Calendar className="h-3.5 w-3.5" />}
+            title="Date & time"
+          >
+            <div className="space-y-3">
+              <div>
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                    Pick a day *
                   </span>
-                  {sessionDuration && !isTimeInvalid && (
-                    <span className="rounded-full bg-accent-soft px-2.5 py-0.5 font-semibold text-[11px] text-accent-text">
-                      Duration: {sessionDuration}
+                  <span className="text-[10px] text-muted-foreground">
+                    {noticeMs > 0
+                      ? `Coach needs ${noticeLabel} notice`
+                      : 'No published notice period'}
+                  </span>
+                </div>
+                <div className="g-scroll -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                  {dateOptions.map((option) => {
+                    const active = option.value === date;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        disabled={option.disabled}
+                        aria-pressed={active}
+                        onClick={() => handleDateChange(option.value)}
+                        className={cn(
+                          'flex min-w-[58px] shrink-0 cursor-pointer flex-col items-center rounded-xl border px-2 py-1.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40',
+                          active
+                            ? 'border-accent-border bg-accent-soft text-accent-text'
+                            : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
+                        )}
+                      >
+                        <span className="text-[10px] font-semibold uppercase">{option.weekday}</span>
+                        <span className="text-sm font-bold tabular-nums">{option.day}</span>
+                        <span className="text-[10px]">{option.month}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <label className="mt-2 block">
+                  <span className="sr-only">Exact session date</span>
+                  <input
+                    type="date"
+                    value={date}
+                    min={localDateValue(new Date(earliestMs))}
+                    onChange={(event) => handleDateChange(event.target.value)}
+                    className="g-input h-10 w-full text-xs"
+                  />
+                </label>
+                <FieldError message={attempted ? errors.date : undefined} />
+              </div>
+
+              <div>
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                    Available start times *
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {formatDuration(durationMinutes)} session
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
+                  {chipSlots.map((slot) => {
+                    const active = slot.start === startTime;
+                    return (
+                      <button
+                        key={slot.start}
+                        type="button"
+                        disabled={slot.disabled}
+                        aria-pressed={active}
+                        title={slot.reason ?? undefined}
+                        onClick={() => setStartTime(slot.start)}
+                        className={cn(
+                          'min-h-[36px] cursor-pointer rounded-lg border px-1.5 text-[11px] font-semibold tabular-nums transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/30 disabled:text-subtle-foreground disabled:line-through',
+                          active
+                            ? 'border-accent-border bg-accent-soft text-accent-text'
+                            : 'border-border bg-card text-foreground hover:border-border-strong hover:bg-muted'
+                        )}
+                      >
+                        {formatClock(slot.start)}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-1 flex items-center gap-1 text-[10px] leading-relaxed text-muted-foreground">
+                  <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  Past times, the coach&apos;s notice period, and your own active or requested
+                  sessions are disabled. Your coach still confirms the final slot.
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <label className="block">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Or type a start time
                     </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                      Session Date *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      min={new Date().toISOString().split('T')[0]}
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="g-input h-10 w-full text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                      Start Time *
-                    </label>
                     <input
                       type="time"
-                      required
                       value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
+                      onChange={(event) => setStartTime(event.target.value)}
                       className="g-input h-10 w-full text-xs"
+                      aria-invalid={attempted && errors.startTime ? 'true' : undefined}
                     />
-                  </div>
-
+                  </label>
                   <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                      End Time *
-                    </label>
-                    <input
-                      type="time"
-                      required
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                      className={`g-input h-10 w-full text-xs ${
-                        isTimeInvalid ? 'border-danger focus:border-danger' : ''
-                      }`}
-                    />
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Ends
+                    </span>
+                    <div className="flex h-10 items-center rounded-lg border border-border bg-muted/40 px-3 text-xs font-semibold tabular-nums text-foreground">
+                      {endTime ? formatClock(endTime) : '—'}
+                    </div>
                   </div>
                 </div>
-
-                {isTimeInvalid && (
-                  <p className="text-[11px] font-medium text-danger">
-                    End time must be later than start time.
+                <FieldError message={attempted ? errors.startTime : undefined} />
+                {conflict && !attempted && (
+                  <p className="mt-1 text-[11px] font-medium text-warning">
+                    You already have a booking at {conflict.label ?? 'that time'}.
                   </p>
                 )}
               </div>
+            </div>
+          </ModalSection>
 
-              {/* Step 2: Session Discipline */}
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-3.5 sm:p-5">
-                <span className="flex items-center gap-2 border-b border-divider pb-2.5 text-xs font-bold uppercase tracking-wider text-accent-text">
-                  <Sparkles className="h-4 w-4" />
-                  2. Session Focus &amp; Experience
+          {/* ── 2. Session format ── */}
+          <ModalSection step={2} icon={<Sparkles className="h-3.5 w-3.5" />} title="Session focus">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <label className="block sm:col-span-1">
+                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Format
                 </span>
+                <select
+                  value={sessionType}
+                  onChange={(event) =>
+                    setSessionType(event.target.value as (typeof SESSION_TYPES)[number]['value'])
+                  }
+                  className="g-input h-10 w-full cursor-pointer text-xs"
+                >
+                  {SESSION_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                      Session Type
-                    </label>
-                    <select
-                      value={sessionType}
-                      onChange={(e) => setSessionType(e.target.value)}
-                      className="g-input h-10 w-full text-xs cursor-pointer"
-                    >
-                      <option value="Face to Face Rehearsal">Face to Face Rehearsal</option>
-                      <option value="Online 1-on-1 Coaching">Online 1-on-1 Coaching</option>
-                      <option value="Studio Workshop">Studio Workshop</option>
-                      <option value="Choreography Routine">Choreography Routine</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                      Talent Category
-                    </label>
-                    <select
-                      value={talent}
-                      onChange={(e) => setTalent(e.target.value)}
-                      className="g-input h-10 w-full text-xs cursor-pointer"
-                    >
-                      <option value="Dance">Dance</option>
-                      <option value="Singing">Singing</option>
-                      <option value="Acting">Acting</option>
-                      <option value="Theater">Theater</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                      Experience Level
-                    </label>
-                    <select
-                      value={experience}
-                      onChange={(e) => setExperience(e.target.value)}
-                      className="g-input h-10 w-full text-xs cursor-pointer"
-                    >
-                      <option value="Beginner">Beginner (First time / basic)</option>
-                      <option value="Intermediate">Intermediate (1-3 yrs)</option>
-                      <option value="Advanced">Advanced (3+ yrs)</option>
-                      <option value="Professional">Professional</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 3: Location & Contact */}
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-3.5 sm:p-5">
-                <span className="flex items-center gap-2 border-b border-divider pb-2.5 text-xs font-bold uppercase tracking-wider text-accent-text">
-                  <MapPin className="h-4 w-4" />
-                  3. Studio Venue &amp; Contact Number
+              <label className="block">
+                <span className="mb-1 flex items-center justify-between gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Discipline
+                  {coachProfile?.talents && (
+                    <span className="text-[9px] font-bold normal-case tracking-normal text-accent-text">
+                      From coach
+                    </span>
+                  )}
                 </span>
+                <select
+                  value={talent}
+                  onChange={(event) => setTalent(event.target.value)}
+                  className="g-input h-10 w-full cursor-pointer text-xs"
+                >
+                  {talentOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                <div className="space-y-2.5">
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground">
-                    Studio or Venue Address (San Jose del Monte) *
-                  </label>
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Experience
+                </span>
+                <select
+                  value={experience}
+                  onChange={(event) => setExperience(event.target.value)}
+                  className="g-input h-10 w-full cursor-pointer text-xs"
+                >
+                  {EXPERIENCE_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="mt-3 block">
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                What do you want to work on? *
+              </span>
+              <textarea
+                value={purpose}
+                onChange={(event) => setPurpose(event.target.value)}
+                rows={2}
+                maxLength={255}
+                placeholder="e.g. Audition prep, learning a specific routine, vocal range extension…"
+                className="g-input w-full resize-none p-2.5 text-xs leading-relaxed"
+                aria-invalid={attempted && errors.purpose ? 'true' : undefined}
+              />
+              <FieldError message={attempted ? errors.purpose : undefined} />
+            </label>
+
+            <label className="mt-2 block">
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                Notes for the coach <span className="font-normal normal-case text-muted-foreground">(optional)</span>
+              </span>
+              <textarea
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                rows={2}
+                maxLength={500}
+                placeholder="Audio tracks, access instructions, or anything else the coach should know…"
+                className="g-input w-full resize-none p-2.5 text-xs leading-relaxed"
+              />
+            </label>
+          </ModalSection>
+
+          {/* ── 3. Contact details ── */}
+          <ModalSection step={3} icon={<UserRound className="h-3.5 w-3.5" />} title="Your details">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1 flex items-center justify-between gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Full name *
+                  <ProfileTag show={Boolean(clientProfile) && !nameEdited} />
+                </span>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setNameEdited(true);
+                  }}
+                  autoComplete="name"
+                  placeholder="Juan Dela Cruz"
+                  className="g-input h-10 w-full text-xs"
+                  aria-invalid={attempted && errors.name ? 'true' : undefined}
+                />
+                <FieldError message={attempted ? errors.name : undefined} />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 flex items-center justify-between gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Email *
+                  <ProfileTag show={Boolean(clientProfile) && !emailEdited} />
+                </span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setEmailEdited(true);
+                  }}
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  className="g-input h-10 w-full text-xs"
+                  aria-invalid={attempted && errors.email ? 'true' : undefined}
+                />
+                <FieldError message={attempted ? errors.email : undefined} />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 flex items-center justify-between gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Mobile number *
+                  <ProfileTag show={Boolean(clientProfile) && !contactEdited} />
+                </span>
+                <div className="flex w-full">
+                  <span
+                    aria-hidden="true"
+                    className="flex min-w-[74px] items-center justify-center gap-1 rounded-l-lg border border-r-0 border-border bg-muted/50 text-xs font-semibold text-muted-foreground"
+                  >
+                    <Phone className="h-3 w-3" />
+                    +63
+                  </span>
                   <input
-                    type="text"
-                    required
-                    placeholder="e.g. Star Studio, Tungkong Mangga, San Jose del Monte"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="g-input h-10 w-full text-xs"
-                  />
-
-                  {/* Quick Venue Chips */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="text-[10px] text-muted-foreground mr-1">Quick pick:</span>
-                    {COMMON_SJDM_STUDIOS.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setAddress(s)}
-                        className="rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[10px] text-muted-foreground transition hover:border-accent-border hover:bg-accent-soft hover:text-accent-text cursor-pointer"
-                      >
-                        {s.split(',')[0]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                    Client Contact Number *
-                  </label>
-                  <div className="relative">
-                    <Phone className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="tel"
-                      required
-                      placeholder="09123456789"
-                      value={contact}
-                      onChange={(e) => setContact(e.target.value)}
-                      className="g-input h-10 w-full pl-9 text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 4: Goals & Details */}
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-3 sm:p-5">
-                <span className="flex items-center gap-2 border-b border-divider pb-2.5 text-xs font-bold uppercase tracking-wider text-accent-text">
-                  <Target className="h-4 w-4" />
-                  4. Session Purpose &amp; Goals
-                </span>
-
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                    Session Purpose &amp; Goals *
-                  </label>
-                  <textarea
-                    rows={2}
-                    required
-                    placeholder="e.g. Audition prep, learning specific choreography, vocal range extension, stage presence..."
-                    value={purpose}
-                    onChange={(e) => setPurpose(e.target.value)}
-                    className="g-input w-full p-2.5 resize-none text-xs leading-relaxed"
+                    type="tel"
+                    inputMode="numeric"
+                    value={contact}
+                    onChange={(event) => {
+                      setContact(event.target.value.replace(/\D/g, '').slice(0, 10));
+                      setContactEdited(true);
+                    }}
+                    autoComplete="tel-national"
+                    placeholder="9171234567"
+                    className="g-input h-10 w-full rounded-l-none border-l-0 text-xs"
+                    aria-invalid={attempted && errors.contact ? 'true' : undefined}
                   />
                 </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1">
-                    Additional Notes / Message (Optional)
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="Any special requests, audio tracks, or guidelines for the coach..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="g-input w-full p-2.5 resize-none text-xs leading-relaxed"
-                  />
-                </div>
-              </div>
-            </form>
-          )}
-        </div>
-
-        {/* Sticky Footer */}
-        {gate.allowed && !success && (
-          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-divider bg-muted/40 px-5 py-3.5 backdrop-blur-sm sm:px-7 sm:py-4">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-muted-foreground">Session Fee:</span>
-              <span className="text-sm font-bold text-accent-text">{rateLabel}</span>
-              {rate !== null && (
-                <span className="text-[10px] text-muted-foreground">/ session</span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={loading}
-                className="px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition cursor-pointer min-h-[38px]"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="booking-form"
-                disabled={loading || isTimeInvalid}
-                className="px-5 py-2 rounded-xl bg-accent text-accent-foreground font-bold text-xs hover:bg-accent-hover disabled:opacity-50 transition cursor-pointer min-h-[38px] shadow-sm flex items-center gap-1.5"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Submitting Request…
-                  </>
-                ) : (
-                  'Confirm Booking'
+                <FieldError message={attempted ? errors.contact : undefined} />
+                {!attempted && contact && !isValidMobile(contact) && (
+                  <p className="mt-1 text-[11px] text-warning">
+                    10 digits starting with 9, e.g. 9171234567.
+                  </p>
                 )}
-              </button>
+              </label>
+
+              <div className="block">
+                <span className="mb-1 flex items-center justify-between gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Service area
+                </span>
+                <div className="flex h-10 items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 text-[11px] text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
+                  <span className="truncate">{coachLocation || 'Not published by the coach'}</span>
+                </div>
+              </div>
             </div>
-          </footer>
-        )}
-      </div>
-    </div>
+
+            {isOnline ? (
+              <ModalCard className="border-info/30 bg-info-soft text-info">
+                <div className="flex items-start gap-2 text-[11px] leading-relaxed">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  This is an online session. Your coach will share the meeting link or studio
+                  details in Messages.
+                </div>
+              </ModalCard>
+            ) : (
+              <label className="mt-3 block">
+                <span className="mb-1 flex items-center justify-between gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
+                  Studio or meeting address *
+                  <ProfileTag show={Boolean(clientProfile) && !addressEdited && Boolean(address)} />
+                </span>
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(event) => {
+                    setAddress(event.target.value);
+                    setAddressEdited(true);
+                  }}
+                  placeholder={
+                    coachLocation
+                      ? `e.g. a studio in ${coachLocation}`
+                      : 'Studio name, street, barangay, city'
+                  }
+                  className="g-input h-10 w-full text-xs"
+                  aria-invalid={attempted && errors.address ? 'true' : undefined}
+                />
+                <FieldError message={attempted ? errors.date : undefined} />
+                {address && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddress(composeProfileAddress(clientProfile));
+                      setAddressEdited(false);
+                    }}
+                    className="mt-1 cursor-pointer text-[10px] font-semibold text-accent-text underline underline-offset-2"
+                  >
+                    Use my saved address
+                  </button>
+                )}
+              </label>
+            )}
+          </ModalSection>
+
+          {/* ── 4. Terms summary ── */}
+          <ModalSection step={4} icon={<FileText className="h-3.5 w-3.5" />} title="Booking summary">
+            <dl className="grid grid-cols-2 gap-2 text-[11px] sm:grid-cols-4">
+              <div className="rounded-xl border border-border bg-muted/30 p-2.5">
+                <dt className="text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                  When
+                </dt>
+                <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
+                  {formatBookingDate(date)}
+                  <br />
+                  {formatClock(startTime)} – {formatClock(endTime)}
+                </dd>
+              </div>
+              <div className="rounded-xl border border-border bg-muted/30 p-2.5">
+                <dt className="text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                  Duration
+                </dt>
+                <dd className="mt-0.5 font-semibold text-foreground">
+                  {formatDuration(durationMinutes)}
+                </dd>
+              </div>
+              <div className="rounded-xl border border-border bg-muted/30 p-2.5">
+                <dt className="text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                  Fee
+                </dt>
+                <dd className="mt-0.5 font-bold text-accent-text">{rateLabel}</dd>
+              </div>
+              <div className="rounded-xl border border-border bg-muted/30 p-2.5">
+                <dt className="text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                  Payment
+                </dt>
+                <dd className="mt-0.5 font-semibold text-foreground">{paymentNote}</dd>
+              </div>
+            </dl>
+            <p className="mt-2 flex items-start gap-1.5 text-[10px] leading-relaxed text-muted-foreground">
+              <Target className="mt-0.5 h-3 w-3 shrink-0 text-accent-text" aria-hidden="true" />
+              Sending this creates a request only. The session is confirmed after the coach accepts
+              and both parties sign the agreement.
+            </p>
+          </ModalSection>
+        </form>
+      )}
+    </Modal>
   );
 }
 

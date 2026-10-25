@@ -1206,6 +1206,9 @@ export function RegistrationSuccess({
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (resendError) {

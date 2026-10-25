@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Profile, FullCoach, Appointment, Announcement } from '@/lib/types';
 import { MaintenanceBanner } from '@/components/shared/MaintenanceBanner';
-import { formatCurrency, getInitials } from '@/lib/utils';
+import { formatCurrency, getInitials, parseGenres } from '@/lib/utils';
 import {
   Calendar,
   CalendarDays,
@@ -432,58 +432,72 @@ export default function ClientHomePage() {
 
       {/* Floating Groovey AI is provided once by DashboardLayout — no page-level copy. */}
 
-      {/* Quick Coach Modal */}
+      {/* Coach Profile Preview Modal — opens from the "Coaches in San Jose del
+          Monte" panel. Same header, cards, and action bar as every other
+          dialog; the coach's real rate and duration are shown, never invented. */}
       {selectedCoach && (
         <Modal
           open={!!selectedCoach}
           onClose={() => setSelectedCoach(null)}
           title={
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted text-sm font-bold text-accent-text">
-                {selectedCoach.photo_url ? (
-                  <img src={selectedCoach.photo_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  getInitials(selectedCoach.firstname, selectedCoach.lastname)
-                )}
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
+                {selectedCoach.firstname} {selectedCoach.lastname}
               </span>
-              <div className="min-w-0">
-                <h3 className="truncate text-base font-bold text-foreground">
-                  {selectedCoach.firstname} {selectedCoach.lastname}
-                </h3>
-                <p className="truncate text-xs text-accent-text font-semibold">
-                  {selectedCoach.coach_profile?.talents || 'Coach'} · San Jose del Monte
-                </p>
-              </div>
-            </div>
+              <span className="mt-0.5 truncate text-xs font-semibold text-muted-foreground">
+                {selectedCoach.coach_profile?.talents || 'Performing Arts Coach'}
+              </span>
+            </span>
+          }
+          headerAccent={
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-accent-border bg-accent-soft text-sm font-bold text-accent-text">
+              {selectedCoach.photo_url ? (
+                <img src={selectedCoach.photo_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                getInitials(selectedCoach.firstname, selectedCoach.lastname)
+              )}
+            </span>
           }
           size="md"
           footer={
-            <div className="flex w-full items-center justify-between gap-3">
+            <>
               <Link
                 href={`/userprofile/${selectedCoach.id}`}
-                className="inline-flex h-9 items-center justify-center rounded-xl border border-border bg-card px-4 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-card px-4 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
               >
                 Full Profile
               </Link>
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/messages?user=${selectedCoach.id}`}
-                  className="inline-flex h-9 items-center justify-center rounded-xl bg-accent px-4 text-xs font-bold text-accent-foreground shadow-sm transition hover:bg-accent-hover"
-                >
-                  Message Coach
-                </Link>
-              </div>
-            </div>
+              <Link
+                href={`/messages?user=${selectedCoach.id}`}
+                className="inline-flex h-10 items-center justify-center rounded-xl bg-accent px-4 text-xs font-bold text-accent-foreground shadow-[var(--shadow-sm)] transition hover:bg-accent-hover"
+              >
+                Message Coach
+              </Link>
+            </>
           }
         >
           <div className="space-y-4 text-xs">
-            <div className="rounded-2xl border border-border bg-muted p-4 leading-relaxed text-muted-foreground">
-              {selectedCoach.bio ||
-                'Professional performing arts instructor dedicated to mentoring talents.'}
+            <div className="rounded-2xl border border-border bg-muted/30 p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                About
+              </p>
+              <p className="mt-1.5 leading-relaxed text-muted-foreground">
+                {selectedCoach.bio ||
+                  'Professional performing arts instructor dedicated to mentoring talents.'}
+              </p>
             </div>
 
-            <dl className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-3.5">
-              <div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
+              <span className="truncate">
+                {selectedCoach.city_name ||
+                  selectedCoach.address_summary ||
+                  'San Jose del Monte, Bulacan'}
+              </span>
+            </div>
+
+            <dl className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-border bg-card p-3.5">
                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Session Rate
                 </dt>
@@ -491,7 +505,7 @@ export default function ClientHomePage() {
                   {formatCurrency(selectedCoach.coach_profile?.service_fee)}
                 </dd>
               </div>
-              <div>
+              <div className="rounded-2xl border border-border bg-card p-3.5">
                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Standard Duration
                 </dt>
@@ -500,22 +514,56 @@ export default function ClientHomePage() {
                 </dd>
               </div>
             </dl>
+
+            {parseGenres(selectedCoach.coach_profile?.genres).length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {parseGenres(selectedCoach.coach_profile?.genres)
+                  .slice(0, 6)
+                  .map((genre) => (
+                    <span key={genre} className="g-pill">
+                      {genre}
+                    </span>
+                  ))}
+              </div>
+            )}
           </div>
         </Modal>
       )}
 
-      {/* Support Ticket Modal */}
+      {/* Support Ticket Modal — form fields stay in the scroll body; Cancel and
+          Send live in the shared sticky action bar and submit via `form`. */}
       <Modal
         open={showTicketModal}
         onClose={() => setShowTicketModal(false)}
-        title={
-          <div className="flex items-center gap-2">
-            <HelpCircle className="h-4 w-4 text-accent-text" aria-hidden="true" />
-            <span>Submit Support Ticket</span>
-          </div>
-        }
+        title="Submit Support Ticket"
         description="Our administration team is here to assist with bookings, coaches, or questions."
         size="md"
+        footer={
+          ticketSent ? (
+            <Button variant="outline" size="md" onClick={() => setShowTicketModal(false)}>
+              Close
+            </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => setShowTicketModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="support-ticket-form"
+                size="md"
+                loading={ticketLoading}
+              >
+                <span>{ticketLoading ? 'Submitting…' : 'Send Ticket'}</span>
+              </Button>
+            </>
+          )
+        }
       >
         {ticketSent ? (
           <div className="space-y-2 py-8 text-center">
@@ -555,15 +603,6 @@ export default function ClientHomePage() {
                 placeholder="Describe your inquiry, concern, or feedback..."
                 className="g-input w-full p-3 resize-none text-xs leading-relaxed"
               />
-            </div>
-
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-border">
-              <Button type="button" variant="outline" size="sm" onClick={() => setShowTicketModal(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" size="sm" loading={ticketLoading}>
-                <span>{ticketLoading ? 'Submitting...' : 'Send Ticket'}</span>
-              </Button>
             </div>
           </form>
         )}

@@ -38,6 +38,14 @@ import React, { useCallback, useEffect, useMemo, useState, useSyncExternalStore 
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import {
+  ModalCloseButton,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
+import {
   BadgeCheck,
   CalendarDays,
   Clock,
@@ -46,7 +54,6 @@ import {
   Music2,
   Target,
   TrendingUp,
-  X,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getInitials, parseGenres } from '@/lib/utils';
@@ -309,7 +316,7 @@ export function ContactOverview({
 
   const panel = (
     <div
-      className="fixed inset-0 z-100 flex items-end justify-center sm:items-center sm:p-4"
+      className={cn(MODAL_OVERLAY_CLASS, 'motion-reduce:animate-none')}
       role="presentation"
     >
       {/* Backdrop. A click anywhere outside the panel closes it — the panel
@@ -318,7 +325,7 @@ export function ContactOverview({
         type="button"
         aria-label="Close contact overview"
         onClick={onClose}
-        className="absolute inset-0 h-full w-full cursor-default bg-black/60 backdrop-blur-[2px]"
+        className="absolute inset-0 h-full w-full cursor-default bg-transparent"
         tabIndex={-1}
       />
 
@@ -326,26 +333,16 @@ export function ContactOverview({
         role="dialog"
         aria-modal="true"
         aria-label={`Contact overview for ${partner.firstname}`}
-        className="relative flex max-h-[88vh] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-2xl sm:max-w-md sm:rounded-2xl"
+        className={cn(
+          MODAL_PANEL_CLASS,
+          'max-h-[92vh] animate-in fade-in zoom-in-95 duration-300 motion-reduce:animate-none sm:max-w-md'
+        )}
       >
-        {/* Grab bar — visual affordance for the mobile sheet. */}
-        <div
-          aria-hidden="true"
-          className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-muted sm:hidden"
-        />
-
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-divider px-5 py-4">
+        <header className={cn(MODAL_HEADER_CLASS, 'items-center px-5 py-4')}>
           <h2 className="text-sm font-bold tracking-[-0.01em] text-foreground">
             Contact Overview
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close contact overview"
-            className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
+          <ModalCloseButton onClose={onClose} label="Close contact overview" />
         </header>
 
         <div className="g-scroll min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
@@ -580,7 +577,7 @@ export function ContactOverview({
         </div>
 
         {/* ── Actions ── */}
-        <footer className="shrink-0 space-y-2 border-t border-divider px-5 py-4">
+        <footer className={cn(MODAL_FOOTER_CLASS, 'flex-col space-y-2 px-5 py-4 sm:items-stretch sm:justify-start')}>
           <Link
             href={`/userprofile/${partner.id}`}
             style={{ backgroundColor: GOLD }}

@@ -7,13 +7,21 @@ import {
   ShieldCheck,
   CheckCircle2,
   Clock,
-  X,
 } from 'lucide-react';
 import {
   AgreementPaper,
   SessionAgreementDocument,
 } from './SessionAgreementDocument';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 import { agreementReference, type BookingAgreement } from '../services/bookingAgreement';
 
 interface ViewAgreementModalProps {
@@ -51,6 +59,8 @@ export function ViewAgreementModal({
   isSigned = false,
   bookingConfirmed = false,
 }: ViewAgreementModalProps) {
+  const { backdropProps } = useModalDismiss({ open, onClose });
+
   if (!open) return null;
 
   const ref = agreementReference(agreement);
@@ -62,18 +72,16 @@ export function ViewAgreementModal({
 
   return (
     <div
-      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/70 p-3 backdrop-blur-md transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
       role="dialog"
       aria-modal="true"
       aria-label="View Full Session Agreement"
+      {...backdropProps}
     >
-      <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:rounded-3xl">
+      <div className={cn(MODAL_PANEL_CLASS, 'max-w-4xl max-h-[92vh] animate-in fade-in zoom-in-95 duration-300 sm:select-text')}>
         {/* Fixed Header */}
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-divider bg-card/95 px-5 py-4 backdrop-blur-sm sm:px-7 sm:py-5">
-          <div className="flex min-w-0 items-center gap-3">
+        <header className={cn(MODAL_HEADER_CLASS, 'flex-wrap items-center gap-3 px-5 py-4 sm:px-7 sm:py-5')}>
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <span
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text shadow-sm"
               aria-hidden="true"
@@ -95,7 +103,7 @@ export function ViewAgreementModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Status pill */}
             <div className="hidden items-center gap-2 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs font-semibold sm:flex">
               {bookingConfirmed || bothSigned ? (
@@ -111,14 +119,7 @@ export function ViewAgreementModal({
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close agreement dialog"
-              className="cursor-pointer rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClose={onClose} label="Close agreement dialog" />
           </div>
         </header>
 
@@ -136,7 +137,7 @@ export function ViewAgreementModal({
         </div>
 
         {/* Sticky Action Buttons Footer */}
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-divider bg-muted/40 px-5 py-4 backdrop-blur-sm sm:px-7">
+        <footer className={cn(MODAL_FOOTER_CLASS, 'flex-wrap items-center justify-between px-5 py-4 sm:px-7')}>
           <div className="flex items-center gap-2 text-xs">
             {isSigned ? (
               <span className="flex items-center gap-1.5 font-medium text-success">

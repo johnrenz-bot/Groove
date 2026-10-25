@@ -255,34 +255,78 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Database setup
+### Database setup &amp; Safety
 
 1. In your Supabase project, execute `supabase/schema.sql` in the SQL editor to create tables, enums, triggers, and Row Level Security policies.
 2. Optionally apply the incremental scripts in `supabase/migrations/` in numeric order if you are upgrading an existing database.
 3. Optionally run `supabase/seed.sql` for initial development records.
 
+> **Production Database Safety Rule**: Treat any remote Supabase database as production data. Never run destructive SQL (`DROP TABLE`, `TRUNCATE`, cascade drops, or full resets) against remote environments. All local SQL migrations and definitions have been preserved.
+>
+> **SQL Backup Archive**: An untouched offline backup of all 12 root-level Supabase SQL files is preserved in `C:\website\GrooveSystem-SQL-Backup` (`admin_hardening.sql`, `community_feed.sql`, `media_posts.sql`, `messenger.sql`, `presence_realtime.sql`, `schema.sql`, `seed.sql`, `seed_admin.sql`, `seed_dance_orgs.sql`, `storage_policies.sql`, `studios.sql`, `verification_workflow.sql`).
+
 Additional topic-specific SQL lives alongside it in `supabase/` (storage policies, verification workflow, community feed, messenger, presence, admin hardening, studios).
 
 ---
 
-## Configuration
+## Configuration &amp; Email Delivery
 
-The application is configured entirely through environment variables, loaded from `.env.local` in development and from your hosting provider's environment settings in production.
+The application is configured through environment variables, loaded from `.env.local` in development and from your hosting provider or container environment in production.
 
-**`.env.example` is the canonical template.** It is committed to the repository and lists every key the application reads, each with a placeholder value. To configure a fresh checkout:
+**`.env.example` is the canonical template.** It is committed to the repository and lists every key the application reads, each with a placeholder value:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Then replace each placeholder with a real value obtained from the corresponding provider (Supabase, Google AI Studio, Resend, and so on).
+### Resend Email Architecture &amp; Troubleshooting
 
-Guidelines:
+GroovePH uses a two-tier email architecture:
 
-- **Never commit real values.** `.env*` files are covered by `.gitignore` and must stay untracked.
-- **Server-only credentials must never be referenced from Client Components** or from any value prefixed for browser exposure. Doing so publishes the secret to every visitor.
-- **The welcome-email sender address is restricted by default.** Email providers allow sending from a test address only to the account owner. Sending to real registrants requires a verified sending domain — see the sender note at the top of `app/api/send-email/route.ts` for the full explanation and the environment override that points the route at your own domain.
-- Rotate any credential immediately if it is ever exposed in a commit, log, or client bundle.
+1. **Supabase Auth Confirmation Emails** (Auth verification link & password recovery):
+   - Sent directly by Supabase Auth server-side during `supabase.auth.signUp()` and `supabase.auth.resend()`.
+   - **Callback URLs**: Registration and resend verification calls include `options: { emailRedirectTo: `${origin}/auth/callback` }`. The callback route `/auth/callback` exchanges the PKCE auth code for a session and redirects to the appropriate role dashboard.
+   - **Rate Limits & SMTP**: By default, Supabase's built-in email service limits sends to 3–4 emails/hour. If you encounter `over_email_send_rate_limit` (429), configure **Custom SMTP** in the Supabase Dashboard:
+     - Go to: **Project Settings > Authentication > SMTP Settings**.
+     - Sender Email: `noreply@yourdomain.com` (verified in Resend).
+     - Sender Name: `GroovePH`.
+     - Host: `smtp.resend.com`
+     - Port: `465` (SSL) or `587` (TLS).
+     - Username: `resend`
+     - Password: `<your-resend-api-key>`
+
+2. **GroovePH Transactional Welcome Emails** (`/api/send-email`):
+   - Dispatched asynchronously via the Resend Node SDK when a user creates an account.
+   - **Test Mode vs. Production**: If `RESEND_FROM_ADDRESS` is unset or set to `GroovePH <onboarding@resend.dev>`, Resend allows delivery **only to the email address of the Resend account owner**. Attempting to send to any other recipient will return HTTP 403 `validation_error` (`restricted_sender`).
+   - **Production Setup**: Add and verify your custom domain at [resend.com/domains](https://resend.com/domains), then set `RESEND_FROM_ADDRESS="GroovePH <hello@yourdomain.com>"` in `.env.local` or your production environment variables.
+
+---
+
+## Docker Setup
+
+GroovePH includes a production-ready, multi-stage `Dockerfile` and `compose.yaml` optimized using Next.js standalone output:
+
+### Using Docker Compose
+
+```bash
+# Build and run with your local environment variables
+docker compose up --build
+```
+
+Access the app at `http://localhost:3000`.
+
+### Manual Docker Build
+
+```bash
+# 1. Build the image
+docker build -t groove-app .
+
+# 2. Run the container passing your environment file
+docker run -p 3000:3000 --env-file .env.local groove-app
+```
+
+- **Security**: No secrets or `.env` files are baked into the Docker image. All sensitive API keys (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `GEMINI_API_KEY`) are injected at container runtime.
+- **Image Size**: The multi-stage build leverages `output: 'standalone'` in `next.config.ts`, minimizing the final production image.
 
 ---
 
@@ -290,13 +334,14 @@ Guidelines:
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start the development server. |
-| `npm run build` | Production build with type checking. |
+| `npm run dev` | Start the local Turbopack development server. |
+| `npm run build` | Production build with type checking and standalone bundling. |
 | `npm run start` | Serve the production build. |
-| `npm run lint` | Run ESLint. |
-| `npm run typecheck` | Static type check without emitting files. |
-| `npm test` | Typecheck + lint + booking status tests. |
-| `npm run test:booking` | Booking status test suite only. |
+| `npm run lint` | Run ESLint with project rules. |
+| `npm run typecheck` | Static TypeScript type check (`tsc --noEmit`). |
+| `npm test` | Run full test suite: typecheck + lint + booking status test. |
+| `npm run test:booking` | Appointment booking status transitions unit test suite. |
+| `npm run test:booking-ui` | Appointment booking UI, timezone & duration unit test suite. |
 | `npm run agent:dance` | Run the dance community agent. |
 | `npm run seed:dance` | Seed dance updates. |
 | `npm run logos:sync` | Synchronise dance organisation logos. |

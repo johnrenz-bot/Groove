@@ -143,6 +143,34 @@ export function VerificationReviewPanel({ user, onClose, onReviewed }: Props) {
         size="2xl"
         title={`Verify ${roleLabel.toLowerCase()} — ${fullName(user)}`}
         description={`${roleLabel} account · ${user.username} · joined ${formatDateTime(user.created_at)}`}
+        footer={
+          !rejecting && (
+            <>
+              <Button variant="outline" onClick={onClose} disabled={working}>
+                Close
+              </Button>
+              {status !== 'rejected' && (
+                <Button
+                  variant="outline"
+                  onClick={() => setRejecting(true)}
+                  disabled={working}
+                  className="border-danger/40 text-danger hover:bg-danger-soft hover:text-danger"
+                  icon={<XCircle className="h-4 w-4" />}
+                >
+                  Reject…
+                </Button>
+              )}
+              <Button
+                onClick={() => setConfirmApprove(true)}
+                disabled={!approvable || working}
+                loading={working}
+                icon={<BadgeCheck className="h-4 w-4" />}
+              >
+                {status === 'verified' ? 'Re-approve' : 'Approve verification'}
+              </Button>
+            </>
+          )
+        }
       >
         {error && (
           <div
@@ -312,33 +340,7 @@ export function VerificationReviewPanel({ user, onClose, onReviewed }: Props) {
           </section>
         )}
 
-        {/* Decision actions */}
-        {!rejecting && (
-          <section className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-divider pt-5">
-            <Button variant="outline" onClick={onClose} disabled={working}>
-              Close
-            </Button>
-            {status !== 'rejected' && (
-              <Button
-                variant="outline"
-                onClick={() => setRejecting(true)}
-                disabled={working}
-                className="border-danger/40 text-danger hover:bg-danger-soft hover:text-danger"
-                icon={<XCircle className="h-4 w-4" />}
-              >
-                Reject…
-              </Button>
-            )}
-            <Button
-              onClick={() => setConfirmApprove(true)}
-              disabled={!approvable || working}
-              loading={working}
-              icon={<BadgeCheck className="h-4 w-4" />}
-            >
-              {status === 'verified' ? 'Re-approve' : 'Approve verification'}
-            </Button>
-          </section>
-        )}
+        {/* Decision actions live in the shared sticky footer. */}
       </Modal>
 
       {/* Approval is consequential, so it gets an explicit confirmation. */}

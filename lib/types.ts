@@ -141,7 +141,17 @@ export interface Appointment {
   declined_at?: string | null;
   cancelled_at?: string | null;
   completed_at?: string | null;
+  /**
+   * A reschedule REQUEST, not a rescheduled status. The enum has no
+   * `rescheduled` label, so the client records the desired time in these
+   * existing columns and the coach approves it by updating the booking's
+   * date/time. The note is encoded by
+   * `features/appointments/services/rescheduleRequest.ts`.
+   */
+  changes_requested_at?: string | null;
+  requested_changes_note?: string | null;
   cancellation_reason?: string | null;
+  cancelled_by?: string | null;
   coach_notes?: string | null;
   created_at: string;
   updated_at: string;

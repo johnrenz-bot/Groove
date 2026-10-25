@@ -234,7 +234,7 @@ function avatarItems(role: HeaderRole): HeaderAvatarItem[] {
     return [
       common('profile', 'Profile', '/coach/profile', 'Your public coaching page', User),
       common('settings', 'Settings', '/coach/settings', 'Sign-in details and account safety', Settings2),
-      common('preferences', 'Preferences', '/coach/settings', 'Appearance, language and sound', SlidersHorizontal),
+      common('preferences', 'Preferences', '/coach/settings#appearance', 'Appearance, language and sound', SlidersHorizontal),
       common('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
       { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' },
     ];
@@ -255,7 +255,7 @@ function avatarItems(role: HeaderRole): HeaderAvatarItem[] {
     return [
       common('profile', 'Profile', '/client/profile', 'Your public performer page', User),
       common('settings', 'Settings', '/client/settings', 'Sign-in details and account safety', Settings2),
-      common('preferences', 'Preferences', '/client/settings', 'Appearance, language and sound', SlidersHorizontal),
+      common('preferences', 'Preferences', '/client/settings#appearance', 'Appearance, language and sound', SlidersHorizontal),
       common('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
       { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' },
     ];

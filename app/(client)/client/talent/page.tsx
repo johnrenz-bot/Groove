@@ -24,6 +24,7 @@ import { bookingGate } from '@/features/verification/services/verification';
 import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
+import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -136,7 +137,10 @@ export default function ClientTalentPage() {
   }, []);
 
   useEffect(() => {
-    void loadCoachesAndProfile();
+    const timer = window.setTimeout(() => {
+      void loadCoachesAndProfile();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [loadCoachesAndProfile]);
 
   /**
@@ -581,13 +585,9 @@ export default function ClientTalentPage() {
         animated
         bodyClassName="p-3 sm:p-4"
         footer={
-          <button
-            type="button"
-            onClick={() => setPreviewGalleryOpen(false)}
-            className="inline-flex h-9 items-center justify-center rounded-full bg-accent px-4 text-xs font-semibold text-accent-foreground transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-          >
+          <Button size="sm" onClick={() => setPreviewGalleryOpen(false)}>
             Close preview
-          </button>
+          </Button>
         }
       >
         <figure className="overflow-hidden rounded-2xl border border-border bg-muted/30">
@@ -642,8 +642,10 @@ export default function ClientTalentPage() {
           isOpen={!!selectedCoachForBooking}
           onClose={() => setSelectedCoachForBooking(null)}
           onSuccess={() => {
+            // Refresh the directory without unmounting the dialog: the modal
+            // now shows its own success state, and closing is the client's
+            // decision, not a side effect of the parent clearing selection.
             void loadCoachesAndProfile();
-            setSelectedCoachForBooking(null);
           }}
         />
       )}

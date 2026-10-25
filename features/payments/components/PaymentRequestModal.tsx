@@ -2,22 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  X,
   CreditCard,
   QrCode,
-  DollarSign,
   AlertCircle,
-  CheckCircle2,
   Send,
-  Loader2,
-  FileText,
-  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_CARD_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_ICON_TILE_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
+import {
   createPaymentRequest,
   fetchGCashProfile,
-  formatPHP,
   isValidGCashNumber,
 } from '../services/gcashService';
 import type { PaymentTransaction, GCashProfile } from '../types';
@@ -95,6 +100,13 @@ export function PaymentRequestModal({
     };
   }, [open, recipientId, recipientName, defaultAmount, defaultDescription]);
 
+  const { backdropProps } = useModalDismiss({
+    open,
+    onClose,
+    disabled: submitting,
+    dismissOnBackdrop: false,
+  });
+
   if (!open) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,38 +156,34 @@ export function PaymentRequestModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in"
+      className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
       role="dialog"
       aria-modal="true"
       aria-labelledby="payment-request-title"
+      {...backdropProps}
     >
-      <div className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+      <div className={cn(MODAL_PANEL_CLASS, 'max-w-lg animate-in fade-in zoom-in-95 duration-300 sm:select-text')}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-divider bg-muted/40 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-              <CreditCard className="h-5 w-5" />
+        <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className={cn(MODAL_ICON_TILE_CLASS, 'h-10 w-10 rounded-2xl')}>
+              <CreditCard className="h-5 w-5" aria-hidden="true" />
             </span>
-            <div>
-              <h3 id="payment-request-title" className="text-base font-bold text-foreground">
+            <div className="min-w-0">
+              <h3 id="payment-request-title" className="text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
                 Request GCash Payment
               </h3>
-              <p className="text-xs text-muted-foreground">
-                Send payment details and instructions to <strong>{senderName}</strong>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Send payment details and instructions to <strong className="text-foreground">{senderName}</strong>
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <ModalCloseButton onClose={onClose} label="Close payment request" />
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 max-h-[80vh]">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
           {errorMsg && (
             <div className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
               <AlertCircle className="h-4 w-4 shrink-0" />
@@ -230,14 +238,14 @@ export function PaymentRequestModal({
           </div>
 
           {/* Payee Info Box */}
-          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4 space-y-3">
+          <div className={cn(MODAL_CARD_CLASS, 'space-y-3')}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <QrCode className="h-4 w-4 text-blue-500" />
+                <QrCode className="h-4 w-4 text-accent-text" />
                 Payee GCash Receiving Details
               </span>
               {payeeProfile?.qr_code_url && (
-                <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                <span className="rounded-full border border-accent-border bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent-text">
                   Smart QR Ready
                 </span>
               )}
@@ -296,8 +304,10 @@ export function PaymentRequestModal({
             <strong>Security Reminder:</strong> Once requested, the payer can scan your Smart QR or send to your mobile number. When they submit proof, you will be notified to verify funds in your GCash app before marking as confirmed.
           </p>
 
+          </div>
+
           {/* Footer buttons */}
-          <div className="flex items-center justify-end gap-2 border-t border-divider pt-4">
+          <div className={MODAL_FOOTER_CLASS}>
             <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={submitting}>
               Cancel
             </Button>

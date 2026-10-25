@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-  X,
   CheckCircle2,
   XCircle,
   Copy,
@@ -10,11 +9,20 @@ import {
   AlertTriangle,
   ZoomIn,
   ShieldCheck,
-  Calendar,
-  DollarSign,
   Maximize2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_ICON_TILE_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 import { reviewPaymentProof, formatPHP } from '../services/gcashService';
 import type { PaymentTransaction } from '../types';
 
@@ -38,6 +46,17 @@ export function PaymentReviewModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [copiedRef, setCopiedRef] = useState(false);
   const [fullReceiptOpen, setFullReceiptOpen] = useState(false);
+
+  const { backdropProps } = useModalDismiss({
+    open,
+    onClose,
+    disabled: submitting,
+    dismissOnBackdrop: false,
+  });
+  const { backdropProps: receiptBackdropProps } = useModalDismiss({
+    open: fullReceiptOpen && open,
+    onClose: () => setFullReceiptOpen(false),
+  });
 
   if (!open) return null;
 
@@ -81,38 +100,33 @@ export function PaymentReviewModal({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in"
+        className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
         role="dialog"
         aria-modal="true"
         aria-labelledby="payment-review-title"
+        {...backdropProps}
       >
-        <div className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+        <div className={cn(MODAL_PANEL_CLASS, 'max-w-lg animate-in fade-in zoom-in-95 duration-300 sm:select-text')}>
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-divider bg-muted/40 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent-text">
-                <ShieldCheck className="h-5 w-5" />
+          <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className={cn(MODAL_ICON_TILE_CLASS, 'h-10 w-10 rounded-2xl')}>
+                <ShieldCheck className="h-5 w-5" aria-hidden="true" />
               </span>
-              <div>
-                <h3 id="payment-review-title" className="text-base font-bold text-foreground">
+              <div className="min-w-0">
+                <h3 id="payment-review-title" className="text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
                   Review Payment Proof
                 </h3>
-                <p className="text-xs text-muted-foreground font-mono">
+                <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                   Ref: {transaction.transaction_reference}
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClose={onClose} label="Close payment review" />
           </div>
 
           {/* Body */}
-          <div className="overflow-y-auto p-6 space-y-4 max-h-[80vh]">
+          <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
             {errorMsg && (
               <div className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
                 <XCircle className="h-4 w-4 shrink-0" />
@@ -232,14 +246,15 @@ export function PaymentReviewModal({
                 className="g-input mt-1.5 w-full text-xs"
               />
             </div>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-divider pt-4">
+          {/* Action Buttons */}
+            <div className={cn(MODAL_FOOTER_CLASS, 'sm:justify-between')}>
               <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={submitting}>
                 Close
               </Button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center">
                 <Button
                   type="button"
                   variant="ghost"
@@ -257,7 +272,6 @@ export function PaymentReviewModal({
                   size="sm"
                   onClick={() => handleReview('confirmed')}
                   loading={submitting}
-                  className="bg-success text-white hover:bg-success/90"
                   icon={<CheckCircle2 className="h-3.5 w-3.5" />}
                 >
                   Confirm Payment
@@ -266,26 +280,27 @@ export function PaymentReviewModal({
             </div>
           </div>
         </div>
-      </div>
 
       {/* Full Receipt Modal */}
       {fullReceiptOpen && transaction.proof_image_url && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-md animate-in fade-in"
-          onClick={() => setFullReceiptOpen(false)}
+          data-lenis-prevent
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/90 p-4 backdrop-blur-xl select-none animate-in fade-in motion-reduce:animate-none"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full receipt preview"
+          {...receiptBackdropProps}
         >
-          <button
-            type="button"
-            onClick={() => setFullReceiptOpen(false)}
-            className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30 cursor-pointer"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          <ModalCloseButton
+            onClose={() => setFullReceiptOpen(false)}
+            label="Close full receipt"
+            className="absolute right-4 top-4 z-10"
+          />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={transaction.proof_image_url}
             alt="Full Receipt"
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+            className="max-h-[90vh] max-w-[90vw] rounded-2xl border border-accent-border object-contain shadow-2xl"
           />
         </div>
       )}

@@ -165,6 +165,7 @@ export default function ClientRegistrationPage() {
         email: data.contact.email.trim(),
         password: data.contact.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             role: 'client',
             custom_id: random4Digit,

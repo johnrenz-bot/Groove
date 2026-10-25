@@ -9,7 +9,8 @@ import {
   unfollowProfile,
   type FollowPerson,
 } from '@/lib/profileFollows';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalIconTile } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import { UserListItem, UserListItemSkeleton } from '@/components/shared/UserListItem';
 import { Search, UserRound } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
@@ -251,12 +252,10 @@ export function ProfileFollowList({
         </p>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-10 text-center">
-          <span
-            aria-hidden="true"
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-muted text-subtle-foreground"
-          >
-            <UserRound className="h-5 w-5" />
-          </span>
+          <ModalIconTile
+            icon={UserRound}
+            className="h-11 w-11 rounded-2xl bg-muted text-subtle-foreground"
+          />
           <p className="text-sm text-muted-foreground">
             {q
               ? `No one matches “${query.trim()}”.`
@@ -286,14 +285,15 @@ export function ProfileFollowList({
 
           {hasMore && (
             <div className="pt-3 text-center">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => void loadMore()}
                 disabled={loadingMore}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted disabled:opacity-60"
               >
                 {loadingMore ? 'Loading…' : 'Load more'}
-              </button>
+              </Button>
             </div>
           )}
         </>

@@ -24,6 +24,16 @@ import { fetchPlaylists, upsertPlaylist, deletePlaylist } from '../services/play
 import { useMusicPlayer } from '../context/MusicPlayerContext';
 import { Profile } from '@/lib/types';
 import { cn } from '@/components/shared/cn';
+import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
 
 interface CommunityShowcasePlaylistsProps {
   currentUser?: Profile | null;
@@ -77,6 +87,13 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [creating, setCreating] = useState(false);
+
+  const { backdropProps: createBackdropProps } = useModalDismiss({
+    open: showCreateModal,
+    onClose: () => setShowCreateModal(false),
+    disabled: creating,
+    dismissOnBackdrop: false,
+  });
 
   // Tell the containing dialog that the form is open, so a stray backdrop click
   // cannot discard a half-written playlist.
@@ -759,58 +776,73 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
 
       {/* Create Playlist Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-foreground mb-1">
-              Create New Playlist
-            </h3>
-            <p className="text-xs text-muted-foreground mb-4">
-              Organize rehearsal tracks, choreography counts, or audition routines.
-            </p>
+        <div
+          className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-playlist-title"
+          {...createBackdropProps}
+        >
+          <div className={cn(MODAL_PANEL_CLASS, 'max-w-md animate-in fade-in zoom-in-95 duration-300')}>
+            <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+              <div className="min-w-0">
+                <h3 id="create-playlist-title" className="text-base font-bold tracking-[-0.02em] text-foreground">
+                  Create New Playlist
+                </h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Organize rehearsal tracks, choreography counts, or audition routines.
+                </p>
+              </div>
+              <ModalCloseButton onClose={() => setShowCreateModal(false)} label="Close create playlist" />
+            </div>
 
-            <form onSubmit={handleCreatePlaylist} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
-                  Playlist Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Hip Hop 8-Count Training"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-border bg-muted/40 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                />
+            <form onSubmit={handleCreatePlaylist} className="flex min-h-0 flex-1 flex-col">
+              <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">
+                    Playlist Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Hip Hop 8-Count Training"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="g-input w-full text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    placeholder="e.g. High energy tracks for weekly choreography drills"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    rows={3}
+                    className="g-input w-full text-sm"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
-                  Description (Optional)
-                </label>
-                <textarea
-                  placeholder="e.g. High energy tracks for weekly choreography drills"
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  rows={3}
-                  className="w-full px-3.5 py-2 rounded-xl border border-border bg-muted/40 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
+              <div className={MODAL_FOOTER_CLASS}>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
+                  variant="primary"
+                  size="sm"
                   disabled={creating || !newTitle.trim()}
-                  className="px-4 py-2 rounded-xl bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 disabled:opacity-50"
                 >
                   {creating ? 'Creating…' : 'Create Playlist'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

@@ -3,6 +3,15 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_BODY_CLASS,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
 import { cn } from '@/components/shared/cn';
 
 /**
@@ -139,40 +148,46 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { backdropProps } = useModalDismiss({ open, onClose: onCancel, disabled: loading });
+
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-overlay p-4 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !loading) onCancel();
-      }}
+      className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
+      {...backdropProps}
     >
       <div
         role="alertdialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-md rounded-[24px] border border-border bg-card p-6 shadow-[var(--shadow-lg)]"
+        className={cn(MODAL_PANEL_CLASS, 'max-w-md animate-in fade-in zoom-in-95 duration-300')}
       >
-        <div className="flex items-start gap-4">
-          <span
-            aria-hidden="true"
-            className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border',
-              destructive
-                ? 'border-danger/30 bg-danger-soft text-danger'
-                : 'border-accent-border bg-accent-soft text-accent-text'
-            )}
-          >
-            <AlertTriangle className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-base font-bold tracking-[-0.01em] text-foreground">{title}</h2>
-            <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{message}</div>
+        <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden="true"
+              className={cn(
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
+                destructive
+                  ? 'border-danger/30 bg-danger-soft text-danger'
+                  : 'border-accent-border bg-accent-soft text-accent-text'
+              )}
+            >
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <h2 className="min-w-0 text-base font-bold tracking-[-0.01em] text-foreground">
+              {title}
+            </h2>
           </div>
+          <ModalCloseButton onClose={onCancel} disabled={loading} />
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className={cn(MODAL_BODY_CLASS, 'text-sm leading-relaxed text-muted-foreground')}>
+          {message}
+        </div>
+
+        <div className={MODAL_FOOTER_CLASS}>
           <Button variant="outline" size="sm" onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>

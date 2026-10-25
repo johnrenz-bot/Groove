@@ -1,9 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Award, Sparkles, X, CheckCircle2, Circle, Share2, Download, Lock, AlertCircle } from 'lucide-react';
+import { Award, Sparkles, CheckCircle2, Circle, Share2, Download, Lock, AlertCircle } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
-import { Modal } from '@/components/ui/Modal';
+import {
+  Modal,
+  ModalCloseButton,
+  MODAL_FOOTER_CLASS,
+  MODAL_HEADER_CLASS,
+} from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
@@ -110,12 +115,14 @@ export function AchievementsModal({
       onClose={onClose}
       size="lg"
       showClose={false}
-      className="overflow-visible"
+      aria-label={`${badgeType} achievements`}
+      bodyClassName="flex flex-col overflow-hidden p-0 sm:p-0"
     >
-      <div className="relative z-10 flex flex-col max-h-[85vh]">
+      <div className="relative z-10 flex h-full min-h-0 flex-col">
         {/* Header */}
         <div className={cn(
-          'flex items-center justify-between p-4 border-b border-divider bg-card/50 backdrop-blur-sm sticky top-0 z-10',
+          MODAL_HEADER_CLASS,
+          'sticky top-0 z-10 items-center gap-3 p-4',
           animate ? 'animate-in fade-in slide-down duration-300' : 'opacity-0'
         )}>
           <div className="flex items-center gap-3">
@@ -151,28 +158,32 @@ export function AchievementsModal({
             >
               Refresh
             </Button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClose={onClose} label="Close achievements" />
           </div>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div className="g-scroll flex-1 min-h-0 overflow-y-auto p-4 space-y-6">
           {/* Badge Display */}
           <div className={cn('text-center', animate ? 'animate-in fade-in zoom-in-95 duration-500' : 'opacity-0 scale-95')}>
             <div className={cn(
-              'relative mx-auto mb-4 flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl',
+              'relative mx-auto mb-4 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl',
               isUnlocked
                 ? `bg-gradient-to-br ${badgeGradient} shadow-2xl`
                 : 'bg-muted border-2 border-dashed border-border'
             )}
             style={isUnlocked ? { boxShadow: `0 0 40px ${badgeGlow}, 0 12px 30px -8px ${badgeGlow}` } : undefined}>
+              {/* Artwork sits under the lock/status overlays so a locked badge
+                  stays visibly locked instead of glowing through. */}
+              {badgeImageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={badgeImageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              )}
               {!isUnlocked && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-sm">
                   <Lock className="h-10 w-10 text-white/80" aria-hidden="true" />
@@ -186,15 +197,6 @@ export function AchievementsModal({
                 <CheckCircle2 className="absolute -bottom-2 -right-2 h-7 w-7 text-success drop-shadow-lg" aria-hidden="true" />
               )}
             </div>
-            {/* Badge image */}
-            {badgeImageUrl && (
-              <img
-                src={badgeImageUrl}
-                alt={`${badgeType} badge`}
-                className="absolute inset-0 shrink-0 rounded-2xl object-cover opacity-80"
-                style={{ borderRadius: '9999px' }}
-              />
-            )}
             <h3 className="text-xl font-bold tracking-tight text-foreground">{badgeType}</h3>
             <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
               {badgeDescription || `Complete all ${totalCount} tasks to earn the ${badgeType} badge.`}
@@ -229,7 +231,7 @@ export function AchievementsModal({
               <article
                 key={index}
                 className={cn(
-                  'relative group flex items-start gap-4 rounded-xl border p-4 transition-all duration-200 cursor-pointer',
+                  'relative group flex flex-col rounded-xl border p-4 transition-all duration-200 cursor-pointer',
                   task.completed
                     ? 'border-success/30 bg-success-soft'
                     : 'border-border bg-card hover:border-accent-border hover:bg-accent-soft/30'
@@ -244,90 +246,95 @@ export function AchievementsModal({
                   }
                 }}
               >
-                {/* Step number / status */}
-                <div className="relative flex shrink-0 flex-col items-center">
-                  <div
-                    className={cn(
-                      'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-                      task.completed
-                        ? 'border-success bg-success text-success-foreground'
-                        : task.progress > 0
-                        ? 'border-warning bg-warning/10 text-warning'
-                        : 'border-border bg-card text-muted-foreground'
-                    )}
-                  >
-                    {task.completed ? (
-                      <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
-                    ) : task.progress > 0 ? (
-                      <AlertCircle className="h-5 w-5" aria-hidden="true" />
-                    ) : (
-                      <span className="text-sm font-bold">{index + 1}</span>
-                    )}
-                  </div>
-                  {index < tasks.length - 1 && (
+                {/* Status + copy sit side by side; the progress bar and
+                    timestamp below are full-width children of the card, so the
+                    row is its own wrapper rather than the article itself. */}
+                <div className="flex items-start gap-4">
+                  {/* Step number / status */}
+                  <div className="relative flex shrink-0 flex-col items-center">
                     <div
                       className={cn(
-                        'mt-2 h-full w-0.5',
-                        task.completed ? 'bg-success' : 'bg-divider'
+                        'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                        task.completed
+                          ? 'border-success bg-success text-success-foreground'
+                          : task.progress > 0
+                          ? 'border-warning bg-warning/10 text-warning'
+                          : 'border-border bg-card text-muted-foreground'
                       )}
-                    />
-                  )}
-                </div>
-
-                {/* Task content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className={cn('font-semibold text-foreground', task.completed && 'line-through text-muted-foreground')}>
-                        {task.title}
-                      </h3>
-                      <p className="mt-0.5 text-sm text-muted-foreground">{task.description}</p>
-
-                      {/* Requirement checklist — completed/missing breakdown */}
-                      {task.requirements && task.requirements.length > 0 && (
-                        <ul className="mt-2 space-y-1" aria-label="Task requirements">
-                          {task.requirements.map((req) => (
-                            <li key={req.label} className="flex items-center gap-1.5 text-xs">
-                              {req.met ? (
-                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
-                              ) : (
-                                <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                              )}
-                              <span className={cn(req.met ? 'text-muted-foreground' : 'text-foreground')}>
-                                {req.label}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                    >
+                      {task.completed ? (
+                        <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                      ) : task.progress > 0 ? (
+                        <AlertCircle className="h-5 w-5" aria-hidden="true" />
+                      ) : (
+                        <span className="text-sm font-bold">{index + 1}</span>
                       )}
                     </div>
+                    {index < tasks.length - 1 && (
+                      <div
+                        className={cn(
+                          'mt-2 h-full w-0.5',
+                          task.completed ? 'bg-success' : 'bg-divider'
+                        )}
+                      />
+                    )}
+                  </div>
 
-                    {/* Status indicator */}
-                    <div className="flex shrink-0 items-center gap-2">
-                      {task.completed && (
-                        <>
-                          <CheckCircle2 className="h-5 w-5 text-success shrink-0" aria-hidden="true" />
-                          <Badge variant="approved" className="hidden sm:inline-flex shrink-0">
-                            Completed
-                          </Badge>
-                        </>
-                      )}
-                      {!task.completed && task.progress > 0 && (
-                        <>
-                          <AlertCircle className="h-5 w-5 text-warning shrink-0" aria-hidden="true" />
-                          <Badge variant="pending" className="hidden sm:inline-flex shrink-0">
-                            In Progress
-                          </Badge>
-                        </>
-                      )}
-                      {!task.completed && task.progress === 0 && (
-                        <>
-                          <Circle className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
-                          <Badge variant="neutral" className="hidden sm:inline-flex shrink-0">
-                            Not Started
-                          </Badge>
-                        </>
-                      )}
+                  {/* Task content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className={cn('font-semibold text-foreground', task.completed && 'line-through text-muted-foreground')}>
+                          {task.title}
+                        </h3>
+                        <p className="mt-0.5 text-sm text-muted-foreground">{task.description}</p>
+
+                        {/* Requirement checklist — completed/missing breakdown */}
+                        {task.requirements && task.requirements.length > 0 && (
+                          <ul className="mt-2 space-y-1" aria-label="Task requirements">
+                            {task.requirements.map((req) => (
+                              <li key={req.label} className="flex items-center gap-1.5 text-xs">
+                                {req.met ? (
+                                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+                                ) : (
+                                  <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                                )}
+                                <span className={cn(req.met ? 'text-muted-foreground' : 'text-foreground')}>
+                                  {req.label}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      {/* Status indicator */}
+                      <div className="flex shrink-0 items-center gap-2">
+                        {task.completed && (
+                          <>
+                            <CheckCircle2 className="h-5 w-5 text-success shrink-0" aria-hidden="true" />
+                            <Badge variant="approved" className="hidden sm:inline-flex shrink-0">
+                              Completed
+                            </Badge>
+                          </>
+                        )}
+                        {!task.completed && task.progress > 0 && (
+                          <>
+                            <AlertCircle className="h-5 w-5 text-warning shrink-0" aria-hidden="true" />
+                            <Badge variant="pending" className="hidden sm:inline-flex shrink-0">
+                              In Progress
+                            </Badge>
+                          </>
+                        )}
+                        {!task.completed && task.progress === 0 && (
+                          <>
+                            <Circle className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
+                            <Badge variant="neutral" className="hidden sm:inline-flex shrink-0">
+                              Not Started
+                            </Badge>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -386,7 +393,8 @@ export function AchievementsModal({
 
         {/* Footer Actions */}
         <div className={cn(
-          'flex flex-col sm:flex-row items-center justify-center gap-3 p-4 border-t border-divider bg-card/50 backdrop-blur-sm sticky bottom-0 z-10',
+          MODAL_FOOTER_CLASS,
+          'sticky bottom-0 z-10 justify-center p-4',
           animate && 'animate-in fade-in slide-up duration-300 delay-600'
         )}>
           <Button
@@ -414,7 +422,6 @@ export function AchievementsModal({
             className="w-full sm:w-auto"
           >
             Close
-            <X className="ml-2 h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>

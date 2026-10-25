@@ -1,106 +1,54 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { Laptop, Moon, Sun } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sun, Moon, Laptop } from 'lucide-react';
 import { useTheme, type ThemeMode } from './ThemeProvider';
-import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { cn } from '@/components/shared/cn';
 
 /**
- * The Dark / Light / System chooser.
- *
- * It lives in the account menu rather than the header bar because a three-state
- * control needs the width of a labelled group, and a header that has to make room
- * for it pushes the account menu — the one control a user must never lose — off
- * the edge on a laptop.
- *
- * Like `ThemeToggle`, this holds no theme state: it reads the preference off
- * `useTheme()` and writes it back through the provider, so there is no second
- * copy to fall out of sync. The current selection is reflected twice on purpose —
- * `aria-checked` for assistive tech, and a visible mark for everyone else,
- * because a colour swatch alone does not tell a screen-reader user which mode is
- * active any better than it tells a sighted one.
- *
- * A radiogroup rather than three buttons: exactly one is always active, so the
- * arrow-key and roving-tabindex semantics of a radio set are the honest match.
+ * Compact 3-segment appearance control.
+ * Refactored for the unified AccountPanel layout.
  */
 export function ThemeModeSelect() {
   const { mode, setThemeMode } = useTheme();
-  const { t } = useLanguage();
-  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [mounted, setMounted] = useState(false);
 
-  const options: Array<{ value: ThemeMode; label: string; Icon: typeof Moon }> = [
-    { value: 'light', label: t('header.themeLight', 'Light'), Icon: Sun },
-    { value: 'dark', label: t('header.themeDark', 'Dark'), Icon: Moon },
-    { value: 'system', label: t('header.themeSystem', 'System'), Icon: Laptop },
+  // Prevent hydration mismatch
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className="w-40 h-8 bg-muted/20 rounded-full animate-pulse" />;
+
+  const options: Array<{ value: ThemeMode; label: string; icon: React.ElementType }> = [
+    { value: 'light', label: 'Light', icon: Sun },
+    { value: 'dark', label: 'Dark', icon: Moon },
+    { value: 'system', label: 'System', icon: Laptop },
   ];
-
-  /**
-   * Radio-group keyboard behaviour. `role="radio"` on a <button> does NOT get
-   * native arrow handling — the role changes what is announced, not what the
-   * browser does — so the previous comment claimed a behaviour the control did
-   * not have. These handlers move focus and selection together, which is what a
-   * real radio group does: one tab stop, arrows within it.
-   */
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const current = options.findIndex((option) => option.value === mode);
-    let next = current;
-
-    switch (event.key) {
-      case 'ArrowRight':
-      case 'ArrowDown':
-        next = (current + 1) % options.length;
-        break;
-      case 'ArrowLeft':
-      case 'ArrowUp':
-        next = (current - 1 + options.length) % options.length;
-        break;
-      case 'Home':
-        next = 0;
-        break;
-      case 'End':
-        next = options.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    event.preventDefault();
-    optionRefs.current[next]?.focus();
-    setThemeMode(options[next].value);
-  };
 
   return (
     <div
-      className="g-theme-picker"
-      role="radiogroup"
-      aria-label={t('header.themeLabel', 'Colour theme')}
-      onKeyDown={onKeyDown}
+      className="inline-flex items-center rounded-full border border-accent-border bg-card p-1 shadow-sm"
+      role="group"
+      aria-label="Appearance"
     >
-      {options.map(({ value, label, Icon }, index) => {
+      {options.map(({ value, label, icon: Icon }) => {
         const active = mode === value;
         return (
           <button
             key={value}
-            ref={(node) => {
-              optionRefs.current[index] = node;
-            }}
             type="button"
-            role="radio"
-            aria-checked={active}
-            // `tabIndex` follows selection so the group is one tab stop and the
-            // arrow keys handled above move within it.
-            tabIndex={active ? 0 : -1}
             onClick={() => setThemeMode(value)}
-            className="g-theme-option"
-            data-active={active || undefined}
-            title={
-              value === 'system'
-                ? 'Match your device’s appearance setting'
-                : `Use the ${value} theme`
-            }
+            aria-pressed={active}
+            className={cn(
+              'flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              active
+                ? 'bg-accent text-accent-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            )}
           >
-            <Icon className="g-theme-option-icon" aria-hidden="true" />
-            <span className="g-theme-option-label">{label}</span>
+            <Icon className="h-3 w-3" />
+            <span>{label}</span>
           </button>
         );
       })}

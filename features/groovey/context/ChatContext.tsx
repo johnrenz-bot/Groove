@@ -216,6 +216,17 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 else if (t.includes('sing')) discipline = 'Singing';
                 else if (t.includes('act')) discipline = 'Acting';
               }
+
+              if (coachSpec?.genres) {
+                try {
+                  const parsed = JSON.parse(coachSpec.genres);
+                  if (Array.isArray(parsed.genres) && parsed.genres.length > 0) {
+                    movementStyle = parsed.genres.slice(0, 3).join(', ');
+                  }
+                } catch {
+                  movementStyle = coachSpec.genres;
+                }
+              }
             }
 
             initialProfile = {

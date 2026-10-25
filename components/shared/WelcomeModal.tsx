@@ -2,8 +2,16 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ArrowRight, X, Sparkles, Calendar, Users, TrendingUp, Search, Clock, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Sparkles, Calendar, Users, TrendingUp, Search, Clock, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_CARD_CLASS,
+  MODAL_CHIP_CLASS,
+  MODAL_ICON_TILE_CLASS,
+  MODAL_OVERLAY_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
 import { useSession } from '@/components/header/SessionProvider';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { createClient } from '@/lib/supabase/client';
@@ -108,6 +116,8 @@ export function WelcomeModal({
 
   const isVisible = controlledIsOpen !== undefined ? controlledIsOpen : internalOpen;
 
+  const { backdropProps } = useModalDismiss({ open: isVisible, onClose: handleClose });
+
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -116,12 +126,6 @@ export function WelcomeModal({
     cardRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        handleClose();
-        return;
-      }
-
       if (e.key !== 'Tab') return;
 
       const card = cardRef.current;
@@ -153,7 +157,6 @@ export function WelcomeModal({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]);
 
   if (!isVisible) return null;
@@ -190,8 +193,8 @@ export function WelcomeModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 p-0 backdrop-blur-md sm:items-center sm:p-4 motion-reduce:animate-none"
-      onClick={handleClose}
+      className={MODAL_OVERLAY_CLASS}
+      {...backdropProps}
       role="dialog"
       aria-modal="true"
       aria-labelledby="wm-title"
@@ -199,17 +202,14 @@ export function WelcomeModal({
       <div
         ref={cardRef}
         tabIndex={-1}
-        className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-y-auto rounded-t-3xl border border-accent-border bg-card shadow-[0_0_60px_-12px_var(--accent-soft)] focus:outline-none sm:w-[94vw] sm:rounded-3xl motion-reduce:animate-none animate-in fade-in zoom-in-95 duration-300"
+        className="relative flex max-h-[92vh] w-full max-w-3xl select-text flex-col overflow-y-auto rounded-t-3xl border border-accent-border bg-card shadow-[0_0_60px_-12px_var(--accent-soft)] focus:outline-none sm:w-[94vw] sm:rounded-3xl motion-reduce:animate-none animate-in fade-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={handleClose}
-          aria-label="Close welcome modal"
-          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-muted text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <ModalCloseButton
+          onClose={handleClose}
+          label="Close welcome modal"
+          className="absolute right-4 top-4 z-10"
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Hero panel */}
@@ -281,7 +281,7 @@ export function WelcomeModal({
                   const Icon = step.icon;
                   return (
                     <div key={idx} className="flex items-start gap-3">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
+                      <span className={MODAL_ICON_TILE_CLASS}>
                         <Icon className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <div className="min-w-0">
@@ -295,7 +295,7 @@ export function WelcomeModal({
             </div>
 
             {/* AI card */}
-            <div className="rounded-2xl border border-accent-border bg-accent-soft/40 p-4">
+            <div className={MODAL_CARD_CLASS}>
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent-text" aria-hidden="true" />
                 <h3 className="text-sm font-semibold text-foreground">
@@ -311,7 +311,7 @@ export function WelcomeModal({
                     key={chip}
                     type="button"
                     onClick={() => handleAskAi(chip)}
-                    className="rounded-full border border-border bg-card px-3 py-1 text-[11px] font-medium text-foreground transition hover:border-accent-border hover:bg-accent-soft"
+                    className={MODAL_CHIP_CLASS}
                   >
                     {chip}
                   </button>

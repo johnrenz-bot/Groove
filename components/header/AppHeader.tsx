@@ -249,6 +249,7 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
                   role={role}
                   user={user}
                   config={config}
+                  pathname={pathname}
                   open={openMenu === 'profile'}
                   onOpen={() => openMenuId('profile')}
                   onClose={closeMenus}

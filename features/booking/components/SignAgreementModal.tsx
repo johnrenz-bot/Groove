@@ -18,6 +18,14 @@ import { FileSignature, ShieldCheck } from 'lucide-react';
 import { SignaturePadModal } from '@/components/shared/SignaturePadModal';
 import { SessionAgreementDocument } from './SessionAgreementDocument';
 import { Button } from '@/components/ui/Button';
+import {
+  ModalCloseButton,
+  MODAL_HEADER_CLASS,
+  MODAL_OVERLAY_CLASS,
+  MODAL_PANEL_CLASS,
+  useModalDismiss,
+} from '@/components/ui/Modal';
+import { cn } from '@/components/shared/cn';
 import { createClient } from '@/lib/supabase/client';
 import {
   fullName,
@@ -70,6 +78,8 @@ export function SignAgreementModal({
     }
   };
 
+  const { backdropProps } = useModalDismiss({ open, onClose, disabled: saving });
+
   if (!open) return null;
 
   const alreadySigned = role === 'client' ? agreement.client_signed_at : agreement.coach_signed_at;
@@ -77,39 +87,29 @@ export function SignAgreementModal({
   return (
     <>
       <div
-        className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-3 backdrop-blur-md transition-opacity duration-200 sm:p-5 animate-in fade-in select-none sm:select-text"
+        className={cn(MODAL_OVERLAY_CLASS, 'animate-in fade-in')}
         role="dialog"
         aria-modal="true"
         aria-label="Review and sign session agreement"
-        onClick={(e) => {
-          if (e.target === e.currentTarget && !saving) onClose();
-        }}
+        {...backdropProps}
       >
-        <div className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:rounded-3xl">
+        <div className={cn(MODAL_PANEL_CLASS, 'max-w-3xl max-h-[92vh] animate-in fade-in zoom-in-95 duration-300 sm:select-text')}>
           {/* Fixed Header */}
-          <header className="flex shrink-0 items-center justify-between border-b border-divider bg-card px-5 py-4 sm:px-7 sm:py-5">
+          <header className={cn(MODAL_HEADER_CLASS, 'items-center px-5 py-4 sm:px-7 sm:py-5')}>
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text shadow-sm">
                 <FileSignature className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                <h2 className="truncate text-base font-bold text-foreground sm:text-lg">
+                <h2 className="truncate text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
                   Review &amp; Sign Agreement
                 </h2>
-                <p className="text-xs text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Signing as {role === 'client' ? 'Client' : 'Coach'} · Legally Binding Document
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              className="cursor-pointer rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
-              aria-label="Close"
-            >
-              ×
-            </button>
+            <ModalCloseButton onClose={onClose} disabled={saving} label="Close agreement dialog" />
           </header>
 
           {/* Scrollable Document */}
