@@ -229,6 +229,19 @@
      `-border` token. This is the same pattern GitHub and Linear use in dark mode.
    ------------------------------------------------------------------------------ */
 :root {
+  cursor: none;
+}
+
+/* Ensure native cursor returns for critical interactions */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.native-cursor {
+  cursor: auto !important;
+}
+
+:root {
   color-scheme: dark;
 
   --background: #000000;

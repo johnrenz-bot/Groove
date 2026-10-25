@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowUpRight,
   ChevronRight,
@@ -8,6 +9,7 @@ import {
   Info,
   ShieldCheck,
 } from 'lucide-react';
+import { SafeImage } from '@/features/dance/components/SafeImage';
 import { DisciplinePageHeader } from './DisciplinePageHeader';
 import { AttributionFooter } from './AttributionFooter';
 import {

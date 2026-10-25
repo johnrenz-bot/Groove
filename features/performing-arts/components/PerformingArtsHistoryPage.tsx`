@@ -1,0 +1,510 @@
+import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import {
+  ArrowUpRight,
+  ChevronRight,
+  Compass,
+  ExternalLink,
+  Info,
+  ShieldCheck,
+  X,
+} from 'lucide-react';
+import { SafeImage } from '@/features/dance/components/SafeImage';
+import { DisciplinePageHeader } from './DisciplinePageHeader';
+import { AttributionFooter } from './AttributionFooter';
+import {
+  HISTORY_FIGURES,
+  HISTORY_INSTITUTIONS,
+  HISTORY_LEARNING_PATHS,
+  HISTORY_PERIODS,
+  HISTORY_SOURCES,
+  HISTORY_THREADS,
+  HISTORY_TOPICS,
+} from '../data/history';
+import { Reveal } from '@/components/shared/Reveal';
+
+function Breadcrumb() {
+  return (
+    <nav aria-label="Breadcrumb">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+        <li>
+          <Link
+            href="/users"
+            className="font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Community
+          </Link>
+        </li>
+        <li aria-hidden="true">
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
+        </li>
+        <li>
+          <Link
+            href="/performing-arts-philippines"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Performing Arts
+          </Link>
+        </li>
+        <li aria-hidden="true">
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
+        </li>
+        <li>
+          <span className="font-semibold text-foreground">History &amp; learning</span>
+        </li>
+      </ol>
+    </nav>
+  );
+}
+
+function ExternalLinkNote({
+  href,
+  children,
+  className = '',
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer external"
+      className={`inline-flex items-center gap-1 underline decoration-border underline-offset-2 transition-colors hover:text-foreground hover:decoration-current focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-sunburst)] focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
+    >
+      {children}
+      <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-60" aria-hidden="true" />
+      <span className="sr-only">(opens in a new tab)</span>
+    </a>
+  );
+}
+
+function SectionHeading({
+  id,
+  eyebrow,
+  title,
+  lede,
+}: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  lede?: string;
+}) {
+  return (
+    <div className="mb-8 border-b border-border/70 pb-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--crew-accent-gold)]">
+        {eyebrow}
+      </p>
+      <h2 id={id} className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        {title}
+      </h2>
+      {lede && (
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          {lede}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TimelineItem({ period, index }: { period: any; index: number }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative pl-8 sm:pl-12">
+      {/* Vertical Line */}
+      <div
+        className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-border to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Period Marker */}
+      <div className="absolute left-[-8px] top-0 h-4 w-4 rounded-full border-2 border-background bg-[var(--crew-accent-gold)] shadow-[0_0_0_2px_var(--crew-accent-gold)] sm:left-[-12px]">
+        <div className="absolute inset-0 animate-ping rounded-full bg-[var(--crew-accent-gold)] opacity-40" />
+      </div>
+
+      <div className={`group relative rounded-2xl border transition-all duration-500 ${isOpen ? 'border-[var(--crew-accent-gold)] bg-card shadow-lg' : 'border-border/60 bg-card/40 hover:border-[var(--crew-border-hover)]'}`}>
+        <div
+          className="cursor-pointer flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:gap-6"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <div className="flex shrink-0 items-center gap-3">
+            <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold tabular-nums transition-colors duration-300 ${isOpen ? 'bg-[var(--crew-accent-gold)] text-background' : 'bg-[var(--brand-sunburst-soft)] text-[var(--crew-accent-gold)]'}`}>
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <p className={`text-[10px] font-bold uppercase tracking-[0.1em] transition-colors duration-300 ${isOpen ? 'text-foreground' : 'text-[var(--crew-accent-gold)]'}`}>
+              {period.era}
+            </p>
+          </div>
+
+          <div className="flex-1">
+            <h3 className={`text-base font-bold transition-colors duration-300 ${isOpen ? 'text-foreground' : 'text-foreground group-hover:text-[var(--crew-accent-gold)]'}`}>
+              {period.title}
+            </h3>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+              {period.summary}
+            </p>
+          </div>
+
+          <div className={`flex shrink-0 items-center justify-center rounded-full border border-border p-1 text-muted-foreground transition-all duration-300 ${isOpen ? 'rotate-90 border-[var(--crew-accent-gold)] text-[var(--crew-accent-gold)]' : ''}`} aria-hidden="true">
+            <ChevronRight className="h-4 w-4" />
+          </div>
+        </div>
+
+        {isOpen && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300 border-t border-border/60 p-5">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="space-y-3">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {period.summary}
+                </p>
+                <ul className="space-y-2">
+                  {period.points.map((point: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-xs leading-relaxed text-muted-foreground">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--crew-accent-gold)]" />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {period.image_url && (
+                <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-muted">
+                  <SafeImage
+                    src={period.image_url}
+                    alt={period.image_alt || period.title}
+                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  {period.image_credit && (
+                    <span className="absolute bottom-2 right-2 rounded bg-black/60 px-1.5 py-0.5 text-[9px] text-white/80 backdrop-blur-sm">
+                      {period.image_credit}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function PerformingArtsHistoryPage() {
+  return (
+    <div className="space-y-20 pb-20 sm:space-y-24">
+      <Breadcrumb />
+
+      <DisciplinePageHeader
+        eyebrow="Performing Arts · History & Learning"
+        title="Philippine Performing Arts"
+        accent="History"
+        audience="students, researchers, teachers, performers, and anyone who wants the context behind the craft"
+        verifiedLabel="Editorial synthesis of legal, government, institutional, and company sources"
+        lastUpdated="October 2026"
+        stats={[
+          { label: 'Periods', value: HISTORY_PERIODS.length },
+          { label: 'Disciplines', value: HISTORY_THREADS.length },
+          { label: 'Sources', value: HISTORY_SOURCES.length },
+        ]}
+        primaryCta={{ label: 'Explore the timeline', href: '#timeline' }}
+        secondaryCta={{ label: 'Browse the arts hub', href: '/performing-arts-philippines' }}
+        secondaryIcon={Compass}
+      />
+
+      {/* Curatorial Note - Now integrated as a high-impact callout */}
+      <Reveal>
+        <section
+          aria-labelledby="how-to-read-title"
+          className="relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-sm"
+        >
+          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <span className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--brand-sunburst-soft)] text-[var(--crew-accent-gold)]">
+                <Info className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 id="how-to-read-title" className="text-sm font-bold text-foreground">
+                  Curatorial Note
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground max-w-3xl">
+                  This exhibition is an editorial overview, not a complete national history. Traditions are attributed
+                  to the communities who hold them. Follow the source links for primary archival material.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 shrink-0 sm:mt-0">
+               <nav aria-label="Quick navigation" className="flex flex-wrap justify-end gap-2">
+                {HISTORY_TOPICS.map((topic) => (
+                  <a
+                    key={topic.label}
+                    href={topic.target}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:border-[var(--crew-accent-gold)] hover:text-foreground"
+                  >
+                    <topic.icon className="h-3 w-3" />
+                    {topic.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </div>
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[var(--brand-sunburst-soft)] opacity-20 blur-3xl" />
+        </section>
+      </Reveal>
+
+      {/* Timeline - The core exhibit */}
+      <section id="timeline" aria-labelledby="timeline-title" className="scroll-mt-24">
+        <div className="mb-12 text-center">
+          <span className="g-eyebrow">Historical Sequence</span>
+          <h2 id="timeline-title" className="g-title text-3xl sm:text-4xl">
+            The Evolution of Performance
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            A sequence for orientation. Community traditions continued through every period, and contemporary
+            practice draws on all of them.
+          </p>
+        </div>
+
+        <div className="relative max-w-5xl mx-auto space-y-12">
+          {HISTORY_PERIODS.map((period, index) => (
+            <TimelineItem key={period.id} period={period} index={index} />
+          ))}
+        </div>
+      </section>
+
+      {/* Discipline threads - Changed to a more organic layout */}
+      <section id="disciplines" aria-labelledby="disciplines-title" className="scroll-mt-24">
+        <SectionHeading
+          id="disciplines-title"
+          eyebrow="Dance · Music · Theater"
+          title="Three Overlapping Histories"
+          lede="The same period looks different from inside each discipline. These notes are starting points, not substitutes for the cited archives."
+        />
+
+        <div className="grid gap-8 md:grid-cols-3">
+          {HISTORY_THREADS.map((thread, index) => {
+            const Icon = thread.icon;
+            return (
+              <Reveal key={thread.id} delay={index * 100}>
+                <article
+                  className="group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card transition-all duration-500 hover:border-[var(--crew-accent-gold)] hover:shadow-2xl"
+                >
+                  <div className="relative h-64 w-full overflow-hidden">
+                    <SafeImage
+                      src={thread.image_url || ''}
+                      alt={thread.image_alt || thread.title}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                    <div className="absolute bottom-4 left-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-background/80 text-[var(--crew-accent-gold)] backdrop-blur-md shadow-sm">
+                      <Icon className="h-6 w-6" aria-hidden="true" />
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold text-foreground group-hover:text-[var(--crew-accent-gold)] transition-colors">
+                      {thread.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {thread.summary}
+                    </p>
+                    <ul className="mt-6 space-y-3 border-t border-border/60 pt-6">
+                      {thread.points.map((point) => (
+                        <li
+                          key={point}
+                          className="flex gap-3 text-xs leading-relaxed text-muted-foreground"
+                        >
+                          <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[var(--crew-accent-gold)]" />
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* People and institutions - Redesigned as a curated directory */}
+      <section id="people" aria-labelledby="people-title" className="scroll-mt-24">
+        <SectionHeading
+          id="people-title"
+          eyebrow="Artists & Institutions"
+          title="Architects of Culture"
+          lede="A register of practitioners and organizations who carried the work forward. The NCCA’s National Artists list and the CCP directory remain the authoritative starting points."
+        />
+
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-[var(--crew-accent-gold)]" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
+                Selected Practitioners
+              </h3>
+            </div>
+            <div className="grid gap-4">
+              {HISTORY_FIGURES.map((figure) => (
+                <div key={figure.name} className="group rounded-2xl border border-border/60 bg-card/40 p-4 transition-colors hover:border-[var(--crew-accent-gold)]">
+                  <div className="flex flex-col">
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-sm font-bold text-foreground">{figure.name}</p>
+                      <p className="text-[10px] font-medium text-[var(--crew-accent-gold)]">{figure.role.split(' · ')[0]}</p>
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{figure.note}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="pt-4">
+              <p className="text-xs text-muted-foreground">
+                Explore the full {' '}
+                <ExternalLinkNote href="https://www.ncca.gov.ph/about-culture-and-arts/culture-profile/national-artists-of-the-philippines/">
+                  NCCA National Artists list
+                </ExternalLinkNote>
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-[var(--crew-accent-gold)]" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
+                Institutions & Companies
+              </h3>
+            </div>
+            <div className="grid gap-3">
+              {HISTORY_INSTITUTIONS.map((institution) => (
+                <div key={institution.name} className="group rounded-xl border border-border/60 bg-card/40 p-4 transition-all hover:border-[var(--crew-accent-gold)] hover:bg-card">
+                  <ExternalLinkNote
+                    href={institution.href}
+                    className="text-sm font-bold text-foreground group-hover:text-[var(--crew-accent-gold)] transition-colors"
+                  >
+                    {institution.name}
+                  </ExternalLinkNote>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {institution.note}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Learning paths - Redesigned as a resource gallery */}
+      <section id="learn" aria-labelledby="learn-title" className="scroll-mt-24">
+        <SectionHeading
+          id="learn-title"
+          eyebrow="Learning Resources"
+          title="Deepen Your Understanding"
+          lede="Practical routes into primary material, archives, company histories, and current training."
+        />
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {HISTORY_LEARNING_PATHS.map((path) => {
+            const Icon = path.icon;
+            const isInternal = path.href.startsWith('/');
+            const content = (
+              <div className="flex h-full flex-col p-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-background text-[var(--crew-accent-gold)] shadow-sm group-hover:border-[var(--crew-accent-gold)] transition-colors">
+                  <Icon className="h-6 w-6" aria-hidden="true" />
+                </div>
+                <h3 className="mt-6 text-base font-bold leading-snug text-foreground group-hover:text-[var(--crew-accent-gold)] transition-colors">
+                  {path.title}
+                </h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+                  {path.description}
+                </p>
+                <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-[var(--crew-accent-gold)]">
+                  {isInternal ? 'Open Resource' : 'Visit Archive'}
+                  <ArrowUpRight
+                    className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none"
+                    aria-hidden="true"
+                  />
+                </div>
+              </div>
+            );
+
+            const className =
+              'group relative overflow-hidden rounded-3xl border border-border/70 bg-card transition-all duration-500 hover:border-[var(--crew-accent-gold)] hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-sunburst)] focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+
+            return (
+              <React.Fragment key={path.title}>
+                {isInternal ? (
+                  <Link href={path.href} className={className}>
+                    {content}
+                  </Link>
+                ) : (
+                  <a
+                    href={path.href}
+                    target="_blank"
+                    rel="noopener noreferrer external"
+                    className={className}
+                  >
+                    {content}
+                  </a>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Sources - Minimalist verification list */}
+      <section id="sources" aria-labelledby="sources-title" className="scroll-mt-24">
+        <SectionHeading
+          id="sources-title"
+          eyebrow="Sources"
+          title="Citations & Verification"
+          lede="Links below were carried over from the Performing Arts hub’s verified source set."
+        />
+
+        <div className="rounded-3xl border border-border/70 bg-card/40 overflow-hidden">
+          <ul className="divide-y divide-border/60">
+            {HISTORY_SOURCES.map((source) => (
+              <li key={`${source.label}-${source.href}`} className="p-6 transition-colors hover:bg-muted/30">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <ExternalLinkNote
+                    href={source.href}
+                    className="text-sm font-bold text-foreground"
+                  >
+                    {source.label}
+                  </ExternalLinkNote>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                    {source.publisher}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {source.note}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mt-6 flex items-start gap-3 rounded-2xl bg-muted/30 p-5">
+          <ShieldCheck
+            className="mt-0.5 h-4 w-4 shrink-0 text-[var(--crew-accent-gold)]"
+            aria-hidden="true"
+          />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            This page does not reproduce third-party article text. Descriptions are written for
+            Groove, and every factual anchor is linked to the publisher or legal text above.
+          </p>
+        </div>
+      </section>
+
+      <AttributionFooter label="Performing arts history attribution">
+        Historical summaries are editorial and partial. Traditions, names and repertoire belong to
+        the communities and institutions credited in the sources above. Groove is an independent
+        directory and is not affiliated with or endorsed by these organizations.
+      </AttributionFooter>
+    </div>
+  );
+}
+
+export default PerformingArtsHistoryPage;

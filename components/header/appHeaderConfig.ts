@@ -176,17 +176,9 @@ function dashboardItems(role: HeaderRole): HeaderDropdownItem[] {
     });
   }
 
-  const meta = ROLE_META[role];
-  const home: HeaderDropdownItem = {
-    id: `${role}-home`,
-    label: 'Home',
-    href: meta.homeHref,
-    description: 'Your portal overview',
-    icon: Home,
-    group: 'Dashboard',
-  };
-
-  return [home, ...sectionItems('dashboard', role)];
+  // Members (Client & Coach) now use sectionItems('dashboard', role) exclusively.
+  // The 'Home' item is already defined as the first leaf in the 'dashboard' section in navConfig.ts.
+  return sectionItems('dashboard', role);
 }
 
 function communityItems(role: HeaderRole): HeaderDropdownItem[] {

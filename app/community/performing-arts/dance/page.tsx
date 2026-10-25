@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/crews/brotherhood/team.jpg',
+        url: '/crews/brotherhood/team.png',
         width: 1500,
         height: 1000,
         alt: 'GroovePH Dance Community — Verified Crew and League Coverage',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: 'Dance Community — Competitions, Events, Crews | GroovePH',
     description:
       'Competitions, Events, Crews, Philippines & Worldwide. Real-time verified updates from international leagues and Philippine dance federations.',
-    images: ['/crews/brotherhood/team.jpg'],
+    images: ['/crews/brotherhood/team.png'],
   },
 };
 

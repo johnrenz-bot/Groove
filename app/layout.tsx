@@ -13,6 +13,7 @@ import { ClickSoundBridge } from '@/features/sound/components/ClickSoundBridge';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { BackToTopButton } from '@/components/shared/BackToTopButton';
+import { CustomCursor } from '@/components/shared/CustomCursor';
 
 /**
  * TYPEFACES ARE SELF-HOSTED — see `app/fonts.css` for the full story.
@@ -216,6 +217,7 @@ export default function RootLayout({
                   <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
                 </PageTransition>
                 <BackToTopButton />
+                <CustomCursor />
               </SmoothScrollProvider>
             </ThemeProvider>
           </SessionProvider>

@@ -158,9 +158,9 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'Battle of the Year',
     slug: 'battle-of-the-year',
     website_url: 'https://battleoftheyear.de/',
-    logo_url: null,
-    logo_source_url: null,
-    logo_verified: false,
+    logo_url: '/logos/battle-of-the-year.jpg',
+    logo_source_url: 'https://battleoftheyear.de/',
+    logo_verified: true,
     sort_order: 12,
     created_at: '2026-10-14T00:00:00.000Z',
     updated_at: '2026-10-14T00:00:00.000Z',
@@ -271,6 +271,14 @@ export function getOrgLogo(
       logoUrl: '/logos/summer-dance-forever.png',
       isVerified: true,
       alt: 'Summer Dance Forever logo',
+    };
+  }
+
+  if (norm.includes('battle of the year') || norm.includes('boty')) {
+    return {
+      logoUrl: '/logos/battle-of-the-year.jpg',
+      isVerified: true,
+      alt: 'Battle of the Year logo',
     };
   }
 

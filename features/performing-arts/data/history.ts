@@ -31,6 +31,9 @@ export interface HistoryPeriod {
   title: string;
   summary: string;
   points: string[];
+  image_url?: string;
+  image_alt?: string;
+  image_credit?: string;
 }
 
 export interface HistoryThread {
@@ -39,6 +42,9 @@ export interface HistoryThread {
   icon: LucideIcon;
   summary: string;
   points: string[];
+  image_url?: string;
+  image_alt?: string;
+  image_credit?: string;
 }
 
 export interface HistoryFigure {
@@ -72,6 +78,9 @@ export const HISTORY_PERIODS: HistoryPeriod[] = [
       'Tinikling is associated with the Visayas and is danced between bamboo poles. Singkil is a Maranao tradition from the Lake Lanao region, not a generic “folk dance”.',
       'Epic chanting, song, dance and drama were carried orally. Their meanings, ownership and protocols remain specific to the communities concerned.',
     ],
+    image_url: '/image/pa/ccp-vamos-a-belen-alt.jpg',
+    image_alt: 'Performers in woven traditional costume dancing on stage with live musicians.',
+    image_credit: 'CCP Digital Archives',
   },
   {
     id: 'spanish',
@@ -84,6 +93,9 @@ export const HISTORY_PERIODS: HistoryPeriod[] = [
       'Komedya and moro-moro staged Christian–Muslim conflict, while the sarsuwela (zarzuela) brought sung dialogue and social commentary to town theaters.',
       'Indigenous and folk forms persisted alongside these imports, especially in communities outside the main urban centers.',
     ],
+    image_url: '/image/pa/ccp-vamos-a-belen.jpg',
+    image_alt: 'Dancers in full traditional costume performing in a historical festival choreography.',
+    image_credit: 'Cultural Center of the Philippines',
   },
   {
     id: 'american',
@@ -96,6 +108,9 @@ export const HISTORY_PERIODS: HistoryPeriod[] = [
       'Public schools and universities became important training grounds for music, theater and dance.',
       'Kundiman and rondalla remained widely loved, while composers and writers began building a consciously national repertoire.',
     ],
+    image_url: '/image/pa/ccp-intramuros-evenings.jpg',
+    image_alt: 'Performers in embroidered traditional dress staging historic classical repertoire.',
+    image_credit: 'CCP Digital Archives',
   },
   {
     id: 'postwar',
@@ -108,6 +123,9 @@ export const HISTORY_PERIODS: HistoryPeriod[] = [
       'Universities and conservatories formalized training in music, theater and dance.',
       'The state increasingly treated cultural heritage as a resource for nation-building, a direction that later institutions would formalize.',
     ],
+    image_url: '/image/pa/ccp-manila-sounds.jpg',
+    image_alt: 'Archival documentation of Filipino song and orchestral traditions.',
+    image_credit: 'CCP Digital Archives',
   },
   {
     id: 'contemporary',
@@ -120,6 +138,9 @@ export const HISTORY_PERIODS: HistoryPeriod[] = [
       'The Order of National Artists recognized dance practitioners including Francisca Reyes Aquino, Ramon Obusan, Alice Reyes, Lucrecia Reyes-Urtula and Leonor Orosa-Goquingco.',
       'Today, established institutions share the field with independent producers, regional festivals, university companies, and competitive street-dance and choral circuits.',
     ],
+    image_url: '/image/pa/ccp-tanghalang-pilipino.jpg',
+    image_alt: 'Contemporary Tanghalang Pilipino theater production staged at the CCP Main Theater.',
+    image_credit: 'Tanghalang Pilipino / CCP',
   },
 ];
 
@@ -135,6 +156,9 @@ export const HISTORY_THREADS: HistoryThread[] = [
       'Folkloric companies adapted these forms for proscenium stages and international tours, which also changed how they were seen at home.',
       'Ballet and contemporary companies professionalized concert dance, while street and hip-hop crews built a separate competitive circuit.',
     ],
+    image_url: '/image/pa/ccp-ballet-philippines-paglalakbay.jpg',
+    image_alt: 'Ballet Philippines dancers mid-leap in historic proscenium production.',
+    image_credit: 'Ballet Philippines / CCP',
   },
   {
     id: 'music',
@@ -147,6 +171,9 @@ export const HISTORY_THREADS: HistoryThread[] = [
       'Kundiman, a Tagalog love song, and the rondalla string ensemble became widely recognized Filipino forms, especially in the early twentieth century.',
       'Choral foundations, conservatories and competition committees now sustain a large amateur and professional choral scene.',
     ],
+    image_url: '/image/pa/ccp-philippine-philharmonic.jpg',
+    image_alt: 'Philippine Philharmonic Orchestra violinist and ensemble at the CCP.',
+    image_credit: 'Philippine Philharmonic Orchestra / CCP',
   },
   {
     id: 'theater',
@@ -159,6 +186,9 @@ export const HISTORY_THREADS: HistoryThread[] = [
       'Bodabil and English-language productions expanded commercial entertainment in the American period.',
       'Resident companies and independent producers now stage Filipino-language drama, musicals, devised work and festival productions.',
     ],
+    image_url: '/image/pa/ccp-ppo-opera.jpg',
+    image_alt: 'Mainstage theatrical and opera production at the Cultural Center of the Philippines.',
+    image_credit: 'CCP Digital Archives',
   },
 ];
 

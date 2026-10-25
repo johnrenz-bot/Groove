@@ -265,19 +265,13 @@ export default function AboutPage() {
                 Browse coaches
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <Link
-                href="/register/client"
-                className="inline-flex h-12 items-center rounded-full border border-border px-6 text-[0.9375rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                Create an account
-              </Link>
-              <Link
-                href="/register/coach"
-                className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-accent-text underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                Teach on Groove
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+                <Link
+                  href="/register/coach"
+                  className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-accent-text underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  Teach on Groove
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
             </div>
           </div>
 

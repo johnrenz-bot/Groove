@@ -97,7 +97,7 @@ export function VocalistDossierCard({ ensemble }: VocalistDossierCardProps) {
           <ul className="space-y-2.5">
             {ensemble.achievements.map((ach) => (
               <li
-                key={ach.title}
+                key={`${ach.title}-${ach.year}`}
                 className="rounded-xl border border-border bg-card p-3 text-xs shadow-xs"
               >
                 <span className="font-semibold text-foreground">{ach.title}</span>
