@@ -33,6 +33,7 @@ import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { SessionRow } from '@/components/dashboard/SessionRow';
 import { BadgeMiniWidget } from '@/components/dashboard/BadgeMiniWidget';
 import { SupportCallout } from '@/components/dashboard/SupportCallout';
+import { WelcomeModal } from '@/components/shared/WelcomeModal';
 
 export default function ClientHomePage() {
   const router = useRouter();
@@ -607,6 +608,7 @@ export default function ClientHomePage() {
           </form>
         )}
       </Modal>
+      <WelcomeModal role="client" />
     </div>
   );
 }

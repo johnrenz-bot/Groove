@@ -19,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Camera,
+  Eye,
+  EyeOff,
   Loader2,
   Pencil,
   Save,
@@ -27,6 +29,7 @@ import {
   X,
   Image as ImageIcon,
 } from 'lucide-react';
+import { maskUsername, maskEmail, maskPhone, maskAddress } from '@/lib/masking';
 import type { FullCoach, Feedback, CommunityPost } from '@/lib/types';
 import { ProfileMediaGrid } from '@/features/community/components/SignedMedia';
 import { createClient } from '@/lib/supabase/client';
@@ -93,6 +96,7 @@ export default function CoachProfilePage() {
 
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [revealSensitive, setRevealSensitive] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [errors, setErrors] = useState<ProfileFieldErrors>({});
@@ -570,6 +574,7 @@ export default function CoachProfilePage() {
           firstname={coach.firstname}
           lastname={coach.lastname}
           username={coach.username}
+          revealUsername={revealSensitive}
           role="coach"
           photoUrl={coach.photo_url}
           bio={coach.bio}
@@ -652,6 +657,26 @@ export default function CoachProfilePage() {
             <ProfileSummary
               title="Personal Information"
               description="The identity fields collected at registration."
+              action={
+                <button
+                  type="button"
+                  onClick={() => setRevealSensitive((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                  aria-label={revealSensitive ? 'Mask sensitive details' : 'Reveal sensitive details'}
+                >
+                  {revealSensitive ? (
+                    <>
+                      <EyeOff className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Mask details</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Reveal details</span>
+                    </>
+                  )}
+                </button>
+              }
               rows={[
                 { label: 'First Name', value: coach.firstname },
                 { label: 'Middle Name', value: coach.middlename || '' },
@@ -661,18 +686,50 @@ export default function CoachProfilePage() {
                   label: 'Date of Birth',
                   value: dob.year && dob.month && dob.day ? `${dob.month}/${dob.day}/${dob.year}` : '',
                 },
-                { label: 'Username', value: coach.username },
-                { label: 'Email Address', value: coach.email },
-                { label: 'Philippine Mobile Number', value: coach.contact || '' },
+                {
+                  label: 'Username',
+                  value: revealSensitive ? coach.username : maskUsername(coach.username),
+                },
+                {
+                  label: 'Email Address',
+                  value: revealSensitive ? coach.email : maskEmail(coach.email),
+                },
+                {
+                  label: 'Philippine Mobile Number',
+                  value: revealSensitive ? (coach.contact || '') : maskPhone(coach.contact || ''),
+                },
               ]}
             />
 
             <ProfileSummary
               title="Service Location"
               description="Restricted to San Jose del Monte, Bulacan at registration."
+              action={
+                <button
+                  type="button"
+                  onClick={() => setRevealSensitive((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                  aria-label={revealSensitive ? 'Mask address details' : 'Reveal address details'}
+                >
+                  {revealSensitive ? (
+                    <>
+                      <EyeOff className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Mask address</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Reveal address</span>
+                    </>
+                  )}
+                </button>
+              }
               rows={[
                 { label: 'Barangay', value: coach.barangay_name || '' },
-                { label: 'Street / House No. / Building', value: coach.street || '' },
+                {
+                  label: 'Street / House No. / Building',
+                  value: revealSensitive ? (coach.street || '') : maskAddress(coach.street),
+                },
                 { label: 'Postal Code', value: coach.postal_code || '' },
                 { label: 'City', value: coach.city_name || '' },
                 { label: 'Province', value: coach.province_name || '' },
@@ -700,7 +757,12 @@ export default function CoachProfilePage() {
                         ? 'Cash on Session'
                         : '',
                 },
-                { label: 'GCash / Maya Mobile Number', value: cp?.payment_handle || '' },
+                {
+                  label: 'GCash / Maya Mobile Number',
+                  value: revealSensitive
+                    ? (cp?.payment_handle || '')
+                    : (cp?.payment_handle ? maskPhone(cp.payment_handle) : ''),
+                },
                 {
                   label: 'Advance Notice (hours)',
                   value: cp?.notice_hours != null ? String(cp.notice_hours) : '',

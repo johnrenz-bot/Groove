@@ -20,6 +20,7 @@ import {
 } from '@/lib/profileFollows';
 import { ProfileFollowList } from '@/components/shared/ProfileFollowList';
 import { PhilippineFlag } from '@/components/ui/PhilippineFlag';
+import { maskUsername } from '@/lib/masking';
 
 /**
  * The redesigned identity header, shared by /client/profile and /coach/profile.
@@ -55,6 +56,8 @@ interface ProfileHeroProps {
   provinceName: MaybeText;
   /** One extra stat for the row, e.g. "Reviews" or "Disciplines". */
   extraStat?: { label: string; value: string | number };
+  /** Whether to reveal the full username rather than mask by default. */
+  revealUsername?: boolean;
   /** The public profile route, used by the Preview link. */
   publicHref: string;
   /** The page's own primary action, e.g. Edit Profile. */
@@ -74,6 +77,7 @@ export function ProfileHero({
   cityName,
   provinceName,
   extraStat,
+  revealUsername = false,
   publicHref,
   actions,
   children,
@@ -213,7 +217,11 @@ export function ProfileHero({
             </div>
 
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              {username && <span className="font-medium">@{username}</span>}
+              {username && (
+                <span className="font-medium">
+                  @{revealUsername ? username : maskUsername(username)}
+                </span>
+              )}
               {location && (
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />

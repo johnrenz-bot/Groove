@@ -4,7 +4,6 @@ import React from 'react';
 import { AppHeader } from '@/components/header/AppHeader';
 import { type DashboardRole } from '@/components/header/roleMeta';
 
-import { WelcomeModal } from '@/components/shared/WelcomeModal';
 import { LoadingScreen } from '@/components/shared/LoadingScreen';
 import { MaintenanceBanner } from '@/components/shared/MaintenanceBanner';
 
@@ -33,14 +32,12 @@ export function DashboardLayout({
   children,
   role,
   homeHref,
-  showWelcomeModal = false,
   showMaintenanceBanner = false,
 }: {
   children: React.ReactNode;
   role: DashboardRole;
   /** Overrides the brand destination. Defaults to the role's own home. */
   homeHref?: string;
-  showWelcomeModal?: boolean;
   showMaintenanceBanner?: boolean;
 }) {
   const existingChat = useOptionalChat();
@@ -61,8 +58,6 @@ export function DashboardLayout({
       <main id="main-content" tabIndex={-1} className="relative z-10 flex-1 px-5 py-7 sm:px-8 sm:py-9">
         <div className="mx-auto w-full max-w-[1240px]">{children}</div>
       </main>
-
-      {showWelcomeModal && <WelcomeModal role={role} />}
 
       {/* Persistent Floating GrooveyAI Assistant — the ONE floating widget in
           the app. Role-aware label: "Ask AI coach" for clients, "Ask AI

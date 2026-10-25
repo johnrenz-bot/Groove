@@ -30,6 +30,7 @@ import {
   formatLocation,
   formatMemberSince,
 } from '@/lib/profileDisplay';
+import { maskUsername, maskGeneric, shouldMask } from '@/lib/masking';
 import { bookingGate, coachBookingGate } from '@/features/verification/services/verification';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
@@ -462,11 +463,13 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                 {(targetUser.username || targetUser.custom_id) && (
                   <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground md:justify-start">
                     {targetUser.username && (
-                      <span className="font-medium text-foreground">@{targetUser.username}</span>
+                      <span className="font-medium text-foreground">
+                        @{shouldMask(targetUser.id, currentUser?.id) ? maskUsername(targetUser.username) : targetUser.username}
+                      </span>
                     )}
                     {targetUser.custom_id && (
                       <span className="tabular-nums text-subtle-foreground">
-                        ID {targetUser.custom_id}
+                        ID {shouldMask(targetUser.id, currentUser?.id) ? maskGeneric(targetUser.custom_id) : targetUser.custom_id}
                       </span>
                     )}
                   </div>
@@ -674,7 +677,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                   <DetailRow
                     icon={<UserRound className="h-3.5 w-3.5" aria-hidden="true" />}
                     label="Username"
-                    value={`@${targetUser.username}`}
+                    value={`@${shouldMask(targetUser.id, currentUser?.id) ? maskUsername(targetUser.username) : targetUser.username}`}
                   />
                 )}
                 {age !== null && (

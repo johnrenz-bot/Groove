@@ -34,6 +34,7 @@ import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { SessionRow } from '@/components/dashboard/SessionRow';
 import { BadgeMiniWidget } from '@/components/dashboard/BadgeMiniWidget';
 import { SupportCallout } from '@/components/dashboard/SupportCallout';
+import { WelcomeModal } from '@/components/shared/WelcomeModal';
 
 /**
  * Removed: a local `getGreeting()` that nothing called. Its absence is why the
@@ -606,6 +607,7 @@ const [loadError, setLoadError] = useState<string | null>(null);
 
       {selectedUser && <ProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
       {showTicket && <TicketModal coach={coach} onClose={() => setShowTicket(false)} />}
+      <WelcomeModal role="coach" />
     </div>
   );
 }

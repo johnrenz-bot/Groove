@@ -326,7 +326,7 @@ docker run -p 3000:3000 --env-file .env.local groove-app
 ```
 
 - **Security**: No secrets or `.env` files are baked into the Docker image. All sensitive API keys (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `GEMINI_API_KEY`) are injected at container runtime.
-- **Image Size**: The multi-stage build leverages `output: 'standalone'` in `next.config.ts`, minimizing the final production image.
+- **Image Size**: The multi-stage build leverages a highly optimized Next.js build process, minimizing the final production image.
 
 ---
 
@@ -335,7 +335,7 @@ docker run -p 3000:3000 --env-file .env.local groove-app
 | Command | Description |
 |---|---|
 | `npm run dev` | Start the local Turbopack development server. |
-| `npm run build` | Production build with type checking and standalone bundling. |
+| `npm run build` | Production build with type checking. |
 | `npm run start` | Serve the production build. |
 | `npm run lint` | Run ESLint with project rules. |
 | `npm run typecheck` | Static TypeScript type check (`tsc --noEmit`). |

@@ -6,6 +6,7 @@ import type { FollowPerson } from '@/lib/profileFollows';
 import { getInitials } from '@/lib/utils';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { cn } from '@/components/shared/cn';
+import { maskUsername } from '@/lib/masking';
 
 /**
  * One person row, shared by the follow-lists modal and the /users directory.
@@ -79,7 +80,11 @@ export function UserListItem({
           </span>
 
           <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-subtle-foreground">
-            {person.username && <span className="font-medium">@{person.username}</span>}
+            {person.username && (
+              <span className="font-medium">
+                @{isYou ? person.username : maskUsername(person.username)}
+              </span>
+            )}
             {location && (
               <span className="inline-flex items-center gap-1">
                 <MapPin className="h-3 w-3" aria-hidden="true" />

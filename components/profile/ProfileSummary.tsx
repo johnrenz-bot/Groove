@@ -18,16 +18,18 @@ export function ProfileSummary({
   rows,
   title,
   description,
+  action,
   children,
 }: {
   rows: ProfileFieldRow[];
   title: string;
   description?: string;
+  action?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   return (
     <Panel>
-      <PanelHeader title={title} info={description} infoTitle={title} />
+      <PanelHeader title={title} info={description} infoTitle={title} action={action} />
       <PanelBody>
         <dl className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
           {rows.map((row) => (

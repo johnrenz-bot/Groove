@@ -18,6 +18,7 @@ import type { Profile } from '@/lib/types';
 import { translateAccountItem } from './headerText';
 import { isRouteActive } from './routeMatch';
 import { useLocationHash } from './useLocationHash';
+import { maskEmail, maskGeneric } from '@/lib/masking';
 import type { AppHeaderConfig } from './appHeaderConfig';
 import type { NavRole } from './navConfig';
 
@@ -85,9 +86,10 @@ export function AccountPanel({
             </div>
             <p
               className="truncate text-[11px] text-muted-foreground whitespace-nowrap"
-              title={user.email || ''}
             >
-              {user.email || `#${user.custom_id || '0000'}`}
+              {user.email
+                ? maskEmail(user.email)
+                : `#${user.custom_id ? maskGeneric(user.custom_id) : '0000'}`}
             </p>
           </div>
         </div>

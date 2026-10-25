@@ -16,6 +16,9 @@ import { useSession } from '@/components/header/SessionProvider';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { createClient } from '@/lib/supabase/client';
 
+/** sessionStorage key written by the login page after a successful sign-in. */
+const PENDING_KEY = 'groove_welcome_pending';
+
 interface WelcomeModalProps {
   role?: 'client' | 'coach' | 'admin';
   username?: string;
@@ -32,13 +35,29 @@ export function WelcomeModal({
   isOpen: controlledIsOpen,
   onClose,
   onStart,
-  subtext: propSubtext,
 }: WelcomeModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [dontShowToday, setDontShowToday] = useState(false);
   const [displayName, setDisplayName] = useState(propUsername || '');
   const { status, profile } = useSession();
   const { t } = useLanguage();
+
+  /**
+   * STRICT-MODE / DOUBLE-MOUNT GUARD
+   *
+   * React Strict Mode (development) mounts -> unmounts -> remounts every
+   * component. Without this guard a bare useEffect would run twice on the
+   * same real mount: once on the discarded first pass and again on the kept
+   * second pass. Both reads would find groove_welcome_pending = 'true' in
+   * sessionStorage and open the modal, producing a visible flash.
+   *
+   * The ref is initialised to false. The cleanup sets it back to false so
+   * the next genuine mount (e.g. navigating away and back) starts clean.
+   * Only the first call in a real-mount cycle sets it to true and proceeds
+   * to open the modal.
+   *
+   * This is a ref (not state) because its value must not trigger a re-render.
+   */
+  const didConsumeFlag = useRef(false);
 
   const fetchUserName = useCallback(async () => {
     if (displayName) return;
@@ -65,40 +84,52 @@ export function WelcomeModal({
     fetchUserName();
   }, [fetchUserName]);
 
+  // Controlled mode: honour the caller's isOpen prop directly.
   useEffect(() => {
     if (controlledIsOpen !== undefined) {
       setInternalOpen(controlledIsOpen);
-      return;
     }
+  }, [controlledIsOpen]);
 
+  // Uncontrolled mode: open once per login session.
+  useEffect(() => {
+    if (controlledIsOpen !== undefined) return;
     if (status !== 'authenticated') {
       setInternalOpen(false);
       return;
     }
 
-    if (typeof window !== 'undefined') {
-      const isLoginPending = sessionStorage.getItem('groove_welcome_pending') === 'true';
-      const today = new Date().toISOString().split('T')[0];
-      const savedDate = localStorage.getItem('groove_welcome_dismissed_date');
+    // Guard: if this effect already consumed the flag in this mount cycle
+    // (happens in Strict Mode's second invocation), do nothing.
+    if (didConsumeFlag.current) return;
+    didConsumeFlag.current = true;
 
-      if (isLoginPending || savedDate !== today) {
-        const timer = setTimeout(() => setInternalOpen(true), 300);
-        return () => clearTimeout(timer);
-      }
+    if (typeof window === 'undefined') return;
+
+    const isPending = sessionStorage.getItem(PENDING_KEY) === 'true';
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    if (isPending) {
+      // Consume the flag immediately so a page refresh or re-render cannot
+      // re-open the modal for this same login session.
+      sessionStorage.removeItem(PENDING_KEY);
+      // Small delay so the page's own content settles before the modal appears.
+      timer = setTimeout(() => setInternalOpen(true), 300);
     }
+
+    // Always reset the ref on unmount so that if the user navigates away from
+    // /home and back, the effect starts fresh (no pending flag will be found
+    // after the first login, which gives the correct once-per-session result).
+    return () => {
+      if (timer !== undefined) clearTimeout(timer);
+      didConsumeFlag.current = false;
+    };
   }, [controlledIsOpen, status]);
 
   const effectiveRole: 'client' | 'coach' | 'admin' =
     profile?.role === 'coach' || profile?.role === 'admin' ? profile.role : role;
 
   const handleClose = () => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('groove_welcome_pending');
-      if (dontShowToday) {
-        const today = new Date().toISOString().split('T')[0];
-        localStorage.setItem('groove_welcome_dismissed_date', today);
-      }
-    }
     setInternalOpen(false);
     if (onClose) onClose();
   };
@@ -274,7 +305,9 @@ export function WelcomeModal({
           <div className="space-y-6 px-6 py-8 sm:px-8">
             <div>
               <h2 id="wm-title" className="text-base font-semibold text-foreground sm:text-lg">
-                {t('welcome.howItWorks', 'How GroovePH works')}
+                {isCoach
+                  ? t('welcome.howItWorksCoach', 'Getting started as a coach')
+                  : t('welcome.howItWorks', 'How GroovePH works')}
               </h2>
               <div className="mt-4 space-y-3">
                 {steps.map((step, idx) => {
@@ -338,16 +371,6 @@ export function WelcomeModal({
               >
                 {t('welcome.startMyDay', 'Start my day')}
               </Button>
-
-              <label className="inline-flex cursor-pointer select-none items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
-                <input
-                  type="checkbox"
-                  checked={dontShowToday}
-                  onChange={(e) => setDontShowToday(e.target.checked)}
-                  className="h-3.5 w-3.5 cursor-pointer rounded border-border-strong text-accent-text accent-[var(--accent)]"
-                />
-                <span>{t('welcome.dontShow', "Don't show again today")}</span>
-              </label>
             </div>
           </div>
         </div>

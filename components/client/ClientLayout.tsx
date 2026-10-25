@@ -18,7 +18,7 @@ import { DashboardLayout } from '@/components/shared/DashboardLayout';
  */
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <DashboardLayout role="client" showWelcomeModal>
+    <DashboardLayout role="client">
       {children}
     </DashboardLayout>
   );

@@ -154,6 +154,10 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
         // Best effort: presence must never strand a session.
       }
     }
+    // Clear the welcome-modal flag so the next login always shows a fresh
+    // welcome, and a stale flag from an unvisited /home never leaks into the
+    // following session.
+    try { sessionStorage.removeItem('groove_welcome_pending'); } catch { /* blocked storage */ }
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();

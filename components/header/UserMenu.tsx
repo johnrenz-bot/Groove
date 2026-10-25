@@ -18,6 +18,7 @@ import { greetingFor } from '@/lib/header/accountPill';
 import { translateAccountItem } from './headerText';
 import type { AppHeaderConfig } from './appHeaderConfig';
 import type { NavRole } from './navConfig';
+import { maskEmail, maskGeneric, shouldMask } from '@/lib/masking';
 import { cn } from '@/components/shared/cn';
 import { ModalIconTile } from '@/components/ui/Modal';
 
@@ -172,7 +173,9 @@ export function UserMenu({
                 {`${user.firstname} ${user.lastname}`.trim()}
               </p>
               <p className="text-[11px] text-muted-foreground truncate max-w-[200px]">
-                {user.email || `#${user.custom_id || '0000'}`}
+                {user.email
+                  ? maskEmail(user.email)
+                  : `#${user.custom_id ? maskGeneric(user.custom_id) : '0000'}`}
               </p>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-bold uppercase tracking-wider">
                 <Sparkles className="h-2.5 w-2.5" aria-hidden="true" />

@@ -19,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Camera,
+  Eye,
+  EyeOff,
   Loader2,
   Pencil,
   Save,
@@ -26,6 +28,7 @@ import {
   X,
   Image as ImageIcon,
 } from 'lucide-react';
+import { maskUsername, maskEmail, maskPhone, maskAddress } from '@/lib/masking';
 import type { Profile, CommunityPost } from '@/lib/types';
 import { ProfileMediaGrid } from '@/features/community/components/SignedMedia';
 import { createClient } from '@/lib/supabase/client';
@@ -90,6 +93,7 @@ export default function ClientProfilePage() {
 
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [revealSensitive, setRevealSensitive] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [errors, setErrors] = useState<ProfileFieldErrors>({});
@@ -488,6 +492,7 @@ export default function ClientProfilePage() {
           firstname={profile.firstname}
           lastname={profile.lastname}
           username={profile.username}
+          revealUsername={revealSensitive}
           role="client"
           photoUrl={profile.photo_url}
           bio={profile.bio}
@@ -572,6 +577,26 @@ export default function ClientProfilePage() {
             <ProfileSummary
               title="Personal Information"
               description="The identity fields collected at registration."
+              action={
+                <button
+                  type="button"
+                  onClick={() => setRevealSensitive((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                  aria-label={revealSensitive ? 'Mask sensitive details' : 'Reveal sensitive details'}
+                >
+                  {revealSensitive ? (
+                    <>
+                      <EyeOff className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Mask details</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Reveal details</span>
+                    </>
+                  )}
+                </button>
+              }
               rows={[
                 { label: 'First Name', value: profile.firstname },
                 { label: 'Middle Name', value: profile.middlename || '' },
@@ -581,9 +606,18 @@ export default function ClientProfilePage() {
                   label: 'Date of Birth',
                   value: dob.year && dob.month && dob.day ? `${dob.month}/${dob.day}/${dob.year}` : '',
                 },
-                { label: 'Username', value: profile.username },
-                { label: 'Email Address', value: profile.email },
-                { label: 'Philippine Mobile Number', value: profile.contact || '' },
+                {
+                  label: 'Username',
+                  value: revealSensitive ? profile.username : maskUsername(profile.username),
+                },
+                {
+                  label: 'Email Address',
+                  value: revealSensitive ? profile.email : maskEmail(profile.email),
+                },
+                {
+                  label: 'Philippine Mobile Number',
+                  value: revealSensitive ? (profile.contact || '') : maskPhone(profile.contact || ''),
+                },
                 {
                   label: 'Primary Performing Interest',
                   value: clientProfile?.talent || '',
@@ -594,9 +628,32 @@ export default function ClientProfilePage() {
             <ProfileSummary
               title="Service Location"
               description="Restricted to San Jose del Monte, Bulacan at registration."
+              action={
+                <button
+                  type="button"
+                  onClick={() => setRevealSensitive((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                  aria-label={revealSensitive ? 'Mask address details' : 'Reveal address details'}
+                >
+                  {revealSensitive ? (
+                    <>
+                      <EyeOff className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Mask address</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                      <span>Reveal address</span>
+                    </>
+                  )}
+                </button>
+              }
               rows={[
                 { label: 'Barangay', value: profile.barangay_name || '' },
-                { label: 'Street / House No. / Building', value: profile.street || '' },
+                {
+                  label: 'Street / House No. / Building',
+                  value: revealSensitive ? (profile.street || '') : maskAddress(profile.street),
+                },
                 { label: 'Postal Code', value: profile.postal_code || '' },
                 { label: 'City', value: profile.city_name || '' },
                 { label: 'Province', value: profile.province_name || '' },

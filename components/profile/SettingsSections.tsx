@@ -44,6 +44,8 @@ import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
 import { InfoTip } from '@/components/ui/InfoTip';
 import { validatePasswordChange, type ProfileFieldErrors } from '@/components/profile/ProfileFormSections';
 import { isValidEmail, isValidUsername, VALIDATION_MESSAGES } from '@/lib/profileFields';
+import { MaskedInput } from '@/components/ui/MaskedField';
+import { maskGeneric } from '@/lib/masking';
 
 /* ------------------------------------------------------------------ */
 /* Section shell                                                      */
@@ -157,53 +159,35 @@ export function AccountSettings({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="g-label" htmlFor="set-email">
-              Email Address <span className="text-accent-text">*</span>
-            </label>
-            <input
+            <MaskedInput
               id="set-email"
-              type="email"
-              value={emailValue}
-              onChange={(e) => setEmailValue(e.target.value)}
-              autoComplete="email"
+              label="Email Address"
               required
-              aria-invalid={errors.email ? 'true' : undefined}
-              aria-describedby={errors.email ? 'set-email-error' : undefined}
-              className="g-input"
+              maskType="email"
+              value={emailValue}
+              onValueChange={setEmailValue}
+              autoComplete="email"
+              error={errors.email}
             />
-            {errors.email && (
-              <p id="set-email-error" className="g-field-error" role="alert">
-                {errors.email}
-              </p>
-            )}
           </div>
 
           <div>
-            <label className="g-label" htmlFor="set-username">
-              Username <span className="text-accent-text">*</span>
-            </label>
-            <input
+            <MaskedInput
               id="set-username"
-              type="text"
-              value={usernameValue}
-              onChange={(e) => setUsernameValue(e.target.value.toLowerCase())}
-              autoComplete="username"
+              label="Username"
               required
-              aria-invalid={errors.username ? 'true' : undefined}
-              aria-describedby={errors.username ? 'set-username-error' : undefined}
-              className="g-input"
+              maskType="username"
+              value={usernameValue}
+              onValueChange={(val) => setUsernameValue(val.toLowerCase())}
+              autoComplete="username"
+              error={errors.username}
             />
-            {errors.username && (
-              <p id="set-username-error" className="g-field-error" role="alert">
-                {errors.username}
-              </p>
-            )}
           </div>
         </div>
 
         {customId && (
           <p className="text-xs text-muted-foreground">
-            Groove ID <span className="font-semibold text-foreground">#{customId}</span>
+            Groove ID <span className="font-semibold text-foreground">#{maskGeneric(customId)}</span>
           </p>
         )}
 

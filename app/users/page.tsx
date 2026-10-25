@@ -34,6 +34,7 @@ import {
 import type { Profile } from '@/lib/types';
 import { cn } from '@/components/shared/cn';
 import { formatDate, getInitials } from '@/lib/utils';
+import { maskUsername } from '@/lib/masking';
 
 /**
  * /users — the member directory, shared by coaches and clients.
@@ -644,7 +645,7 @@ export default function UsersDirectoryPage() {
                         {user.username && (
                           <div className="flex items-center gap-1.5">
                             <dt className="sr-only">Username</dt>
-                            <dd className="truncate font-medium">@{user.username}</dd>
+                            <dd className="truncate font-medium">@{isSelf ? user.username : maskUsername(user.username)}</dd>
                           </div>
                         )}
                         {location && (

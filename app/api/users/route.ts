@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { PUBLIC_PROFILE_COLUMNS } from '@/lib/publicProfile';
 import { buildOrContains, escapeLikePattern } from '@/lib/postgrest';
+import { maskUsername } from '@/lib/masking';
 
 /**
  * GET /api/users — the Users directory data source.
@@ -76,12 +77,12 @@ async function tallyFollowers(
   return counts;
 }
 
-function toDirectoryUser(row: ProfileRow, counts: Map<string, number>): DirectoryUser {
+function toDirectoryUser(row: ProfileRow, counts: Map<string, number>, viewerId?: string | null): DirectoryUser {
   return {
     id: row.id,
     firstname: row.firstname,
     lastname: row.lastname,
-    username: row.username,
+    username: viewerId && viewerId === row.id ? row.username : maskUsername(row.username),
     photo_url: row.photo_url,
     role: row.role,
     city_name: row.city_name,
@@ -149,7 +150,7 @@ export async function GET(request: NextRequest) {
         rows.map((u) => u.id)
       );
       const users = rows
-        .map((u) => toDirectoryUser(u, counts))
+        .map((u) => toDirectoryUser(u, counts, viewerId))
         .sort((a, b) => b.followerCount - a.followerCount || a.firstname.localeCompare(b.firstname))
         .slice(0, 6);
       return NextResponse.json({ users, viewerId });
@@ -168,7 +169,7 @@ export async function GET(request: NextRequest) {
         rows.map((u) => u.id)
       );
       const ranked = rows
-        .map((u) => toDirectoryUser(u, counts))
+        .map((u) => toDirectoryUser(u, counts, viewerId))
         .sort((a, b) => b.followerCount - a.followerCount || a.firstname.localeCompare(b.firstname));
 
       const start = (requestedPage - 1) * pageSize;
@@ -202,7 +203,7 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json({
-      users: rows.map((u) => toDirectoryUser(u, counts)),
+      users: rows.map((u) => toDirectoryUser(u, counts, viewerId)),
       total: count ?? rows.length,
       page: requestedPage,
       pageSize,
