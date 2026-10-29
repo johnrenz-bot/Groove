@@ -423,10 +423,10 @@ export default function ClientHomePage() {
         {/* Studio locator */}
         <StudioLocator
           id="studios"
-          title={t('home.studiosClientTitle', 'Rehearsal Studios Locator')}
+          title={t('home.studiosClientTitle', 'Studio Locator')}
           subtitle={t(
             'home.studiosClientSub',
-            'Performing arts spaces in San Jose del Monte and Bulacan — curated listings plus community-sourced results'
+            'Find dance studios near you using the interactive Google Map. Set your search radius to discover nearby studios and view their locations and distances.'
           )}
         />
       </div>

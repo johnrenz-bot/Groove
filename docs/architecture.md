@@ -36,8 +36,8 @@
                     ▼                          ▼
 ┌───────────────────────────────────┐  ┌──────────────────────────────────┐
 │       Supabase Cloud (BaaS)       │  │     External Cloud Services      │
-│  ├── PostgreSQL 15 + RLS          │  │  ├── OpenStreetMap Overpass API   │
-│  ├── Supabase Auth (JWT Cookies)  │  │  │   (Live Studio Locator)       │
+│  ├── PostgreSQL 15 + RLS          │  │  ├── Google Maps JavaScript API  │
+│  ├── Supabase Auth (JWT Cookies)  │  │  │   (Studio Locator + Geocoding)│
 │  ├── Realtime (Chat, Presence,    │  │  └── OpenRouter API              │
 │  │    Notifications)              │  │      (DeepSeek AI Assistant)     │
 │  └── Storage Buckets              │  └──────────────────────────────────┘
@@ -229,12 +229,15 @@ All colors are defined as CSS custom properties in `app/globals.css`, organized 
 - The AI assistant answers questions about a specific coach using their actual profile data
 - Falls back to a static response if no API key is configured
 
-### 7.2 OpenStreetMap Overpass
+### 7.2 Google Maps Studio Locator
 
 - **Endpoint**: `/api/studios/route.ts`
 - **Client**: `components/studio/StudioLocator.tsx`, `components/studio/StudioLocatorMap.tsx`
-- Queries the Overpass API for leisure/dance/arts venues within a configurable radius
-- Results are rendered on a Leaflet map
+- Reads verified studio rows from `public.studios` in Supabase, with the reviewed `lib/studios/curatedStudios.ts` dataset as a fallback when the table is empty
+- Radius discovery returns studios within the selected radius; client applies exact Haversine distance filtering (1/5/10/25/50 km or custom)
+- City, municipality, province, and address search use rate-limited, cached Nominatim geocoding restricted to the Philippines, with existing database matching first
+- Renders Advanced Markers, a geodesic radius circle, InfoWindows, and theme-aware Google Maps basemaps
+- Automatic quota recognition and cooldown for Google Places (RESOURCE_EXHAUSTED) ensures registered and curated studios always remain visible even if external Google APIs are quota-exhausted
 
 ### 7.3 Dance Events Feed
 
@@ -248,5 +251,5 @@ All colors are defined as CSS custom properties in `app/globals.css`, organized 
 2. **No server actions for mutations** — client components use direct Supabase client calls, not React Server Actions. This keeps auth context on the client side.
 3. **profiles table is authoritative** — role claims from `user_metadata` are never trusted; the database row is always queried.
 4. **Dual admin guard** — both middleware AND the server layout check admin identity, providing defense in depth.
-5. **Philippine locale** — currency is PHP (₱), addresses follow the PSGC standard (Region → Province → City → Barangay), and the studio locator is geofenced to San Jose del Monte, Bulacan.
+5. **Philippine locale** — currency is PHP (₱), addresses follow the PSGC standard (Region → Province → City → Barangay), and the studio locator discovers studios nationwide across the Philippines while keeping nearby radius search.
 6. **Single presence channel** — all pages share one WebSocket subscription via `PresenceBridge` in the root layout, avoiding redundant connections.

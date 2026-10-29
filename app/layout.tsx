@@ -14,6 +14,7 @@ import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvide
 import { PageTransition } from '@/components/layout/PageTransition';
 import { BackToTopButton } from '@/components/shared/BackToTopButton';
 import { CustomCursor } from '@/components/shared/CustomCursor';
+import { SuccessNotificationProvider } from '@/components/notifications/SuccessNotificationProvider';
 
 /**
  * TYPEFACES ARE SELF-HOSTED — see `app/fonts.css` for the full story.
@@ -194,31 +195,36 @@ export default function RootLayout({
                 visible, clickable, inert. One provider here fixes that and
                 removes three duplicate instances. */}
             <ThemeProvider>
-              <PlatformThemeSync />
-              <RouteThemeEnforcer />
-              <AppLoadingSplash />
-              {/* One presence subscription for the whole app, so /messages, coach
-                  cards and the header all read the same live value. */}
-              <PresenceBridge />
-              {/* One click-sound listener for the whole app, mounted beside the
-                  presence bridge for the same reason: every shell renders a
-                  different subset of controls, so a per-shell or per-component
-                  listener would leave some routes silent and some clicks doubled.
-                  Renders nothing. */}
-              <ClickSoundBridge />
-              {/* The one shared four-corner decoration for Landing, Client, Coach
-                  and Admin: fixed at z-0, behind everything. The page background
-                  colour lives ONLY on <body> (see globals.css), every full-page
-                  wrapper below is transparent, and all page content sits in the
-                  `relative z-10` layer after this — see components/layout/PagePatterns.tsx. */}
-              <SmoothScrollProvider>
-                <PagePatterns />
-                <PageTransition>
-                  <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
-                </PageTransition>
-                <BackToTopButton />
-                <CustomCursor />
-              </SmoothScrollProvider>
+              {/* One success-toast host for every route. Dashboards, public
+                  pages, admin and the contract signing page all share the same
+                  top-centre animation, queue and duplicate suppression. */}
+              <SuccessNotificationProvider>
+                <PlatformThemeSync />
+                <RouteThemeEnforcer />
+                <AppLoadingSplash />
+                {/* One presence subscription for the whole app, so /messages, coach
+                    cards and the header all read the same live value. */}
+                <PresenceBridge />
+                {/* One click-sound listener for the whole app, mounted beside the
+                    presence bridge for the same reason: every shell renders a
+                    different subset of controls, so a per-shell or per-component
+                    listener would leave some routes silent and some clicks doubled.
+                    Renders nothing. */}
+                <ClickSoundBridge />
+                {/* The one shared four-corner decoration for Landing, Client, Coach
+                    and Admin: fixed at z-0, behind everything. The page background
+                    colour lives ONLY on <body> (see globals.css), every full-page
+                    wrapper below is transparent, and all page content sits in the
+                    `relative z-10` layer after this — see components/layout/PagePatterns.tsx. */}
+                <SmoothScrollProvider>
+                  <PagePatterns />
+                  <PageTransition>
+                    <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+                  </PageTransition>
+                  <BackToTopButton />
+                  <CustomCursor />
+                </SmoothScrollProvider>
+              </SuccessNotificationProvider>
             </ThemeProvider>
           </SessionProvider>
         </LanguageProvider>

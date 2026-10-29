@@ -13,6 +13,7 @@ import {
   useModalDismiss,
 } from '@/components/ui/Modal';
 import { cn } from '@/components/shared/cn';
+import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
 
 /**
  * The three non-happy states every admin list can land in, in one place.
@@ -205,7 +206,14 @@ export function ConfirmDialog({
   );
 }
 
-/** Transient success/failure toast. Auto-dismisses; never used for errors that need action. */
+/**
+ * Transient admin success/failure toast.
+ *
+ * Routed through the global notification host so the admin console uses the
+ * same top-centre animation, stacking and duplicate suppression as the rest of
+ * GrooveSystem. The parent still owns the message state and clears it after the
+ * same four-second lifetime.
+ */
 export function AdminToast({
   tone = 'success',
   message,
@@ -215,26 +223,21 @@ export function AdminToast({
   message: string | null;
   onDismiss: () => void;
 }) {
+  const { notifySuccess } = useSuccessNotifications();
+
   React.useEffect(() => {
     if (!message) return;
+
+    notifySuccess({
+      title: message,
+      tone,
+      duration: 4000,
+      dedupeKey: `admin-${tone}-${message}`,
+    });
+
     const timer = window.setTimeout(onDismiss, 4000);
     return () => window.clearTimeout(timer);
-  }, [message, onDismiss]);
+  }, [message, tone, onDismiss, notifySuccess]);
 
-  if (!message) return null;
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={cn(
-        'fixed bottom-5 left-1/2 z-[90] flex -translate-x-1/2 items-center gap-2.5 rounded-full border px-4 py-2.5 text-xs font-semibold shadow-[var(--shadow-lg)]',
-        tone === 'success'
-          ? 'border-success/30 bg-success-soft text-success'
-          : 'border-danger/30 bg-danger-soft text-danger'
-      )}
-    >
-      {message}
-    </div>
-  );
+  return null;
 }

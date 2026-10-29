@@ -13,7 +13,7 @@
  * The existing Reviews and Showcase tabs keep their original behaviour.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -46,7 +46,10 @@ import { VerificationDocumentsUpload } from '@/features/verification/components/
 import { GCashQrCard } from '@/features/payments/components/GCashQrField';
 import { verificationStatusOf } from '@/features/verification/services/verification';
 import { BadgeCollection } from '@/components/badges/BadgeCollection';
+import { ProfileProgressCard } from '@/components/achievements/ProfileProgressCard';
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
+import { profileTaskRequirements } from '@/lib/achievements/requirements';
+import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
 import {
   AddressSection,
   CoachBioSection,
@@ -147,6 +150,37 @@ export default function CoachProfilePage() {
   const { badgeStatus: coachBadgeStatus, refetch: refetchCoachBadgeStatus } = useBadgeStatus(
     coach?.id ?? null
   );
+
+  const { notifySuccess } = useSuccessNotifications();
+
+  /**
+   * Coach profile completion has seven real requirements. Every value comes
+   * from the saved coach rows — the client's three-item checklist is never
+   * reused here.
+   */
+  const coachProfileRequirements = useMemo(() => {
+    const coachProfileRow = coach?.coach_profile;
+    return profileTaskRequirements('coach', {
+      profile: coach
+        ? {
+            photo_url: coach.photo_url,
+            bio: coach.bio,
+            city_name: coach.city_name,
+            region_name: coach.region_name,
+            barangay_name: coach.barangay_name,
+          }
+        : null,
+      roleProfile: coachProfileRow
+        ? {
+            talents: coachProfileRow.talents,
+            genres: coachProfileRow.genres,
+            service_fee: coachProfileRow.service_fee,
+            duration: coachProfileRow.duration,
+            payment_type: coachProfileRow.payment_type,
+          }
+        : null,
+    });
+  }, [coach]);
 
   /**
    * Recompute achievement progress from live Supabase data, then reload the
@@ -343,6 +377,47 @@ export default function CoachProfilePage() {
 
       setCoach((c) => (c ? { ...c, photo_url: newPhotoUrl } : c));
       setSuccess('Coach profile photo updated successfully!');
+
+      const coachProfileRow = coach?.coach_profile;
+      const nextRequirements = profileTaskRequirements('coach', {
+        profile: {
+          photo_url: newPhotoUrl,
+          bio: coach?.bio,
+          city_name: coach?.city_name,
+          region_name: coach?.region_name,
+          barangay_name: coach?.barangay_name,
+        },
+        roleProfile: coachProfileRow
+          ? {
+              talents: coachProfileRow.talents,
+              genres: coachProfileRow.genres,
+              service_fee: coachProfileRow.service_fee,
+              duration: coachProfileRow.duration,
+              payment_type: coachProfileRow.payment_type,
+            }
+          : null,
+      });
+      const completed = nextRequirements.filter((requirement) => requirement.met).length;
+
+      notifySuccess({
+        title: 'Profile photo updated',
+        description: 'Your new photo is live on your coach profile.',
+        icon: <Camera className="h-4 w-4" aria-hidden="true" />,
+        dedupeKey: `coach-photo-${user.id}`,
+        progress: {
+          completed,
+          total: nextRequirements.length,
+          label: 'Profile completion',
+        },
+      });
+
+      try {
+        const { updateAchievementsAfterProfileUpdate } = await import('@/app/actions/achievements');
+        await updateAchievementsAfterProfileUpdate(user.id, 'coach');
+        await Promise.all([refetchCoachAchievements(), refetchCoachBadgeStatus()]);
+      } catch {
+        // A badge refresh must not undo a successfully uploaded photo.
+      }
     } catch (err) {
       setFailure(err instanceof Error ? err.message : 'Failed to upload photo.');
     } finally {
@@ -491,9 +566,52 @@ export default function CoachProfilePage() {
       try {
         const { updateAchievementsAfterProfileUpdate } = await import('@/app/actions/achievements');
         await updateAchievementsAfterProfileUpdate(user.id, 'coach');
+        await Promise.all([refetchCoachAchievements(), refetchCoachBadgeStatus()]);
       } catch (e) {
         console.error('Failed to update achievements:', e);
       }
+
+      // The coach checklist owns seven requirements; compute its own counts
+      // from the values just written instead of borrowing a badge total.
+      const nextRequirements = profileTaskRequirements('coach', {
+        profile: {
+          photo_url: coach.photo_url,
+          bio,
+          city_name: address.city_name,
+          region_name: address.region_name,
+          barangay_name: address.barangay_name,
+        },
+        roleProfile: {
+          talents: coachForm.talents,
+          genres: coachForm.genres.length ? JSON.stringify(coachForm.genres) : null,
+          service_fee: coachForm.service_fee,
+          duration: coachForm.duration,
+          payment_type: coachForm.payment_type,
+        },
+      });
+      const completed = nextRequirements.filter((requirement) => requirement.met).length;
+      const remaining = nextRequirements.length - completed;
+
+      notifySuccess({
+        title: 'Profile saved',
+        description:
+          remaining === 0
+            ? 'Every required coach detail is complete.'
+            : `${remaining} required ${remaining === 1 ? 'detail' : 'details'} still need your attention.`,
+        dedupeKey: `coach-profile-save-${user.id}`,
+        progress: {
+          completed,
+          total: nextRequirements.length,
+          label: 'Profile completion',
+        },
+        action: {
+          label: 'View progress',
+          onClick: () =>
+            document
+              .getElementById('profile-completion-coach')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+        },
+      });
 
       await fetchCoachData();
     } catch (err) {
@@ -614,7 +732,8 @@ export default function CoachProfilePage() {
 
       {/* Achievements - Full width section below profile header */}
       {coach && (
-        <div className="mb-6">
+        <div className="mb-6 space-y-4">
+          <ProfileProgressCard role="coach" requirements={coachProfileRequirements} />
           <BadgeCollection
             tasks={coachAchievements}
             badgeStatus={coachBadgeStatus}

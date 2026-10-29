@@ -2,17 +2,22 @@
  * Curated rehearsal studios for the Studio Locator.
  *
  * WHY A CURATED DATASET
- *   The locator's other source, OpenStreetMap via the Overpass API, has no
- *   record of any of these six venues — a live query over San Jose del Monte
- *   returned zero of them. They come instead from the Groove PH Google Maps
- *   reference (https://maps.app.goo.gl/cjvxNogVCiqhU9ts5), which is a Maps
- *   search for "san jose del monte dance bulacan studio".
+ *   The primary source is the admin-managed `public.studios` table in Supabase.
+ *   These reviewed points are the fallback while that table is still empty,
+ *   and each one comes from the Groove PH Google Maps reference
+ *   (https://maps.app.goo.gl/cjvxNogVCiqhU9ts5), a Maps search for
+ *   "san jose del monte dance bulacan studio".
  *
  *   That reference was read by hand (it is a user-provided source, not a
  *   scraper): each coordinate below is transcribed from the place URL Google
  *   published for that result. Addresses are shown ONLY where the studio itself
  *   publishes one (Facebook / Instagram / its own site); otherwise they are
  *   null.
+ *
+ *   Additional rows below were verified against the business's own public
+ *   page (Facebook, Instagram, or official site) for the address, and against
+ *   a public place listing (Google Maps place page, Waze, or an OpenStreetMap
+ *   mirror) for the coordinate. No coordinate is estimated from an address.
  *
  *   This file is the "small, maintainable curated dataset" from the feature
  *   spec. To change a listing, edit the row here. To mark a venue as
@@ -96,6 +101,50 @@ export const CURATED_STUDIOS: CuratedStudio[] = [
     address: null,
     latitude: 14.7938034,
     longitude: 121.0055674,
+    image: '/image/wc/dance.jpg',
+  },
+  {
+    id: 'curated-anima-dance-studio',
+    name: 'Anima Dance Studio',
+    // Address published on the studio's Instagram and Facebook pages.
+    address:
+      '3rd Floor, RnW Building, MacArthur Highway, Bunlo, Bocaue, Bulacan',
+    // Public place listing: maptons.com/p/10886593561 (14.7819783, 120.9344862).
+    latitude: 14.7819783,
+    longitude: 120.9344862,
+    image: '/image/wc/dance.jpg',
+  },
+  {
+    id: 'curated-stc-performing-arts-center',
+    name: 'STC Performing Arts Center',
+    // Address published on the studio's Facebook page.
+    address:
+      '2F JM Mendoza Building, KM 35 MacArthur Highway, Abangan Norte, Marilao, Bulacan',
+    // Published Google Maps place page: maps.app.goo.gl/6wf9BstdjcGpahrJ8.
+    latitude: 14.7914752,
+    longitude: 120.9892864,
+    image: '/image/wc/dance.jpg',
+  },
+  {
+    id: 'curated-cuts-curves-movements',
+    name: 'Cuts-Curves and Movements Fitness Dance Studio',
+    // Address published on the studio's Instagram and Waze place page.
+    address:
+      '714 Talisay St. cor. Bancal Extension, Meycauayan, Bulacan',
+    // Public Waze place page coordinate (place.ChIJ_dE4pb6zlzMRiQF0VrqY5BE).
+    latitude: 14.720947,
+    longitude: 120.9609599,
+    image: '/image/wc/dance.jpg',
+  },
+  {
+    id: 'curated-kidlat-dance-studio',
+    name: 'Kidlat Dance Studio',
+    // Address published on the studio's official site and ClassPass listing.
+    address:
+      'Unit 202 & 203, Sunrise Condominium I, Ortigas Avenue, San Juan City, Metro Manila',
+    // Public place listing: maptons.com/p/10741843318 (14.6029310, 121.0456313).
+    latitude: 14.602931,
+    longitude: 121.0456313,
     image: '/image/wc/dance.jpg',
   },
 ];

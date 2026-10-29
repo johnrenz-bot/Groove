@@ -212,7 +212,7 @@ const GLANCE = [
   {
     icon: Search,
     label: 'Studio locator',
-    value: 'Curated listings & OpenStreetMap',
+    value: 'Verified studios on Google Maps',
   },
 ];
 

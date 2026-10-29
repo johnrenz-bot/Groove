@@ -6,6 +6,7 @@ import { Appointment } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Modal, ModalSection, ModalCard } from '@/components/ui/Modal';
+import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
 
 interface FeedbackModalProps {
   appointment: Appointment;
@@ -20,6 +21,7 @@ export default function FeedbackModal({
   onClose,
   onSuccess,
 }: FeedbackModalProps) {
+  const { notifySuccess } = useSuccessNotifications();
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -76,6 +78,15 @@ export default function FeedbackModal({
       }
 
       setSuccess(true);
+
+      notifySuccess({
+        title: 'Review submitted',
+        description: `Your ${rating}-star review is saved and has been shared with your coach.`,
+        icon: <Star className="h-4 w-4" fill="currentColor" aria-hidden="true" />,
+        dedupeKey: `review-submitted-${appointment.id}-${user.id}`,
+        duration: 6000,
+      });
+
       if (onSuccess) onSuccess();
 
       const isFiveStar = rating === 5;

@@ -393,24 +393,44 @@ User opens AI assistant modal (CoachAIAssistantModal or TalentCoachAssistant)
 ```
 User navigates to studio locator section
   → StudioLocator renders search controls:
-      - Radius selector (1km, 3km, 5km, 10km)
-      - Map centered on San Jose del Monte, Bulacan
+      - City/municipality/province/address search (Nominatim rate-limited + cached, PH-only)
+      - Radius selector (1 km, 5 km, 10 km, 25 km, 50 km, custom)
+      - Use My Location (browser geolocation, requested only on click)
+      - Set Custom Center (next map click)
+      - Map opens centered on reference area (SJDM, Bulacan) with radius circle
 
-  → Sends GET to /api/studios/route.ts?lat=...&lng=...&radius=...
-      → Route handler queries OpenStreetMap Overpass API:
-          [out:json]; (
-            node["leisure"="dance"](...bbox...);
-            way["leisure"="dance"](...bbox...);
-            node["amenity"~"arts_centre|theatre"](...bbox...);
-            ...
-          ); out center;
+  → Radius discovery sends GET /api/studios?scope=nearby&lat=...&lng=...&radius=...
+      → Route handler reads public.studios from Supabase within the query bounding box
+      → Merges reviewed curated listings (fallback when Supabase is empty)
+      → Deduplicates by Place ID, then name + position, and rejects coordinates outside PH
+      → Returns normalised studio records with Haversine distances
 
-      → Filters results within radius using lib/geo.ts:haversineDistance()
-      → Returns venue list with name, lat, lng, tags
+  → Nationwide browsing sends GET /api/studios?scope=nationwide&page=N
+      → The GroovePH directory is returned for the whole country
+      → Four city anchors are swept per page from a fixed, interleaved order
+      → Categories rotate across cities (studio, school, academy, ballet, hip-hop, K-pop,
+        ballroom, performing-arts centre)
 
-  → StudioLocatorMap renders results on a Leaflet map
-      → Markers for each venue
-      → Popup with venue name and details
+  → Supplementary discovery via Google Places (New):
+      → Six nearby categories, each following nextPageToken up to two pages (8-request cap)
+      → Every result page is cached for six hours; identical searches never re-bill
+      → Deduplicates in-flight calls and merges pages by Place ID
+      → Rate-limit / quota exhaustion (RESOURCE_EXHAUSTED) opens a cooldown breaker
+      → Quota failures never hide registered or curated studios
+
+  → StudioLocator filters response locally with lib/geo.ts:haversineKm()
+      → Radius selector adjusts the visible set locally
+      → Location and radius changes clear the previous page before fetching
+      → List and map markers always use the exact distance-filtered array
+      → Nationwide results are grouped into "Near this region page" and
+        "Elsewhere in the Philippines" instead of implying a local radius
+
+  → StudioLocatorMap renders results on Google Maps:
+      → Advanced Markers for studios within the radius
+      → Geodesic radius circle fitted around search centre
+      → Separate device-location marker
+      → InfoWindow on marker selection, synchronised with the list
+      → Map key/API failure shows a retry panel; studio listings keep working
 ```
 
 ---
@@ -455,6 +475,6 @@ User Changes Theme:
 | Send message | `supabase.from('messages').insert()` | — | `messages` |
 | Community post | `supabase.from('community_posts').insert()` | — | `community_posts` |
 | AI question | `fetch('/api/ai/coach-assistant')` | OpenRouter API | — |
-| Find studios | `fetch('/api/studios')` | Overpass API | — |
+| Find studios | `fetch('/api/studios')` | Supabase + Google Geocoding/Maps JS | `studios` |
 | Verify user | Admin updates `profiles` | — | `profiles` |
 | Set theme | `localStorage.setItem()` | — | `platform_settings` (admin default) |

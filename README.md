@@ -71,7 +71,7 @@ The platform serves three distinct audiences behind a single Next.js application
 - Filterable coach discovery with verified-credential badges and transparent pricing.
 - Full appointment lifecycle: inquiry → confirmation → session → post-session feedback and star ratings.
 - In-browser digital agreements with vector e-signature capture, rendered for both participants.
-- Interactive studio locator (Leaflet + OpenStreetMap) with adjustable search radius.
+- Interactive studio locator (Google Maps JavaScript API) with address search, browser geolocation, and 1/5/10/25/50 km radius filtering.
 
 ### Community
 - Showcase feed with media uploads delivered through signed URLs, reactions, and comments.
@@ -106,7 +106,7 @@ The platform serves three distinct audiences behind a single Next.js application
 | **Styling** | Tailwind CSS v4 | CSS-variable design system via `@tailwindcss/postcss` |
 | **Backend-as-a-Service** | Supabase | PostgreSQL, Row Level Security, Realtime, Storage |
 | **Auth** | `@supabase/ssr` | HTTP-only cookie session exchange, edge route rules |
-| **Mapping** | Leaflet 1.9.4 + OpenStreetMap | Overpass API queries for studio discovery |
+| **Mapping** | Google Maps JavaScript API + Places API (New) | Interactive map, Advanced Markers, radius circle, InfoWindows, real business discovery |
 | **Signatures** | `react-signature-canvas` | Vector e-signature capture |
 | **AI** | `@google/genai` | Gemini, with Groq / OpenRouter fallback chain |
 | **Email** | `resend` | Welcome and notification delivery |
@@ -144,8 +144,8 @@ The platform serves three distinct audiences behind a single Next.js application
                ▼                           ▼
 ┌──────────────────────────────┐  ┌──────────────────────────────────────┐
 │        Supabase Cloud        │  │        External Services              │
-│  ├── PostgreSQL + RLS        │  │  ├── OpenStreetMap / Overpass API     │
-│  ├── Auth (cookie sessions)  │  │  │     (studio locator)               │
+│  ├── PostgreSQL + RLS        │  │  ├── Google Maps JavaScript API      │
+│  ├── Auth (cookie sessions)  │  │  │     (studio locator + geocoding)   │
 │  ├── Realtime (chat,presence)│  │  ├── Google Gemini (+ AI fallbacks)    │
 │  └── Storage buckets         │  │  └── Resend (transactional email)     │
 └──────────────────────────────┘  └──────────────────────────────────────┘
@@ -271,13 +271,40 @@ Additional topic-specific SQL lives alongside it in `supabase/` (storage policie
 
 ## Configuration &amp; Email Delivery
 
-The application is configured through environment variables, loaded from `.env.local` in development and from your hosting provider or container environment in production.
+The application is configured through environment variables, loaded from `.env.local` in development and from your hosting provider's environment variables in production.
 
 **`.env.example` is the canonical template.** It is committed to the repository and lists every key the application reads, each with a placeholder value:
 
 ```bash
 cp .env.example .env.local
 ```
+
+### Google Maps setup
+
+The Studio Locator uses two Google surfaces: the browser-side Maps JavaScript API for the map itself, and server-side Places API (New) discovery behind `/api/studios`. It needs one public key and, optionally, a Map ID:
+
+```bash
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-restricted-browser-key
+NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=your-map-id   # optional; DEMO_MAP_ID is used when unset
+# Optional: separate server-only key for Places discovery
+GOOGLE_PLACES_API_KEY=your-server-places-key
+```
+
+In the Google Cloud console:
+
+1. Enable **Maps JavaScript API** and **Places API (New)** for the project. The map and markers call Maps JavaScript API; studio discovery calls Places API (New) from the server.
+2. Create a **Map ID** (JavaScript, vector) for production and set `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID`. Advanced Markers use this ID; the documented `DEMO_MAP_ID` fallback is for development only.
+3. Restrict the API key under **APIs & Services → Credentials → API key**:
+   - **Application restrictions:** HTTP referrers.
+   - Add production origins (for example `https://your-domain.com/*`) and, if needed, `http://localhost:3000/*` for development.
+   - **API restrictions:** allow Maps JavaScript API and Places API (New).
+   - A browser-referrer-restricted key cannot be used for server-side Places calls. Either relax that key's application restriction or set `GOOGLE_PLACES_API_KEY` to a separate server key with **Places API (New)** enabled and no referrer restriction.
+4. Enable **billing** for the Google Cloud project. Places API (New) and Maps JavaScript API require an active billing account even within the free tier; without it the APIs return `REQUEST_DENIED` / `BILLING_DISABLED`. Then set a billing budget/alert.
+5. Check the **Places API (New)** quotas. The default project quota for `SearchTextRequest` can be as low as 100 requests/day; Nearby Search, Autocomplete, and Place Details have separate quotas. `/api/studios` uses Nearby Search for radius browsing, Text Search for business-name queries, and Autocomplete + Place Details as a fallback, so one exhausted metric does not disable the others.
+
+`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is intentionally exposed to the browser; the referrer and API restrictions are what protect it. Never put `SUPABASE_SERVICE_ROLE_KEY` or other server secrets in a `NEXT_PUBLIC_` variable.
+
+Google Maps displays its own attribution and logo. Studio rows come from `public.studios` in Supabase, the reviewed curated dataset as a fallback, and real Google Places business listings. Directory rows and Google rows are labelled separately, and a quota or billing failure is reported as missing Google coverage rather than as a GroovePH claim.
 
 ### Resend Email Architecture &amp; Troubleshooting
 
@@ -299,34 +326,6 @@ GroovePH uses a two-tier email architecture:
    - Dispatched asynchronously via the Resend Node SDK when a user creates an account.
    - **Test Mode vs. Production**: If `RESEND_FROM_ADDRESS` is unset or set to `GroovePH <onboarding@resend.dev>`, Resend allows delivery **only to the email address of the Resend account owner**. Attempting to send to any other recipient will return HTTP 403 `validation_error` (`restricted_sender`).
    - **Production Setup**: Add and verify your custom domain at [resend.com/domains](https://resend.com/domains), then set `RESEND_FROM_ADDRESS="GroovePH <hello@yourdomain.com>"` in `.env.local` or your production environment variables.
-
----
-
-## Docker Setup
-
-GroovePH includes a production-ready, multi-stage `Dockerfile` and `compose.yaml` optimized using Next.js standalone output:
-
-### Using Docker Compose
-
-```bash
-# Build and run with your local environment variables
-docker compose up --build
-```
-
-Access the app at `http://localhost:3000`.
-
-### Manual Docker Build
-
-```bash
-# 1. Build the image
-docker build -t groove-app .
-
-# 2. Run the container passing your environment file
-docker run -p 3000:3000 --env-file .env.local groove-app
-```
-
-- **Security**: No secrets or `.env` files are baked into the Docker image. All sensitive API keys (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `GEMINI_API_KEY`) are injected at container runtime.
-- **Image Size**: The multi-stage build leverages a highly optimized Next.js build process, minimizing the final production image.
 
 ---
 

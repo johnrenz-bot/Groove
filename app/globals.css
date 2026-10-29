@@ -228,17 +228,129 @@
      is a chip that cannot be read. Selection is carried by the fill plus the
      `-border` token. This is the same pattern GitHub and Linear use in dark mode.
    ------------------------------------------------------------------------------ */
-:root {
-  cursor: none;
+/* ------------------------------------------------------------------------------
+   CUSTOM CURSOR
+
+   The native cursor is hidden only while <CustomCursor /> is actually mounted
+   and has added `.g-custom-cursor` to <html>. That means a touch device, a
+   reduced-motion visitor, a JS failure or a hydration delay always keeps a
+   working native pointer. Text fields and native controls opt back in
+   explicitly so the custom layer cannot produce two cursors at once.
+   ------------------------------------------------------------------------------ */
+html.g-custom-cursor,
+html.g-custom-cursor body,
+html.g-custom-cursor * {
+  cursor: none !important;
 }
 
-/* Ensure native cursor returns for critical interactions */
-input,
-textarea,
-select,
-[contenteditable="true"],
-.native-cursor {
-  cursor: auto !important;
+html.g-custom-cursor :is(input, textarea, [contenteditable="true"]) {
+  cursor: text !important;
+}
+
+html.g-custom-cursor :is(
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  input[type="color"],
+  input[type="file"],
+  .native-cursor,
+  [data-cursor-native]
+) {
+  cursor: pointer !important;
+}
+
+/* The cursor layer itself. Two nested transforms: the outer `.g-cur__pos`
+   tracks the pointer (written from a single RAF loop), while the inner ring/dot
+   own their scale transitions. Keeping those transforms separate is what stops
+   the old center-offset misalignment and the transform-transition lag. */
+.g-cur {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+  contain: layout style;
+}
+.g-cur[data-visible='true'] {
+  opacity: 1;
+}
+.g-cur[data-state='native'] {
+  opacity: 0;
+  transition: none;
+}
+
+.g-cur__pos {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+.g-cur__ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(247, 240, 225, 0.72);
+  border-radius: 9999px;
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 0 16px rgba(0, 0, 0, 0.16);
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease,
+    background-color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+.g-cur__dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  /* Cream, not gold: the primary CTA is gold, and a gold dot disappeared on
+     top of it. The dark hairline keeps the dot visible on light surfaces. */
+  background: #f7f0e1;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(247, 240, 225, 0.4);
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.g-cur[data-state='pointer'] .g-cur__ring {
+  border-color: rgba(244, 190, 77, 0.9);
+  background-color: rgba(244, 190, 77, 0.1);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.22),
+    0 0 20px rgba(244, 190, 77, 0.2);
+  transform: translate(-50%, -50%) scale(1.5);
+}
+.g-cur[data-state='pointer'] .g-cur__dot {
+  transform: translate(-50%, -50%) scale(0.55);
+}
+
+.g-cur[data-state='down'] .g-cur__ring {
+  border-color: rgba(247, 240, 225, 0.95);
+  transform: translate(-50%, -50%) scale(0.82);
+}
+.g-cur[data-state='down'] .g-cur__dot {
+  transform: translate(-50%, -50%) scale(0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-cur {
+    display: none;
+  }
 }
 
 :root {
@@ -875,6 +987,16 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Reserve the scrollbar track on pointer-driven layouts so a short page -> long
+   page navigation cannot shift the whole layout sideways. Scoped to >=768px:
+   on phones the scrollbar is an overlay and reserving a gutter only creates a
+   3px horizontal overflow in emulation. */
+@media (min-width: 768px) {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+
 /* ------------------------------------------------------------------------------
    INTERACTIVE CONTROL FLOOR
 
@@ -945,6 +1067,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 200ms var(--ease-out-expo), color 200ms var(--ease-out-expo);
   position: relative;
+  /* Full-bleed decorations must never create a horizontal scrollbar. `clip`
+     does not turn <body> into a scroll container the way `hidden` would. */
+  overflow-x: clip;
+}
+
+/* Route entrance. CSS-only so reduced-motion is honoured on the very first
+   frame and no React state or JS transform loop is involved. */
+.page-enter {
+  animation: page-enter 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
 }
 
 /* ------------------------------------------------------------------------------
@@ -1113,6 +1259,8 @@ textarea {
 .g-reveal[data-reveal='shown'] {
   opacity: 1;
   transform: translate3d(0, 0, 0);
+  /* Release the compositor hint once the reveal has finished. */
+  will-change: auto;
 }
 
 /* Per-child stagger for grids: the Nth card trails the first slightly, which
@@ -3640,78 +3788,277 @@ select.g-input option {
   padding: 0.75rem 0.5rem;
 }
 
-/* --- Studio Locator (Leaflet) -------------------------------------------- */
+/* --- Studio Locator (Google Maps) ---------------------------------------- */
 
-/* Leaflet ships light-mode-only chrome: a pale grey tile background, near-black
-   control text, and a white attribution bar. In the dark palette that reads as
-   a bright rectangle punched into the page, so the handful of Leaflet's own
- * surfaces are re-pointed at the app's tokens. Only the frame is themed — the
- * raster tiles themselves stay as OpenStreetMap renders them. */
-.leaflet-container {
+/* Gold that stays legible in both themes: Sunburst on carbon, a deepened
+   amber on cream. `light-dark()` reads the color-scheme the ThemeProvider
+   sets on <html>, so it also covers seasonal light themes that do not add a
+   `.light` class. */
+.g-gold-text {
+  color: light-dark(#8a5d08, var(--brand-sunburst));
+}
+
+/* Google Maps injects its own DOM inside this box. The Studio Locator card is
+   `isolate` + `overflow-hidden`, and this keeps the map's internal stacking
+   contexts (controls, panes, markers) from ever rising above the card, the
+   sticky header, a dropdown, or a modal. */
+.g-map {
   background-color: var(--muted);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  /* Leaflet stacks its own panes at z-index 200-1000. The map lives inside an
-     `isolate` + `overflow-hidden` box on the Studio Locator card, and this makes
-     the container its own stacking context too, so those values can never lift
-     the map above that card, the sticky header, a dropdown, or a modal. */
   z-index: 0;
 }
-.leaflet-tile-pane {
-  /* Tiles are photographic; a slight desaturation stops them competing with the
-     gold accent that marks the radius and the centre pin. */
-  filter: saturate(0.85);
+.g-map .gm-style {
+  font-family: inherit;
 }
-.light .leaflet-tile-pane {
-  filter: none;
-}
-
-.leaflet-control-zoom a,
-.leaflet-control-layers {
-  background-color: var(--card);
-  border-color: var(--border-strong);
-  color: var(--foreground);
-}
-.leaflet-control-zoom a:hover {
-  background-color: var(--muted);
-  color: var(--foreground);
-}
-.leaflet-control-attribution {
-  background-color: color-mix(in srgb, var(--card) 88%, transparent);
-  color: var(--muted-foreground);
-  font-size: 10px;
-}
-.leaflet-control-attribution a {
-  color: var(--accent-text);
-}
-
-/* Leaflet injects `leaflet-popup-content-wrapper` / `-tip` with hard-coded white
-   and grey; repainting them keeps the marker popup inside the theme. */
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-  background-color: var(--card);
-  color: var(--foreground);
-  box-shadow: var(--shadow-panel);
-}
-.leaflet-popup-content {
-  font-size: 0.9375rem;
-  line-height: 1.45;
-  margin: 0.75rem 0.875rem;
-}
-.leaflet-popup-content span {
-  color: var(--muted-foreground);
-}
-
-/* Leaflet sets `.leaflet-div-icon { background: none; border: none }` itself;
-   this keeps our inline-SVG pins from inheriting any stray sizing. */
-.g-studio-pin {
-  background: none;
-  border: none;
-}
-
-/* Keep keyboard focus visible on the map surface and on marker buttons. */
-.leaflet-container:focus-visible {
+.g-map:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Custom Advanced Markers. The content element is positioned by Google with its
+   bottom centre on the coordinate, so scaling from that origin keeps the pin
+   tip exactly on the point. */
+.g-gmap-pin {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+  transform-origin: bottom center;
+  transition: transform 180ms ease;
+}
+.g-gmap-pin svg {
+  display: block;
+}
+.g-gmap-pin:hover {
+  transform: scale(1.06) translateY(-1px);
+}
+.g-gmap-pin--active {
+  transform: scale(1.16) translateY(-2px);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand-sunburst) 70%, transparent));
+}
+.g-gmap-pin--active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2px solid var(--brand-sunburst);
+  transform: translate(-50%, -50%);
+  animation: g-studio-pin-pulse 1800ms ease-out infinite;
+  pointer-events: none;
+}
+@keyframes g-studio-pin-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 0.85;
+  }
+  75% {
+    transform: translate(-50%, -50%) scale(1.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.9);
+    opacity: 0;
+  }
+}
+.g-gmap-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background: var(--brand-sunburst);
+  color: var(--brand-sunburst-fg);
+  font-size: 12px;
+  font-weight: 700;
+  border: 2px solid var(--card);
+  box-shadow: var(--shadow-md);
+  transition: transform 160ms ease;
+}
+.g-gmap-cluster:hover {
+  transform: scale(1.07);
+}
+.g-gmap-pin--center {
+  cursor: default;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+}
+
+/* The device location is kept visually distinct from studio pins. */
+.g-gmap-user-dot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+.g-gmap-user-dot__halo {
+  position: absolute;
+  inset: -9px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.24);
+  animation: g-user-pulse 2.2s ease-out infinite;
+}
+.g-gmap-user-dot__core {
+  position: absolute;
+  inset: 4px;
+  border-radius: 9999px;
+  background: #38bdf8;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+@keyframes g-user-pulse {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+/* Google ships a white InfoWindow bubble. Repainting its chrome and using the
+   app's tokens inside keeps the popup legible in every theme. */
+.g-map .gm-style-iw-c {
+  padding: 0 !important;
+  border-radius: 14px !important;
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+.g-map .gm-style-iw-d {
+  overflow: hidden !important;
+}
+.g-map .gm-style-iw-tc::after {
+  background: var(--card) !important;
+}
+.g-map .gm-ui-hover-effect {
+  top: 4px !important;
+  right: 4px !important;
+}
+.g-map .gm-ui-hover-effect > span {
+  background-color: var(--foreground) !important;
+}
+
+.g-gmap-info {
+  padding: 14px 36px 14px 16px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+.g-gmap-info__title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.g-gmap-info__address {
+  margin: 0.25rem 0 0;
+  color: var(--muted-foreground);
+}
+.g-gmap-info__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+}
+.g-gmap-info__badge {
+  border-radius: 9999px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+.g-gmap-info__badge--supabase {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.g-gmap-info__badge--curated {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.g-gmap-info__badge--google {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.g-gmap-info__distance {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+.g-gmap-info__rating {
+  color: light-dark(#8a5d08, var(--brand-sunburst));
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.g-gmap-info__link {
+  display: inline-block;
+  margin-top: 0.65rem;
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.g-gmap-info__link:hover {
+  color: var(--accent-hover);
+}
+
+/* Result cards rise in when a new set arrives. `backwards` keeps the final
+   state at the element's normal styles, so selection and hover transitions
+   still work after the animation finishes. */
+@keyframes g-studio-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.g-studio-card {
+  animation: g-studio-rise 320ms cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+}
+
+/* The Studio Locator's mobile sheet floats over the bottom of the map. Google
+   puts its zoom control at the bottom-right of the map container, so lift it
+   clear of the collapsed sheet; otherwise the only zoom affordance disappears
+   behind the panel on phones and tablets. Scoped to the locator so every other
+   map keeps the default placement. */
+@media (max-width: 1023px) {
+  .g-studio-locator .g-map .gm-bundled-control {
+    bottom: 96px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-studio-card {
+    animation: none;
+  }
+  .g-gmap-pin,
+  .g-gmap-cluster {
+    transition: none;
+  }
+  .g-gmap-pin--active::after {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-gmap-pin,
+  .g-gmap-user-dot__halo {
+    transition: none;
+    animation: none;
+  }
 }
 
 /* ------------------------------------------------------------------------------
@@ -4978,6 +5325,42 @@ select.g-input option {
 .hx-burger:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+/* The three lines had no styles at all, which left the mobile nav as an empty
+   tinted square. They inherit the trigger's colour, so the landing bar's cream
+   and the app bar's foreground both work without extra overrides. */
+.hx-burger-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 16px;
+  height: 14px;
+}
+.hx-burger-line {
+  display: block;
+  width: 100%;
+  height: 1.5px;
+  border-radius: 9999px;
+  background-color: currentColor;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 140ms ease;
+}
+.hx-burger[aria-expanded='true'] .hx-burger-line:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+.hx-burger[aria-expanded='true'] .hx-burger-line:nth-child(2) {
+  opacity: 0;
+}
+.hx-burger[aria-expanded='true'] .hx-burger-line:nth-child(3) {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hx-burger-line {
+    transition-duration: 1ms;
+  }
 }
 @media (min-width: 1024px) {
   .hx-burger {
@@ -7341,49 +7724,85 @@ select.g-input option {
    Full-image, edge-to-edge, 85-95vh hero. No sun. Image centrepiece.
    ====================================================================== */
 
-/* The hero now acts as a full viewport image container */
+/* The hero is a full-bleed image section whose copy and stats share one normal-
+   flow column. The old layout pinned the stats to the bottom with `position:
+   absolute`, so on short screens they sat on top of the CTA and trust rows. */
 .ld-hero-cinematic {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   width: 100%;
-  /* Height is set inline: clamp(560px, 90vh, 1100px) */
+  min-height: clamp(600px, 90vh, 1040px);
+  overflow: hidden;
+  background: #070708;
+}
+@supports (height: 100svh) {
+  .ld-hero-cinematic {
+    /* svh keeps the first fold stable while mobile browser chrome collapses. */
+    min-height: clamp(600px, 90svh, 1040px);
+  }
 }
 
-/* Headline on top of the hero image */
+.ld-hero-media {
+  will-change: transform;
+}
+.ld-hero-media__img {
+  object-position: 50% 35%;
+  /* Slightly oversized so the parallax translation never reveals an edge. */
+  transform: scale(1.08);
+}
+
+.ld-hero-inner {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: clamp(1.5rem, 4vh, 2.5rem);
+  width: 100%;
+  padding-top: clamp(4.5rem, 11vh, 8rem);
+  padding-bottom: clamp(1.25rem, 3.2vh, 2.25rem);
+}
+
+.ld-hero-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  max-width: 46rem;
+}
+
+/* Eyebrow badge */
 .ld-hero-badge {
   display: inline-flex;
   align-self: flex-start;
   align-items: center;
   gap: 0.5rem;
-  padding: 5px 12px;
+  margin: 0 0 clamp(0.9rem, 1.8vh, 1.35rem);
+  padding: 6px 14px;
   border-radius: 9999px;
-  border: 1px solid rgba(201, 162, 74, 0.35);
+  border: 1px solid rgba(201, 162, 74, 0.4);
   background: rgba(201, 162, 74, 0.12);
-  color: rgba(247, 240, 225, 0.85);
-  font-size: 13px;
+  color: rgba(247, 240, 225, 0.88);
+  font-size: 0.875rem;
   font-weight: 500;
+  line-height: 1.25;
   letter-spacing: 0.01em;
+  white-space: nowrap;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
 .ld-hero-h1 {
-  margin: 0;
+  margin: 0 0 clamp(1rem, 2.2vh, 1.5rem);
   color: #fff;
-  font-size: clamp(2.75rem, 6.5vw, 5.5rem);
+  font-size: clamp(2.5rem, 8vw, 5.25rem);
   font-weight: 700;
   line-height: 0.98;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  max-width: 14ch;
-}
-@media (max-width: 640px) {
-  .ld-hero-h1 {
-    font-size: clamp(2.25rem, 10vw, 3.5rem);
-    letter-spacing: -0.03em;
-  }
+  max-width: 13ch;
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.25);
 }
 
 .ld-hero-h1-accent {
@@ -7396,26 +7815,30 @@ select.g-input option {
 }
 
 .ld-hero-lead {
-  margin: 0;
-  color: rgba(247, 240, 225, 0.75);
-  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  margin: 0 0 clamp(1.35rem, 3vh, 2rem);
+  color: rgba(247, 240, 225, 0.78);
+  font-size: clamp(0.9375rem, 1.35vw, 1.125rem);
   line-height: 1.65;
-  max-width: 52ch;
+  max-width: 50ch;
   text-wrap: pretty;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.35);
 }
-@media (max-width: 640px) {
-  .ld-hero-lead {
-    font-size: 0.9375rem;
-    max-width: 42ch;
-  }
+
+.ld-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
 }
 
 /* Primary CTA on the hero — high contrast for photo backgrounds */
 .ld-hero-btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  min-height: 2.875rem;
+  min-height: 3.25rem;
   padding: 0 1.5rem;
   border: 1px solid rgba(201, 162, 74, 0.6);
   border-radius: 9999px;
@@ -7445,13 +7868,14 @@ select.g-input option {
 .ld-hero-btn-secondary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  min-height: 2.875rem;
+  min-height: 3.25rem;
   padding: 0 1.375rem;
   border: 1px solid rgba(247, 240, 225, 0.3);
   border-radius: 9999px;
   background: rgba(247, 240, 225, 0.08);
-  color: rgba(247, 240, 225, 0.88);
+  color: rgba(247, 240, 225, 0.9);
   font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -7469,87 +7893,150 @@ select.g-input option {
   border-color: rgba(247, 240, 225, 0.5);
   transform: translateY(-1px);
 }
+.ld-hero-btn-secondary:active {
+  transform: scale(0.98);
+}
 
 /* Trust row in the hero */
+.ld-hero-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  margin-top: clamp(1rem, 2.5vh, 1.5rem);
+}
+
 .ld-hero-trust {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  color: rgba(247, 240, 225, 0.55);
-  font-size: 13px;
+  color: rgba(247, 240, 225, 0.62);
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
-/* ── Hero Stats strip — glass pill row at the bottom of the hero ─── */
+/* ── Stats strip + scroll cue, in normal flow at the bottom ───────────── */
+.ld-hero-baseline {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+}
+
 .ld-hero-stats {
   display: flex;
   align-items: stretch;
   gap: 0;
-  margin-bottom: 1.75rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 16px;
-  background: rgba(10, 8, 6, 0.55);
-  border: 1px solid rgba(247, 240, 225, 0.12);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(247, 240, 225, 0.06);
   width: fit-content;
   max-width: 100%;
+  margin: 0;
+  padding: 0.8rem 1.5rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(10, 8, 6, 0.62), rgba(10, 8, 6, 0.44));
+  border: 1px solid rgba(247, 240, 225, 0.14);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 8px 32px -12px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(247, 240, 225, 0.08);
   overflow: hidden;
-}
-@media (max-width: 600px) {
-  .ld-hero-stats {
-    gap: 0;
-    padding: 0.625rem 1rem;
-    width: 100%;
-    justify-content: space-around;
-  }
 }
 
 .ld-hero-stat {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 0.25rem 1.25rem;
-  position: relative;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.15rem 1.5rem;
 }
-@media (max-width: 600px) {
-  .ld-hero-stat {
-    padding: 0.25rem 0.625rem;
-    flex: 1;
-  }
+.ld-hero-stat:first-child {
+  padding-left: 0;
+}
+.ld-hero-stat:last-child {
+  padding-right: 0;
 }
 
 .ld-hero-stat-rule {
   position: absolute;
   left: 0;
-  top: 20%;
-  bottom: 20%;
+  top: 15%;
+  bottom: 15%;
   width: 1px;
   background: linear-gradient(to bottom, transparent, rgba(247,240,225,0.2), transparent);
 }
 
 .ld-hero-stat-value {
-  color: rgba(247, 240, 225, 0.95);
-  font-size: 1.375rem;
+  color: rgba(247, 240, 225, 0.96);
+  font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
-}
-@media (max-width: 600px) {
-  .ld-hero-stat-value {
-    font-size: 1.125rem;
-  }
 }
 
 .ld-hero-stat-label {
-  color: rgba(247, 240, 225, 0.5);
-  font-size: 11px;
+  color: rgba(247, 240, 225, 0.58);
+  font-size: 0.875rem;
   font-weight: 500;
+  line-height: 1.25;
   white-space: nowrap;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
+}
+
+/* Scroll cue */
+.ld-hero-scroll {
+  display: none;
+}
+@media (min-width: 900px) {
+  .ld-hero-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    padding-bottom: 0.4rem;
+    color: rgba(247, 240, 225, 0.52);
+  }
+}
+.ld-hero-scroll__label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.ld-hero-scroll__line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  transform-origin: top;
+}
+.ld-hero-scroll__line::before {
+  content: '';
+  width: 1px;
+  height: 2.75rem;
+  background: linear-gradient(to bottom, rgba(247, 240, 225, 0.55), transparent);
+}
+.ld-hero-scroll__chevron {
+  width: 1rem;
+  height: 1rem;
+  animation: ld-scroll-bob 2s ease-in-out infinite;
+}
+@keyframes ld-scroll-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(3px);
+    opacity: 0.9;
+  }
 }
 
 /* Light mode adaptation for hero stats */
@@ -7568,12 +8055,109 @@ select.g-input option {
 .light .ld-hero-stat-label,
 :root[data-theme="light"] .ld-hero-stat-label,
 :root[data-theme="classic"] .ld-hero-stat-label {
-  color: rgba(10, 8, 6, 0.5);
+  color: rgba(10, 8, 6, 0.55);
 }
 .light .ld-hero-stat-rule,
 :root[data-theme="light"] .ld-hero-stat-rule,
 :root[data-theme="classic"] .ld-hero-stat-rule {
   background: linear-gradient(to bottom, transparent, rgba(10,8,6,0.18), transparent);
+}
+
+@media (max-width: 900px) {
+  .ld-hero-cinematic {
+    min-height: clamp(580px, 92vh, 960px);
+  }
+  @supports (height: 100svh) {
+    .ld-hero-cinematic {
+      min-height: clamp(580px, 92svh, 960px);
+    }
+  }
+  .ld-hero-inner {
+    gap: 1.5rem;
+    padding-top: clamp(3.5rem, 8vh, 5rem);
+    padding-bottom: 1.25rem;
+  }
+  .ld-hero-copy {
+    max-width: 38rem;
+  }
+  .ld-hero-h1 {
+    max-width: 12ch;
+  }
+}
+
+@media (max-width: 640px) {
+  .ld-hero-inner {
+    gap: 1.25rem;
+    padding-top: 3.25rem;
+  }
+  .ld-hero-badge {
+    margin-bottom: 1rem;
+    padding: 5px 12px;
+  }
+  .ld-hero-h1 {
+    margin-bottom: 1rem;
+    font-size: clamp(2.25rem, 9.5vw, 3.5rem);
+    letter-spacing: -0.035em;
+    max-width: none;
+  }
+  .ld-hero-lead {
+    margin-bottom: 1.4rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    max-width: 42ch;
+  }
+  .ld-hero-trust-row {
+    gap: 0.4rem 1.1rem;
+    margin-top: 1.1rem;
+  }
+  .ld-hero-btn-primary,
+  .ld-hero-btn-secondary {
+    min-height: 3rem;
+  }
+  .ld-hero-stats {
+    width: 100%;
+    padding: 0.7rem 0.5rem;
+    justify-content: space-around;
+  }
+  .ld-hero-stat {
+    flex: 1;
+    padding: 0.15rem 0.5rem;
+  }
+  .ld-hero-stat:first-child,
+  .ld-hero-stat:last-child {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .ld-hero-stat-value {
+    font-size: 1.25rem;
+  }
+  .ld-hero-stat-label {
+    white-space: normal;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ld-hero-h1 {
+    font-size: clamp(2.15rem, 10.5vw, 3rem);
+  }
+  .ld-hero-ctas {
+    width: 100%;
+  }
+  .ld-hero-btn-primary,
+  .ld-hero-btn-secondary {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-hero-media {
+    will-change: auto;
+  }
+  .ld-hero-scroll__chevron {
+    animation: none;
+  }
 }
 
 /* ======================================================================
@@ -9295,6 +9879,13 @@ select.g-input option {
 html.lenis,
 html.lenis body {
   height: auto;
+}
+
+/* Lenis owns scrolling while it is active. Leaving the native
+   `scroll-behavior: smooth` in place makes every wheel tick and anchor jump
+   fight a second smoothing implementation, which reads as jitter. */
+html.lenis {
+  scroll-behavior: auto;
 }
 
 .lenis:not(.lenis-autoToggle).lenis-stopped {

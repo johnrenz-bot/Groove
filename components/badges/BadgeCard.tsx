@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Lock } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
+import { FeatureProgress } from '@/components/notifications/FeatureProgress';
 
 interface BadgeCardBadge {
   badgeType: string;
@@ -35,9 +36,6 @@ export function BadgeCard({ badge, onClick, comingSoon = false }: BadgeCardProps
     tasksCompleted,
     tasksTotal,
   } = badge;
-
-  const progressPct =
-    tasksTotal > 0 ? Math.min(100, Math.round((tasksCompleted / tasksTotal) * 100)) : 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (comingSoon) return;
@@ -123,18 +121,15 @@ export function BadgeCard({ badge, onClick, comingSoon = false }: BadgeCardProps
             )}
           </div>
         ) : (
-          /* Progress bar */
-          <div className="space-y-0.5">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-accent transition-all"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              {tasksCompleted}/{tasksTotal} tasks
-            </p>
-          </div>
+          /* This badge's own task progress — never a shared app counter. */
+          <FeatureProgress
+            completed={tasksCompleted}
+            total={tasksTotal}
+            label="Badge tasks"
+            size="sm"
+            showLabel={false}
+            className="space-y-0.5"
+          />
         )}
 
         {/* Description — 1 line */}

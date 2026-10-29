@@ -6,6 +6,7 @@ import { CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { FeatureProgress } from '@/components/notifications/FeatureProgress';
 
 interface BadgeModalTask {
   title: string;
@@ -56,9 +57,6 @@ export function BadgeModal({
     tasksCompleted,
     tasksTotal,
   } = badge;
-
-  const progressPct =
-    tasksTotal > 0 ? Math.min(100, Math.round((tasksCompleted / tasksTotal) * 100)) : 0;
 
   const earnedDate = unlockedAt
     ? new Date(unlockedAt).toLocaleDateString(undefined, {
@@ -167,12 +165,13 @@ export function BadgeModal({
             Unlocked on {earnedDate}
           </p>
         ) : (
-          <div className="mx-auto mt-2 h-2 w-40 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-accent transition-all"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
+          <FeatureProgress
+            completed={tasksCompleted}
+            total={tasksTotal}
+            label="Badge tasks"
+            size="sm"
+            className="mx-auto mt-2 w-56 max-w-full"
+          />
         )}
       </div>
 

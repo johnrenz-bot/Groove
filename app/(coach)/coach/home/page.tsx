@@ -592,12 +592,12 @@ const [loadError, setLoadError] = useState<string | null>(null);
         </div>
 
         {/* Studios locator */}
-        <section aria-label={t('home.studiosCoachTitle', 'Rehearsal Studios Directory')}>
+        <section aria-label={t('home.studiosCoachTitle', 'Studio Locator')}>
           <StudioLocator
-            title={t('home.studiosCoachTitle', 'Rehearsal Studios Directory')}
+            title={t('home.studiosCoachTitle', 'Studio Locator')}
             subtitle={t(
               'home.studiosCoachSub',
-              'Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results'
+              'Find dance studios near you using the interactive Google Map. Set your search radius to discover nearby studios and view their locations and distances.'
             )}
           />
         </section>

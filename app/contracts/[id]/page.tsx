@@ -13,10 +13,12 @@ import { AppHeader } from '@/components/header/AppHeader';
 import SignaturePadModal from '@/components/shared/SignaturePadModal';
 import { Agreement, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
+import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
 
 export default function ContractPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { notifySuccess } = useSuccessNotifications();
 
   const [agreement, setAgreement] = useState<Agreement | null>(null);
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
@@ -152,6 +154,25 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
         [sigTarget === 'client' ? 'client' : 'coach']: signed?.signedUrl ?? null,
       }));
       setSuccessMsg('Signature applied and saved to digital contract!');
+
+      const otherPartySignature =
+        sigTarget === 'client'
+          ? agreement.coach_signature_path
+          : agreement.client_signature_path;
+      const bothSigned = Boolean(otherPartySignature);
+
+      notifySuccess({
+        title: bothSigned ? 'Booking confirmed' : 'Signature saved',
+        description: bothSigned
+          ? 'Both signatures are on file. The session agreement is now confirmed.'
+          : `Your signature is on the digital agreement. Waiting for the ${
+              sigTarget === 'client' ? 'coach' : 'client'
+            } to sign.`,
+        icon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" />,
+        dedupeKey: `contract-signature-${agreement.id}-${sigTarget}`,
+        duration: bothSigned ? 6500 : 5200,
+      });
+
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err) {
       console.error('Signature error:', err);

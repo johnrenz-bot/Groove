@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { HeroStatsClient } from './HeroStats';
 
@@ -17,36 +17,45 @@ interface HeroProps {
 
 export function Hero({ stats }: HeroProps) {
   const heroRef = useRef<HTMLElement>(null);
+  const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ['start start', 'end start'],
   });
 
-  // Subtle parallax on the hero image
-  const imageY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
-  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '8%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  // A restrained parallax. The photograph is scaled slightly in CSS so the
+  // translated layer never exposes an edge at the top of the section.
+  const imageY = useTransform(
+    scrollYProgress,
+    [0, 1],
+    prefersReducedMotion ? ['0%', '0%'] : ['0%', '8%']
+  );
+  const contentY = useTransform(
+    scrollYProgress,
+    [0, 1],
+    prefersReducedMotion ? ['0px', '0px'] : ['0px', '28px']
+  );
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 0.7],
+    prefersReducedMotion ? [1, 1] : [1, 0]
+  );
 
   return (
     <section
       ref={heroRef}
       className="ld-hero-cinematic relative overflow-hidden"
       aria-labelledby="hero-heading"
-      style={{ minHeight: 'clamp(560px, 90vh, 1100px)' }}
     >
       {/* ── Cinematic Background Image ────────────────────────────────────── */}
-      <motion.div
-        className="absolute inset-0 z-0"
-        style={{ y: imageY }}
-      >
+      <motion.div className="ld-hero-media absolute inset-0 z-0" style={{ y: imageY }}>
         <Image
           src="/image/bg/hero-cinematic.jpg"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center"
-          style={{ objectPosition: '50% 35%' }}
+          className="ld-hero-media__img object-cover object-center"
         />
       </motion.div>
 
@@ -60,13 +69,13 @@ export function Hero({ stats }: HeroProps) {
             'linear-gradient(to top, rgba(6,6,8,0.97) 0%, rgba(6,6,8,0.75) 38%, rgba(6,6,8,0.35) 65%, rgba(6,6,8,0.12) 100%)',
         }}
       />
-      {/* Left vignette for text column */}
+      {/* Left vignette for the text column */}
       <div
         className="absolute inset-0 z-[1] pointer-events-none"
         aria-hidden="true"
         style={{
           background:
-            'linear-gradient(to right, rgba(6,6,8,0.88) 0%, rgba(6,6,8,0.55) 45%, rgba(6,6,8,0.0) 80%)',
+            'linear-gradient(to right, rgba(6,6,8,0.9) 0%, rgba(6,6,8,0.58) 42%, rgba(6,6,8,0.08) 72%, rgba(6,6,8,0) 88%)',
         }}
       />
       {/* Top fade */}
@@ -107,25 +116,19 @@ export function Hero({ stats }: HeroProps) {
       />
 
       {/* ── Hero Content ──────────────────────────────────────────────────── */}
+      {/* The copy and the stats strip are siblings in a single flex column.
+          The stats used to be absolutely pinned to the bottom of the section,
+          which made them collide with the CTA and trust rows on short
+          viewports. In normal flow they can only ever sit below the copy. */}
       <motion.div
-        className="relative z-10 flex flex-col justify-end h-full ld-wrap"
+        className="ld-hero-inner ld-wrap relative z-10"
         style={{ y: contentY, opacity }}
       >
-        <div
-          className="ld-hero-cinematic__inner"
-          style={{
-            paddingBottom: 'clamp(3rem, 6vh, 5rem)',
-            paddingTop: '6rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            minHeight: 'inherit',
-          }}
-        >
+        <div className="ld-hero-copy">
           {/* Eyebrow badge */}
           <motion.p
             className="ld-hero-badge"
-            initial={{ opacity: 0, y: 16 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           >
@@ -140,20 +143,22 @@ export function Hero({ stats }: HeroProps) {
           <motion.h1
             id="hero-heading"
             className="ld-hero-h1"
-            initial={{ opacity: 0, y: 24 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             Where Arts{' '}
             <span className="ld-hero-h1-accent">
-              Find Their<br className="hidden sm:block" /> Stage
+              Find Their
+              <br className="hidden sm:block" />
+              {' '}Stage
             </span>
           </motion.h1>
 
           {/* Subheadline */}
           <motion.p
             className="ld-hero-lead"
-            initial={{ opacity: 0, y: 20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
@@ -164,15 +169,15 @@ export function Hero({ stats }: HeroProps) {
 
           {/* CTA Buttons */}
           <motion.div
-            className="flex flex-wrap items-center gap-3"
-            initial={{ opacity: 0, y: 16 }}
+            className="ld-hero-ctas"
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <Link href="/register/client" className="ld-hero-btn-primary group">
               <span>Get started free</span>
               <ArrowRight
-                className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none"
                 aria-hidden="true"
               />
             </Link>
@@ -183,8 +188,8 @@ export function Hero({ stats }: HeroProps) {
 
           {/* Trust points row */}
           <motion.div
-            className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-1"
-            initial={{ opacity: 0 }}
+            className="ld-hero-trust-row"
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.7 }}
           >
@@ -192,7 +197,7 @@ export function Hero({ stats }: HeroProps) {
               <motion.span
                 key={point}
                 className="ld-hero-trust"
-                initial={{ opacity: 0, x: -8 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.7 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
               >
@@ -215,34 +220,32 @@ export function Hero({ stats }: HeroProps) {
             ))}
           </motion.div>
         </div>
-      </motion.div>
 
-      {/* ── Stats Strip (pinned inside the hero, above the fold break) ────── */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
-        <div className="ld-wrap">
+        {/* ── Stats strip + scroll cue, both in normal flow ─────────────── */}
+        <div className="ld-hero-baseline">
           <HeroStatsClient stats={stats} />
-        </div>
-      </div>
 
-      {/* ── Scroll Indicator ──────────────────────────────────────────────── */}
-      <motion.div
-        className="absolute bottom-6 right-8 z-10 hidden md:flex flex-col items-center gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4, duration: 0.6 }}
-        aria-hidden="true"
-      >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/40"
-          style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-        >
-          Scroll
-        </span>
-        <motion.div
-          className="w-px h-12 bg-gradient-to-b from-white/40 to-transparent rounded-full"
-          animate={{ scaleY: [1, 0.4, 1], opacity: [0.4, 0.8, 0.4] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <ChevronDown className="h-4 w-4 text-white/40 animate-bounce motion-reduce:animate-none" />
+          <motion.div
+            className="ld-hero-scroll"
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+            aria-hidden="true"
+          >
+            <span className="ld-hero-scroll__label">Scroll</span>
+            <motion.span
+              className="ld-hero-scroll__line"
+              animate={
+                prefersReducedMotion
+                  ? undefined
+                  : { scaleY: [1, 0.4, 1], opacity: [0.4, 0.8, 0.4] }
+              }
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <ChevronDown className="ld-hero-scroll__chevron" />
+            </motion.span>
+          </motion.div>
+        </div>
       </motion.div>
 
       {/* ── Bottom fade into next section ─────────────────────────────────── */}

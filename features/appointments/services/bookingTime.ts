@@ -265,6 +265,9 @@ export interface BookedWindow {
   label?: string;
 }
 
+/** Why a start time cannot be chosen. `available` is the only selectable kind. */
+export type TimeSlotKind = 'available' | 'past' | 'notice' | 'conflict';
+
 export interface TimeSlot {
   /** HH:MM in 24-hour form, the value written to `start_time`. */
   start: string;
@@ -272,6 +275,8 @@ export interface TimeSlot {
   disabled: boolean;
   /** Shown as the chip's title when disabled, and beside the summary. */
   reason: string | null;
+  /** Lets the schedule UI distinguish past / notice / own-booking states. */
+  kind: TimeSlotKind;
 }
 
 export const DEFAULT_OPENING_MINUTES = 8 * 60;
@@ -323,14 +328,18 @@ export function buildTimeSlots(args: {
     const endAt = parseBookingStart(date, endTime);
     if (!startAt || !endAt) continue;
 
+    let kind: TimeSlotKind = 'available';
     let reason: string | null = null;
     if (startAt.getTime() <= nowMs) {
+      kind = 'past';
       reason = 'This time has already passed.';
     } else if (startAt.getTime() < earliestMs) {
+      kind = 'notice';
       reason = "This is inside the coach's notice period.";
     } else {
       const conflict = busy.find((window) => overlaps(startAt, endAt, window.start, window.end));
       if (conflict) {
+        kind = 'conflict';
         reason = conflict.label
           ? `You already have a booking at this time (${conflict.label}).`
           : 'You already have a booking at this time.';
@@ -340,12 +349,78 @@ export function buildTimeSlots(args: {
     slots.push({
       start: startTime,
       end: endTime,
-      disabled: reason !== null,
+      disabled: kind !== 'available',
       reason,
+      kind,
     });
   }
 
   return slots;
+}
+
+/**
+ * The state of a whole day, for the calendar grid.
+ *
+ * A day is only `available` when at least one start time survives the same
+ * rules as `buildTimeSlots`. When none do, the reason is narrowed to the one the
+ * calendar can honestly explain:
+ *
+ *   past        the last possible start has already gone by
+ *   notice      the last possible start is still inside the notice window
+ *   unavailable every start is taken by the client's own active/pending booking
+ *               (or the published duration cannot fit in the day)
+ *
+ * This is a UI classification only. It never turns a request into a confirmed
+ * session — the coach still confirms the final slot.
+ */
+export type DayAvailability = 'available' | 'past' | 'notice' | 'unavailable';
+
+export function dayAvailability(args: {
+  date: string;
+  durationMinutes: number;
+  nowMs: number;
+  earliestMs?: number;
+  busy?: readonly BookedWindow[];
+  openMinutes?: number;
+  closeMinutes?: number;
+}): DayAvailability {
+  const {
+    date,
+    durationMinutes,
+    nowMs,
+    earliestMs = 0,
+    busy = [],
+    openMinutes = DEFAULT_OPENING_MINUTES,
+    closeMinutes = DEFAULT_CLOSING_MINUTES,
+  } = args;
+
+  const slots = buildTimeSlots({
+    date,
+    durationMinutes,
+    nowMs,
+    earliestMs,
+    busy,
+    openMinutes,
+    closeMinutes,
+  });
+
+  if (slots.some((slot) => !slot.disabled)) return 'available';
+
+  // Classify against the latest start the grid actually offered, not an
+  // arithmetic guess: a duration that is not a multiple of the 30-minute step
+  // can leave the last grid start inside the opening hours but after the
+  // calculated cut-off.
+  if (slots.length > 0) {
+    const lastStart = parseBookingStart(date, slots[slots.length - 1].start);
+    if (lastStart) {
+      if (lastStart.getTime() <= nowMs) return 'past';
+      if (lastStart.getTime() < earliestMs) return 'notice';
+      return 'unavailable';
+    }
+  }
+
+  // No start fits the published day at all.
+  return 'unavailable';
 }
 
 export function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {

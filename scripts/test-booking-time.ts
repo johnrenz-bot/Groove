@@ -17,6 +17,7 @@ import {
   bookedWindowsForDate,
   clientBusyWindowsForDate,
   composeProfileAddress,
+  dayAvailability,
   formatDuration,
   getBookingCountdown,
   minutesToTime,
@@ -147,6 +148,61 @@ const todaySlots = buildTimeSlots({
 });
 check('a passed time today is disabled', todaySlots.find((s) => s.start === '09:00')?.disabled, true);
 check('a later time today is enabled', todaySlots.find((s) => s.start === '12:00')?.disabled, false);
+check('a free slot is kind available', slotAt('11:00')?.kind, 'available');
+check('a conflicting slot is kind conflict', slotAt('10:00')?.kind, 'conflict');
+check('a notice-window slot is kind notice', noticeSlots.find((s) => s.start === '11:00')?.kind, 'notice');
+check('a passed slot is kind past', todaySlots.find((s) => s.start === '09:00')?.kind, 'past');
+
+/* ── 3b. Day states for the calendar ─────────────────────────────────────── */
+
+const dayState = (
+  date: string,
+  options: {
+    durationMinutes?: number;
+    nowMs?: number;
+    earliestMs?: number;
+    busy?: readonly { start: Date; end: Date; label?: string }[];
+  } = {}
+) =>
+  dayAvailability({
+    date,
+    durationMinutes: options.durationMinutes ?? 60,
+    nowMs: options.nowMs ?? now,
+    earliestMs: options.earliestMs ?? now,
+    busy: options.busy ?? [],
+  });
+
+check('a day with a free start is available', dayState('2026-10-25'), 'available');
+check(
+  'a day whose last start has gone is past',
+  dayState('2026-10-24', { nowMs: new Date(2026, 9, 24, 20, 0).getTime() }),
+  'past'
+);
+check(
+  'a day inside the notice window is notice',
+  dayState('2026-10-25', {
+    earliestMs: new Date(2026, 9, 26, 12, 0).getTime(),
+  }),
+  'notice'
+);
+check(
+  'a day filled by the client’s own bookings is unavailable',
+  dayState('2026-10-25', {
+    busy: [
+      {
+        start: new Date(2026, 9, 25, 0, 0),
+        end: new Date(2026, 9, 25, 23, 59),
+        label: 'All day',
+      },
+    ],
+  }),
+  'unavailable'
+);
+check(
+  'a duration that cannot fit the day is unavailable',
+  dayState('2026-10-25', { durationMinutes: 13 * 60 }),
+  'unavailable'
+);
 
 /* ── 4. Own booked windows ───────────────────────────────────────────────── */
 

@@ -5,7 +5,9 @@ import Link from 'next/link';
 import {
   AlertCircle,
   Calendar,
+  CalendarCheck,
   CalendarDays,
+  CheckCircle2,
   Clock,
   Loader2,
   RefreshCw,
@@ -53,6 +55,7 @@ import { PageHeader } from '@/components/shared/SectionHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/components/shared/cn';
+import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
 
 /**
  * A coach's booking requests: accept, decline, complete, sign, and answer
@@ -186,6 +189,8 @@ export default function CoachAppointmentsPage() {
   const [detailsId, setDetailsId] = useState<number | null>(null);
   const [dialog, setDialog] = useState<DialogState | null>(null);
 
+  const { notifySuccess } = useSuccessNotifications();
+
   const nowMs = useNow();
 
   const fetchBookings = useCallback(async (silent = false) => {
@@ -281,7 +286,18 @@ export default function CoachAppointmentsPage() {
         appointment: detail.appointment,
         agreementRow: terms.row,
       });
-      if (agreementError) setActionError(agreementError);
+      if (agreementError) {
+        setActionError(agreementError);
+      } else {
+        notifySuccess({
+          title: 'Booking accepted',
+          description: `${detail.appointment.name || 'Your client'} has been sent the agreement for ${
+            detail.appointment.date || 'the requested date'
+          }.`,
+          icon: <CalendarCheck className="h-4 w-4" aria-hidden="true" />,
+          dedupeKey: `booking-accepted-${detail.appointment.id}`,
+        });
+      }
       await afterWrite();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'The request could not be accepted.');
@@ -328,6 +344,18 @@ export default function CoachAppointmentsPage() {
         } catch {
           // A badge that fails to sync must not undo a completed session.
         }
+      }
+
+      if (target === 'completed') {
+        notifySuccess({
+          title: 'Session completed',
+          description: `Booking #${String(detail.appointment.id).padStart(
+            5,
+            '0'
+          )} is complete. Achievement progress has been refreshed.`,
+          icon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" />,
+          dedupeKey: `booking-completed-${detail.appointment.id}`,
+        });
       }
 
       await afterWrite();
@@ -392,6 +420,17 @@ export default function CoachAppointmentsPage() {
         endTime: request.endTime,
         durationMinutes,
       });
+
+      notifySuccess({
+        title: 'New time approved',
+        description: `Booking #${String(detail.appointment.id).padStart(
+          5,
+          '0'
+        )} now runs on ${request.requestedDate} at ${request.startTime}.`,
+        icon: <CalendarDays className="h-4 w-4" aria-hidden="true" />,
+        dedupeKey: `booking-rescheduled-${detail.appointment.id}-${request.requestedDate}-${request.startTime}`,
+      });
+
       await afterWrite();
       return true;
     } catch (err) {
@@ -414,6 +453,17 @@ export default function CoachAppointmentsPage() {
         appointmentId: detail.appointment.id,
         fromStatus: detail.appointment.status,
       });
+
+      notifySuccess({
+        title: 'Original time kept',
+        description: `Booking #${String(detail.appointment.id).padStart(
+          5,
+          '0'
+        )} keeps its scheduled time. The reschedule request was cleared.`,
+        icon: <CalendarCheck className="h-4 w-4" aria-hidden="true" />,
+        dedupeKey: `booking-reschedule-cleared-${detail.appointment.id}`,
+      });
+
       await afterWrite();
       return true;
     } catch (err) {

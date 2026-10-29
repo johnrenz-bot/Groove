@@ -13,7 +13,7 @@
  * Identity-document status is read-only: registration collects it once.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -45,7 +45,10 @@ import { VerificationDocumentsUpload } from '@/features/verification/components/
 import { GCashQrCard } from '@/features/payments/components/GCashQrField';
 import { verificationStatusOf } from '@/features/verification/services/verification';
 import { BadgeCollection } from '@/components/badges/BadgeCollection';
+import { ProfileProgressCard } from '@/components/achievements/ProfileProgressCard';
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
+import { profileTaskRequirements } from '@/lib/achievements/requirements';
+import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
 import {
   AddressSection,
   ClientTalentSection,
@@ -128,6 +131,29 @@ export default function ClientProfilePage() {
   );
   const { badgeStatus: clientBadgeStatus, refetch: refetchClientBadgeStatus } = useBadgeStatus(
     profile?.id ?? null
+  );
+
+  const { notifySuccess } = useSuccessNotifications();
+
+  /**
+   * The performer profile has three real requirements (photo, interest,
+   * location). This checklist updates the moment `profile`/`clientProfile`
+   * change, so the card and the toast always show the same saved state.
+   */
+  const clientProfileRequirements = useMemo(
+    () =>
+      profileTaskRequirements('client', {
+        profile: profile
+          ? {
+              photo_url: profile.photo_url,
+              city_name: profile.city_name,
+              region_name: profile.region_name,
+              barangay_name: profile.barangay_name,
+            }
+          : null,
+        roleProfile: clientProfile ? { talent: clientProfile.talent } : null,
+      }),
+    [profile, clientProfile]
   );
 
   /**
@@ -297,6 +323,39 @@ export default function ClientProfilePage() {
 
       setProfile({ ...profile, photo_url: newPhotoUrl });
       setSuccess('Profile photo updated successfully!');
+
+      const nextRequirements = profileTaskRequirements('client', {
+        profile: {
+          photo_url: newPhotoUrl,
+          city_name: profile.city_name,
+          region_name: profile.region_name,
+          barangay_name: profile.barangay_name,
+        },
+        roleProfile: { talent: clientProfile?.talent },
+      });
+      const completed = nextRequirements.filter((requirement) => requirement.met).length;
+
+      notifySuccess({
+        title: 'Profile photo updated',
+        description: 'Your new photo is live on your performer profile.',
+        icon: <Camera className="h-4 w-4" aria-hidden="true" />,
+        dedupeKey: `client-photo-${user.id}`,
+        progress: {
+          completed,
+          total: nextRequirements.length,
+          label: 'Profile completion',
+        },
+      });
+
+      // The photo is one of the profile task's requirements, so recompute the
+      // badge checklist too instead of waiting for the next full page load.
+      try {
+        const { updateAchievementsAfterProfileUpdate } = await import('@/app/actions/achievements');
+        await updateAchievementsAfterProfileUpdate(user.id, 'client');
+        await Promise.all([refetchClientAchievements(), refetchClientBadgeStatus()]);
+      } catch {
+        // A badge refresh must not undo a successfully uploaded photo.
+      }
     } catch (err) {
       setFailure(err instanceof Error ? err.message : 'Failed to upload photo.');
     } finally {
@@ -412,9 +471,45 @@ export default function ClientProfilePage() {
       try {
         const { updateAchievementsAfterProfileUpdate } = await import('@/app/actions/achievements');
         await updateAchievementsAfterProfileUpdate(user.id, 'client');
+        await Promise.all([refetchClientAchievements(), refetchClientBadgeStatus()]);
       } catch (e) {
         console.error('Failed to update achievements:', e);
       }
+
+      // Build the completion readout from the values just written, not from a
+      // shared counter. The client profile has its own three requirements.
+      const nextRequirements = profileTaskRequirements('client', {
+        profile: {
+          photo_url: profile.photo_url,
+          city_name: address.city_name,
+          region_name: address.region_name,
+          barangay_name: address.barangay_name,
+        },
+        roleProfile: { talent },
+      });
+      const completed = nextRequirements.filter((requirement) => requirement.met).length;
+      const remaining = nextRequirements.length - completed;
+
+      notifySuccess({
+        title: 'Profile saved',
+        description:
+          remaining === 0
+            ? 'Every required performer detail is complete.'
+            : `${remaining} required ${remaining === 1 ? 'detail' : 'details'} still need your attention.`,
+        dedupeKey: `client-profile-save-${user.id}`,
+        progress: {
+          completed,
+          total: nextRequirements.length,
+          label: 'Profile completion',
+        },
+        action: {
+          label: 'View progress',
+          onClick: () =>
+            document
+              .getElementById('profile-completion-client')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+        },
+      });
 
       await fetchProfileData();
     } catch (err) {
@@ -534,7 +629,8 @@ export default function ClientProfilePage() {
 
       {/* Achievements - Full width section below profile header */}
       {profile && (
-        <div className="mb-6">
+        <div className="mb-6 space-y-4">
+          <ProfileProgressCard role="client" requirements={clientProfileRequirements} />
           <BadgeCollection
             tasks={clientAchievements}
             badgeStatus={clientBadgeStatus}

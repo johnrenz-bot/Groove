@@ -144,12 +144,12 @@ const en: DictNode = {
     sessionsPanelSubClient: 'Your booked rehearsals',
     sessionsPanelSubCoach: 'Your scheduled rehearsals',
     noSessions: 'No upcoming sessions.',
-    studiosClientTitle: 'Rehearsal Studios Locator',
+    studiosClientTitle: 'Studio Locator',
     studiosClientSub:
-      'Performing arts spaces in San Jose del Monte and Bulacan — curated listings plus community-sourced results',
-    studiosCoachTitle: 'Rehearsal Studios Directory',
+      'Find dance studios near you using the interactive Google Map. Set your search radius to discover nearby studios and view their locations and distances.',
+    studiosCoachTitle: 'Studio Locator',
     studiosCoachSub:
-      'Dance and performing arts studios around San Jose del Monte, Bulacan — curated listings plus community-sourced results',
+      'Find dance studios near you using the interactive Google Map. Set your search radius to discover nearby studios and view their locations and distances.',
     loadingTerminal: 'Loading your coach terminal...',
   },
   common: {
@@ -377,12 +377,12 @@ const tl: DictNode = {
     sessionsPanelSubClient: 'Ang iyong mga naka-book na rehearsal',
     sessionsPanelSubCoach: 'Ang iyong mga naka-iskedyul na rehearsal',
     noSessions: 'Walang paparating na mga session.',
-    studiosClientTitle: 'Rehearsal Studios Locator',
+    studiosClientTitle: 'Studio Locator',
     studiosClientSub:
-      'Mga espasyo para sa performing arts sa San Jose del Monte at Bulacan — curated na mga listing at mga resulta mula sa komunidad',
-    studiosCoachTitle: 'Direktoryo ng Rehearsal Studios',
+      'Maghanap ng mga dance studio malapit sa iyo gamit ang interactive na Google Map. Itakda ang radius ng paghahanap upang matuklasan ang mga kalapit na studio at makita ang kanilang lokasyon at distansya.',
+    studiosCoachTitle: 'Studio Locator',
     studiosCoachSub:
-      'Mga studio ng sayaw at performing arts sa San Jose del Monte, Bulacan — curated na mga listing at mga resulta mula sa komunidad',
+      'Maghanap ng mga dance studio malapit sa iyo gamit ang interactive na Google Map. Itakda ang radius ng paghahanap upang matuklasan ang mga kalapit na studio at makita ang kanilang lokasyon at distansya.',
     loadingTerminal: 'Niloload ang iyong coach terminal...',
   },
   common: {

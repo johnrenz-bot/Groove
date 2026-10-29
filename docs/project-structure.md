@@ -102,7 +102,7 @@ app/
 │   ├── admin/
 │   │   ├── audit/route.ts            # GET — Admin audit log
 │   │   └── users/route.ts           # GET/PATCH — Admin user management
-│   ├── studios/route.ts             # GET — OpenStreetMap studio locator
+│   ├── studios/route.ts             # GET — Supabase + curated studio locator
 │   └── tickets/route.ts             # POST — Public support ticket submission
 │
 ├── auth/
@@ -221,8 +221,8 @@ components/
 │   └── navTypes.ts                  # Navigation type definitions
 │
 ├── studio/                         # Studio locator components
-│   ├── StudioLocator.tsx            # Studio search UI with radius controls
-│   └── StudioLocatorMap.tsx         # Leaflet map rendering component
+│   ├── StudioLocator.tsx            # Studio search UI: address, radius, geolocation
+│   └── StudioLocatorMap.tsx         # Google Maps surface (markers, circle, InfoWindow)
 │
 ├── theme/                          # Theme system components
 │   ├── PlatformThemeSync.tsx        # Syncs admin-set theme default

@@ -13,7 +13,9 @@
 --   with real coordinates, and none existed.
 --
 --   This table is that source of truth. The locator reads it through the normal
---   browser client, exactly like every other table in the app.
+--   browser client, exactly like every other table in the app, and reads it
+--   nationwide: studios may be anywhere in the Philippines (Luzon, Visayas, or
+--   Mindanao). Nothing here is scoped to San Jose del Monte.
 --
 --   NO ROWS ARE INSERTED HERE, ON PURPOSE.
 --
@@ -64,7 +66,7 @@ CREATE TABLE IF NOT EXISTS public.studios (
 );
 
 COMMENT ON TABLE public.studios IS
-    'Rehearsal studios shown by the Studio Locator. Rows are entered by an administrator; the table ships empty.';
+    'Rehearsal studios shown by the Studio Locator, nationwide across the Philippines. Rows are entered by an administrator; the table ships empty.';
 
 -- ------------------------------------------------------------------------------
 -- 2. Keep updated_at honest
@@ -95,6 +97,16 @@ CREATE TRIGGER studios_touch_updated_at
 -- ------------------------------------------------------------------------------
 CREATE UNIQUE INDEX IF NOT EXISTS studios_name_lower_key
     ON public.studios (lower(name));
+
+-- ------------------------------------------------------------------------------
+-- 3b. Nationwide viewport lookups
+--
+-- The locator opens nationwide and refetches the visible box as the map is
+-- panned or zoomed. Without this index a viewport query scans every studio row;
+-- with it PostgreSQL can range-scan latitude and filter longitude cheaply.
+-- ------------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS studios_lat_lng_idx
+    ON public.studios (latitude, longitude);
 
 -- ------------------------------------------------------------------------------
 -- 4. Row Level Security
@@ -172,10 +184,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS studios_name_lower_key
 --
 --   SELECT name, address, latitude, longitude FROM public.studios ORDER BY name;
 --
---   -- Sanity-check the coordinates are in the right country. San Jose del Monte
---   -- is roughly 14.7 N, 121.0 E; anything outside +/-2 degrees is a typo.
+--   -- Sanity-check the coordinates are in the right country. The Philippines
+--   -- bounding box is roughly 4.2 N–21.5 N, 114.0 E–127.0 E; anything outside
+--   -- that is a typo (or the wrong country) and would be hidden from the
+--   -- nationwide locator.
 --   SELECT name FROM public.studios
---   WHERE latitude NOT BETWEEN 14.0 AND 15.5 OR longitude NOT BETWEEN 120.5 AND 121.5;
+--   WHERE latitude NOT BETWEEN 4.2 AND 21.5 OR longitude NOT BETWEEN 114.0 AND 127.0;
 --
 -- Until at least one row exists, the Studio Locator shows its empty state by
 -- design — that is the component working correctly, not a bug.

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { Award, RefreshCw } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
 import { AchievementModal } from '@/components/achievements/AchievementModal';
 import { AchievementWithProgress, UserBadgeStatus } from '@/lib/achievements/types';
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { InfoTip } from '@/components/ui/InfoTip';
 import { BadgeCard } from './BadgeCard';
 import { BadgeModal } from './BadgeModal';
+import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
 
 /**
  * Task navigation URLs by role — mirrors the map in AchievementSection.
@@ -66,8 +67,13 @@ export function BadgeCollection({
 }: BadgeCollectionSectionProps) {
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
-  const [justUnlocked, setJustUnlocked] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { notifySuccess } = useSuccessNotifications();
+  const lastBadgeStatusRef = useRef<{ isUnlocked: boolean; unlockedAt: string | null } | null>(
+    null
+  );
+  const handledStatusKeyRef = useRef<string | null>(null);
 
   // Derive badge display values
   const badgeType = (badgeStatus?.badge_name as 'Groove Coach' | 'Groove Active') || getBadgeName(role);
@@ -78,19 +84,65 @@ export function BadgeCollection({
   const tasksCompleted = badgeStatus?.tasks_completed ?? tasks.filter(t => t.is_completed).length;
   const tasksTotal = badgeStatus?.tasks_total ?? tasks.length;
 
-  // Auto-trigger celebration modal on first unlock (sessionStorage guard)
+  /**
+   * Announce a badge exactly once per unlock.
+   *
+   * A badge that was already earned when the section first loaded keeps the
+   * existing celebration modal. A badge that flips from locked to unlocked
+   * while the member is using the app (after saving a profile, completing a
+   * booking, or leaving a review) is announced with the global top-centre
+   * toast. The sessionStorage key is per user AND per unlock timestamp, so a
+   * duplicate refetch — or a second component mounting — cannot repeat it.
+   */
   useEffect(() => {
-    if (!isUnlocked || !unlockedAt || justUnlocked) return;
-    const modalShown = sessionStorage.getItem(`badge-modal-shown-${userId}`);
-    if (!modalShown) {
-      const timer = window.setTimeout(() => {
+    if (!badgeStatus) return;
+
+    const statusKey = `${isUnlocked}:${unlockedAt ?? ''}:${tasksCompleted}:${tasksTotal}`;
+    if (handledStatusKeyRef.current === statusKey) return;
+    handledStatusKeyRef.current = statusKey;
+
+    const previous = lastBadgeStatusRef.current;
+    lastBadgeStatusRef.current = { isUnlocked, unlockedAt };
+
+    if (!isUnlocked || !unlockedAt) return;
+
+    const modalKey = `badge-modal-shown-${userId}`;
+    const unlockKey = `badge-unlock-${userId}-${unlockedAt}`;
+
+    if (!previous) {
+      if (!sessionStorage.getItem(modalKey)) {
         setShowCelebrationModal(true);
-        setJustUnlocked(true);
-        sessionStorage.setItem(`badge-modal-shown-${userId}`, 'true');
-      }, 0);
-      return () => window.clearTimeout(timer);
+        sessionStorage.setItem(modalKey, 'true');
+      }
+      return;
     }
-  }, [isUnlocked, unlockedAt, userId, justUnlocked]);
+
+    if (!previous.isUnlocked && !sessionStorage.getItem(unlockKey)) {
+      sessionStorage.setItem(unlockKey, 'true');
+      notifySuccess({
+        title: 'Achievement Unlocked!',
+        description: `You earned the ${badgeType} badge.`,
+        icon: <Award className="h-4 w-4" aria-hidden="true" />,
+        tone: 'achievement',
+        duration: 7000,
+        dedupeKey: unlockKey,
+        progress: {
+          completed: tasksCompleted,
+          total: tasksTotal,
+          label: 'Badge tasks',
+        },
+      });
+    }
+  }, [
+    badgeStatus,
+    isUnlocked,
+    unlockedAt,
+    tasksCompleted,
+    tasksTotal,
+    badgeType,
+    userId,
+    notifySuccess,
+  ]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -264,10 +316,7 @@ export function BadgeCollection({
       {isUnlocked && unlockedAt && (
         <AchievementModal
           open={showCelebrationModal}
-          onClose={() => {
-            setShowCelebrationModal(false);
-            setJustUnlocked(false);
-          }}
+          onClose={() => setShowCelebrationModal(false)}
           badgeType={badgeType}
           badgeDescription={badgeDescription}
           tasks={tasks.map(t => ({ title: t.title, description: t.description }))}

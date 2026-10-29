@@ -43,7 +43,7 @@ export const PROJECT_INFO = {
   ],
   keyFeatures: [
     "Verified coach directory with document-based verification",
-    "Studio locator with 1/3/5/10 km radius search (curated + OpenStreetMap)",
+    "Studio locator with 1/5/10/25/50 km radius search (Supabase + curated listings on Google Maps)",
     "Groovey AI — performing arts specialized chat assistant",
     "Digital session agreements with drawn signatures",
     "Real-time messaging between clients and coaches",
@@ -141,7 +141,7 @@ export const PROJECT_INFO = {
     { name: "React 18 + TypeScript" },
     { name: "Supabase (PostgreSQL + Auth + Realtime + Storage)" },
     { name: "Tailwind CSS + Custom Design System" },
-    { name: "Leaflet + OpenStreetMap (Studio Locator)" },
+    { name: "Google Maps JavaScript API (Studio Locator)" },
     { name: "Google Gemini (Groovey AI)" },
     { name: "Vercel (Deployment)" },
   ],

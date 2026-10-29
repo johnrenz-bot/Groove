@@ -1,39 +1,28 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 
+/**
+ * Route-level entrance transition.
+ *
+ * This used to be a Framer `motion.div` with a `useEffect` + `matchMedia`
+ * subscription. The CSS animation below is equivalent, but it costs no React
+ * state, no subscription and no JS-driven transform updates — and the
+ * `prefers-reduced-motion` branch is handled by the stylesheet, so there is no
+ * first-frame animation before a media-query effect can run.
+ *
+ * The keyed wrapper mirrors the previous behaviour: a new route remounts the
+ * wrapper and replays the entrance. Only opacity and a 6px transform animate,
+ * so the transition can never move layout around.
+ */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mediaQuery.matches);
-
-    const handler = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-
-  if (reducedMotion) {
-    return <div className="w-full flex-1">{children}</div>;
-  }
 
   return (
-    <motion.div
-      key={pathname}
-      initial={{ opacity: 0, y: 7 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.32,
-        ease: [0.2, 0.8, 0.2, 1], // Matches course.marwieang.com easing curve
-      }}
-      className="w-full flex-1 flex flex-col"
-    >
+    <div key={pathname} className="page-enter w-full flex-1 flex flex-col">
       {children}
-    </motion.div>
+    </div>
   );
 }
 

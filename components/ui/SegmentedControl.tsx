@@ -23,7 +23,8 @@ export function SegmentedControl<T extends string | number>({
   size = 'sm',
 }: {
   options: ReadonlyArray<SegmentedOption<T>>;
-  value: T;
+  /** `null` keeps every option unselected, e.g. while a separate mode is active. */
+  value: T | null;
   onChange: (value: T) => void;
   ariaLabel: string;
   className?: string;
@@ -35,7 +36,12 @@ export function SegmentedControl<T extends string | number>({
   const buttonsRef = useRef<Array<HTMLButtonElement | null>>([]);
 
   const move = (direction: 1 | -1) => {
-    const index = options.findIndex((option) => option.value === value);
+    const index =
+      value === null
+        ? direction === 1
+          ? -1
+          : 0
+        : options.findIndex((option) => option.value === value);
     const next = (index + direction + options.length) % options.length;
     onChange(options[next].value);
     buttonsRef.current[next]?.focus();
@@ -71,7 +77,7 @@ export function SegmentedControl<T extends string | number>({
             role="radio"
             aria-checked={active}
             aria-label={option.ariaLabel}
-            tabIndex={active ? 0 : -1}
+            tabIndex={active || (value === null && index === 0) ? 0 : -1}
             onClick={() => onChange(option.value)}
             className={cn(
               'relative z-10 cursor-pointer rounded-full font-semibold transition-colors duration-150',
