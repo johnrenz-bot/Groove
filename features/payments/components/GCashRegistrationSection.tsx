@@ -54,11 +54,11 @@ export function GCashRegistrationSection({
 }: GCashRegistrationSectionProps) {
   return (
     <fieldset
-      className="space-y-4 border-t border-border pt-8"
+      className="space-y-4   pt-8"
       aria-labelledby="reg-legend-gcash"
     >
       <div className="flex items-start gap-3.5 pb-1">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text">
           <Smartphone className="h-4 w-4" aria-hidden="true" />
         </div>
         <div>
@@ -67,7 +67,7 @@ export function GCashRegistrationSection({
             className="text-[15px] font-semibold tracking-[-0.01em] text-foreground"
           >
             GCash Payments
-            <span className="ml-2 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="ml-2 rounded-full   bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Optional
             </span>
           </h3>

@@ -55,21 +55,21 @@ export const GrooveySideDrawer: React.FC = () => {
       {/* Backdrop */}
       {isDrawerOpen && (
         <div
-          className="fixed inset-0 bg-stone-900/40 dark:bg-black/60 backdrop-blur-xs z-50 transition-opacity"
+          className="fixed inset-0 bg-stone-900/40 dark:bg-black/60 backdrop-blur-xs z-[1150] transition-opacity"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
 
       {/* Drawer */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-card text-foreground z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-out border-r border-border ${
+        className={`fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-card text-foreground z-[1150] shadow-2xl flex flex-col transition-transform duration-300 ease-out   ${
           isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Drawer Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-border">
+        <div className="h-16 px-4 flex items-center justify-between  ">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-accent-soft flex items-center justify-center border border-accent-border/50 text-accent-text">
+            <div className="w-8 h-8 rounded-lg bg-accent-soft flex items-center justify-center   text-accent-text">
               <Drama className="w-4 h-4" />
             </div>
             <span className="text-base font-bold text-foreground tracking-tight">
@@ -141,7 +141,7 @@ export const GrooveySideDrawer: React.FC = () => {
             </div>
 
             {confirmClear && (
-              <div className="p-3 mb-2 bg-danger-soft border border-danger/40 rounded-xl text-xs space-y-2">
+              <div className="p-3 mb-2 bg-danger-soft   rounded-xl text-xs space-y-2">
                 <p className="text-danger font-semibold">Clear all rehearsal history?</p>
                 <div className="flex gap-2">
                   <button
@@ -157,7 +157,7 @@ export const GrooveySideDrawer: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setConfirmClear(false)}
-                    className="px-2.5 py-1 bg-card border border-border text-foreground rounded-lg text-[11px] cursor-pointer"
+                    className="px-2.5 py-1 bg-card   text-foreground rounded-lg text-[11px] cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -174,7 +174,7 @@ export const GrooveySideDrawer: React.FC = () => {
                   return (
                     <div
                       key={c.id}
-                      className="p-2.5 bg-danger-soft border border-danger/40 rounded-xl flex items-center justify-between text-xs"
+                      className="p-2.5 bg-danger-soft   rounded-xl flex items-center justify-between text-xs"
                     >
                       <span className="text-danger truncate pr-1">Delete session?</span>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -205,7 +205,7 @@ export const GrooveySideDrawer: React.FC = () => {
                     key={c.id}
                     className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-accent-soft text-accent-text font-semibold shadow-xs border border-accent-border/50'
+                        ? 'bg-accent-soft text-accent-text font-semibold shadow-xs  '
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                   >
@@ -236,7 +236,7 @@ export const GrooveySideDrawer: React.FC = () => {
         </div>
 
         {/* Drawer Footer */}
-        <div className="p-3.5 bg-muted/50 border-t border-border flex items-center justify-between">
+        <div className="p-3.5 bg-muted/50   flex items-center justify-between">
           <button
             type="button"
             onClick={() => {
@@ -253,7 +253,7 @@ export const GrooveySideDrawer: React.FC = () => {
             alt="Profile Avatar"
             width={32}
             height={32}
-            className="w-8 h-8 rounded-full object-cover select-none border border-border"
+            className="w-8 h-8 rounded-full object-cover select-none  "
             unoptimized
           />
         </div>

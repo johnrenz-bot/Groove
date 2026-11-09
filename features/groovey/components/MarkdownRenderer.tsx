@@ -47,7 +47,7 @@ export const MarkdownRenderer: React.FC<Props> = ({ content }) => {
           parts.push(
             <code
               key={keyIdx++}
-              className="px-1.5 py-0.5 rounded bg-muted text-accent-text font-mono text-xs border border-border"
+              className="px-1.5 py-0.5 rounded bg-muted text-accent-text font-mono text-xs  "
             >
               {firstMatch.match[1]}
             </code>
@@ -114,7 +114,7 @@ export const MarkdownRenderer: React.FC<Props> = ({ content }) => {
       elements.push(
         <div
           key={index++}
-          className="rounded-r-xl p-3.5 my-3 flex items-start gap-2.5 text-xs sm:text-[13px] bg-accent-soft border-l-[3px] border-accent border-y-0 border-r-0 text-foreground"
+          className="rounded-r-xl p-3.5 my-3 flex items-start gap-2.5 text-xs sm:text-[13px] bg-accent-soft ]    text-foreground"
         >
           {isTactileCue ? (
             <Lightbulb className="w-4 h-4 text-accent shrink-0 mt-0.5" />
@@ -151,7 +151,7 @@ export const MarkdownRenderer: React.FC<Props> = ({ content }) => {
         const text = match[2];
         elements.push(
           <div key={index++} className="flex items-start gap-3 my-2.5 pl-0.5 text-[15px] sm:text-base text-foreground">
-            <span className="w-5 h-5 rounded-md bg-accent-soft text-accent-text text-xs font-bold font-mono flex items-center justify-center shrink-0 mt-0.5 border border-accent-border/50">
+            <span className="w-5 h-5 rounded-md bg-accent-soft text-accent-text text-xs font-bold font-mono flex items-center justify-center shrink-0 mt-0.5  ">
               {num}
             </span>
             <div className="leading-relaxed flex-1">{renderFormattedText(text)}</div>

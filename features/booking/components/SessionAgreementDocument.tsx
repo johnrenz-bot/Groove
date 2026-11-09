@@ -30,7 +30,7 @@ import {
  *
  * Theme-aware by delegation, not by hardcoded palette: `g-agreement-paper` in
  * globals.css re-points the Tailwind colour variables at this element so every
- * `text-foreground`, `bg-muted`, `border-border` and `text-accent-text` inside
+ * `text-foreground`, `bg-muted`, `` and `text-accent-text` inside
  * resolves against the ACTIVE theme.
  *
  * A previous version tried to do this from JSX by setting `--foreground` and
@@ -93,7 +93,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 /** The letterhead. Uses the app's own accent tokens, no image asset required. */
 export function AgreementLetterhead({ agreement }: { agreement: BookingAgreement }) {
   return (
-    <header className="border-b border-border pb-5 text-center">
+    <header className="  pb-5 text-center">
       <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-accent-text">
         Groove System
       </p>
@@ -272,7 +272,7 @@ export function SessionAgreementSignatures({
   ];
 
   return (
-    <section className="mt-8 border-t border-border pt-7">
+    <section className="mt-8   pt-7">
       <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-accent-text">
         8. Signatures
       </h3>
@@ -284,7 +284,7 @@ export function SessionAgreementSignatures({
               <p className="text-[11px] font-bold tracking-[0.1em] text-muted-foreground">{c.role}</p>
               {/* Always a white, bordered ground. The captured PNG is near-black
                   ink, so a dark or transparent box made it unreadable; an
-                  explicit white background plus a border guarantees contrast
+                  explicit white background plus a  guarantees contrast
                   regardless of the surrounding theme. */}
               <div className="g-agreement-signature mt-2 flex h-24 flex-col items-center justify-end rounded-lg px-3 pt-3">
                 {signed && c.url ? (
@@ -303,7 +303,7 @@ export function SessionAgreementSignatures({
                   </span>
                 )}
                 {/* The ruled line a signature sits on, as on a paper contract. */}
-                <div className="mt-auto w-full border-b border-border-strong pb-1" aria-hidden="true" />
+                <div className="mt-auto w-full   pb-1" aria-hidden="true" />
               </div>
               <dl className="mt-2.5 space-y-1">
                 <Fact label="Name" value={c.name} />

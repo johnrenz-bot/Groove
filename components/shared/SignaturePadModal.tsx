@@ -88,13 +88,13 @@ export function SignaturePadModal({
     >
       <div className="space-y-4">
         {error && (
-          <div className="flex items-start gap-2 rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+          <div className="flex items-start gap-2 rounded-xl   bg-danger-soft p-3 text-xs text-danger">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-inner">
+        <div className="overflow-hidden rounded-2xl   bg-white shadow-inner">
           <SignatureCanvas
             ref={sigPadRef}
             penColor="#0F172A"

@@ -271,15 +271,15 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm backdrop-blur-md',
+        'overflow-hidden rounded-2xl   bg-card shadow-sm backdrop-blur-md',
         className
       )}
     >
       {/* Header */}
-      <div className="border-b border-border/70 p-4 sm:p-5">
+      <div className="  p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-500 border border-amber-500/30">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-500  ">
               <Trophy className="h-4 w-4" />
             </div>
             <div>
@@ -302,14 +302,14 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
             disabled={loading}
             aria-label="Refresh leaderboard"
             title="Refresh leaderboard rankings"
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/70 bg-card text-muted-foreground transition hover:border-border hover:bg-muted hover:text-foreground disabled:opacity-50"
+            className="flex h-7 w-7 items-center justify-center rounded-lg   bg-card text-muted-foreground transition hover: hover:bg-muted hover:text-foreground disabled:opacity-50"
           >
             <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin text-accent')} />
           </button>
         </div>
 
         {/* Role Filters */}
-        <div className="mt-3.5 flex gap-1 rounded-xl border border-border/70 bg-muted/40 p-1">
+        <div className="mt-3.5 flex gap-1 rounded-xl   bg-muted/40 p-1">
           {[
             { id: 'all', label: t('showcase.tabAll', 'All Circles') },
             { id: 'client', label: t('showcase.tabClients', 'Dancers & Clients') },
@@ -324,7 +324,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                 className={cn(
                   'flex-1 rounded-lg py-1 text-center text-xs font-semibold transition cursor-pointer',
                   active
-                    ? 'bg-card text-foreground shadow-xs border border-border/60'
+                    ? 'bg-card text-foreground shadow-xs  '
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -348,7 +348,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
             <button
               type="button"
               onClick={() => void fetchLeaderboardData()}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-lg   bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted active:scale-95 cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>{t('common.retry', 'Retry')}</span>
@@ -370,14 +370,14 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                 <div
                   key={user.id}
                   className={cn(
-                    'flex items-center justify-between gap-3 rounded-xl border p-2.5 transition',
+                    'flex items-center justify-between gap-3 rounded-xl  p-2.5 transition',
                     isTop1
-                      ? 'border-amber-500/40 bg-amber-500/5 ring-1 ring-amber-500/20'
+                      ? ' bg-amber-500/5  '
                       : isTop2
-                        ? 'border-slate-400/40 bg-slate-400/5'
+                        ? ' bg-slate-400/5'
                         : isTop3
-                          ? 'border-amber-700/30 bg-amber-700/5'
-                          : 'border-border/60 bg-muted/20 hover:border-border'
+                          ? ' bg-amber-700/5'
+                          : ' bg-muted/20 hover:'
                   )}
                 >
                   {/* Rank & User Info */}
@@ -396,7 +396,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                     </div>
 
                     {/* Avatar */}
-                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border/80 bg-muted">
+                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full   bg-muted">
                       {user.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -423,7 +423,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                           {user.name}
                         </span>
                         {user.role === 'coach' && (
-                          <span className="rounded bg-sky-500/15 px-1 text-[9px] font-bold text-sky-400 border border-sky-500/30">
+                          <span className="rounded bg-sky-500/15 px-1 text-[9px] font-bold text-sky-400  ">
                             Coach
                           </span>
                         )}
@@ -454,7 +454,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
       </div>
 
       {/* Footer Info */}
-      <div className="border-t border-border/60 bg-muted/20 px-4 py-2.5 text-center text-[10px] text-muted-foreground">
+      <div className="  bg-muted/20 px-4 py-2.5 text-center text-[10px] text-muted-foreground">
         {t('showcase.pointsLegend', 'Points: +50 per post � +10 per reaction � +5 per comment � +100 verified badge')}
       </div>
     </div>

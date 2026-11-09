@@ -14,7 +14,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'IDL (International Dance League)',
     slug: 'idl',
     website_url: 'https://www.idl.pro/',
-    logo_url: '/logos/idl.png',
+    logo_url: '/logos/Dance-Leagues/idl.png',
     logo_source_url: 'https://www.idl.pro/',
     logo_verified: true,
     sort_order: 1,
@@ -26,7 +26,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'STEEZY Studio',
     slug: 'steezy',
     website_url: 'https://www.steezy.co/',
-    logo_url: '/logos/steezy.svg',
+    logo_url: '/logos/Dance-Leagues/steezy.svg',
     logo_source_url: 'https://www.steezy.co/',
     logo_verified: true,
     sort_order: 2,
@@ -38,7 +38,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'World of Dance',
     slug: 'world-of-dance',
     website_url: 'https://www.worldofdance.com/',
-    logo_url: '/logos/world-of-dance.png',
+    logo_url: '/logos/Dance-Leagues/world-of-dance.png',
     logo_source_url: 'https://www.worldofdance.com/',
     logo_verified: true,
     sort_order: 3,
@@ -50,7 +50,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'Hip Hop International',
     slug: 'hhi',
     website_url: 'https://hiphopinternational.com/',
-    logo_url: '/logos/hhi.png',
+    logo_url: '/logos/Dance-Leagues/hhi.png',
     logo_source_url: 'https://hiphopinternational.com/',
     logo_verified: true,
     sort_order: 4,
@@ -62,7 +62,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'Red Bull Dance Your Style',
     slug: 'red-bull-dance-your-style',
     website_url: 'https://www.redbull.com/ph-en/events/dance-your-style-philippines',
-    logo_url: '/logos/red-bull-dance-your-style.png',
+    logo_url: '/logos/Dance-Leagues/red-bull-dance-your-style.png',
     logo_source_url: 'https://www.redbull.com/ph-en/events/dance-your-style-philippines',
     logo_verified: true,
     sort_order: 5,
@@ -86,7 +86,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'UDO (United Dance Organisation)',
     slug: 'udo',
     website_url: 'https://www.udostreetdance.com/',
-    logo_url: '/logos/udo.png',
+    logo_url: '/logos/Dance-Leagues/udo.png',
     logo_source_url: 'https://www.udostreetdance.com/',
     logo_verified: true,
     sort_order: 6,
@@ -98,7 +98,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'WDSF (World DanceSport Federation)',
     slug: 'wdsf',
     website_url: 'https://www.worlddancesport.org/',
-    logo_url: '/logos/wdsf.svg',
+    logo_url: '/logos/Dance-Leagues/wdsf.svg',
     logo_source_url: 'https://www.worlddancesport.org/',
     logo_verified: true,
     sort_order: 7,
@@ -110,7 +110,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'Philippine DanceSport Federation',
     slug: 'philippine-dancesport',
     website_url: 'https://philippinedancesport.com/',
-    logo_url: '/logos/philippine-dancesport.png',
+    logo_url: '/logos/Dance-Leagues/philippine-dancesport.png',
     logo_source_url: 'https://philippinedancesport.com/',
     logo_verified: true,
     sort_order: 8,
@@ -122,7 +122,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'HHI Philippines',
     slug: 'hhi-philippines',
     website_url: 'https://hhiphilippines.com/',
-    logo_url: '/logos/hhi-philippines.png',
+    logo_url: '/logos/Dance-Leagues/hhi-philippines.png',
     logo_source_url: 'https://hhiphilippines.com/',
     logo_verified: true,
     sort_order: 9,
@@ -134,7 +134,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'Summer Dance Forever',
     slug: 'summer-dance-forever',
     website_url: 'https://www.summerdanceforever.com/',
-    logo_url: '/logos/summer-dance-forever.png',
+    logo_url: '/logos/Dance-Leagues/summer-dance-forever.png',
     logo_source_url: 'https://www.summerdanceforever.com/',
     logo_verified: true,
     sort_order: 10,
@@ -146,7 +146,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'Juste Debout',
     slug: 'juste-debout',
     website_url: 'https://juste-debout.com/',
-    logo_url: '/logos/juste-debout.svg',
+    logo_url: '/logos/Dance-Leagues/juste-debout.svg',
     logo_source_url: 'https://juste-debout.com/',
     logo_verified: true,
     sort_order: 11,
@@ -158,7 +158,7 @@ export const VERIFIED_DANCE_ORGS: DanceOrg[] = [
     name: 'Battle of the Year',
     slug: 'battle-of-the-year',
     website_url: 'https://battleoftheyear.de/',
-    logo_url: '/logos/battle-of-the-year.jpg',
+    logo_url: '/logos/Dance-Leagues/battle-of-the-year.jpg',
     logo_source_url: 'https://battleoftheyear.de/',
     logo_verified: true,
     sort_order: 12,
@@ -185,7 +185,7 @@ export function getOrgLogo(
 
   if (norm.includes('red bull')) {
     return {
-      logoUrl: '/logos/red-bull-dance-your-style.png',
+      logoUrl: '/logos/Dance-Leagues/red-bull-dance-your-style.png',
       isVerified: true,
       alt: 'Red Bull Dance Your Style logo',
     };
@@ -198,13 +198,13 @@ export function getOrgLogo(
       titleNorm.includes('manila')
     ) {
       return {
-        logoUrl: '/logos/hhi-philippines.png',
+        logoUrl: '/logos/Dance-Leagues/hhi-philippines.png',
         isVerified: true,
         alt: 'HHI Philippines Championships logo',
       };
     }
     return {
-      logoUrl: '/logos/hhi.png',
+      logoUrl: '/logos/Dance-Leagues/hhi.png',
       isVerified: true,
       alt: 'Hip Hop International logo',
     };
@@ -212,7 +212,7 @@ export function getOrgLogo(
 
   if (norm.includes('steezy')) {
     return {
-      logoUrl: '/logos/steezy.svg',
+      logoUrl: '/logos/Dance-Leagues/steezy.svg',
       isVerified: true,
       alt: 'STEEZY Studio logo',
     };
@@ -220,7 +220,7 @@ export function getOrgLogo(
 
   if (norm.includes('world of dance') || norm.includes('wod')) {
     return {
-      logoUrl: '/logos/world-of-dance.png',
+      logoUrl: '/logos/Dance-Leagues/world-of-dance.png',
       isVerified: true,
       alt: 'World of Dance logo',
     };
@@ -228,7 +228,7 @@ export function getOrgLogo(
 
   if (norm.includes('juste debout')) {
     return {
-      logoUrl: '/logos/juste-debout.svg',
+      logoUrl: '/logos/Dance-Leagues/juste-debout.svg',
       isVerified: true,
       alt: 'Juste Debout logo',
     };
@@ -236,7 +236,7 @@ export function getOrgLogo(
 
   if (norm.includes('udo')) {
     return {
-      logoUrl: '/logos/udo.png',
+      logoUrl: '/logos/Dance-Leagues/udo.png',
       isVerified: true,
       alt: 'UDO logo',
     };
@@ -244,7 +244,7 @@ export function getOrgLogo(
 
   if (norm.includes('idl') || norm.includes('international dance league')) {
     return {
-      logoUrl: '/logos/idl.png',
+      logoUrl: '/logos/Dance-Leagues/idl.png',
       isVerified: true,
       alt: 'IDL logo',
     };
@@ -252,7 +252,7 @@ export function getOrgLogo(
 
   if (norm.includes('wdsf')) {
     return {
-      logoUrl: '/logos/wdsf-white.svg',
+      logoUrl: '/logos/Dance-Leagues/wdsf-white.svg',
       isVerified: true,
       alt: 'WDSF logo',
     };
@@ -260,7 +260,7 @@ export function getOrgLogo(
 
   if (norm.includes('philippine dancesport')) {
     return {
-      logoUrl: '/logos/philippine-dancesport.png',
+      logoUrl: '/logos/Dance-Leagues/philippine-dancesport.png',
       isVerified: true,
       alt: 'Philippine DanceSport Federation logo',
     };
@@ -268,7 +268,7 @@ export function getOrgLogo(
 
   if (norm.includes('summer dance forever')) {
     return {
-      logoUrl: '/logos/summer-dance-forever.png',
+      logoUrl: '/logos/Dance-Leagues/summer-dance-forever.png',
       isVerified: true,
       alt: 'Summer Dance Forever logo',
     };
@@ -276,7 +276,7 @@ export function getOrgLogo(
 
   if (norm.includes('battle of the year') || norm.includes('boty')) {
     return {
-      logoUrl: '/logos/battle-of-the-year.jpg',
+      logoUrl: '/logos/Dance-Leagues/battle-of-the-year.jpg',
       isVerified: true,
       alt: 'Battle of the Year logo',
     };

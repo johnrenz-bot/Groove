@@ -262,7 +262,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
     <div className="flex-1 min-h-0 flex flex-col relative w-full bg-card">
       {/* Session Header Pill: subtle, centered, muted background */}
       <div className="shrink-0 px-4 py-2 flex justify-center z-10">
-        <div className="flex items-center gap-2 bg-muted/80 text-foreground px-3.5 py-1 rounded-full border border-border max-w-full text-xs shadow-xs">
+        <div className="flex items-center gap-2 bg-muted/80 text-foreground px-3.5 py-1 rounded-full   max-w-full text-xs shadow-xs">
           <Music className="w-3.5 h-3.5 text-accent-text shrink-0" />
           <span className="font-semibold text-accent-text tracking-tight truncate">
             {currentConversation?.discipline || selectedDiscipline}
@@ -277,7 +277,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
       {/* Error Notification */}
       {error && (
         <div className="shrink-0 max-w-2xl mx-auto w-full px-4 pt-1 pb-2">
-          <div className="p-3 bg-danger-soft border border-danger/30 rounded-xl flex items-center justify-between text-xs text-danger shadow-xs">
+          <div className="p-3 bg-danger-soft   rounded-xl flex items-center justify-between text-xs text-danger shadow-xs">
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 shrink-0" />
               <span>{error}</span>
@@ -300,7 +300,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
           <div className="py-6 sm:py-8 px-2 sm:px-4 text-center space-y-6 animate-groovey-in">
             {/* Mascot Avatar */}
             <div className="relative inline-flex items-center justify-center">
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-muted shadow-xs flex items-center justify-center p-1 border border-border overflow-hidden">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-muted shadow-xs flex items-center justify-center p-1   overflow-hidden">
                 <Image
                   src="/groovey/grooveyy-mascot.png"
                   alt="Grooveyy Mascot"
@@ -310,7 +310,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                   unoptimized
                 />
               </div>
-              <span className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-accent-soft shadow-xs border border-accent-border flex items-center justify-center text-accent-text">
+              <span className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-accent-soft shadow-xs   flex items-center justify-center text-accent-text">
                 <Sparkles className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -337,7 +337,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-accent text-accent-foreground shadow-xs font-semibold'
-                        : 'bg-muted text-muted-foreground hover:text-foreground border border-border'
+                        : 'bg-muted text-muted-foreground hover:text-foreground  '
                     }`}
                   >
                     {cat}
@@ -355,10 +355,10 @@ export const GrooveyActiveCoaching: React.FC = () => {
                     key={i}
                     type="button"
                     onClick={() => handleStarterClick(starter.prompt, starter.discipline)}
-                    className="group p-3.5 rounded-2xl bg-muted/60 border border-border hover:border-accent-border hover:bg-muted/90 transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer"
+                    className="group p-3.5 rounded-2xl bg-muted/60   hover: hover:bg-muted/90 transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-soft text-accent-text border border-accent-border/50">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-soft text-accent-text  ">
                         <StarterIcon className="w-4 h-4" />
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-accent-text group-hover:translate-x-0.5 transition-all" />
@@ -393,7 +393,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                 </div>
 
                 {/* User Bubble */}
-                <div className="bg-muted text-foreground rounded-2xl rounded-tr-sm px-4 py-3 shadow-xs border border-border/60 max-w-[90%] sm:max-w-[80%] text-sm leading-relaxed">
+                <div className="bg-muted text-foreground rounded-2xl rounded-tr-sm px-4 py-3 shadow-xs   max-w-[90%] sm:max-w-[80%] text-sm leading-relaxed">
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 </div>
 
@@ -409,7 +409,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
             <div key={msg.id} className="flex gap-3 sm:gap-4 pr-2 sm:pr-8 animate-groovey-message">
               {/* Avatar on Left */}
               <div className="shrink-0 pt-0.5">
-                <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-muted   overflow-hidden flex items-center justify-center">
                   <Image
                     src="/groovey/grooveyy-mascot.png"
                     alt="Grooveyy AI"
@@ -428,7 +428,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                     Grooveyy AI
                   </span>
                   {msg.disciplineTag && (
-                    <span className="px-2 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium border border-accent-border/50">
+                    <span className="px-2 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium  ">
                       {msg.disciplineTag}
                     </span>
                   )}
@@ -521,7 +521,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
         {isGenerating && (
           <div className="flex gap-3 sm:gap-4 pr-2 sm:pr-8 animate-groovey-message">
             <div className="shrink-0 pt-0.5">
-              <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center animate-groovey-glow">
+              <div className="w-8 h-8 rounded-full bg-muted   overflow-hidden flex items-center justify-center animate-groovey-glow">
                 <Image
                   src="/groovey/grooveyy-mascot.png"
                   alt="Grooveyy AI"
@@ -538,7 +538,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                 <span className="font-bold text-xs text-foreground tracking-tight">
                   Grooveyy AI
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium border border-accent-border/50">
+                <span className="px-2 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium  ">
                   {selectedDiscipline} Coaching
                 </span>
                 <span className="w-2 h-2 rounded-full bg-accent animate-ping ml-1" />
@@ -568,7 +568,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
       <div className="shrink-0 max-w-3xl mx-auto w-full px-3 sm:px-4 pb-3 sm:pb-4 pt-1 z-20">
         <form
           onSubmit={handleSend}
-          className="rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-sm focus-within:border-accent-border focus-within:ring-1 focus-within:ring-accent-border transition-all flex flex-col p-2.5 sm:p-3"
+          className="rounded-2xl   bg-card/95 backdrop-blur-md shadow-sm focus-within: focus-within: focus-within: transition-all flex flex-col p-2.5 sm:p-3"
         >
           {/* Multi-line Auto-expanding Textarea */}
           <textarea
@@ -578,11 +578,11 @@ export const GrooveyActiveCoaching: React.FC = () => {
             onChange={handleTextareaInput}
             onKeyDown={handleKeyDown}
             placeholder={`Ask Grooveyy about ${selectedDiscipline.toLowerCase()} technique, choreography, monologue beats...`}
-            className="w-full bg-transparent border-0 text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-0 text-sm resize-none min-h-[38px] max-h-[160px] py-1 px-1 leading-relaxed no-scrollbar"
+            className="w-full bg-transparent  text-foreground placeholder:text-muted-foreground focus: focus: text-sm resize-none min-h-[38px] max-h-[160px] py-1 px-1 leading-relaxed no-scrollbar"
           />
 
           {/* Bottom Action Row inside Composer */}
-          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40 mt-1">
+          <div className="flex items-center justify-between gap-2 pt-2   mt-1">
             {/* Left Controls: Discipline pill + Attach + Mic */}
             <div className="flex items-center gap-1.5">
               {/* Discipline Quick Selector Pill */}
@@ -590,7 +590,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                 aria-label="Select performing arts discipline"
                 value={selectedDiscipline}
                 onChange={(e) => setSelectedDiscipline(e.target.value as DisciplineType)}
-                className="bg-muted text-foreground text-[11px] font-semibold rounded-lg px-2 py-1 border border-border/80 focus:outline-hidden cursor-pointer"
+                className="bg-muted text-foreground text-[11px] font-semibold rounded-lg px-2 py-1   focus: cursor-pointer"
               >
                 <option value="Singing">Singing</option>
                 <option value="Dance">Dance</option>
@@ -636,7 +636,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
 
             {/* Middle Keyboard Hint */}
             <div className="hidden sm:inline-block text-[11px] text-muted-foreground select-none">
-              Press <kbd className="font-sans px-1 py-0.5 bg-muted rounded border border-border text-[10px]">Enter ↵</kbd> to send
+              Press <kbd className="font-sans px-1 py-0.5 bg-muted rounded   text-[10px]">Enter ↵</kbd> to send
             </div>
 
             {/* Right: Send / Stop Button */}

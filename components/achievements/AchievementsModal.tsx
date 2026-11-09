@@ -130,7 +130,7 @@ export function AchievementsModal({
               'relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
               isUnlocked
                 ? `bg-gradient-to-br ${badgeGradient} shadow-lg`
-                : 'bg-muted border border-border'
+                : 'bg-muted  '
             )}>
               <Award className={cn(
                 isUnlocked ? 'text-white' : 'text-muted-foreground',
@@ -170,7 +170,7 @@ export function AchievementsModal({
               'relative mx-auto mb-4 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl',
               isUnlocked
                 ? `bg-gradient-to-br ${badgeGradient} shadow-2xl`
-                : 'bg-muted border-2 border-dashed border-border'
+                : 'bg-muted   '
             )}
             style={isUnlocked ? { boxShadow: `0 0 40px ${badgeGlow}, 0 12px 30px -8px ${badgeGlow}` } : undefined}>
               {/* Artwork sits under the lock/status overlays so a locked badge
@@ -231,10 +231,10 @@ export function AchievementsModal({
               <article
                 key={index}
                 className={cn(
-                  'relative group flex flex-col rounded-xl border p-4 transition-all duration-200 cursor-pointer',
+                  'relative group flex flex-col rounded-xl  p-4 transition-all duration-200 cursor-pointer',
                   task.completed
-                    ? 'border-success/30 bg-success-soft'
-                    : 'border-border bg-card hover:border-accent-border hover:bg-accent-soft/30'
+                    ? ' bg-success-soft'
+                    : ' bg-card hover: hover:bg-accent-soft/30'
                 )}
                 onClick={() => task.actionUrl && onTaskClick?.(task.actionUrl)}
                 role="button"
@@ -254,12 +254,12 @@ export function AchievementsModal({
                   <div className="relative flex shrink-0 flex-col items-center">
                     <div
                       className={cn(
-                        'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                        'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full  transition-colors',
                         task.completed
-                          ? 'border-success bg-success text-success-foreground'
+                          ? ' bg-success text-success-foreground'
                           : task.progress > 0
-                          ? 'border-warning bg-warning/10 text-warning'
-                          : 'border-border bg-card text-muted-foreground'
+                          ? ' bg-warning/10 text-warning'
+                          : ' bg-card text-muted-foreground'
                       )}
                     >
                       {task.completed ? (
@@ -365,7 +365,7 @@ export function AchievementsModal({
 
           {/* Unlock status footer */}
           {isUnlocked && unlockedAt && (
-            <div className={cn('mt-4 flex items-center justify-center gap-2 rounded-xl bg-accent-soft p-4 border border-accent-border', animate && 'animate-in fade-in slide-up duration-400 delay-400')}>
+            <div className={cn('mt-4 flex items-center justify-center gap-2 rounded-xl bg-accent-soft p-4  ', animate && 'animate-in fade-in slide-up duration-400 delay-400')}>
               <span className="text-lg shrink-0" role="img" aria-label="Celebration">🎉</span>
               <div className="min-w-0">
                 <p className="font-semibold text-accent-text">Badge Unlocked!</p>

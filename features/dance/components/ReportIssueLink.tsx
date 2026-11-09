@@ -11,6 +11,8 @@ interface ReportIssueLinkProps {
   itemId?: string | number;
   /** Kind label used in the subject line: Event, Crew, Update, Recap, etc. */
   kind?: string;
+  /** Page the item lives on, included in the email body for context. */
+  pagePath?: string;
   className?: string;
 }
 
@@ -21,10 +23,10 @@ interface ReportIssueLinkProps {
  * the user's own mail client sends it. The subject and body identify the
  * relevant item. A plain anchor keeps it keyboard-accessible with no JS.
  */
-export function ReportIssueLink({ itemTitle, itemId, kind = 'Listing', className = '' }: ReportIssueLinkProps) {
+export function ReportIssueLink({ itemTitle, itemId, kind = 'Listing', pagePath, className = '' }: ReportIssueLinkProps) {
   const subject = encodeURIComponent(`Correction request — ${kind}: ${itemTitle}`.slice(0, 140));
   const body = encodeURIComponent(
-    `Hello Groove team,\n\nI would like to report an error or request removal for this ${kind.toLowerCase()}:\n\nTitle: ${itemTitle}\n${itemId !== undefined ? `ID: ${String(itemId)}\n` : ''}Page: /community/performing-arts/dance\n\nDetails (what is wrong, and the correct information or source if you have it):\n\nThank you.`
+    `Hello Groove team,\n\nI would like to report an error or request removal for this ${kind.toLowerCase()}:\n\nTitle: ${itemTitle}\n${itemId !== undefined ? `ID: ${String(itemId)}\n` : ''}Page: ${pagePath ?? '/community/performing-arts/dance'}\n\nDetails (what is wrong, and the correct information or source if you have it):\n\nThank you.`
   );
   const href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
 

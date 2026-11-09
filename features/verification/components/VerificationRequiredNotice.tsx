@@ -34,7 +34,7 @@ export function VerificationRequiredNotice({
     <div
       role="alert"
       className={cn(
-        'rounded-2xl border border-warning/30 bg-warning-soft',
+        'rounded-2xl   bg-warning-soft',
         compact ? 'px-4 py-3' : 'px-5 py-4',
         className
       )}
@@ -42,7 +42,7 @@ export function VerificationRequiredNotice({
       <div className="flex items-start gap-3">
         <span
           aria-hidden="true"
-          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-warning/30 bg-card text-warning"
+          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full   bg-card text-warning"
         >
           <Lock className="h-4 w-4" />
         </span>
@@ -83,7 +83,7 @@ export function VerificationRequiredButton({
       type="button"
       onClick={onBlocked}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning-soft px-4 py-2 text-xs font-semibold text-warning transition-colors hover:bg-warning-soft/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        'inline-flex items-center gap-1.5 rounded-full   bg-warning-soft px-4 py-2 text-xs font-semibold text-warning transition-colors hover:bg-warning-soft/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
         className
       )}
     >

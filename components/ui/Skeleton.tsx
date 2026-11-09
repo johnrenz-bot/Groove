@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import { cn } from '@/components/shared/cn';
+import { GrooveSpinner } from '@/components/loading/GrooveSpinner';
 
 /** Base shimmer block. Use the `*Skeleton` helpers for common shapes. */
 export function Skeleton({ className = '' }: { className?: string }) {
@@ -34,13 +37,13 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
 export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
   return (
     <div className="g-card overflow-hidden" aria-hidden="true">
-      <div className="flex gap-4 border-b border-border bg-muted px-5 py-3.5">
+      <div className="flex gap-4   bg-muted px-5 py-3.5">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} className="h-3 w-24" />
         ))}
       </div>
       {Array.from({ length: rows }).map((_, r) => (
-        <div key={r} className="flex gap-4 border-b border-divider px-5 py-4 last:border-0">
+        <div key={r} className="flex gap-4   px-5 py-4 last:">
           {Array.from({ length: cols }).map((_, c) => (
             <Skeleton key={c} className="h-3.5 flex-1" />
           ))}
@@ -64,11 +67,43 @@ export function SkeletonGrid({ count = 6, className = '' }: { count?: number; cl
   );
 }
 
+/** Dashboard-shaped skeleton: heading, stat cards, then a list. */
+export function DashboardSkeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={cn('space-y-6', className)} aria-hidden="true" role="status" aria-label="Loading dashboard">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-56" />
+        <Skeleton className="h-3.5 w-80 max-w-full" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="g-card space-y-3 p-5">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-7 w-24" />
+          </div>
+        ))}
+      </div>
+      <div className="g-card overflow-hidden">
+        {[0, 1, 2, 3].map((r) => (
+          <div key={r} className="flex items-center gap-4 border-b border-divider px-5 py-4 last:border-none">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-3.5 w-1/3" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+            <Skeleton className="h-8 w-20 rounded-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Named loading state with an accessible label. */
 export function LoadingState({ label = 'Loading…', className = '' }: { label?: string; className?: string }) {
   return (
     <div role="status" aria-live="polite" className={cn('flex flex-col items-center gap-3 py-16', className)}>
-      <span className="g-spin h-6 w-6 rounded-full border-2 border-border border-t-accent" aria-hidden="true" />
+      <GrooveSpinner variant="orbit" size="lg" label={label} />
       <p className="text-sm text-muted-foreground">{label}</p>
     </div>
   );

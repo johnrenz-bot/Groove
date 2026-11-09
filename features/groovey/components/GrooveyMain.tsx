@@ -13,11 +13,11 @@ const MainContent: React.FC = () => {
   const { activeTab, toastMessage } = useChat();
 
   return (
-    <div className="groovey-root w-full flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-9rem)] min-h-[520px] bg-card text-foreground border border-border rounded-2xl shadow-sm font-sans relative overflow-hidden">
+    <div className="groovey-root w-full flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-9rem)] min-h-[520px] bg-card text-foreground   rounded-2xl shadow-sm font-sans relative overflow-hidden">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300">
-          <div className="px-4 py-2 bg-elevated text-foreground text-xs font-medium rounded-full shadow-lg border border-border flex items-center gap-2">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[1350] pointer-events-none transition-all duration-300">
+          <div className="px-4 py-2 bg-elevated text-foreground text-xs font-medium rounded-full shadow-lg   flex items-center gap-2">
             <span>{toastMessage}</span>
           </div>
         </div>

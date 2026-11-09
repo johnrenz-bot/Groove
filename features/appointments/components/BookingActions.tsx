@@ -121,7 +121,7 @@ export function BookingActions({
     >
       <Link
         href={`/messages?user=${counterpartyId}`}
-        className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full   bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover: hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
       >
         <MessageSquare className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
         {messageLabel}
@@ -192,7 +192,7 @@ export function BookingActions({
           onClick={() => run(spec.action)}
           className={
             spec.variant === 'danger'
-              ? 'border-danger/30 text-danger hover:border-danger/50 hover:bg-danger-soft hover:text-danger'
+              ? ' text-danger hover: hover:bg-danger-soft hover:text-danger'
               : undefined
           }
         >

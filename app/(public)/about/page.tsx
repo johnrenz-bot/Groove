@@ -220,7 +220,7 @@ export default function AboutPage() {
   return (
     <PublicLayout>
       {/* ---- Hero ---- */}
-      <section className="relative overflow-hidden border-b border-border bg-card/40">
+      <section className="relative overflow-hidden   bg-card/40">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -right-24 -top-32 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
           <div className="absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-accent-soft/40 blur-3xl" />
@@ -243,15 +243,15 @@ export default function AboutPage() {
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-2.5 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full   bg-muted/40 px-3 py-1.5">
                 <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                 San Jose del Monte, Bulacan
               </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full   bg-muted/40 px-3 py-1.5">
                 <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 Verified coach directory
               </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full   bg-muted/40 px-3 py-1.5">
                 <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 Bookings &amp; agreements
               </span>
@@ -260,14 +260,14 @@ export default function AboutPage() {
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
                 href="/users"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-[0.9375rem] font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-[0.9375rem] font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 Browse coaches
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
                 <Link
                   href="/register/coach"
-                  className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-accent-text underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-accent-text underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   Teach on Groove
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -278,10 +278,10 @@ export default function AboutPage() {
           <Reveal variant="right" delay={90} className="relative">
             <aside
               aria-label="Platform snapshot"
-              className="relative overflow-hidden rounded-[28px] border border-accent-border/30 bg-gradient-to-br from-accent-soft/20 via-card to-card p-5 shadow-[var(--shadow-lg)] sm:p-7"
+              className="relative overflow-hidden rounded-[28px]   bg-gradient-to-br from-accent-soft/20 via-card to-card p-5 shadow-[var(--shadow-lg)] sm:p-7"
             >
               <div
-                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-accent/15 bg-accent/5"
+                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full   bg-accent/5"
                 aria-hidden="true"
               />
               <div
@@ -306,7 +306,7 @@ export default function AboutPage() {
                 {GLANCE.map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-2xl border border-border/80 bg-card/80 p-3.5 backdrop-blur-sm"
+                    className="rounded-2xl   bg-card/80 p-3.5 backdrop-blur-sm"
                   >
                     <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-subtle-foreground">
                       <item.icon className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
@@ -319,7 +319,7 @@ export default function AboutPage() {
                 ))}
               </dl>
 
-              <div className="relative mt-4 rounded-2xl border border-accent-border/25 bg-accent-soft/15 p-4">
+              <div className="relative mt-4 rounded-2xl   bg-accent-soft/15 p-4">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text">
                   Community disciplines
                 </p>
@@ -327,7 +327,7 @@ export default function AboutPage() {
                   {DISCIPLINES.map((discipline) => (
                     <span
                       key={discipline.label}
-                      className="rounded-full border border-accent-border/40 bg-card/70 px-2.5 py-1 text-[11px] font-semibold text-foreground"
+                      className="rounded-full   bg-card/70 px-2.5 py-1 text-[11px] font-semibold text-foreground"
                     >
                       {discipline.label}
                     </span>
@@ -343,14 +343,14 @@ export default function AboutPage() {
       <div className="mx-auto w-full max-w-[1240px] px-5 pt-8 sm:px-8 sm:pt-10">
         <nav
           aria-label="On this page"
-          className="overflow-hidden rounded-2xl border border-border bg-card/70 p-1.5 shadow-[var(--shadow-sm)]"
+          className="overflow-hidden rounded-2xl   bg-card/70 p-1.5 shadow-[var(--shadow-sm)]"
         >
           <ul className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {SECTION_LINKS.map((link) => (
               <li key={link.href} className="shrink-0">
                 <a
                   href={link.href}
-                  className="inline-flex whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="inline-flex whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   {link.label}
                 </a>
@@ -389,7 +389,7 @@ export default function AboutPage() {
 
             <Reveal variant="right" delay={80}>
               <aside
-                className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-sm)] sm:p-6"
+                className="relative overflow-hidden rounded-3xl   bg-card p-5 shadow-[var(--shadow-sm)] sm:p-6"
                 aria-labelledby="at-a-glance"
               >
                 <div
@@ -397,7 +397,7 @@ export default function AboutPage() {
                   aria-hidden="true"
                 />
                 <div className="relative flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent-border/30 bg-accent-soft/20 text-accent-text">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl   bg-accent-soft/20 text-accent-text">
                     <Sparkles className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <h3 id="at-a-glance" className="text-sm font-semibold text-foreground">
@@ -406,7 +406,7 @@ export default function AboutPage() {
                 </div>
                 <dl className="relative mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {GLANCE.map((item) => (
-                    <div key={item.label} className="rounded-2xl border border-border bg-muted/30 p-3.5">
+                    <div key={item.label} className="rounded-2xl   bg-muted/30 p-3.5">
                       <dt className="text-[10px] font-bold uppercase tracking-[0.12em] text-subtle-foreground">
                         {item.label}
                       </dt>
@@ -437,13 +437,13 @@ export default function AboutPage() {
               {AUDIENCES.map((audience, index) => (
                 <li key={audience.title} className="min-w-0">
                   <Reveal delay={index * 70} className="h-full">
-                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/50 hover:shadow-[var(--shadow-md)]">
+                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl   bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover: hover:shadow-[var(--shadow-md)]">
                       <div
                         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                         aria-hidden="true"
                       />
                       <div className="flex items-start justify-between gap-3">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-accent-border/30 bg-accent-soft/25 text-accent-text transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl   bg-accent-soft/25 text-accent-text transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
                           <audience.icon className="h-5 w-5" aria-hidden="true" />
                         </span>
                         <span className="text-[11px] font-bold tracking-[0.2em] text-subtle-foreground">
@@ -454,7 +454,7 @@ export default function AboutPage() {
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                         {audience.body}
                       </p>
-                      <ul className="mt-5 space-y-2.5 border-t border-divider pt-4">
+                      <ul className="mt-5 space-y-2.5   pt-4">
                         {audience.items.map((item) => (
                           <li
                             key={item}
@@ -491,8 +491,8 @@ export default function AboutPage() {
               {FEATURES.map((feature, index) => (
                 <li key={feature.title} className="min-w-0">
                   <Reveal delay={(index % 4) * 50} className="h-full">
-                    <article className="group h-full rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/40 hover:bg-muted/20 hover:shadow-[var(--shadow-sm)]">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/60 text-muted-foreground transition-colors group-hover:border-accent-border/40 group-hover:bg-accent-soft/30 group-hover:text-accent-text">
+                    <article className="group h-full rounded-2xl   bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover: hover:bg-muted/20 hover:shadow-[var(--shadow-sm)]">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl   bg-muted/60 text-muted-foreground transition-colors group-hover: group-hover:bg-accent-soft/30 group-hover:text-accent-text">
                         <feature.icon className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <h3 className="mt-3 text-sm font-semibold text-foreground">{feature.title}</h3>
@@ -524,13 +524,13 @@ export default function AboutPage() {
                 <Reveal key={discipline.label} delay={index * 50}>
                   <Link
                     href={discipline.href}
-                    className="group relative flex min-h-[116px] flex-col justify-between overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-accent-soft/10 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/50 hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="group relative flex min-h-[116px] flex-col justify-between overflow-hidden rounded-2xl   bg-gradient-to-br from-card via-card to-accent-soft/10 p-4 transition-all duration-300 hover:-translate-y-0.5 hover: hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-subtle-foreground">
                         Discipline 0{index + 1}
                       </span>
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-all group-hover:border-accent-border group-hover:text-accent-text">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full   bg-card text-muted-foreground transition-all group-hover: group-hover:text-accent-text">
                         <ArrowRight
                           className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
                           aria-hidden="true"
@@ -544,7 +544,7 @@ export default function AboutPage() {
                       <p className="mt-0.5 text-xs text-muted-foreground">Community page</p>
                     </div>
                     <div
-                      className="pointer-events-none absolute -bottom-8 -right-6 h-20 w-20 rounded-full border border-accent/10 bg-accent/5 transition-transform duration-300 group-hover:scale-125"
+                      className="pointer-events-none absolute -bottom-8 -right-6 h-20 w-20 rounded-full   bg-accent/5 transition-transform duration-300 group-hover:scale-125"
                       aria-hidden="true"
                     />
                   </Link>
@@ -569,9 +569,9 @@ export default function AboutPage() {
               {STEPS.map((step, index) => (
                 <li key={step.title} className="min-w-0">
                   <Reveal delay={index * 60} className="h-full">
-                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/40 hover:shadow-[var(--shadow-sm)]">
+                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl   bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover: hover:shadow-[var(--shadow-sm)]">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-accent-border/30 bg-accent-soft/25 text-sm font-bold text-accent-text">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full   bg-accent-soft/25 text-sm font-bold text-accent-text">
                           {index + 1}
                         </span>
                         <step.icon
@@ -603,13 +603,13 @@ export default function AboutPage() {
                 return (
                   <li key={value.title} className="min-w-0">
                     <Reveal delay={index * 70} className="h-full">
-                      <article className="relative h-full overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/40 hover:shadow-[var(--shadow-sm)]">
+                      <article className="relative h-full overflow-hidden rounded-2xl   bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover: hover:shadow-[var(--shadow-sm)]">
                         <div
                           className="absolute inset-y-0 left-0 w-0.5 bg-accent/70"
                           aria-hidden="true"
                         />
                         <div className="flex items-start justify-between gap-3">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-border/30 bg-accent-soft/20 text-accent-text">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-xl   bg-accent-soft/20 text-accent-text">
                             <Icon className="h-5 w-5" aria-hidden="true" />
                           </span>
                           <span className="text-[11px] font-bold tracking-[0.2em] text-subtle-foreground">
@@ -645,8 +645,8 @@ export default function AboutPage() {
               {BOUNDARIES.map((boundary, index) => (
                 <li key={boundary.title} className="min-w-0">
                   <Reveal delay={(index % 2) * 60} className="h-full">
-                    <article className="flex h-full gap-3.5 rounded-2xl border border-border bg-muted/30 p-5 transition-colors hover:border-border-strong">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground">
+                    <article className="flex h-full gap-3.5 rounded-2xl   bg-muted/30 p-5 transition-colors hover:">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-card text-muted-foreground">
                         <Info className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <div className="min-w-0">
@@ -665,10 +665,10 @@ export default function AboutPage() {
           {/* ---- Academic cross-link ---- */}
           <aside
             aria-labelledby="capstone-link"
-            className="relative scroll-mt-28 overflow-hidden rounded-3xl border border-accent-border/30 bg-accent-soft/10 p-6 sm:p-8"
+            className="relative scroll-mt-28 overflow-hidden rounded-3xl   bg-accent-soft/10 p-6 sm:p-8"
           >
             <div
-              className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full border border-accent/15 bg-accent/5"
+              className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full   bg-accent/5"
               aria-hidden="true"
             />
             <Reveal className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -688,7 +688,7 @@ export default function AboutPage() {
               </div>
               <Link
                 href="/about-project"
-                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:border-accent-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full   bg-card px-5 text-sm font-semibold text-foreground transition-colors hover: hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 About the capstone project
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -699,7 +699,7 @@ export default function AboutPage() {
           {/* ---- Contact ---- */}
           <section
             aria-labelledby="contact"
-            className="scroll-mt-28 rounded-3xl border border-border bg-card p-6 sm:p-10"
+            className="scroll-mt-28 rounded-3xl   bg-card p-6 sm:p-10"
           >
             <Reveal>
               <span className="g-eyebrow">Get in touch</span>
@@ -715,7 +715,7 @@ export default function AboutPage() {
             <div className="mt-7 grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
               <Reveal delay={80}>
                 <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 p-4">
+                  <div className="flex items-start gap-3 rounded-2xl   bg-muted/40 p-4">
                     <Mail className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
                     <div className="min-w-0">
                       <dt className="text-xs font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
@@ -724,14 +724,14 @@ export default function AboutPage() {
                       <dd className="mt-1 break-words text-sm text-muted-foreground">
                         <a
                           href="mailto:grooveyyph@gmail.com"
-                          className="font-semibold text-accent-text underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                          className="font-semibold text-accent-text underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                         >
                           grooveyyph@gmail.com
                         </a>
                       </dd>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 p-4">
+                  <div className="flex items-start gap-3 rounded-2xl   bg-muted/40 p-4">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
                     <div className="min-w-0">
                       <dt className="text-xs font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
@@ -746,7 +746,7 @@ export default function AboutPage() {
               </Reveal>
 
               <Reveal variant="right" delay={140}>
-                <div className="rounded-2xl border border-accent-border/30 bg-accent-soft/10 p-5">
+                <div className="rounded-2xl   bg-accent-soft/10 p-5">
                   <h3 className="text-sm font-semibold text-foreground">Need a quicker answer?</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                     The FAQ covers common questions about accounts, verification, bookings, and the
@@ -755,7 +755,7 @@ export default function AboutPage() {
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <Link
                       href="/faq"
-                      className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                      className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                     >
                       Read the FAQ
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />

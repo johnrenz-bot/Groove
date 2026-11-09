@@ -43,7 +43,7 @@ export function PanelCard({
           viewAllHref ? (
             <Link
               href={viewAllHref}
-              className="flex items-center gap-1 rounded-full px-1 text-xs font-semibold text-accent-text transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center gap-1 rounded-full px-1 text-xs font-semibold text-accent-text transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
             >
               {viewAllLabel}
               <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />

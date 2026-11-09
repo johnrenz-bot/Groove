@@ -216,7 +216,7 @@ export function AgreementThread({
   if (showSkeleton) {
     return (
       <div
-        className="mx-auto my-4 flex w-full max-w-2xl items-center justify-center gap-2.5 rounded-2xl border border-border bg-card px-5 py-6 text-xs text-muted-foreground shadow-sm"
+        className="mx-auto my-4 flex w-full max-w-2xl items-center justify-center gap-2.5 rounded-2xl   bg-card px-5 py-6 text-xs text-muted-foreground shadow-sm"
         role="status"
       >
         <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />

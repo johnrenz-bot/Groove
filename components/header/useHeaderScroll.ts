@@ -3,20 +3,27 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Scroll behaviour for the sticky header.
+ * Scroll behaviour for the sticky site header.
  *
- * Two booleans change rarely (past 8px, hidden after 120px downward) and are
- * React state because they drive attributes. The progress bar is written
- * directly through a ref on every animation frame instead: putting a 0–1 float
- * in state would re-render the whole header on every scroll event, which is the
- * one thing a sticky bar must not do.
+ * The bar is ALWAYS visible — it never hides on scroll down. The one boolean
+ * (`scrolled`, set past 8px) deepens its surface, hairline and shadow via
+ * `[data-scrolled]`, so the transition to a separated bar reads as one smooth
+ * movement. The progress bar is written directly through a ref on every
+ * animation frame instead: putting a 0–1 float in state would re-render the
+ * whole header on every scroll event, which is the one thing a sticky bar
+ * must not do.
+ *
+ * `resetKey` (callers pass the pathname) re-runs the read on route changes:
+ * cached layouts keep their header mounted across navigations, so without it
+ * the bar could show the previous page's scrolled state until the next
+ * scroll event fires.
  */
-export function useHeaderScroll(progressRef: React.RefObject<HTMLSpanElement | null>) {
+export function useHeaderScroll(
+  progressRef: React.RefObject<HTMLSpanElement | null>,
+  resetKey?: string
+) {
   const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const scrolledRef = useRef(false);
-  const hiddenRef = useRef(false);
-  const lastY = useRef(0);
   const frame = useRef(0);
 
   useEffect(() => {
@@ -32,23 +39,10 @@ export function useHeaderScroll(progressRef: React.RefObject<HTMLSpanElement | n
       }
 
       const nextScrolled = y > 8;
-      let nextHidden = hiddenRef.current;
-      if (y <= 120) {
-        nextHidden = false;
-      } else if (y > lastY.current + 6) {
-        nextHidden = true;
-      } else if (y < lastY.current - 6) {
-        nextHidden = false;
-      }
-      lastY.current = y;
 
       if (nextScrolled !== scrolledRef.current) {
         scrolledRef.current = nextScrolled;
         setScrolled(nextScrolled);
-      }
-      if (nextHidden !== hiddenRef.current) {
-        hiddenRef.current = nextHidden;
-        setHidden(nextHidden);
       }
     };
 
@@ -65,9 +59,9 @@ export function useHeaderScroll(progressRef: React.RefObject<HTMLSpanElement | n
       window.removeEventListener('resize', onScroll);
       if (frame.current) window.cancelAnimationFrame(frame.current);
     };
-  }, [progressRef]);
+  }, [progressRef, resetKey]);
 
-  return { scrolled, hidden };
+  return { scrolled };
 }
 
 export default useHeaderScroll;

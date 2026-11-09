@@ -128,7 +128,7 @@ export function ImageCard({
 }: ImageCardProps) {
   const hasPanel = Boolean(description || location || rate || actions.length > 0 || children);
 
-  const shell = cn('g-imagecard group block w-full text-left', className);
+  const shell = cn('g-imagecard g-gold-border group block w-full text-left', className);
 
   /**
    * Actions sitting on the photo need the glass treatment (translucent white on
@@ -147,7 +147,7 @@ export function ImageCard({
   ) : (
     <div className="absolute inset-0 flex items-center justify-center bg-muted">
       {fallback ?? (
-        <span className="flex h-16 w-16 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-lg font-bold uppercase tracking-wide text-accent-text">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full   bg-accent-soft text-lg font-bold uppercase tracking-wide text-accent-text">
           {alt.slice(0, 2)}
         </span>
       )}
@@ -173,7 +173,7 @@ export function ImageCard({
 
   /** Location + rate row. */
   const meta = location || rate ? (
-    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-t border-white/15 pt-2.5">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5   pt-2.5">
       {location && (
         <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-white/80">
           {location}
@@ -257,7 +257,7 @@ export function ImageCard({
           {identity}
           {continuePill && (
             <div className="mt-3.5 flex items-center justify-between pt-0.5">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-foreground shadow-sm transition-all duration-200 group-hover:bg-accent-hover group-hover:shadow-[var(--shadow-accent)]">
+              <span className="inline-flex items-center gap-1.5 rounded-full   bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-foreground shadow-sm transition-all duration-200 group-hover:bg-accent-hover group-hover:shadow-[var(--shadow-accent)]">
                 {typeof continuePill === 'string' ? continuePill : 'Continue'}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transform-none" />
               </span>
@@ -408,8 +408,8 @@ function actionClass(variant: 'primary' | 'secondary', glass = false) {
     variant === 'primary'
       ? 'bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover'
       : glass
-        ? 'border border-white/25 bg-white/15 text-white backdrop-blur-md hover:bg-white/25'
-        : 'border border-border bg-card text-foreground hover:border-border-strong hover:bg-muted'
+        ? '  bg-white/15 text-white backdrop-blur-md hover:bg-white/25'
+        : '  bg-card text-foreground hover: hover:bg-muted'
   );
 }
 

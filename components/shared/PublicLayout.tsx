@@ -57,11 +57,11 @@ export function PublicLayout({
        `<SessionProvider>`, so there is exactly one instance for the whole app.
        Mounting another one here would shadow the root provider and split the
        theme state in two, which is the bug this paragraph is about. */
-    <div className="flex min-h-screen flex-col font-sans text-foreground">
+    <div className="dark flex min-h-screen flex-col font-sans text-foreground bg-[#0a0a0a] overflow-x-hidden">
       <AppHeader />
-      <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
+      <main id="main-content" tabIndex={-1} className="flex-1 overflow-x-hidden">{children}</main>
       {showFooter && (
-        <Footer className="mt-auto" showThemeToggle={false}>
+        <Footer className="mt-auto border-t border-white/5 bg-[#0a0a0a]" showThemeToggle={false}>
           {footerExtra}
         </Footer>
       )}

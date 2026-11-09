@@ -643,7 +643,7 @@ export default function ClientProfilePage() {
       )}
 
       {/* Tabs */}
-      <div className="mb-6 flex flex-wrap items-center gap-1 border-b border-divider">
+      <div className="mb-6 flex flex-wrap items-center gap-1 border-b border-border">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -652,7 +652,7 @@ export default function ClientProfilePage() {
             aria-current={activeTab === tab.id ? 'page' : undefined}
             className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
               activeTab === tab.id
-                ? 'border-accent text-accent-text'
+                ? 'border-accent-text text-accent-text'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -677,7 +677,7 @@ export default function ClientProfilePage() {
                 <button
                   type="button"
                   onClick={() => setRevealSensitive((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
                   aria-label={revealSensitive ? 'Mask sensitive details' : 'Reveal sensitive details'}
                 >
                   {revealSensitive ? (
@@ -728,7 +728,7 @@ export default function ClientProfilePage() {
                 <button
                   type="button"
                   onClick={() => setRevealSensitive((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
                   aria-label={revealSensitive ? 'Mask address details' : 'Reveal address details'}
                 >
                   {revealSensitive ? (

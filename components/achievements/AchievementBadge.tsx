@@ -68,11 +68,11 @@ export function AchievementBadge({
         disabled={!unlocked && !onClick}
         className={cn(
           'relative flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-300',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
           sizeClasses[size],
           unlocked
             ? 'cursor-pointer bg-gradient-to-br ' + badgeColor + ' shadow-lg'
-            : 'cursor-not-allowed bg-muted border-2 border-dashed border-border',
+            : 'cursor-not-allowed bg-muted   ',
           onClick && unlocked && 'hover:scale-105 active:scale-95'
         )}
         aria-label={unlocked ? `${type} badge unlocked` : `${type} badge locked`}

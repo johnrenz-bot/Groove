@@ -140,7 +140,7 @@ export default function FeedbackModal({
     >
       <ModalSection className="space-y-4">
         {error && (
-          <ModalCard className="border-danger/30 bg-danger-soft text-danger">
+          <ModalCard className=" bg-danger-soft text-danger">
             <div className="flex items-center gap-2 text-xs">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
@@ -150,7 +150,7 @@ export default function FeedbackModal({
 
         {success ? (
           <div className="py-8 text-center space-y-3">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-success/30 bg-success-soft text-success shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl   bg-success-soft text-success shadow-sm">
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <h4 className="text-lg font-bold text-foreground">Review Submitted!</h4>
@@ -172,14 +172,14 @@ export default function FeedbackModal({
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
-                    className="p-1 transition-transform hover:scale-125 focus:outline-none cursor-pointer"
+                    className="p-1 transition-transform hover:scale-125 focus: cursor-pointer"
                     aria-label={`Rate ${star} star`}
                   >
                     <Star
                       className={`h-7 w-7 transition-colors ${
                         (hoverRating || rating) >= star
                           ? 'fill-amber-400 text-warning'
-                          : 'text-border'
+                          : 'text-'
                       }`}
                     />
                   </button>

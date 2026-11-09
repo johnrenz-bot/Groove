@@ -86,11 +86,11 @@ export function RolePerk({
           });
         }}
         className={cn(
-          'relative z-30 inline-flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition-colors duration-200 motion-reduce:transition-none',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black/60',
+          'relative z-30 inline-flex h-9 w-9 items-center justify-center rounded-full  backdrop-blur-md transition-colors duration-200 motion-reduce:transition-none',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
           open
-            ? 'border-accent/60 bg-accent-soft text-accent-text'
-            : 'border-white/25 bg-black/35 text-white/85 hover:border-accent/50 hover:text-accent-text'
+            ? ' bg-accent-soft text-accent-text'
+            : ' bg-black/35 text-white/85 hover: hover:text-accent-text'
         )}
       >
         <Icon className="h-4 w-4" aria-hidden="true" />
@@ -101,7 +101,7 @@ export function RolePerk({
         role={open ? 'tooltip' : undefined}
         aria-hidden={!open}
         className={cn(
-          'pointer-events-none absolute bottom-full z-40 mb-2 w-max max-w-[12rem] rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-semibold leading-snug text-accent-text shadow-[var(--shadow-lg)] transition duration-150 motion-reduce:transition-none',
+          'pointer-events-none absolute bottom-full z-40 mb-2 w-max max-w-[12rem] rounded-full   bg-card px-2.5 py-1 text-[11px] font-semibold leading-snug text-accent-text shadow-[var(--shadow-lg)] transition duration-150 motion-reduce:transition-none',
           align === 'start'
             ? 'left-0'
             : align === 'end'

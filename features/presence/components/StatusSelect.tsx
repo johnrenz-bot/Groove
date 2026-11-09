@@ -14,20 +14,41 @@ import { cn } from '@/components/shared/cn';
 export function PresenceDot({
   status,
   size = 'md',
+  /** Badge mode glues the dot to an avatar's bottom-right corner. */
+  badge = false,
 }: {
   status: Presence | string | null | undefined;
-  /** `sm` for the badge on an avatar, `md` for an option row. */
+  /** `sm` for the badge on an avatar, `md` for an option row. Ignored in badge mode. */
   size?: 'sm' | 'md';
+  badge?: boolean;
 }) {
   const meta = statusMeta(status);
+  const colorClass =
+    meta.value === 'online'
+      ? 'bg-success'
+      : meta.value === 'away'
+        ? 'bg-warning'
+        : meta.value === 'busy'
+          ? 'bg-danger'
+          : 'bg-muted-foreground';
+
+  if (badge) {
+    return (
+      <span
+        className={cn('g-presence-badge', colorClass)}
+        role="img"
+        aria-label={`Status: ${meta.label}`}
+        title={`Status: ${meta.label}`}
+      />
+    );
+  }
+
   return (
     <span
       className={cn(
-        'rounded-full ring-2 ring-card',
+        'rounded-full  ',
         size === 'sm' ? 'h-2 w-2' : 'h-2.5 w-2.5',
-        meta.value === 'online' ? 'bg-success' :
-        meta.value === 'away' ? 'bg-warning' :
-        meta.value === 'busy' ? 'bg-danger' : 'bg-muted-foreground'
+        colorClass
       )}
       role="img"
       aria-label={`Status: ${meta.label}`}
@@ -138,8 +159,8 @@ export function StatusSelect({
         ref={triggerRef}
         type="button"
         className={cn(
-          'flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1 text-[11px] font-bold transition-all hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          open && 'ring-1 ring-accent-border'
+          'flex items-center gap-2 rounded-full   bg-card px-2 py-1 text-[11px] font-bold transition-all hover:bg-muted/50 focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
+          open && ' '
         )}
         aria-haspopup="true"
         aria-expanded={open}
@@ -169,7 +190,7 @@ export function StatusSelect({
 
       {open && (
         <div
-          className="absolute right-0 top-full z-[110] mt-1 w-40 rounded-2xl border border-accent-border bg-card/95 shadow-xl backdrop-blur-md p-1 animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 top-full z-[110] mt-1 w-40 rounded-2xl   bg-card/95 shadow-xl backdrop-blur-md p-1 animate-in fade-in zoom-in-95 duration-150"
           role="radiogroup"
           aria-label="Your status"
           onKeyDown={onMenuKeyDown}
@@ -188,7 +209,7 @@ export function StatusSelect({
                 tabIndex={active ? 0 : -1}
                 onClick={() => void choose(value)}
                 className={cn(
-                  'flex items-center justify-between w-full rounded-xl px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'flex items-center justify-between w-full rounded-xl px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                   active ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted/50'
                 )}
                 title={hint}

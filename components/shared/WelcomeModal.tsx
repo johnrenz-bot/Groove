@@ -233,7 +233,7 @@ export function WelcomeModal({
       <div
         ref={cardRef}
         tabIndex={-1}
-        className="relative flex max-h-[92vh] w-full max-w-3xl select-text flex-col overflow-y-auto rounded-t-3xl border border-accent-border bg-card shadow-[0_0_60px_-12px_var(--accent-soft)] focus:outline-none sm:w-[94vw] sm:rounded-3xl motion-reduce:animate-none animate-in fade-in zoom-in-95 duration-300"
+        className="relative flex max-h-[92vh] w-full max-w-3xl select-text flex-col overflow-y-auto rounded-t-3xl   bg-card shadow-[0_0_60px_-12px_var(--accent-soft)] focus: sm:w-[94vw] sm:rounded-3xl motion-reduce:animate-none animate-in fade-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <ModalCloseButton

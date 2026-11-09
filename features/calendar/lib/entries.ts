@@ -90,19 +90,19 @@ export function statusDotClass(status: AppointmentStatus): string {
 export function statusBarClass(status: AppointmentStatus): string {
   switch (status) {
     case 'confirmed':
-      return 'border-success/60 bg-success-soft';
+      return ' bg-success-soft';
     case 'accepted':
     case 'agreement_required':
-      return 'border-info/60 bg-info-soft';
+      return ' bg-info-soft';
     case 'pending':
-      return 'border-warning/60 bg-warning-soft';
+      return ' bg-warning-soft';
     case 'declined':
-      return 'border-danger/60 bg-danger-soft';
+      return ' bg-danger-soft';
     case 'completed':
-      return 'border-border bg-muted/60';
+      return ' bg-muted/60';
     case 'cancelled':
     default:
-      return 'border-border bg-muted/30';
+      return ' bg-muted/30';
   }
 }
 

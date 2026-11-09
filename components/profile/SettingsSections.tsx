@@ -198,7 +198,7 @@ export function AccountSettings({
         </div>
       </form>
 
-      <div className="mt-8 border-t border-divider pt-6">
+      <div className="mt-8   pt-6">
         <ChangePasswordForm />
       </div>
     </SettingsSection>
@@ -337,7 +337,7 @@ export function AppearanceSettings() {
           setting as the theme — a per-device preference — and because the account
           menu toggle and this one read the same flag rather than keeping separate
           copies. */}
-      <div className="mt-4 border-t border-divider pt-4">
+      <div className="mt-4   pt-4">
         <div className="mb-1 flex items-center gap-1.5">
           <p className="text-sm font-semibold">Sound</p>
           <SoundInfoTip />
@@ -400,11 +400,11 @@ export function DangerZone({
   };
 
   return (
-    <section className="rounded-[20px] border border-danger/30 bg-danger-soft/40 p-6">
-      <header className="mb-5 flex items-start gap-3 border-b border-danger/20 pb-4">
+    <section className="rounded-[20px]   bg-danger-soft/40 p-6">
+      <header className="mb-5 flex items-start gap-3   pb-4">
         <span
           aria-hidden="true"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-danger/30 bg-danger-soft text-danger"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full   bg-danger-soft text-danger"
         >
           <TriangleAlert className="h-4 w-4" />
         </span>
@@ -421,7 +421,7 @@ export function DangerZone({
       </header>
 
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl   bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <LogOut className="h-4 w-4 text-danger" aria-hidden="true" />
@@ -436,7 +436,7 @@ export function DangerZone({
           </Button>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl   bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />
@@ -495,7 +495,7 @@ export function DangerZone({
           </>
         }
       >
-        <div className="flex items-start gap-3 rounded-2xl border border-danger/25 bg-danger-soft px-4 py-3.5">
+        <div className="flex items-start gap-3 rounded-2xl   bg-danger-soft px-4 py-3.5">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
           <p className="text-sm leading-relaxed text-danger">
             {confirmOpen === 'delete'

@@ -59,11 +59,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           id={inputId}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={describedBy}
-          className={cn('g-input', suffix && 'pr-12', className)}
+          className={cn('rounded-[12px] w-full bg-card border border-input px-3 py-2.5 text-sm text-foreground placeholder:text-subtle-foreground outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', suffix && 'pr-12', className)}
           {...props}
         />
         {suffix && (
-          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-medium text-subtle-foreground">
             {suffix}
           </span>
         )}
@@ -106,7 +106,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         id={inputId}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy}
-        className={cn('g-input', className)}
+        className={cn('rounded-[12px] w-full bg-card border border-input px-3 py-3 resize-none text-sm text-foreground placeholder:text-subtle-foreground outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', className)}
         {...props}
       />
       <FieldMessage id={`${inputId}-error`} error={error} hint={hint} />
@@ -147,7 +147,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
         id={inputId}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy}
-        className={cn('g-input cursor-pointer', className)}
+        className={cn('rounded-[12px] w-full appearance-none bg-card border border-input [background-image:var(--select-chevron)] [background-repeat:no-repeat] [background-position:right_0.75rem_center] pr-9 cursor-pointer text-sm text-foreground outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', className)}
         {...props}
       >
         {children}

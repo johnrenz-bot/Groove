@@ -55,10 +55,10 @@ export function StatusFilterBar({
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'relative inline-flex min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
+              'relative inline-flex min-h-[36px] shrink-0 cursor-pointer items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full  px-4 py-1.5 text-xs font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
               active
-                ? 'border-accent-border text-accent-text'
-                : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
+                ? ' text-accent-text'
+                : ' bg-card text-muted-foreground hover: hover:text-foreground'
             )}
           >
             {active && (

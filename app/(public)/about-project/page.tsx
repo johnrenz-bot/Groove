@@ -174,7 +174,7 @@ export default function AboutProjectPage() {
   return (
     <PublicLayout>
       {/* ---- Hero ---- */}
-      <section className="relative overflow-hidden border-b border-border bg-card/40">
+      <section className="relative overflow-hidden   bg-card/40">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -right-24 -top-32 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
           <div className="absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-accent-soft/40 blur-3xl" />
@@ -188,7 +188,7 @@ export default function AboutProjectPage() {
                 <GraduationCap className="mr-1.5 h-3 w-3" aria-hidden="true" />
                 Academic Capstone Project
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 rounded-full   bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                 <Users className="h-3.5 w-3.5" aria-hidden="true" />
                 Student project
               </span>
@@ -209,15 +209,15 @@ export default function AboutProjectPage() {
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-2.5 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full   bg-muted/40 px-3 py-1.5">
                 <GraduationCap className="h-3.5 w-3.5" aria-hidden="true" />
                 BSIT Capstone 2025
               </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full   bg-muted/40 px-3 py-1.5">
                 <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
                 STI College San Jose Del Monte
               </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full   bg-muted/40 px-3 py-1.5">
                 <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                 San Jose del Monte, Bulacan
               </span>
@@ -226,14 +226,14 @@ export default function AboutProjectPage() {
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
                 href="/about"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-[0.9375rem] font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-[0.9375rem] font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 About the platform
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
                 href="/users"
-                className="inline-flex h-12 items-center rounded-full border border-border px-6 text-[0.9375rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-12 items-center rounded-full   px-6 text-[0.9375rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 Browse coaches
               </Link>
@@ -243,10 +243,10 @@ export default function AboutProjectPage() {
           <Reveal variant="right" delay={90} className="relative">
             <aside
               aria-label="Academic record"
-              className="relative overflow-hidden rounded-[28px] border border-accent-border/30 bg-gradient-to-br from-accent-soft/20 via-card to-card p-5 shadow-[var(--shadow-lg)] sm:p-7"
+              className="relative overflow-hidden rounded-[28px]   bg-gradient-to-br from-accent-soft/20 via-card to-card p-5 shadow-[var(--shadow-lg)] sm:p-7"
             >
               <div
-                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-accent/15 bg-accent/5"
+                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full   bg-accent/5"
                 aria-hidden="true"
               />
               <div
@@ -255,7 +255,7 @@ export default function AboutProjectPage() {
               />
 
               <div className="relative flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent-border/30 bg-accent-soft/20 text-accent-text">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl   bg-accent-soft/20 text-accent-text">
                   <GraduationCap className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -271,7 +271,7 @@ export default function AboutProjectPage() {
                 {GLANCE.map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-2xl border border-border/80 bg-card/80 p-3.5 backdrop-blur-sm"
+                    className="rounded-2xl   bg-card/80 p-3.5 backdrop-blur-sm"
                   >
                     <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-subtle-foreground">
                       <item.icon className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
@@ -284,7 +284,7 @@ export default function AboutProjectPage() {
                 ))}
               </dl>
 
-              <div className="relative mt-4 flex items-start gap-2.5 rounded-2xl border border-accent-border/25 bg-accent-soft/15 p-4">
+              <div className="relative mt-4 flex items-start gap-2.5 rounded-2xl   bg-accent-soft/15 p-4">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text">
@@ -304,14 +304,14 @@ export default function AboutProjectPage() {
       <div className="mx-auto w-full max-w-[1240px] px-5 pt-8 sm:px-8 sm:pt-10">
         <nav
           aria-label="On this page"
-          className="overflow-hidden rounded-2xl border border-border bg-card/70 p-1.5 shadow-[var(--shadow-sm)]"
+          className="overflow-hidden rounded-2xl   bg-card/70 p-1.5 shadow-[var(--shadow-sm)]"
         >
           <ul className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {SECTION_LINKS.map((link) => (
               <li key={link.href} className="shrink-0">
                 <a
                   href={link.href}
-                  className="inline-flex whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="inline-flex whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   {link.label}
                 </a>
@@ -337,7 +337,7 @@ export default function AboutProjectPage() {
             </Reveal>
 
             <dl className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-accent-border/30 bg-accent-soft/10 p-5 sm:col-span-2 lg:col-span-4">
+              <div className="rounded-2xl   bg-accent-soft/10 p-5 sm:col-span-2 lg:col-span-4">
                 <dt className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text">
                   <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
                   Project title
@@ -347,7 +347,7 @@ export default function AboutProjectPage() {
                 </dd>
               </div>
               {GLANCE.map((item) => (
-                <div key={item.label} className="rounded-2xl border border-border bg-card p-5">
+                <div key={item.label} className="rounded-2xl   bg-card p-5">
                   <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-subtle-foreground">
                     <item.icon className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
                     {item.label}
@@ -392,13 +392,13 @@ export default function AboutProjectPage() {
             <Reveal variant="right" delay={80}>
               <aside
                 aria-labelledby="purpose"
-                className="relative overflow-hidden rounded-3xl border border-accent-border/30 bg-accent-soft/10 p-6"
+                className="relative overflow-hidden rounded-3xl   bg-accent-soft/10 p-6"
               >
                 <div
-                  className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border border-accent/10 bg-accent/5"
+                  className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full   bg-accent/5"
                   aria-hidden="true"
                 />
-                <span className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-accent-border/30 bg-card/70 text-accent-text">
+                <span className="relative flex h-10 w-10 items-center justify-center rounded-xl   bg-card/70 text-accent-text">
                   <Target className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <h3 id="purpose" className="relative mt-3 text-sm font-semibold text-foreground">
@@ -424,14 +424,14 @@ export default function AboutProjectPage() {
                 direction.
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-semibold">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-border/40 bg-accent-soft/20 px-3 py-1.5 text-accent-text">
+                <span className="inline-flex items-center gap-1.5 rounded-full   bg-accent-soft/20 px-3 py-1.5 text-accent-text">
                   <Users className="h-3.5 w-3.5" aria-hidden="true" />
                   152 responses
                 </span>
-                <span className="rounded-full border border-border bg-muted/40 px-3 py-1.5 text-muted-foreground">
+                <span className="rounded-full   bg-muted/40 px-3 py-1.5 text-muted-foreground">
                   2025 capstone survey
                 </span>
-                <span className="rounded-full border border-border bg-muted/40 px-3 py-1.5 text-muted-foreground">
+                <span className="rounded-full   bg-muted/40 px-3 py-1.5 text-muted-foreground">
                   Performing artists in San Jose del Monte, Bulacan
                 </span>
               </div>
@@ -441,9 +441,9 @@ export default function AboutProjectPage() {
               {SURVEY_HIGHLIGHTS.map((finding, index) => (
                 <li key={finding.question} className="min-w-0">
                   <Reveal delay={(index % 3) * 60} className="h-full">
-                    <article className="group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/40 hover:shadow-[var(--shadow-sm)]">
+                    <article className="group relative h-full overflow-hidden rounded-2xl   bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover: hover:shadow-[var(--shadow-sm)]">
                       <div className="flex items-start justify-between gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent-border/30 bg-accent-soft/20 text-[11px] font-bold text-accent-text">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg   bg-accent-soft/20 text-[11px] font-bold text-accent-text">
                           {index + 1}
                         </span>
                         <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-subtle-foreground">
@@ -485,8 +485,8 @@ export default function AboutProjectPage() {
               {PROJECT_INFO.objectives.map((objective, index) => (
                 <li key={objective} className="min-w-0">
                   <Reveal delay={(index % 3) * 50} className="h-full">
-                    <div className="group flex h-full gap-3 rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/40 hover:shadow-[var(--shadow-sm)]">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent-border/30 bg-accent-soft/20 text-sm font-bold text-accent-text">
+                    <div className="group flex h-full gap-3 rounded-2xl   bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover: hover:shadow-[var(--shadow-sm)]">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full   bg-accent-soft/20 text-sm font-bold text-accent-text">
                         {index + 1}
                       </span>
                       <p className="text-sm leading-relaxed text-muted-foreground">{objective}</p>
@@ -515,7 +515,7 @@ export default function AboutProjectPage() {
               {BUILD_STAGES.map((stage, index) => (
                 <li key={stage.number} className="min-w-0">
                   <Reveal delay={index * 60} className="h-full">
-                    <div className="relative h-full overflow-hidden rounded-2xl border border-border bg-card p-5">
+                    <div className="relative h-full overflow-hidden rounded-2xl   bg-card p-5">
                       <div
                         className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent"
                         aria-hidden="true"
@@ -548,8 +548,8 @@ export default function AboutProjectPage() {
                     return (
                       <li key={point.title}>
                         <Reveal delay={index * 50}>
-                          <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-border-strong">
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/60 text-muted-foreground">
+                          <div className="flex items-start gap-3 rounded-2xl   bg-card p-4 transition-colors hover:">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-muted/60 text-muted-foreground">
                               <Icon className="h-4 w-4" aria-hidden="true" />
                             </span>
                             <div>
@@ -576,7 +576,7 @@ export default function AboutProjectPage() {
                     return (
                       <li key={module.name} className="min-w-0">
                         <Reveal delay={index * 50} className="h-full">
-                          <div className="h-full rounded-2xl border border-border bg-card p-4">
+                          <div className="h-full rounded-2xl   bg-card p-4">
                             {Icon && (
                               <Icon
                                 className="h-5 w-5 text-muted-foreground"
@@ -598,7 +598,7 @@ export default function AboutProjectPage() {
               </div>
 
               <Reveal variant="right" delay={80}>
-                <aside className="relative overflow-hidden rounded-2xl border border-border bg-muted/30 p-5">
+                <aside className="relative overflow-hidden rounded-2xl   bg-muted/30 p-5">
                   <div
                     className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-accent/5"
                     aria-hidden="true"
@@ -640,8 +640,8 @@ export default function AboutProjectPage() {
               {COMMUNITY_SUPPORT.map((item, index) => (
                 <li key={item.title} className="min-w-0">
                   <Reveal delay={index * 70} className="h-full">
-                    <article className="group h-full rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-border/40 hover:shadow-[var(--shadow-sm)]">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/60 text-muted-foreground transition-colors group-hover:border-accent-border/40 group-hover:bg-accent-soft/30 group-hover:text-accent-text">
+                    <article className="group h-full rounded-2xl   bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover: hover:shadow-[var(--shadow-sm)]">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl   bg-muted/60 text-muted-foreground transition-colors group-hover: group-hover:bg-accent-soft/30 group-hover:text-accent-text">
                         <item.icon className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <h3 className="mt-4 text-sm font-semibold text-foreground">{item.title}</h3>
@@ -677,7 +677,7 @@ export default function AboutProjectPage() {
                 return (
                   <li key={limitation.title} className="min-w-0">
                     <Reveal delay={(index % 3) * 50} className="h-full">
-                      <div className="h-full rounded-2xl border border-warning/30 bg-warning-soft/20 p-5">
+                      <div className="h-full rounded-2xl   bg-warning-soft/20 p-5">
                         {Icon && <Icon className="h-5 w-5 text-warning" aria-hidden="true" />}
                         <h3 className="mt-3 text-sm font-semibold text-foreground">
                           {limitation.title}
@@ -704,10 +704,10 @@ export default function AboutProjectPage() {
                 Names and roles are reproduced from the project&apos;s existing records.
               </p>
               <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-                <span className="rounded-full border border-border bg-muted/40 px-3 py-1.5 text-muted-foreground">
+                <span className="rounded-full   bg-muted/40 px-3 py-1.5 text-muted-foreground">
                   {PROJECT_INFO.developers.length} capstone developers
                 </span>
-                <span className="rounded-full border border-border bg-muted/40 px-3 py-1.5 text-muted-foreground">
+                <span className="rounded-full   bg-muted/40 px-3 py-1.5 text-muted-foreground">
                   {PROJECT_INFO.advisers.length} academic guides
                 </span>
               </div>
@@ -722,8 +722,8 @@ export default function AboutProjectPage() {
                   {PROJECT_INFO.developers.map((developer, index) => (
                     <li key={developer.name}>
                       <Reveal delay={index * 40}>
-                        <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-border-strong">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-border/30 bg-accent-soft/20 text-xs font-bold text-accent-text">
+                        <div className="flex items-start gap-3 rounded-2xl   bg-card p-4 transition-colors hover:">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full   bg-accent-soft/20 text-xs font-bold text-accent-text">
                             {initialsFor(developer.name)}
                           </div>
                           <div className="min-w-0">
@@ -747,8 +747,8 @@ export default function AboutProjectPage() {
                   {PROJECT_INFO.advisers.map((adviser, index) => (
                     <li key={adviser.name}>
                       <Reveal delay={index * 40}>
-                        <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-border-strong">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-accent-text">
+                        <div className="flex items-start gap-3 rounded-2xl   bg-card p-4 transition-colors hover:">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full   bg-muted text-accent-text">
                             <GraduationCap className="h-5 w-5" aria-hidden="true" />
                           </div>
                           <div className="min-w-0">
@@ -769,10 +769,10 @@ export default function AboutProjectPage() {
           {/* ---- Cross-link back to the platform ---- */}
           <aside
             aria-labelledby="platform-link"
-            className="relative overflow-hidden rounded-3xl border border-accent-border/30 bg-accent-soft/10 p-6 sm:p-8"
+            className="relative overflow-hidden rounded-3xl   bg-accent-soft/10 p-6 sm:p-8"
           >
             <div
-              className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full border border-accent/15 bg-accent/5"
+              className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full   bg-accent/5"
               aria-hidden="true"
             />
             <Reveal className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -789,14 +789,14 @@ export default function AboutProjectPage() {
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/about"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   About Groove
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link
                   href="/users"
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="inline-flex h-11 items-center justify-center rounded-full   bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   Browse coaches
                 </Link>
@@ -807,7 +807,7 @@ export default function AboutProjectPage() {
           {/* ---- Student project notice ---- */}
           <section
             aria-labelledby="student-notice"
-            className="rounded-3xl border border-border bg-muted/30 p-6 sm:p-8"
+            className="rounded-3xl   bg-muted/30 p-6 sm:p-8"
           >
             <h2 id="student-notice" className="text-sm font-semibold text-foreground">
               Student project notice

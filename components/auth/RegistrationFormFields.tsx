@@ -72,6 +72,10 @@ export interface ContactAccountData {
 
 export interface RegistrationFormFieldsProps {
   role: 'client' | 'coach';
+  /** Initial values used to pre-populate the form (e.g. when returning to a step). */
+  initialPersonal?: PersonalData;
+  initialContact?: ContactAccountData;
+  initialAddress?: AddressData;
   /** Extra fields rendered beside the username field */
   extraFields?: React.ReactNode;
   /** Extra bio field for coach */
@@ -277,6 +281,9 @@ function InlineError({ id, message }: { id?: string; message?: string }) {
 
 export function RegistrationFormFields({
   role,
+  initialPersonal,
+  initialContact,
+  initialAddress,
   extraFields,
   bioField,
   documentSection,
@@ -290,39 +297,45 @@ export function RegistrationFormFields({
   onValidatedData,
 }: RegistrationFormFieldsProps) {
   /* State */
-  const [personal, setPersonal] = useState<PersonalData>({
-    firstname: '',
-    middlename: '',
-    lastname: '',
-    suffix: '',
-    birth_year: '',
-    birth_month: '',
-    birth_day: '',
-  });
+  const [personal, setPersonal] = useState<PersonalData>(
+    initialPersonal ?? {
+      firstname: '',
+      middlename: '',
+      lastname: '',
+      suffix: '',
+      birth_year: '',
+      birth_month: '',
+      birth_day: '',
+    }
+  );
 
-  const [contact, setContact] = useState<ContactAccountData>({
-    contact: '',
-    email: '',
-    username: '',
-    password: '',
-    password_confirmation: '',
-  });
+  const [contact, setContact] = useState<ContactAccountData>(
+    initialContact ?? {
+      contact: '',
+      email: '',
+      username: '',
+      password: '',
+      password_confirmation: '',
+    }
+  );
 
-  const [address, setAddress] = useState<AddressData>({
-    region_code: '',
-    region_name: '',
-    province_code: '',
-    province_name: '',
-    city_code: '',
-    city_name: '',
-    barangay_code: '',
-    barangay_name: '',
-    street: '',
-    subdivision: '',
-    postal_code: '',
-    address_summary: '',
-    location_mode: 'sjdm',
-  });
+  const [address, setAddress] = useState<AddressData>(
+    initialAddress ?? {
+      region_code: '',
+      region_name: '',
+      province_code: '',
+      province_name: '',
+      city_code: '',
+      city_name: '',
+      barangay_code: '',
+      barangay_name: '',
+      street: '',
+      subdivision: '',
+      postal_code: '',
+      address_summary: '',
+      location_mode: 'sjdm',
+    }
+  );
 
   const [idFile, setIdFile] = useState<File | null>(null);
   const [idPreview, setIdPreview] = useState<string | null>(null);
@@ -598,7 +611,7 @@ export function RegistrationFormFields({
   const err = (key: string) => fieldErrors[key] || liveErrors[key];
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+    <form ref={formRef} onSubmit={handleSubmit} className="reg-form flex flex-col" noValidate>
       {/* Error banner */}
       <div ref={errorBannerRef}>
         <FormError message={displayError} />
@@ -616,7 +629,7 @@ export function RegistrationFormFields({
       </p>
 
       {/* ── Section 1: Personal Information ── */}
-      <SectionFieldset id="reg-legend-personal" className="space-y-4">
+      <SectionFieldset id="reg-legend-personal" className="reg-section space-y-7">
         <RegistrationSectionHeading
           id="reg-legend-personal"
           index={1}
@@ -626,7 +639,7 @@ export function RegistrationFormFields({
           description="Enter your legal name and date of birth for account identity."
         />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           <div>
             <label className="g-label" htmlFor="reg-firstname">
               First Name <span className="text-accent-text">*</span>
@@ -641,7 +654,7 @@ export function RegistrationFormFields({
               required
               aria-invalid={err('firstname') ? 'true' : undefined}
               aria-describedby={err('firstname') ? 'reg-firstname-error' : undefined}
-              className={`${inputClasses} ${err('firstname') ? 'border-danger' : ''}`}
+              className={inputClasses}
             />
             <InlineError id="reg-firstname-error" message={err('firstname')} />
           </div>
@@ -660,7 +673,7 @@ export function RegistrationFormFields({
               required
               aria-invalid={err('lastname') ? 'true' : undefined}
               aria-describedby={err('lastname') ? 'reg-lastname-error' : undefined}
-              className={`${inputClasses} ${err('lastname') ? 'border-danger' : ''}`}
+              className={inputClasses}
             />
             <InlineError id="reg-lastname-error" message={err('lastname')} />
           </div>
@@ -701,72 +714,81 @@ export function RegistrationFormFields({
             <span className="g-label mb-0" id="reg-dob-label">
               Date of Birth <span className="text-accent-text">*</span>
             </span>
-            <span className="rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-subtle-foreground">
+            <span className="rounded-full   bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-subtle-foreground">
               Minimum 13 years old
             </span>
           </div>
           <div
-            className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-3"
             role="group"
             aria-labelledby="reg-dob-label"
           >
-            <select
-              id="reg-birth-year"
-              name="birth_year"
-              aria-label="Birth year"
-              aria-invalid={err('birth') ? 'true' : undefined}
-              aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
-              value={personal.birth_year}
-              onChange={(e) => setPersonal({ ...personal, birth_year: e.target.value, birth_day: '' })}
-              required
-              className={`${selectClasses} ${err('birth') ? 'border-danger' : ''}`}
-            >
-              <option value="">Year</option>
-              {BIRTH_YEARS.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+            <div className="reg-field">
+              <span className="reg-select-caption" aria-hidden="true">Year</span>
+              <select
+                id="reg-birth-year"
+                name="birth_year"
+                aria-label="Birth year"
+                aria-invalid={err('birth') ? 'true' : undefined}
+                aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
+                value={personal.birth_year}
+                onChange={(e) => setPersonal({ ...personal, birth_year: e.target.value, birth_day: '' })}
+                required
+                className={selectClasses}
+              >
+                <option value="">Year</option>
+                {BIRTH_YEARS.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              id="reg-birth-month"
-              name="birth_month"
-              aria-label="Birth month"
-              aria-invalid={err('birth') ? 'true' : undefined}
-              aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
-              value={personal.birth_month}
-              onChange={(e) => setPersonal({ ...personal, birth_month: e.target.value, birth_day: '' })}
-              required
-              className={`${selectClasses} ${err('birth') ? 'border-danger' : ''}`}
-            >
-              <option value="">Month</option>
-              {MONTHS.map((m, i) => (
-                <option key={m} value={i + 1}>{m}</option>
-              ))}
-            </select>
+            <div className="reg-field">
+              <span className="reg-select-caption" aria-hidden="true">Month</span>
+              <select
+                id="reg-birth-month"
+                name="birth_month"
+                aria-label="Birth month"
+                aria-invalid={err('birth') ? 'true' : undefined}
+                aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
+                value={personal.birth_month}
+                onChange={(e) => setPersonal({ ...personal, birth_month: e.target.value, birth_day: '' })}
+                required
+                className={selectClasses}
+              >
+                <option value="">Month</option>
+                {MONTHS.map((m, i) => (
+                  <option key={m} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              id="reg-birth-day"
-              name="birth_day"
-              aria-label="Birth day"
-              value={personal.birth_day}
-              onChange={(e) => setPersonal({ ...personal, birth_day: e.target.value })}
-              required
-              aria-invalid={err('birth') ? 'true' : undefined}
-              aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
-              className={`${selectClasses} ${err('birth') ? 'border-danger' : ''}`}
-            >
-              <option value="">Day</option>
-              {getDaysInMonth(personal.birth_year, personal.birth_month).map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
+            <div className="reg-field">
+              <span className="reg-select-caption" aria-hidden="true">Day</span>
+              <select
+                id="reg-birth-day"
+                name="birth_day"
+                aria-label="Birth day"
+                value={personal.birth_day}
+                onChange={(e) => setPersonal({ ...personal, birth_day: e.target.value })}
+                required
+                aria-invalid={err('birth') ? 'true' : undefined}
+                aria-describedby={err('birth') ? 'reg-birth-error' : undefined}
+                className={selectClasses}
+              >
+                <option value="">Day</option>
+                {getDaysInMonth(personal.birth_year, personal.birth_month).map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <InlineError id="reg-birth-error" message={err('birth')} />
         </div>
       </SectionFieldset>
 
       {/* ── Section 2: Philippine Address ── */}
-      <SectionFieldset id="reg-legend-address" className="space-y-4 border-t border-border pt-4">
+      <SectionFieldset id="reg-legend-address" className="reg-section space-y-6">
         <RegistrationSectionHeading
           id="reg-legend-address"
           index={2}
@@ -792,7 +814,7 @@ export function RegistrationFormFields({
       </SectionFieldset>
 
       {/* ── Section 3: Contact & Account ── */}
-      <SectionFieldset id="reg-legend-contact" className="space-y-4 border-t border-border pt-4">
+      <SectionFieldset id="reg-legend-contact" className="reg-section space-y-6">
         <RegistrationSectionHeading
           id="reg-legend-contact"
           index={3}
@@ -802,15 +824,15 @@ export function RegistrationFormFields({
           description="Your credentials for secure authentication and booking notifications."
         />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           {/* Mobile */}
-          <div>
+          <div className="reg-field">
             <FieldLabel htmlFor="reg-contact" valid={isMobileValid === true} validText="Valid mobile">
               Philippine Mobile Number <span className="text-accent-text">*</span>
             </FieldLabel>
             <div className="flex w-full">
               <span
-                className="g-input-static w-auto min-w-[86px] justify-center rounded-r-none border-r-0 font-semibold bg-muted/60"
+                className="g-input-static w-auto min-w-[86px] justify-center rounded-r-none  font-semibold bg-muted/60"
                 aria-hidden="true"
               >
                 <img
@@ -834,7 +856,7 @@ export function RegistrationFormFields({
                 required
                 aria-invalid={err('contact') ? 'true' : undefined}
                 aria-describedby={err('contact') ? 'reg-contact-error' : 'reg-contact-hint'}
-                className={`g-input flex-1 rounded-l-none border-l-0 ${err('contact') ? 'border-danger' : ''}`}
+                className="g-input flex-1 rounded-l-none"
               />
             </div>
             {err('contact') ? (
@@ -864,16 +886,16 @@ export function RegistrationFormFields({
                 required
                 aria-invalid={err('email') ? 'true' : undefined}
                 aria-describedby={err('email') ? 'reg-email-error' : undefined}
-                className={`g-input g-input-has-icon ${err('email') ? 'border-danger' : ''}`}
+                className="g-input g-input-has-icon"
               />
             </div>
             <InlineError id="reg-email-error" message={err('email')} />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           {/* Username */}
-          <div>
+          <div className="reg-field">
             <FieldLabel htmlFor="reg-username" valid={isUsernameValid === true} validText="Looks good">
               Username <span className="text-accent-text">*</span>
             </FieldLabel>
@@ -892,7 +914,7 @@ export function RegistrationFormFields({
                 required
                 aria-invalid={err('username') ? 'true' : undefined}
                 aria-describedby={err('username') ? 'reg-username-error' : 'reg-username-hint'}
-                className={`g-input g-input-has-icon ${err('username') ? 'border-danger' : ''}`}
+                className="g-input g-input-has-icon"
               />
             </div>
             {err('username') ? (
@@ -905,7 +927,7 @@ export function RegistrationFormFields({
           </div>
 
           {/* Extra slot for role-specific fields like talent */}
-          {extraFields && <div>{extraFields}</div>}
+          {extraFields && <div className="reg-field">{extraFields}</div>}
         </div>
 
         {/* Bio field slot (coach only) */}
@@ -914,7 +936,7 @@ export function RegistrationFormFields({
         {/* Password fields — the shared PasswordInput provides the reveal
             toggle and the live requirement checklist, so they match Login and
             password reset exactly. */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           <PasswordInput
             id="reg-password"
             name="password"
@@ -955,7 +977,7 @@ export function RegistrationFormFields({
       {documentSection ? (
         documentSection
       ) : (
-        <SectionFieldset id="reg-legend-id" className="space-y-4 border-t border-border pt-4">
+        <SectionFieldset id="reg-legend-id" className="reg-section space-y-6">
           <RegistrationSectionHeading
             id="reg-legend-id"
             index={4}
@@ -967,12 +989,10 @@ export function RegistrationFormFields({
 
           <div
             className={cn(
-              'reg-upload-card relative cursor-pointer rounded-xl border-2 border-dashed p-3.5 transition-all duration-200 sm:p-4',
-              fileInputFocused && 'border-accent bg-accent-soft/40',
-              idFile
-                ? 'border-accent-border bg-card/80 shadow-md'
-                : 'border-border bg-muted/30 hover:border-accent-border/70 hover:bg-muted/60',
-              (idFileError || err('idFile')) && 'border-danger/60'
+              'reg-upload-card',
+              fileInputFocused && 'reg-upload-card--dragging',
+              idFile && 'reg-upload-card--filled',
+              (idFileError || err('idFile')) && 'reg-upload-card--error'
             )}
           >
             <input
@@ -992,26 +1012,26 @@ export function RegistrationFormFields({
             />
 
             {idFile ? (
-              <div className="flex flex-col items-center gap-2.5">
+              <div className="flex flex-col items-center gap-4">
                 {idPreview ? (
-                  <div className="relative overflow-hidden rounded-lg border border-glass-border bg-muted/60 p-1 shadow-sm">
+                  <div className="relative overflow-hidden rounded-xl border border-border bg-muted/60 p-1.5 shadow-sm">
                     {/* Blob preview only; next/image cannot optimise object URLs. */}
                     <img
                       src={idPreview}
                       alt="Preview of the uploaded ID document"
-                      className="max-h-36 rounded-md object-contain"
+                      className="max-h-44 rounded-lg object-contain"
                     />
                   </div>
                 ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-accent-border/40 bg-accent-soft text-accent-text shadow-sm">
-                    <FileText className="h-6 w-6" aria-hidden="true" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text shadow-sm">
+                    <FileText className="h-7 w-7" aria-hidden="true" />
                   </div>
                 )}
                 <div className="max-w-full text-center">
                   <p className="mx-auto max-w-xs truncate text-sm font-semibold text-foreground">
                     {idFile.name}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {formatFileSize(idFile.size)} · Ready for verification
                   </p>
                 </div>
@@ -1022,7 +1042,7 @@ export function RegistrationFormFields({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-accent-soft hover:text-accent-text"
+                    className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-accent-soft hover:text-accent-text"
                   >
                     <FileCheck className="h-3.5 w-3.5" aria-hidden="true" />
                     Replace
@@ -1033,7 +1053,7 @@ export function RegistrationFormFields({
                       e.stopPropagation();
                       removeIdFile();
                     }}
-                    className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-foreground transition hover:border-danger/30 hover:bg-danger-soft hover:text-danger"
+                    className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                     Remove
@@ -1041,23 +1061,23 @@ export function RegistrationFormFields({
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-2.5 py-1 text-center text-muted-foreground">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-accent-border/30 bg-accent-soft text-accent-text shadow-sm transition-transform group-hover:scale-105">
-                  <UploadCloud className="h-6 w-6" aria-hidden="true" />
+              <div className="flex flex-col items-center gap-4 py-2 text-center text-muted-foreground">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text shadow-sm transition-transform group-hover:scale-105">
+                  <UploadCloud className="h-7 w-7" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">
                     Click to upload your ID document
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                     Passport, UMID, Driver&apos;s License, Postal ID, or Student ID
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5 text-[11px] text-subtle-foreground">
-                  <span className="rounded-md border border-border bg-card px-2 py-0.5 font-medium">PDF</span>
-                  <span className="rounded-md border border-border bg-card px-2 py-0.5 font-medium">JPG</span>
-                  <span className="rounded-md border border-border bg-card px-2 py-0.5 font-medium">PNG</span>
-                  <span>· Max 5 MB</span>
+                <div className="reg-upload-badges">
+                  <span>PDF</span>
+                  <span>JPG</span>
+                  <span>PNG</span>
+                  <span>Max 5 MB</span>
                 </div>
               </div>
             )}
@@ -1071,7 +1091,7 @@ export function RegistrationFormFields({
 
       {/* ── Section 5: Terms & Submit ── */}
       {showSubmitButton && (
-        <div className="space-y-4 border-t border-border pt-4">
+        <div className="reg-section space-y-6">
           <RegistrationSectionHeading
             id="reg-legend-terms"
             index={5}
@@ -1080,7 +1100,7 @@ export function RegistrationFormFields({
             title="Review & submit"
             description="Confirm the agreements below, then create your account."
           />
-          <div className="flex items-start gap-3">
+          <div className={cn('reg-terms-card', err('terms') && 'reg-terms-card--error')}>
             <input
               type="checkbox"
               id={`${role}Terms`}
@@ -1102,7 +1122,7 @@ export function RegistrationFormFields({
             />
             <label
               htmlFor={`${role}Terms`}
-              className="cursor-pointer select-none text-xs leading-relaxed text-muted-foreground"
+              className="cursor-pointer select-none text-sm leading-relaxed text-muted-foreground"
             >
               I have read and agree to the{' '}
               <Link
@@ -1127,22 +1147,24 @@ export function RegistrationFormFields({
             <InlineError id={`${role}Terms-error`} message={err('terms')} />
           )}
 
-          <Button
-            type="submit"
-            size="lg"
-            loading={loading}
-            className="h-11 w-full bg-[#F4BE4D] font-bold text-[#121008] transition-all hover:bg-[#E5B23E] hover:shadow-[0_4px_24px_rgba(244,190,77,0.25)] active:scale-[0.99]"
-            trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
-          >
+          <div className="reg-actions">
+            <Button
+              type="submit"
+              size="lg"
+              loading={loading}
+              className="h-12 w-full font-bold sm:flex-1"
+              trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
+            >
             {loading
               ? loadingLabel || 'Creating account…'
               : submitLabel || `Complete ${role === 'coach' ? 'Coach' : 'Client'} Registration`}
           </Button>
-          {loading && (
-            <p className="text-center text-xs text-muted-foreground" role="status" aria-live="polite">
-              Keep this tab open while we finish setting up your account.
-            </p>
-          )}
+            {loading && (
+              <p className="w-full text-center text-xs text-muted-foreground" role="status" aria-live="polite">
+                Keep this tab open while we finish setting up your account.
+              </p>
+            )}
+          </div>
         </div>
       )}
     </form>
@@ -1251,7 +1273,7 @@ export function RegistrationSuccess({
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-48 right-0 h-[340px] w-[340px] rounded-full bg-accent/[0.04] blur-[110px]"
       />
-      <div className="glass relative z-10 w-full max-w-lg animate-in space-y-6 rounded-[26px] border border-glass-border p-6 text-center shadow-[var(--glass-shadow)] backdrop-blur-xl fade-in zoom-in-95 sm:p-9">
+      <div className="glass relative z-10 w-full max-w-lg animate-in space-y-6 rounded-[26px]   p-6 text-center shadow-[var(--glass-shadow)] backdrop-blur-xl fade-in zoom-in-95 sm:p-9">
         <div
           aria-hidden="true"
           className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
@@ -1268,10 +1290,10 @@ export function RegistrationSuccess({
 
         <div
           className={cn(
-            'mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border shadow-sm',
+            'mx-auto flex h-16 w-16 items-center justify-center rounded-2xl  shadow-sm',
             verificationRequired
-              ? 'border-accent-border bg-accent-soft text-accent-text'
-              : 'border-success/30 bg-success-soft text-success'
+              ? ' bg-accent-soft text-accent-text'
+              : ' bg-success-soft text-success'
           )}
         >
           {verificationRequired ? (
@@ -1310,11 +1332,11 @@ export function RegistrationSuccess({
           </p>
         </div>
 
-        <dl className="space-y-2.5 rounded-2xl border border-border bg-card/60 p-4 text-left text-xs backdrop-blur-sm sm:p-5">
+        <dl className="space-y-2.5 rounded-2xl   bg-card/60 p-4 text-left text-xs backdrop-blur-sm sm:p-5">
           {details.map((d, i) => (
             <div
               key={`${d.label}-${i}`}
-              className="flex items-center justify-between gap-3 border-b border-divider pb-2 last:border-none last:pb-0"
+              className="flex items-center justify-between gap-3   pb-2 last: last:pb-0"
             >
               <dt className="font-medium text-muted-foreground">{d.label}:</dt>
               <dd
@@ -1330,7 +1352,7 @@ export function RegistrationSuccess({
         </dl>
 
         {verificationRequired ? (
-          <div className="rounded-2xl border border-accent-border/50 bg-accent-soft p-4 text-left shadow-sm">
+          <div className="rounded-2xl   bg-accent-soft p-4 text-left shadow-sm">
             <div className="flex items-start gap-3">
               <Mail className="mt-0.5 h-5 w-5 shrink-0 text-accent-text" aria-hidden="true" />
               <div className="min-w-0 flex-1">
@@ -1373,7 +1395,7 @@ export function RegistrationSuccess({
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-3 rounded-2xl border border-success/25 bg-success-soft p-3.5 text-left text-xs text-foreground shadow-sm">
+          <div className="flex items-start gap-3 rounded-2xl   bg-success-soft p-3.5 text-left text-xs text-foreground shadow-sm">
             <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-hidden="true" />
             <span className="leading-relaxed">
               Email verification is not required for this account. You can sign in now.
@@ -1384,7 +1406,7 @@ export function RegistrationSuccess({
         {warning && (
           <p
             role="alert"
-            className="flex items-start gap-2.5 rounded-2xl border border-danger/30 bg-danger-soft p-3.5 text-left text-xs leading-relaxed text-danger"
+            className="flex items-start gap-2.5 rounded-2xl   bg-danger-soft p-3.5 text-left text-xs leading-relaxed text-danger"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{warning}</span>

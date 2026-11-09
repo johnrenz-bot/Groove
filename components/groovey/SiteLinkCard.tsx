@@ -25,7 +25,7 @@ export const SiteLinkCard: React.FC<SiteLinkCardProps> = ({
   className = "",
   showGrooveyyLink = false,
 }) => {
-  const baseStyles = "border-accent-border/30 bg-accent-soft/10";
+  const baseStyles = " bg-accent-soft/10";
   const compactStyles = "p-3";
   const defaultStyles = "p-5";
 
@@ -33,10 +33,9 @@ export const SiteLinkCard: React.FC<SiteLinkCardProps> = ({
   const buttonStyles = `
     inline-flex items-center justify-center font-semibold tracking-[-0.01em] whitespace-nowrap
     rounded-full transition-all duration-200 cursor-pointer
-    bg-transparent text-foreground border border-border
-    hover:bg-muted hover:border-border-strong hover:-translate-y-px active:translate-y-0
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background
-    disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]
+    bg-transparent text-foreground  
+    hover:bg-muted hover: hover:-translate-y-px active:translate-y-0
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]
     ${compact ? "h-[2.375rem] px-3 text-xs gap-1.5" : "h-10 px-4 text-sm gap-2"}
   `.replace(/\s+/g, " ").trim();
 
@@ -49,7 +48,7 @@ export const SiteLinkCard: React.FC<SiteLinkCardProps> = ({
       <CardContent className="pt-0 pb-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="shrink-0 w-10 h-10 rounded-xl bg-accent/20 border border-accent-border flex items-center justify-center">
+            <div className="shrink-0 w-10 h-10 rounded-xl bg-accent/20   flex items-center justify-center">
               <Globe className="w-5 h-5 text-accent-text" aria-hidden="true" />
             </div>
             <div className="min-w-0">

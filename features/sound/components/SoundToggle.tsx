@@ -42,10 +42,10 @@ export function SoundToggle({ className = '' }: { className?: string }) {
     >
       <span
         aria-hidden="true"
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition ${
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg  transition ${
           enabled
-            ? 'border-accent-border bg-accent-soft text-accent-text'
-            : 'border-border bg-muted/50 text-muted-foreground'
+            ? ' bg-accent-soft text-accent-text'
+            : ' bg-muted/50 text-muted-foreground'
         }`}
       >
         <Volume2 className="h-4 w-4" />

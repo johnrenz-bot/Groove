@@ -1,210 +1,226 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import {
+  Search,
   Users,
-  MapPin,
-  Shield,
+  Sparkles,
+  Banknote,
   Clock,
-  DollarSign,
-  MessageSquare,
   Lightbulb,
+  MapPin,
+  ShieldCheck,
   BarChart2,
 } from 'lucide-react';
-import { Reveal } from '@/components/shared/Reveal';
-import { InfoTip } from '@/components/ui/InfoTip';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 
-/**
- * "Why Groove?" — Verified survey statistics section.
- *
- * All figures come from the STI College San Jose Del Monte Capstone Survey
- * of 152 performing artists in San Jose del Monte, Bulacan (2025).
- * Source: Groove: San Jose del Monte Bulacan's Web-Based Performing Arts Hub
- * with Smart Chat Support and Studio Locator — Capstone Project 2, BSIT 2025.
- *
- * Layout: two-column editorial with a large pull-quote left + stats grid right
- * on desktop; single column on mobile. The attribution card is now a subtle
- * footnote bar below the grid rather than a duplicate stat card.
- */
-
-interface StatPoint {
-  icon: React.ElementType;
+interface SurveyStat {
+  value: number;
+  suffix: string;
   label: string;
-  value: string;
   description: string;
-  sourceRef: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-const STATS: StatPoint[] = [
+const STATS: SurveyStat[] = [
   {
-    icon: MapPin,
-    label: 'Struggle to find local coaches',
-    value: '78.9%',
-    description: 'said it is "very difficult" to find coaches and choreographers; another 16.4% said "difficult"',
-    sourceRef: 'Q2',
+    value: 78.9,
+    suffix: '%',
+    label: 'Struggle to Find Coaches',
+    description: 'Said it is "very difficult" to find verified coaches & choreographers locally; another 16.4% said difficult.',
+    icon: Search,
   },
   {
+    value: 88.8,
+    suffix: '%',
+    label: 'Rely on Referrals Only',
+    description: 'Rely solely on word-of-mouth and friend referrals due to the absence of a unified public directory.',
     icon: Users,
-    label: 'Rely on referrals only',
-    value: '88.8%',
-    description: 'rely on referrals from friends, colleagues, or industry contacts to find coaches',
-    sourceRef: 'Q3',
   },
   {
-    icon: Shield,
-    label: 'Can\'t find genre-specific coaches',
-    value: '82.2%',
-    description: 'said they "always" have difficulty finding a coach matching their specific genre',
-    sourceRef: 'Q4',
+    value: 82.2,
+    suffix: '%',
+    label: 'Genre Matching Obstacles',
+    description: 'Struggle consistently to find instructors specialized in their exact performing arts genre.',
+    icon: Sparkles,
   },
   {
-    icon: DollarSign,
-    label: 'Face affordability barriers',
-    value: '96.1%',
-    description: 'cited affordability as a challenge when hiring coaches or artists',
-    sourceRef: 'Q5',
+    value: 96.1,
+    suffix: '%',
+    label: 'Affordability Challenges',
+    description: 'Face unstandardized coaching fees and financial barriers to accessing sustained arts training.',
+    icon: Banknote,
   },
   {
+    value: 82.2,
+    suffix: '%',
+    label: 'Inquiry Delays & Friction',
+    description: 'Experience delayed responses or unanswered messages when trying to schedule rehearsal sessions.',
     icon: Clock,
-    label: 'Get slow responses from coaches',
-    value: '82.2%',
-    description: 'said they "always" have difficulty getting quick responses from coaches',
-    sourceRef: 'Q6',
   },
   {
+    value: 98.7,
+    suffix: '%',
+    label: 'Want a Dedicated Platform',
+    description: 'Believe a purpose-built website system will encourage more people to engage in performing arts.',
     icon: Lightbulb,
-    label: 'Want a dedicated platform',
-    value: '98.7%',
-    description: 'believe a website system would encourage more people to engage in performing arts',
-    sourceRef: 'Q7',
   },
   {
-    icon: BarChart2,
-    label: 'Can\'t find rehearsal studios',
-    value: '88.8%',
-    description: 'found it "difficult" or "very difficult" to locate a nearby dance studio',
-    sourceRef: 'Q8',
+    value: 88.8,
+    suffix: '%',
+    label: 'Studio Space Scarcity',
+    description: 'Find it difficult or very difficult to locate and book equipped rehearsal studios in their vicinity.',
+    icon: MapPin,
   },
   {
-    icon: MessageSquare,
-    label: 'Lack a collaboration platform',
-    value: '88.8%',
-    description: 'noted the absence of a consistent platform for artist collaboration',
-    sourceRef: 'Q10',
+    value: 88.8,
+    suffix: '%',
+    label: 'Need Artist Collaboration',
+    description: 'Noted the absence of a consistent platform for artist networking, contracts, and creative projects.',
+    icon: ShieldCheck,
   },
 ];
 
-const SURVEY_META = {
-  respondents: 152,
-  location: 'San Jose del Monte, Bulacan',
-  year: 2025,
-  institution: 'STI College San Jose Del Monte',
-  project: 'BS Information Technology Capstone Project 2',
-  title: "Groove: San Jose del Monte Bulacan's Web-Based Performing Arts Hub with Smart Chat Support and Studio Locator",
-};
+function CountUpNumber({ target, suffix }: { target: number; suffix: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const prefersReducedMotion = useReducedMotion();
+  const [val, setVal] = useState(prefersReducedMotion ? target : 0);
 
-const SURVEY_DETAILS = (
-  <>
-    <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">
-      Every feature in Groove addresses a documented pain point. The numbers below come from a
-      {SURVEY_META.year} capstone survey of <strong>{SURVEY_META.respondents} performing artists</strong>
-      {' '}across San Jose del Monte, Bulacan — conducted as part of{' '}
-      <em>{SURVEY_META.title}</em>
-      ({SURVEY_META.project}, {SURVEY_META.institution}).
-    </p>
-    <p className="mt-3 text-sm leading-relaxed text-[var(--muted-foreground)]">
-      The survey covered 10 questions on coach discovery, affordability, studio access,
-      response times, collaboration needs, and platform impact. All percentages reflect
-      the proportion of 152 respondents. Full questionnaire and raw data available in
-      the capstone documentation (Appendices B–C).
-    </p>
-  </>
-);
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setVal(target);
+      return;
+    }
+    if (!isInView) return;
+
+    const duration = 1400; // ms
+    const startTime = performance.now();
+
+    function step(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = parseFloat((ease * target).toFixed(1));
+      setVal(current);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        setVal(target);
+      }
+    }
+
+    requestAnimationFrame(step);
+  }, [isInView, target, prefersReducedMotion]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      {val.toFixed(1)}
+      {suffix}
+    </span>
+  );
+}
 
 export function WhyGroove() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <section className="ld-section" aria-labelledby="why-groove-heading">
-      <div className="ld-wrap">
+    <section id="why-groove" className="relative mx-auto max-w-[1240px] px-6 py-24 sm:px-8 lg:px-10 lg:py-32 scroll-mt-24">
+      {/* Ambient background glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[600px] rounded-full bg-[#E8B84B]/5 blur-[140px]"
+      />
 
-        {/* ── Section header ─────────────────────────────────────────────── */}
-        <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
-          <p className="ld-eyebrow">
-            <span className="inline-flex items-center gap-1.5">
-              <BarChart2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Why Groove?
-            </span>
-          </p>
-          <h2 id="why-groove-heading" className="ld-h2">
-            Built on real data from {SURVEY_META.respondents} performing artists
-          </h2>
-          <InfoTip
-            title="About this data"
-            short="Based on a 2025 capstone survey of 152 performing artists in SJDM, Bulacan by STI College."
-            details={SURVEY_DETAILS}
-            align="center"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--muted-foreground)] hover:text-accent-text transition-colors"
-            label="Learn more about the survey methodology"
-          />
-        </Reveal>
+      {/* Section Heading */}
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <SectionHeading
+          eyebrow="Why Groove?"
+          title="Built on real data from 152 local performing artists."
+          description="Groove was engineered to address documented gaps in San Jose del Monte's creative scene — transforming fragmented referrals into a secure, verified community."
+          align="left"
+        />
+      </motion.div>
 
-        {/* ── Pull-quote + accent bar ────────────────────────────────────── */}
-        <Reveal className="mt-12 mb-8">
-          <div className="ld-why-pullquote" aria-hidden="true">
-            <div className="ld-why-pullquote__bar" />
-            <blockquote className="ld-why-pullquote__text">
-              <span className="ld-why-pullquote__pct">98.7%</span>
-              {' '}of local performers believe a dedicated platform would
-              transform the arts scene in Bulacan.
-            </blockquote>
-          </div>
-        </Reveal>
-
-        {/* ── Stats grid ─────────────────────────────────────────────────── */}
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STATS.map((stat, idx) => (
-            <Reveal key={stat.label} variant="scale" delay={idx * 45} className="h-full">
-              <article className="ld-why-card h-full group">
-                {/* Icon */}
-                <div className="ld-why-card__icon group-hover:bg-accent group-hover:text-accent-foreground transition-colors duration-300">
-                  <stat.icon className="h-5 w-5" aria-hidden="true" />
-                </div>
-
-                {/* Stat value */}
-                <div className="flex-1 min-w-0">
-                  <dt className="ld-why-card__value group-hover:text-accent-text transition-colors">
-                    {stat.value}
-                  </dt>
-                  <h3 className="ld-why-card__label">{stat.label}</h3>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--muted-foreground)]">
-                    {stat.description}
-                  </p>
-                </div>
-
-                {/* Source tag */}
-                <div className="mt-auto pt-2 border-t border-[var(--border)] flex items-center gap-1">
-                  <BarChart2 className="h-3 w-3 text-[var(--subtle-foreground)]" aria-hidden="true" />
-                  <span className="text-[11px] text-[var(--subtle-foreground)] font-medium">
-                    Survey {stat.sourceRef}
+      {/* 8 Statistic Cards */}
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {STATS.map((stat, idx) => {
+          const Icon = stat.icon;
+          return (
+            <motion.div
+              key={stat.label}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.06 }}
+              whileHover={
+                prefersReducedMotion
+                  ? undefined
+                  : {
+                      y: -4,
+                      borderColor: 'rgba(232, 184, 75, 0.45)',
+                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(232, 184, 75, 0.1)',
+                    }
+              }
+              className="group relative flex flex-col justify-between rounded-[22px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200"
+            >
+              {/* Card top row */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#E8B84B]/25 bg-[#E8B84B]/10 text-[#E8B84B] shadow-[0_0_12px_rgba(232,184,75,0.15)] group-hover:border-[#E8B84B]/50 transition-colors">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                    Stat 0{idx + 1}
                   </span>
                 </div>
-              </article>
-            </Reveal>
-          ))}
-        </div>
 
-        {/* ── Attribution footnote ───────────────────────────────────────── */}
-        <Reveal delay={STATS.length * 45} className="mt-6">
-          <div className="ld-why-attribution">
-            <BarChart2 className="h-4 w-4 shrink-0 text-[var(--subtle-foreground)]" aria-hidden="true" />
-            <p className="text-[13px] text-[var(--subtle-foreground)] leading-relaxed">
-              <strong className="text-[var(--muted-foreground)]">Survey attribution:</strong>
-              {' '}{SURVEY_META.respondents} respondents · {SURVEY_META.location} ·{' '}
-              {SURVEY_META.year} · {SURVEY_META.institution} · {SURVEY_META.project}
-            </p>
-          </div>
-        </Reveal>
+                {/* Animated Stat Value */}
+                <div className="mt-5 text-3xl font-bold tracking-tight text-[#E8B84B]">
+                  <CountUpNumber target={stat.value} suffix={stat.suffix} />
+                </div>
 
+                {/* Label */}
+                <h3 className="mt-2 text-base font-semibold text-white tracking-wide">
+                  {stat.label}
+                </h3>
+              </div>
+
+              {/* Description */}
+              <p className="mt-3 text-xs leading-relaxed text-white/60">
+                {stat.description}
+              </p>
+            </motion.div>
+          );
+        })}
       </div>
+
+      {/* Attribution Badge */}
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="mt-10 flex flex-wrap items-center justify-center gap-2 text-center text-xs text-white/55"
+      >
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8B84B]/30 bg-[#E8B84B]/10 px-3 py-1 font-semibold text-[#E8B84B]">
+          <BarChart2 className="h-3.5 w-3.5" />
+          152 respondents
+        </span>
+        <span className="text-white/30">·</span>
+        <span>San Jose del Monte, Bulacan</span>
+        <span className="text-white/30">·</span>
+        <span>2025</span>
+        <span className="text-white/30">·</span>
+        <span className="font-medium text-white/70">STI College San Jose Del Monte</span>
+      </motion.div>
     </section>
   );
 }

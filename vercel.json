@@ -7,6 +7,18 @@
     {
       "path": "/api/cron/dance-logos",
       "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/singing-agent",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/acting-agent",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/theater-agent",
+      "schedule": "0 6 * * *"
     }
   ]
 }

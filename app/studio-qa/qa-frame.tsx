@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StudioLocator } from '@/components/studio/StudioLocator';
 
 type MockMode = 'normal' | 'empty' | 'error' | 'slow';
@@ -11,63 +11,71 @@ type MockMode = 'normal' | 'empty' | 'error' | 'slow';
  * error presentations can be inspected without touching the real API.
  */
 export function QaFrame({ mock = 'normal' }: { mock?: MockMode }) {
-  if (typeof window !== 'undefined' && mock !== 'normal') {
+  useEffect(() => {
+    if (typeof window === 'undefined' || mock === 'normal') return;
+
     const holder = window as typeof window & {
       __studioQaOriginalFetch?: typeof fetch;
     };
 
     if (!holder.__studioQaOriginalFetch) {
       holder.__studioQaOriginalFetch = window.fetch.bind(window);
-      const original = holder.__studioQaOriginalFetch;
+    }
+    const original = holder.__studioQaOriginalFetch;
 
-      window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-        const url =
-          typeof input === 'string'
-            ? input
-            : input instanceof URL
-              ? input.toString()
-              : input.url;
+    window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
 
-        if (!url.includes('/api/studios')) return original(input, init);
+      if (!url.includes('/api/studios')) return original(input, init);
 
-        if (mock === 'error') {
-          return Promise.resolve(
-            new Response(
-              JSON.stringify({
-                error:
-                  'The studio directory and Google Places are both unreachable right now. Check your connection and try again.',
-              }),
-              { status: 500, headers: { 'content-type': 'application/json' } }
-            )
-          );
-        }
-
-        if (mock === 'slow') {
-          return new Promise<Response>((resolve) => {
-            window.setTimeout(() => {
-              resolve(
-                new Response(
-                  JSON.stringify({ places: [], googleStatus: 'ok' }),
-                  { status: 200, headers: { 'content-type': 'application/json' } }
-                )
-              );
-            }, 8000);
-          });
-        }
-
+      if (mock === 'error') {
         return Promise.resolve(
           new Response(
             JSON.stringify({
-              places: [],
-              googleStatus: 'ok',
-              coverage: 'GroovePH directory · 0 studios',
+              error:
+                'The studio directory and Google Places are both unreachable right now. Check your connection and try again.',
             }),
-            { status: 200, headers: { 'content-type': 'application/json' } }
+            { status: 500, headers: { 'content-type': 'application/json' } }
           )
         );
-      };
-    }
-  }
+      }
+
+      if (mock === 'slow') {
+        return new Promise<Response>((resolve) => {
+          window.setTimeout(() => {
+            resolve(
+              new Response(
+                JSON.stringify({ places: [], googleStatus: 'ok' }),
+                { status: 200, headers: { 'content-type': 'application/json' } }
+              )
+            );
+          }, 8000);
+        });
+      }
+
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            places: [],
+            googleStatus: 'ok',
+            coverage: 'GroovePH directory · 0 studios',
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } }
+        )
+      );
+    };
+
+    return () => {
+      if (holder.__studioQaOriginalFetch) {
+        window.fetch = holder.__studioQaOriginalFetch;
+      }
+    };
+  }, [mock]);
 
   return (
     <div className="h-svh w-full overflow-hidden bg-background p-3">

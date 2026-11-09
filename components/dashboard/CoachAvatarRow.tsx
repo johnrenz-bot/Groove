@@ -52,9 +52,9 @@ export function CoachAvatarRow({ coaches, loading = false, viewAllHref }: CoachA
               <Link
                 key={coach.id}
                 href={`/userprofile/${coach.id}`}
-                className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center transition hover:border-accent-border hover:bg-muted"
+                className="group flex flex-col items-center gap-2 rounded-2xl   bg-card p-3 text-center transition hover: hover:bg-muted"
               >
-                <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-bold text-foreground transition group-hover:border-accent-border">
+                <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full   bg-muted text-sm font-bold text-foreground transition group-hover:">
                   {coach.photo_url ? (
                     <img
                       src={coach.photo_url}

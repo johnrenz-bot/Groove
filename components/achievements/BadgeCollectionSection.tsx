@@ -158,10 +158,10 @@ export function BadgeCollectionSection({
 
   // Status pill config
   const statusPill = isUnlocked
-    ? { label: 'Earned', className: 'bg-green-100 text-green-800 border border-green-200' }
+    ? { label: 'Earned', className: 'bg-green-100 text-green-800  ' }
     : tasksCompleted > 0
-      ? { label: 'In Progress', className: 'bg-amber-100 text-amber-800 border border-amber-200' }
-      : { label: 'Locked', className: 'bg-muted text-muted-foreground border border-border' };
+      ? { label: 'In Progress', className: 'bg-amber-100 text-amber-800  ' }
+      : { label: 'Locked', className: 'bg-muted text-muted-foreground  ' };
 
   return (
     <section className={cn('space-y-4', className)} aria-labelledby="badge-collection-heading">
@@ -188,7 +188,7 @@ export function BadgeCollectionSection({
           disabled={refreshing || loading}
           aria-label="Refresh badge progress"
           className={cn(
-            'inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50',
+            'inline-flex items-center gap-1.5 rounded-lg   bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50',
             (refreshing || loading) && 'cursor-not-allowed'
           )}
         >
@@ -322,7 +322,7 @@ export function BadgeCollectionSection({
               <button
                 type="button"
                 onClick={() => setShowAchievementsModal(true)}
-                className="mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70"
+                className="mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-lg   bg-muted px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70"
               >
                 <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
                 View Details

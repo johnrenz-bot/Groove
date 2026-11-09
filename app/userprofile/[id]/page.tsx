@@ -112,7 +112,7 @@ function PublicPresence({ user }: { user: { id: string; status?: string | null }
   const meta = statusMeta(presence);
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+      className="inline-flex items-center gap-1.5 rounded-full   bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
       title={`Status: ${meta.label} — ${meta.hint}`}
     >
       <span className={`g-presence-dot g-presence-dot--${presence}`} aria-hidden="true" />
@@ -136,6 +136,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
      null (and therefore falls through to the not-found view), while a genuine
      failure sets it and gets its own message plus a retry. */
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [photoFailed, setPhotoFailed] = useState(false);
 
   const [bookingOpen, setBookingOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -147,6 +148,11 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
   // Set when booking is attempted while blocked, so the explanation appears
   // instead of the modal opening on a form that cannot be submitted.
   const [showBookingBlock, setShowBookingBlock] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setPhotoFailed(false), 0);
+    return () => window.clearTimeout(timer);
+  }, [targetUser?.photo_url]);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -299,10 +305,10 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
         <div className="g-card flex w-full max-w-md flex-col items-center gap-4 p-8 text-center">
           <span
             aria-hidden="true"
-            className={`flex h-12 w-12 items-center justify-center rounded-full border ${
+            className={`flex h-12 w-12 items-center justify-center rounded-full  ${
               isError
-                ? 'border-warning/40 bg-warning-soft text-warning'
-                : 'border-accent-border bg-accent-soft text-accent-text'
+                ? ' bg-warning-soft text-warning'
+                : ' bg-accent-soft text-accent-text'
             }`}
           >
             {isError ? (
@@ -340,7 +346,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
             )}
             <Link
               href="/users"
-              className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-semibold text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+              className="inline-flex h-10 items-center rounded-full   px-5 text-sm font-semibold text-muted-foreground transition-colors hover: hover:text-foreground"
             >
               Browse members
             </Link>
@@ -415,11 +421,12 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
 
           <div className="relative -mt-14 flex flex-col items-center gap-5 px-6 pb-6 md:flex-row md:items-end md:justify-between">
             <div className="flex flex-col items-center gap-5 text-center md:flex-row md:items-end md:text-left">
-              <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-card bg-muted shadow-[var(--shadow-md)]">
-                {targetUser.photo_url ? (
+              <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl   bg-muted shadow-[var(--shadow-md)]">
+                {targetUser.photo_url && !photoFailed ? (
                   <img
                     src={targetUser.photo_url}
                     alt={`${displayName}'s profile photo`}
+                     onError={() => setPhotoFailed(true)}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -512,7 +519,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                   <p
                     title="Philippines"
                     aria-label="Philippines"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
+                    className="inline-flex items-center gap-1.5 rounded-full   bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
                   >
                     <PhilippineFlag />
                     <span>Philippines</span>
@@ -595,7 +602,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
               {!isOwnProfile && (
                 <Link
                   href="/messages"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                  className="inline-flex items-center gap-1.5 rounded-full   px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover: hover:text-foreground"
                 >
                   <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
                   Message
@@ -606,7 +613,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                 <>
                   <button
                     onClick={() => setAiOpen(true)}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-info/30 bg-info-soft px-4 py-2 text-xs font-semibold text-info transition-colors hover:bg-info/20"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full   bg-info-soft px-4 py-2 text-xs font-semibold text-info transition-colors hover:bg-info/20"
                   >
                     <Bot className="h-3.5 w-3.5" aria-hidden="true" />
                     Ask AI
@@ -615,7 +622,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                   {bookingBlocked ? (
                     <button
                       onClick={() => setShowBookingBlock(true)}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-warning/40 bg-warning-soft px-5 py-2 text-xs font-bold text-warning transition-colors hover:bg-warning-soft/70"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full   bg-warning-soft px-5 py-2 text-xs font-bold text-warning transition-colors hover:bg-warning-soft/70"
                     >
                       <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
                       Verify to book
@@ -667,7 +674,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
               {/* Public details, in one consistent definition list. Only the
                   fields that actually have a value produce a row, so there are
                   no empty labels and no "—" standing in for data. */}
-              <dl className="grid grid-cols-1 gap-x-6 gap-y-3 border-t border-divider pt-4 sm:grid-cols-2">
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-3   pt-4 sm:grid-cols-2">
                 <DetailRow
                   icon={<UserRound className="h-3.5 w-3.5" aria-hidden="true" />}
                   label="Account type"
@@ -704,7 +711,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
               </dl>
 
               {genreList.length > 0 && (
-                <div className="space-y-2 border-t border-divider pt-4">
+                <div className="space-y-2   pt-4">
                   <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
                     Genres / Specialties
                   </h3>
@@ -770,7 +777,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                     {feedbacks.map((fb) => (
                       <div
                         key={fb.id}
-                        className="space-y-2 rounded-xl border border-divider bg-muted/40 p-4 text-xs"
+                        className="space-y-2 rounded-xl   bg-muted/40 p-4 text-xs"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="font-bold text-foreground">
@@ -798,7 +805,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                   Coaching Terms
                 </h2>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between rounded-xl border border-accent-border bg-accent-soft px-3 py-3">
+                  <div className="flex items-center justify-between rounded-xl   bg-accent-soft px-3 py-3">
                     <span className="text-muted-foreground">Rate:</span>
                     <span className="text-sm font-bold text-accent-text">
                       {/* Was `?? 500`, which printed a rate the coach never
@@ -806,11 +813,11 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                       {cp?.service_fee != null ? `₱${cp.service_fee} / session` : 'On request'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between rounded-xl border border-divider bg-muted/40 px-3 py-3">
+                  <div className="flex items-center justify-between rounded-xl   bg-muted/40 px-3 py-3">
                     <span className="text-muted-foreground">Duration:</span>
                     <span className="font-bold text-foreground">{cp?.duration || '1 Hour'}</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-xl border border-divider bg-muted/40 px-3 py-3">
+                  <div className="flex items-center justify-between rounded-xl   bg-muted/40 px-3 py-3">
                     <span className="text-muted-foreground">Advance Notice:</span>
                     <span className="font-bold text-foreground">
                       {cp?.notice_hours ?? 24} hours
@@ -821,7 +828,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
                 {bookingBlocked ? (
                   <button
                     onClick={() => setShowBookingBlock(true)}
-                    className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-warning/40 bg-warning-soft font-bold text-warning transition-colors hover:bg-warning-soft/70"
+                    className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full   bg-warning-soft font-bold text-warning transition-colors hover:bg-warning-soft/70"
                   >
                     <ShieldAlert className="h-4 w-4" aria-hidden="true" />
                     Verify to book

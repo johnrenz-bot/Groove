@@ -41,7 +41,7 @@ export function TalentBannerPanel({
       <div
         role="radiogroup"
         aria-label="Choose a community circle"
-        className="flex gap-1.5 overflow-x-auto rounded-[14px] border border-border bg-card p-1.5 shadow-[var(--shadow-sm)] lg:grid lg:grid-cols-2 lg:overflow-visible"
+        className="flex gap-1.5 overflow-x-auto rounded-[14px]   bg-card p-1.5 shadow-[var(--shadow-sm)] lg:grid lg:grid-cols-2 lg:overflow-visible"
       >
         {TALENT_BANNERS.map((item) => {
           const active = item.key === selectedKey;
@@ -54,13 +54,13 @@ export function TalentBannerPanel({
               aria-checked={active}
               onClick={() => onSelect(item.key)}
               className={cn(
-                'flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-2 text-left text-[11px] font-semibold transition lg:whitespace-normal',
+                'flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg  px-2.5 py-2 text-left text-[11px] font-semibold transition lg:whitespace-normal',
                 active
                   ? cn(
-                      'border-accent-border bg-accent-soft text-accent-text ring-2',
+                      '-accent- bg-accent-soft text-accent-text ',
                       item.activeRing
                     )
-                  : 'border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
+                  : 'ransparent text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               <span className="truncate">{item.displayName}</span>
@@ -75,7 +75,7 @@ export function TalentBannerPanel({
       </div>
 
       {/* Banner */}
-      <div className="overflow-hidden rounded-[14px] border border-border bg-card shadow-[var(--shadow-sm)]">
+      <div className="overflow-hidden rounded-[14px]   bg-card shadow-[var(--shadow-sm)]">
         <div className={cn('h-16 w-full', banner?.gradient)} aria-hidden="true" />
         <div className="space-y-1.5 p-3.5">
           <div className="flex items-center justify-between gap-2">
@@ -83,7 +83,7 @@ export function TalentBannerPanel({
               {banner ? banner.circleLabel : 'Community Circle'}
             </h3>
             {banner && (
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent-border bg-accent-soft px-2.5 py-1 text-[10px] font-bold text-accent-text">
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full   bg-accent-soft px-2.5 py-1 text-[10px] font-bold text-accent-text">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
                 {banner.displayName}
               </span>
@@ -96,7 +96,7 @@ export function TalentBannerPanel({
           </p>
 
           {browsingOther && postBanner && (
-            <p className="rounded-lg border border-warning/30 bg-warning-soft px-2.5 py-1.5 text-[10px] leading-relaxed text-warning">
+            <p className="rounded-lg   bg-warning-soft px-2.5 py-1.5 text-[10px] leading-relaxed text-warning">
               Browsing {banner?.circleLabel}. You can still post to your own{' '}
               {postBanner.circleLabel} — that is the only circle your account can write to.
             </p>

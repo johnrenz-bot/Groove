@@ -662,20 +662,18 @@ export function AddressSelector({
         !barangays.some((item) => item.code === otherBarangayCode)));
 
   return (
-    <div className="space-y-4" role="group" aria-labelledby={`${ids.uid}-legend`}>
+    <div className="space-y-6" role="group" aria-labelledby={`${ids.uid}-legend`}>
       <p id={`${ids.uid}-legend`} className="sr-only">
         Service location. Fields marked with an asterisk are required.
       </p>
 
       {/* Location choice */}
-      <fieldset className="space-y-2">
+      <fieldset className="space-y-3">
         <legend className={labelClasses}>Service location</legend>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label
-            className={`flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition-colors focus-within:ring-2 focus-within:ring-accent-border focus-within:ring-offset-2 focus-within:ring-offset-card ${
-              mode === 'sjdm'
-                ? 'border-accent-border bg-accent-soft/60'
-                : 'border-border bg-card hover:bg-muted/40'
+            className={`reg-choice-card ${
+              mode === 'sjdm' ? 'reg-choice-card--selected' : ''
             }`}
           >
             <input
@@ -687,18 +685,11 @@ export function AddressSelector({
               onChange={() => switchMode('sjdm')}
               className="sr-only"
             />
-            <span
-              aria-hidden="true"
-              className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                mode === 'sjdm' ? 'border-accent-text' : 'border-muted-foreground/60'
-              }`}
-            >
-              {mode === 'sjdm' && <span className="h-2 w-2 rounded-full bg-accent-text" />}
-            </span>
+            <span aria-hidden="true" className="reg-choice-dot" />
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
                 San Jose del Monte, Bulacan
-                <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
+                <span className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
                   <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                   Existing
                 </span>
@@ -710,10 +701,8 @@ export function AddressSelector({
           </label>
 
           <label
-            className={`flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition-colors focus-within:ring-2 focus-within:ring-accent-border focus-within:ring-offset-2 focus-within:ring-offset-card ${
-              mode === 'other'
-                ? 'border-accent-border bg-accent-soft/60'
-                : 'border-border bg-card hover:bg-muted/40'
+            className={`reg-choice-card ${
+              mode === 'other' ? 'reg-choice-card--selected' : ''
             }`}
           >
             <input
@@ -725,18 +714,11 @@ export function AddressSelector({
               onChange={() => switchMode('other')}
               className="sr-only"
             />
-            <span
-              aria-hidden="true"
-              className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                mode === 'other' ? 'border-accent-text' : 'border-muted-foreground/60'
-              }`}
-            >
-              {mode === 'other' && <span className="h-2 w-2 rounded-full bg-accent-text" />}
-            </span>
+            <span aria-hidden="true" className="reg-choice-dot" />
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
                 Other Locations in the Philippines
-                <span className="inline-flex items-center rounded-full border border-accent-border bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-text">
+                <span className="inline-flex items-center rounded-full   bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-text">
                   New
                 </span>
               </span>
@@ -752,9 +734,9 @@ export function AddressSelector({
       {mode === 'sjdm' ? (
         <>
           {/* Service Area Restriction Banner */}
-          <div className="flex flex-col justify-between gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs sm:flex-row sm:items-center">
+          <div className="reg-summary flex flex-col justify-between gap-2 text-xs sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-success/30 bg-success-soft text-success shadow-sm">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg   bg-success-soft text-success shadow-sm">
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
               </div>
               <div>
@@ -763,7 +745,7 @@ export function AddressSelector({
                   {getFeaturedLocations().map((location, index) => (
                     <span
                       key={location.cityName}
-                      className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success"
+                      className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success"
                     >
                       {index > 0 && <span className="text-muted-foreground">+</span>}
                       <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
@@ -780,7 +762,7 @@ export function AddressSelector({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
             {/* Country & Region (Locked) */}
             <div>
               <span className={labelClasses}>Country &amp; Region</span>
@@ -826,7 +808,7 @@ export function AddressSelector({
                 required={required}
                 aria-invalid={fieldError('barangay') ? 'true' : undefined}
                 aria-describedby={describedBy('barangay', 'barangay')}
-                className={`${selectClasses} ${fieldError('barangay') ? 'border-danger' : ''}`}
+                className={selectClasses}
               >
                 <option value="">
                   Select your Barangay ({SJDM_LOCATION.barangays.length} Barangays of SJDM)
@@ -875,9 +857,7 @@ export function AddressSelector({
                   required={required}
                   aria-invalid={fieldError('street') ? 'true' : undefined}
                   aria-describedby={describedBy('street', 'street')}
-                  className={`${inputClasses} g-input-has-icon ${
-                    fieldError('street') ? 'border-danger' : ''
-                  }`}
+                  className={`${inputClasses} g-input-has-icon`}
                 />
               </div>
               {fieldError('street') ? (
@@ -940,7 +920,7 @@ export function AddressSelector({
                 required={required}
                 aria-invalid={fieldError('postal') ? 'true' : undefined}
                 aria-describedby={describedBy('postal', 'postal')}
-                className={`${selectClasses} ${fieldError('postal') ? 'border-danger' : ''}`}
+                className={selectClasses}
               >
                 {SJDM_LOCATION.postal_codes.map((code) => (
                   <option key={code} value={code}>
@@ -961,7 +941,7 @@ export function AddressSelector({
           </div>
 
           {/* Live preview */}
-          <div className="flex items-start gap-2.5 rounded-lg border border-divider bg-muted/30 p-3 text-xs">
+          <div className="reg-summary flex items-start gap-3 text-xs">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <div className="min-w-0">
               <p className="font-semibold text-foreground">Your address will read as</p>
@@ -982,8 +962,8 @@ export function AddressSelector({
         </>
       ) : (
         <>
-          <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/40 p-3 text-xs">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent-border bg-accent-soft text-accent-text shadow-sm">
+          <div className="reg-summary flex items-start gap-3 text-xs">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text shadow-sm">
               <Globe2 className="h-4 w-4" aria-hidden="true" />
             </div>
             <div>
@@ -997,7 +977,7 @@ export function AddressSelector({
 
           {phState.status === 'loading' || phState.status === 'idle' ? (
             <div
-              className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3.5 text-xs text-muted-foreground"
+              className="flex items-center gap-3 rounded-xl   bg-muted/40 p-3.5 text-xs text-muted-foreground"
               role="status"
               aria-live="polite"
             >
@@ -1005,7 +985,7 @@ export function AddressSelector({
               Loading Philippine locations…
             </div>
           ) : phState.status === 'error' ? (
-            <div className="rounded-xl border border-danger/30 bg-danger/5 p-3.5 text-xs" role="alert">
+            <div className="rounded-xl   bg-danger/5 p-3.5 text-xs" role="alert">
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
                 <div>
@@ -1026,7 +1006,7 @@ export function AddressSelector({
           ) : null}
 
           {unsupportedSavedSelection && (
-            <div className="rounded-xl border border-warning/30 bg-warning/5 p-3.5 text-xs" role="status">
+            <div className="rounded-xl   bg-warning/5 p-3.5 text-xs" role="status">
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
                 <p className="text-muted-foreground">
@@ -1037,7 +1017,7 @@ export function AddressSelector({
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
             {/* Country (Fixed) */}
             <div>
               <span className={labelClasses}>Country</span>
@@ -1068,7 +1048,7 @@ export function AddressSelector({
                 disabled={!ph}
                 aria-invalid={fieldError('region') ? 'true' : undefined}
                 aria-describedby={describedBy('region', 'region')}
-                className={`${selectClasses} ${fieldError('region') ? 'border-danger' : ''} disabled:cursor-not-allowed disabled:opacity-60`}
+                className={`${selectClasses} disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 <option value="">{ph ? 'Select region' : 'Loading regions…'}</option>
                 {otherRegionCode && !selectedRegion && current.region_name ? (
@@ -1121,7 +1101,7 @@ export function AddressSelector({
                   required={required}
                   aria-invalid={fieldError('province') ? 'true' : undefined}
                   aria-describedby={describedBy('province', 'province')}
-                  className={`${selectClasses} ${fieldError('province') ? 'border-danger' : ''}`}
+                  className={selectClasses}
                 >
                   <option value="">Select province</option>
                   {otherProvinceCode && !selectedProvince && current.province_name ? (
@@ -1177,7 +1157,7 @@ export function AddressSelector({
                 disabled={!ph || !cityParentCode}
                 aria-invalid={fieldError('city') ? 'true' : undefined}
                 aria-describedby={describedBy('city', 'city')}
-                className={`${selectClasses} ${fieldError('city') ? 'border-danger' : ''} disabled:cursor-not-allowed disabled:opacity-60`}
+                className={`${selectClasses} disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 <option value="">
                   {!ph
@@ -1226,7 +1206,7 @@ export function AddressSelector({
                 disabled={!selectedCity}
                 aria-invalid={fieldError('barangay') ? 'true' : undefined}
                 aria-describedby={describedBy('barangay', 'barangay')}
-                className={`${selectClasses} ${fieldError('barangay') ? 'border-danger' : ''} disabled:cursor-not-allowed disabled:opacity-60`}
+                className={`${selectClasses} disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 <option value="">
                   {selectedCity
@@ -1283,9 +1263,7 @@ export function AddressSelector({
                   required={required}
                   aria-invalid={fieldError('street') ? 'true' : undefined}
                   aria-describedby={describedBy('street', 'street')}
-                  className={`${inputClasses} g-input-has-icon ${
-                    fieldError('street') ? 'border-danger' : ''
-                  }`}
+                  className={`${inputClasses} g-input-has-icon`}
                 />
               </div>
               {fieldError('street') ? (
@@ -1357,7 +1335,7 @@ export function AddressSelector({
                 required={required}
                 aria-invalid={fieldError('postal') ? 'true' : undefined}
                 aria-describedby={describedBy('postal', 'postal')}
-                className={`${inputClasses} ${fieldError('postal') ? 'border-danger' : ''}`}
+                className={inputClasses}
               />
               {postalOptions.length > 0 && (
                 <datalist id={`${ids.postal}-options`}>
@@ -1393,7 +1371,7 @@ export function AddressSelector({
           </p>
 
           {/* Live preview */}
-          <div className="flex items-start gap-2.5 rounded-lg border border-divider bg-muted/30 p-3 text-xs">
+          <div className="reg-summary flex items-start gap-3 text-xs">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <div className="min-w-0">
               <p className="font-semibold text-foreground">Your address will read as</p>

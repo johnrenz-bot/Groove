@@ -32,12 +32,15 @@ export function AnimatedLogo({
    * `lockup` = icon + the actual GroovePH wordmark asset + subtitle
    */
   variant = 'full',
+  name = 'Groove',
   className,
   onNavigate,
 }: {
   href: string;
   subtitle?: string;
   variant?: 'full' | 'mark' | 'lockup';
+  /** Live-text wordmark. The landing bar uses the full brand name. */
+  name?: string;
   className?: string;
   onNavigate?: () => void;
 }) {
@@ -69,7 +72,7 @@ export function AnimatedLogo({
 
       {variant === 'full' && (
         <span className="hx-logo-word">
-          <span className="hx-logo-name">Groove</span>
+          <span className="hx-logo-name">{name}</span>
           {subtitle && <span className="hx-logo-sub">{subtitle}</span>}
           {/* Second sweep, across the wordmark. Fires on a different phase from
               the mark's so the two never look like one synchronised animation. */}

@@ -27,7 +27,7 @@ export function Panel({
 }: PanelProps) {
   return (
     <section
-      className={cn('g-card min-w-0', hoverable && 'g-card-hover', PADDING[padding], className)}
+      className={cn('g-card min-w-0 border border-border', hoverable && 'g-card-hover', PADDING[padding], className)}
       {...props}
     >
       {children}
@@ -70,7 +70,7 @@ export function PanelHeader({
   return (
     <header
       className={cn(
-        'flex flex-wrap items-center justify-between gap-3 border-b border-divider px-5 py-4 sm:flex-nowrap sm:px-6',
+        'flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-5 py-4 sm:flex-nowrap sm:px-6',
         className
       )}
     >
@@ -115,7 +115,7 @@ export function PanelFooter({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-between gap-2 border-t border-divider px-5 py-3 text-xs text-muted-foreground sm:px-6',
+        'flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-5 py-3 text-xs text-muted-foreground sm:px-6',
         className
       )}
       {...props}
@@ -177,7 +177,7 @@ export function CollapsiblePanel({
               onClick={() => setOpen((value) => !value)}
               aria-expanded={open}
               aria-controls={bodyId}
-              className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent-border hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-border-strong hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <ChevronDown
                 className={cn('h-4 w-4 transition-transform duration-200', open && 'rotate-180')}

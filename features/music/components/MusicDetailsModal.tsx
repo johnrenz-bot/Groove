@@ -110,7 +110,7 @@ export function MusicDetailsModal({
         {/* Main Track Showcase: Cover Art + Info */}
         <div className="grid grid-cols-1 items-center gap-5 sm:grid-cols-[160px_1fr]">
           {/* Cover Art Artwork with Vinyl Glow */}
-          <div className="group relative mx-auto aspect-square w-36 overflow-hidden rounded-2xl border border-border/80 bg-card/80 p-1.5 shadow-xl sm:w-40">
+          <div className="group relative mx-auto aspect-square w-36 overflow-hidden rounded-2xl   bg-card/80 p-1.5 shadow-xl sm:w-40">
             <div className="relative h-full w-full overflow-hidden rounded-xl bg-muted/60">
               {currentTrackThumbnail ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -134,8 +134,8 @@ export function MusicDetailsModal({
                   className={cn(
                     'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md',
                     isPlaying
-                      ? 'border border-emerald-500/30 bg-emerald-950/80 text-emerald-400'
-                      : 'border border-border/80 bg-background/80 text-muted-foreground'
+                      ? '  bg-emerald-950/80 text-emerald-400'
+                      : '  bg-background/80 text-muted-foreground'
                   )}
                 >
                   <span
@@ -153,10 +153,10 @@ export function MusicDetailsModal({
           {/* Track Details & Tags */}
           <div className="space-y-2 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-              <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-accent-text border border-accent/30">
+              <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-accent-text  ">
                 Official Audio
               </span>
-              <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground border border-border/60">
+              <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground  ">
                 Studio Rehearsal
               </span>
               {openOnYouTubeUrl && (
@@ -228,7 +228,7 @@ export function MusicDetailsModal({
         </div>
 
         {/* Main Transport & Volume Controls */}
-        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 backdrop-blur-md">
+        <div className="rounded-2xl   bg-card/60 p-4 backdrop-blur-md">
           <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Primary Controls */}
             <div className="flex items-center gap-2 mx-auto sm:mx-0">
@@ -237,7 +237,7 @@ export function MusicDetailsModal({
                 onClick={prev}
                 title="Previous track"
                 aria-label="Previous track"
-                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground active:scale-95"
+                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl   bg-card text-muted-foreground transition hover: hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <SkipBack className="h-4 w-4" />
               </button>
@@ -264,7 +264,7 @@ export function MusicDetailsModal({
                 onClick={next}
                 title="Next track"
                 aria-label="Next track"
-                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground active:scale-95"
+                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl   bg-card text-muted-foreground transition hover: hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <SkipForward className="h-4 w-4" />
               </button>
@@ -275,10 +275,10 @@ export function MusicDetailsModal({
                 aria-pressed={isLooping}
                 title={isLooping ? 'Continuous loop is ON' : 'Turn continuous loop ON'}
                 className={cn(
-                  'inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition active:scale-95',
+                  'inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl  transition active:scale-95',
                   isLooping
-                    ? 'border-accent/50 bg-accent/15 text-accent shadow-xs'
-                    : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? ' bg-accent/15 text-accent shadow-xs'
+                    : ' bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
               >
                 <Repeat className="h-4 w-4" />
@@ -289,7 +289,7 @@ export function MusicDetailsModal({
                 onClick={() => seekTo(0)}
                 title="Restart from 0:00"
                 aria-label="Restart track"
-                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
+                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl   bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <RotateCcw className="h-4 w-4" />
               </button>
@@ -301,7 +301,7 @@ export function MusicDetailsModal({
                 type="button"
                 onClick={toggleMuted}
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
-                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl   bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground"
               >
                 {isMuted || volume === 0 ? (
                   <VolumeX className="h-4 w-4 text-danger" />
@@ -335,8 +335,8 @@ export function MusicDetailsModal({
                     className={cn(
                       'h-6 rounded-md px-1.5 text-[10px] font-bold cursor-pointer transition',
                       !isMuted && volume === v
-                        ? 'border border-accent/40 bg-accent/20 text-accent'
-                        : 'border border-border/40 text-muted-foreground hover:bg-muted'
+                        ? '  bg-accent/20 text-accent'
+                        : '  text-muted-foreground hover:bg-muted'
                     )}
                   >
                     {v}%
@@ -349,7 +349,7 @@ export function MusicDetailsModal({
 
         {/* Rehearsal Catalogue & History Tabs */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <div className="flex items-center justify-between   pb-2">
             <div className="flex gap-2">
               <button
                 type="button"
@@ -357,7 +357,7 @@ export function MusicDetailsModal({
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer',
                   activeTab === 'tracks'
-                    ? 'border border-accent/30 bg-accent/15 text-accent-text'
+                    ? '  bg-accent/15 text-accent-text'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
               >
@@ -371,7 +371,7 @@ export function MusicDetailsModal({
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer',
                   activeTab === 'history'
-                    ? 'border border-accent/30 bg-accent/15 text-accent-text'
+                    ? '  bg-accent/15 text-accent-text'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
               >
@@ -395,14 +395,14 @@ export function MusicDetailsModal({
                     key={trk.id || trk.youtubeId}
                     onClick={() => playTrack(trk)}
                     className={cn(
-                      'flex items-center justify-between gap-3 rounded-xl border p-2.5 transition cursor-pointer',
+                      'flex items-center justify-between gap-3 rounded-xl  p-2.5 transition cursor-pointer',
                       isCurrent
-                        ? 'border-accent/40 bg-accent/10 shadow-xs ring-1 ring-accent/30'
-                        : 'border-border/60 bg-card hover:border-border hover:bg-muted/50'
+                        ? ' bg-accent/10 shadow-xs  '
+                        : ' bg-card hover: hover:bg-muted/50'
                     )}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-muted">
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg   bg-muted">
                         {trk.thumbnail ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -491,14 +491,14 @@ export function MusicDetailsModal({
                       key={`hist-${trk.youtubeId}`}
                       onClick={() => playTrack(trk)}
                       className={cn(
-                        'flex items-center justify-between gap-3 rounded-xl border p-2.5 transition cursor-pointer',
+                        'flex items-center justify-between gap-3 rounded-xl  p-2.5 transition cursor-pointer',
                         isCurrent
-                          ? 'border-accent/40 bg-accent/10 shadow-xs'
-                          : 'border-border/60 bg-card hover:bg-muted/50'
+                          ? ' bg-accent/10 shadow-xs'
+                          : ' bg-card hover:bg-muted/50'
                       )}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-muted">
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg   bg-muted">
                           {trk.thumbnail ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={trk.thumbnail} alt="" className="h-full w-full object-cover" />

@@ -68,7 +68,7 @@ export default function RouteError({
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-border px-6 text-[0.9375rem] font-semibold tracking-[-0.01em] text-foreground transition-colors duration-150 hover:bg-muted active:scale-[0.98]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full   px-6 text-[0.9375rem] font-semibold tracking-[-0.01em] text-foreground transition-colors duration-150 hover:bg-muted active:scale-[0.98]"
           >
             <Home className="h-4 w-4" aria-hidden="true" />
             Back to home

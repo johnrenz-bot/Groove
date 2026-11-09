@@ -189,7 +189,7 @@ export function VerificationDocumentsUpload({
     return (
       <div
         role="status"
-        className="rounded-2xl border border-success/30 bg-success-soft px-5 py-4"
+        className="rounded-2xl   bg-success-soft px-5 py-4"
       >
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-success">
           <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
@@ -204,7 +204,7 @@ export function VerificationDocumentsUpload({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div className="rounded-2xl   bg-card p-5">
       <div className="flex items-center gap-2">
         <ShieldCheck className="h-4 w-4 text-accent-text" aria-hidden="true" />
         <h3 className="text-sm font-bold text-foreground">
@@ -228,7 +228,7 @@ export function VerificationDocumentsUpload({
       {error && (
         <div
           role="alert"
-          className="mt-4 flex items-start gap-2 rounded-xl border border-danger/30 bg-danger-soft px-3.5 py-2.5 text-xs text-danger"
+          className="mt-4 flex items-start gap-2 rounded-xl   bg-danger-soft px-3.5 py-2.5 text-xs text-danger"
         >
           <X className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
@@ -244,8 +244,8 @@ export function VerificationDocumentsUpload({
             <div
               key={doc.key}
               className={cn(
-                'relative w-full rounded-xl border p-3.5 transition-colors',
-                held ? 'border-success/30 bg-success-soft' : 'border-dashed border-border-strong bg-muted/40'
+                'relative w-full rounded-xl  p-3.5 transition-colors',
+                held ? ' bg-success-soft' : '  bg-muted/40'
               )}
             >
               <input
@@ -266,10 +266,10 @@ export function VerificationDocumentsUpload({
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border',
+                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ',
                     held
-                      ? 'border-success/30 bg-card text-success'
-                      : 'border-accent-border bg-accent-soft text-accent-text'
+                      ? ' bg-card text-success'
+                      : ' bg-accent-soft text-accent-text'
                   )}
                 >
                   {busy ? (
@@ -297,7 +297,7 @@ export function VerificationDocumentsUpload({
       </div>
 
       {status === 'rejected' && (
-        <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-divider pt-4">
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-3   pt-4">
           <Button
             size="sm"
             onClick={() => void resubmit()}

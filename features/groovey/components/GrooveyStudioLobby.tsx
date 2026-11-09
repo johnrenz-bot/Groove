@@ -178,7 +178,7 @@ export const GrooveyStudioLobby: React.FC = () => {
       {/* Hero Presentation */}
       <div className="flex flex-col items-center mb-6">
         <div className="relative mb-3 flex items-center justify-center">
-          <div className="relative w-24 h-24 rounded-full bg-card shadow-md flex items-center justify-center p-1.5 overflow-hidden border border-border">
+          <div className="relative w-24 h-24 rounded-full bg-card shadow-md flex items-center justify-center p-1.5 overflow-hidden  ">
             <Image
               src="/groovey/grooveyy-mascot.png"
               alt="Grooveyy Performing Arts Companion"
@@ -188,13 +188,13 @@ export const GrooveyStudioLobby: React.FC = () => {
               unoptimized
             />
           </div>
-          <span className="absolute bottom-0 right-1 w-6 h-6 rounded-full bg-accent-soft shadow-xs flex items-center justify-center text-accent-text border border-accent-border">
+          <span className="absolute bottom-0 right-1 w-6 h-6 rounded-full bg-accent-soft shadow-xs flex items-center justify-center text-accent-text  ">
             <Sparkles className="w-3.5 h-3.5" />
           </span>
         </div>
 
         {/* Meet Grooveyy Pill */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted mb-3 shadow-xs border border-border">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted mb-3 shadow-xs  ">
           <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
           <span className="text-xs text-foreground tracking-wide font-medium">
             Meet Grooveyy, your Performing Arts AI
@@ -222,7 +222,7 @@ export const GrooveyStudioLobby: React.FC = () => {
               className={`px-3.5 py-1.5 rounded-full text-xs shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                 isSelected
                   ? 'bg-accent text-accent-foreground font-semibold'
-                  : 'bg-card text-muted-foreground hover:text-foreground hover:bg-muted border border-border'
+                  : 'bg-card text-muted-foreground hover:text-foreground hover:bg-muted  '
               }`}
             >
               <TabIcon className="w-3.5 h-3.5" />
@@ -241,10 +241,10 @@ export const GrooveyStudioLobby: React.FC = () => {
               key={i}
               type="button"
               onClick={() => handleCardClick(card.prompt, card.discipline)}
-              className="group text-left p-3.5 rounded-2xl bg-card hover:bg-muted/60 transition-all flex flex-col justify-between active:scale-[0.98] border border-border cursor-pointer shadow-xs"
+              className="group text-left p-3.5 rounded-2xl bg-card hover:bg-muted/60 transition-all flex flex-col justify-between active:scale-[0.98]   cursor-pointer shadow-xs"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="w-8 h-8 rounded-xl bg-accent-soft text-accent-text flex items-center justify-center border border-accent-border/50">
+                <div className="w-8 h-8 rounded-xl bg-accent-soft text-accent-text flex items-center justify-center  ">
                   <CardIcon className="w-4 h-4" />
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-accent-text transition-colors" />
@@ -270,7 +270,7 @@ export const GrooveyStudioLobby: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowModelMenu(!showModelMenu)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-muted border border-border text-[11px] text-foreground font-medium transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-muted   text-[11px] text-foreground font-medium transition-colors cursor-pointer"
             >
               <Sparkles className="w-3 h-3 text-accent" />
               <span>{modelPreset}</span>
@@ -283,7 +283,7 @@ export const GrooveyStudioLobby: React.FC = () => {
                   className="fixed inset-0 z-10"
                   onClick={() => setShowModelMenu(false)}
                 />
-                <div className="absolute left-0 bottom-full mb-1.5 w-56 rounded-xl bg-card border border-border shadow-lg p-1.5 z-20 text-left text-xs">
+                <div className="absolute left-0 bottom-full mb-1.5 w-56 rounded-xl bg-card   shadow-lg p-1.5 z-20 text-left text-xs">
                   {[
                     { name: 'Grooveyy Maestro 3.5', tag: 'Fast • Creative drills' },
                     { name: 'Grooveyy Virtuoso Pro', tag: 'Deep harmonic analysis' },
@@ -311,7 +311,7 @@ export const GrooveyStudioLobby: React.FC = () => {
         </div>
 
         {/* Input Textarea Container */}
-        <div className="relative bg-muted/50 rounded-2xl border border-border focus-within:border-accent p-2 shadow-sm transition-all flex flex-col gap-2">
+        <div className="relative bg-muted/50 rounded-2xl   focus-within: p-2 shadow-sm transition-all flex flex-col gap-2">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -319,10 +319,10 @@ export const GrooveyStudioLobby: React.FC = () => {
             onChange={handleTextareaInput}
             onKeyDown={handleKeyDown}
             placeholder="Ask Grooveyy for vocal mechanics, choreography cues, or scene beats..."
-            className="w-full bg-transparent resize-none outline-none text-xs text-foreground placeholder:text-muted-foreground px-2 pt-1 max-h-32"
+            className="w-full bg-transparent resize-none  text-xs text-foreground placeholder:text-muted-foreground px-2 pt-1 max-h-32"
           />
 
-          <div className="flex items-center justify-between px-1 pt-1 border-t border-border/50">
+          <div className="flex items-center justify-between px-1 pt-1  ">
             <div className="flex items-center gap-1">
               <input
                 type="file"

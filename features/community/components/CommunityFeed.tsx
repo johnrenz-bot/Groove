@@ -366,7 +366,7 @@ export default function CommunityFeed({
   return (
     <div className="space-y-4">
       {showBanner && (
-        <div className="flex flex-col gap-3 rounded-[14px] border border-border bg-card p-4 shadow-[var(--shadow-sm)] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-[14px]   bg-card p-4 shadow-[var(--shadow-sm)] sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-accent-text" aria-hidden="true" />
@@ -388,7 +388,7 @@ export default function CommunityFeed({
           </div>
 
           {activeFilter && (
-            <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-accent-border bg-accent-soft px-3 py-1.5 text-[11px] font-bold text-accent-text shadow-sm sm:self-auto">
+            <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full   bg-accent-soft px-3 py-1.5 text-[11px] font-bold text-accent-text shadow-sm sm:self-auto">
               <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
               {activeFilter} Circle
             </span>
@@ -406,7 +406,7 @@ export default function CommunityFeed({
       {showLoading ? (
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="space-y-2.5 rounded-[14px] border border-border bg-card p-3.5 sm:p-4">
+            <div key={i} className="space-y-2.5 rounded-[14px]   bg-card p-3.5 sm:p-4">
               <div className="flex items-center gap-2.5">
                 <div className="g-skeleton h-8 w-8 rounded-full" />
                 <div className="flex-1 space-y-1.5">
@@ -423,8 +423,8 @@ export default function CommunityFeed({
           ))}
         </div>
       ) : visiblePosts.length === 0 ? (
-        <div className="space-y-3 rounded-[14px] border border-dashed border-border bg-card p-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text">
+        <div className="space-y-3 rounded-[14px]    bg-card p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full   bg-accent-soft text-accent-text">
             <Sparkles className="h-6 w-6" aria-hidden="true" />
           </div>
           <h4 className="text-sm font-bold text-foreground">

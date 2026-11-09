@@ -82,7 +82,7 @@ export function FormField({
         id: fieldId,
         'aria-invalid': error ? 'true' : undefined,
         'aria-describedby': describedBy,
-        className: cn('g-input', error && 'border-danger'),
+        className: cn('g-input', error && ''),
       })}
       {error ? (
         <p id={`${fieldId}-error`} className="g-field-error" role="alert">
@@ -294,7 +294,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             required={required}
             aria-invalid={error ? 'true' : undefined}
             aria-describedby={describedBy}
-            className={cn('g-input pr-11', error && 'border-danger', className)}
+            className={cn('g-input pr-11', error && '', className)}
             {...props}
           />
           <button

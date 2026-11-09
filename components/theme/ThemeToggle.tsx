@@ -34,7 +34,7 @@ export function ThemeToggle({
         aria-label={label}
         title={label}
         className={cn(
-          'inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+          'inline-flex items-center gap-2 rounded-full   bg-card px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
           className
         )}
       >

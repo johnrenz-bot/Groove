@@ -15,7 +15,7 @@ export interface FeatureProgressProps {
   /** Optional supporting sentence (e.g. what is still missing). */
   description?: string;
   tone?: FeatureProgressTone;
-  variant?: 'bar' | 'ring';
+  variant?: 'bar' | '';
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   showValue?: boolean;
@@ -94,7 +94,7 @@ export function FeatureProgress({
           : 'text-foreground'
         : 'text-[var(--brand-sunburst)]';
 
-  if (variant === 'ring') {
+  if (variant === '') {
     const px = RING_PX[size];
     const stroke = size === 'sm' ? 4 : size === 'lg' ? 6 : 5;
     const radius = (px - stroke) / 2;

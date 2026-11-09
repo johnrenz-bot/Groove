@@ -187,13 +187,13 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
             aria-label={resolvedRole === 'client' ? 'Open Groovey AI coach' : 'Open Groovey AI assistant'}
             aria-expanded={isOpen}
             className={cn(
-              'group relative flex items-center gap-2.5 rounded-full border border-accent-border/80 bg-card px-4 py-2.5 text-foreground shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:border-accent active:scale-95 cursor-pointer select-none',
-              isGenerating && 'ring-2 ring-accent ring-offset-2 ring-offset-background'
+              'group relative flex items-center gap-2.5 rounded-full   bg-card px-4 py-2.5 text-foreground shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover: active:scale-95 cursor-pointer select-none',
+              isGenerating && '   '
             )}
           >
             {/* Mascot Avatar with Online indicator */}
             <div className="relative shrink-0">
-              <div className="h-8 w-8 rounded-full border border-border bg-muted overflow-hidden flex items-center justify-center shadow-xs">
+              <div className="h-8 w-8 rounded-full   bg-muted overflow-hidden flex items-center justify-center shadow-xs">
                 <Image
                   src="/groovey/grooveyy-mascot.png"
                   alt="Grooveyy Mascot"
@@ -213,7 +213,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                 />
                 <span
                   className={cn(
-                    'relative inline-flex h-2.5 w-2.5 rounded-full border border-card',
+                    'relative inline-flex h-2.5 w-2.5 rounded-full  -card',
                     isGenerating ? 'bg-accent' : 'bg-success'
                   )}
                 />
@@ -224,7 +224,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
             <div className="flex flex-col text-left">
               <span className="text-xs font-bold tracking-tight text-foreground flex items-center gap-1.5">
                 Grooveyy AI
-                <span className="rounded bg-accent/15 px-1.5 py-0.2 text-[9px] font-bold text-accent-text tracking-wide uppercase border border-accent-border/40">
+                <span className="rounded bg-accent/15 px-1.5 py-0.2 text-[9px] font-bold text-accent-text tracking-wide uppercase  ">
                   <Sparkles className="w-2 h-2 inline mr-0.5" /> Studio
                 </span>
               </span>
@@ -243,7 +243,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
           aria-label="Grooveyy AI Floating Assistant"
           data-lenis-prevent
           className={cn(
-            'fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-foreground shadow-2xl backdrop-blur-xl transition-all duration-300 ease-out font-sans animate-in fade-in zoom-in-95 slide-in-from-bottom-3',
+            'fixed z-[1150] flex flex-col overflow-hidden rounded-2xl   bg-card/95 text-foreground shadow-2xl backdrop-blur-xl transition-all duration-300 ease-out font-sans animate-in fade-in zoom-in-95 slide-in-from-bottom-3',
             // Mobile: dock to bottom with side margins
             'inset-x-3 bottom-3 max-h-[85vh] h-[440px]',
             // Desktop: anchored bottom-right
@@ -251,7 +251,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
           )}
         >
           {/* HEADER: GROOVEY AI PROFILE & BRANDING */}
-          <div className="relative border-b border-border bg-muted/40 px-3.5 py-2.5 shrink-0">
+          <div className="relative   bg-muted/40 px-3.5 py-2.5 shrink-0">
             <div className="flex items-center justify-between gap-2">
               {/* Left: Mascot Avatar & Identity */}
               <div
@@ -260,7 +260,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                 title="Click to view Grooveyy Coach details"
               >
                 <div className="relative shrink-0">
-                  <div className="h-8 w-8 rounded-full border border-border bg-muted overflow-hidden flex items-center justify-center shadow-xs group-hover:border-accent transition-colors">
+                  <div className="h-8 w-8 rounded-full   bg-muted overflow-hidden flex items-center justify-center shadow-xs group-hover: transition-colors">
                     <Image
                       src="/groovey/grooveyy-mascot.png"
                       alt="Grooveyy Mascot"
@@ -270,7 +270,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                       unoptimized
                     />
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-card bg-success" />
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full   bg-success" />
                 </div>
 
                 <div className="min-w-0">
@@ -278,7 +278,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                     <span className="truncate text-xs font-bold text-foreground group-hover:text-accent-text transition-colors">
                       Grooveyy AI
                     </span>
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-accent-soft text-accent-text text-[9px] font-semibold tracking-wide uppercase border border-accent-border/50">
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-accent-soft text-accent-text text-[9px] font-semibold tracking-wide uppercase  ">
                       <Sparkles className="w-2 h-2 inline" /> Studio
                     </span>
                   </div>
@@ -349,7 +349,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
 
             {/* Discipline Dropdown Picker */}
             {showDisciplinePicker && (
-              <div className="absolute top-12 left-12 z-50 rounded-xl border border-border bg-card p-1 shadow-xl backdrop-blur-md min-w-[130px]">
+              <div className="absolute top-12 left-12 z-50 rounded-xl   bg-card p-1 shadow-xl backdrop-blur-md min-w-[130px]">
                 <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Focus Discipline
                 </p>
@@ -377,10 +377,10 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
 
             {/* Coach Profile Details Card Popover */}
             {showProfileCard && (
-              <div className="absolute top-12 left-3 right-3 z-50 rounded-xl border border-border bg-card p-3 shadow-xl backdrop-blur-md">
+              <div className="absolute top-12 left-3 right-3 z-50 rounded-xl   bg-card p-3 shadow-xl backdrop-blur-md">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    <div className="h-10 w-10 rounded-full border border-border bg-muted overflow-hidden flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full   bg-muted overflow-hidden flex items-center justify-center">
                       <Image
                         src="/groovey/grooveyy-mascot.png"
                         alt="Grooveyy Mascot"
@@ -404,7 +404,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                   </button>
                 </div>
 
-                <div className="mt-2.5 space-y-1.5 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                <div className="mt-2.5 space-y-1.5   pt-2 text-[11px] text-muted-foreground">
                   <div className="flex items-center justify-between">
                     <span>Expertise:</span>
                     <span className="font-semibold text-foreground">Singing, Dance, Acting, Auditions</span>
@@ -430,7 +430,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
               <div className="flex flex-col items-center justify-center text-center py-5 px-2 space-y-4">
                 {/* Mascot Avatar */}
                 <div className="relative inline-flex items-center justify-center">
-                  <div className="relative h-16 w-16 rounded-full bg-muted shadow-xs flex items-center justify-center p-0.5 border border-border overflow-hidden">
+                  <div className="relative h-16 w-16 rounded-full bg-muted shadow-xs flex items-center justify-center p-0.5   overflow-hidden">
                     <Image
                       src="/groovey/grooveyy-mascot.png"
                       alt="Grooveyy Mascot"
@@ -440,7 +440,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                       unoptimized
                     />
                   </div>
-                  <span className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-accent-soft shadow-xs border border-accent-border flex items-center justify-center text-accent-text">
+                  <span className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-accent-soft shadow-xs   flex items-center justify-center text-accent-text">
                     <Sparkles className="h-3 w-3" />
                   </span>
                 </div>
@@ -468,7 +468,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                           setSelectedDiscipline(item.discipline);
                           handleSend(item.prompt);
                         }}
-                        className="group flex items-center gap-2.5 rounded-xl border border-border bg-card/80 p-2.5 text-left text-xs transition-all hover:border-accent-border hover:bg-accent-soft/40 cursor-pointer"
+                        className="group flex items-center gap-2.5 rounded-xl   bg-card/80 p-2.5 text-left text-xs transition-all hover: hover:bg-accent-soft/40 cursor-pointer"
                       >
                         <span className="text-sm shrink-0">{item.icon}</span>
                         <span className="truncate text-[11px] font-medium text-foreground group-hover:text-accent-text">
@@ -493,7 +493,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                     >
                       <div className="flex items-end gap-1.5 max-w-[90%]">
                         {!isUser && (
-                          <div className="h-6 w-6 shrink-0 rounded-full border border-border bg-muted overflow-hidden flex items-center justify-center shadow-xs">
+                          <div className="h-6 w-6 shrink-0 rounded-full   bg-muted overflow-hidden flex items-center justify-center shadow-xs">
                             <Image
                               src="/groovey/grooveyy-mascot.png"
                               alt="Grooveyy Mascot"
@@ -508,8 +508,8 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                           className={cn(
                             'rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm',
                             isUser
-                              ? 'rounded-tr-xs bg-accent-soft text-foreground border border-accent-border/50'
-                              : 'rounded-tl-xs bg-muted/70 text-foreground border border-border/70'
+                              ? 'rounded-tr-xs bg-accent-soft text-foreground  '
+                              : 'rounded-tl-xs bg-muted/70 text-foreground  '
                           )}
                         >
                           {isUser ? (
@@ -527,7 +527,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                 {isGenerating && streamingText && (
                   <div className="flex flex-col items-start">
                     <div className="flex items-end gap-1.5 max-w-[90%]">
-                      <div className="h-6 w-6 shrink-0 rounded-full border border-border bg-muted overflow-hidden flex items-center justify-center shadow-xs">
+                      <div className="h-6 w-6 shrink-0 rounded-full   bg-muted overflow-hidden flex items-center justify-center shadow-xs">
                         <Image
                           src="/groovey/grooveyy-mascot.png"
                           alt="Grooveyy Mascot"
@@ -537,7 +537,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                           unoptimized
                         />
                       </div>
-                      <div className="rounded-2xl rounded-tl-xs bg-muted/70 border border-border/70 px-3.5 py-2.5 text-xs leading-relaxed shadow-sm">
+                      <div className="rounded-2xl rounded-tl-xs bg-muted/70   px-3.5 py-2.5 text-xs leading-relaxed shadow-sm">
                         <MarkdownRenderer content={streamingText} />
                         <span className="inline-block h-3 w-1.5 ml-1 animate-pulse bg-accent align-middle" />
                       </div>
@@ -560,13 +560,13 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
           </div>
 
           {/* COMPOSER / INPUT */}
-          <div className="border-t border-border bg-card/90 p-3">
+          <div className="  bg-card/90 p-3">
             {isGenerating && (
               <div className="mb-2 flex justify-center">
                 <button
                   type="button"
                   onClick={stopGeneration}
-                  className="flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-full   bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <Square className="h-3 w-3 fill-current" />
                   <span>Stop generating</span>
@@ -579,7 +579,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                 e.preventDefault();
                 handleSend();
               }}
-              className="flex items-end gap-2 rounded-2xl border border-border bg-muted/50 p-1.5 transition-all focus-within:border-accent-border focus-within:ring-1 focus-within:ring-accent/40"
+              className="flex items-end gap-2 rounded-2xl   bg-muted/50 p-1.5 transition-all focus-within: focus-within: focus-within:"
             >
               <textarea
                 ref={textareaRef}
@@ -588,7 +588,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                 onKeyDown={handleKeyDown}
                 rows={1}
                 placeholder={`Ask Grooveyy about ${selectedDiscipline.toLowerCase()}…`}
-                className="flex-1 resize-none bg-transparent px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none max-h-[100px] leading-relaxed"
+                className="flex-1 resize-none bg-transparent px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus: max-h-[100px] leading-relaxed"
               />
 
               <button

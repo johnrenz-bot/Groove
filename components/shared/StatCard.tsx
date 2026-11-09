@@ -34,7 +34,7 @@ export function StatCard({
         {icon && (
           <span
             aria-hidden="true"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--ph-border)] bg-[var(--ph-cream)] text-[var(--ph-navy-soft)] transition-transform duration-200 group-hover:scale-105"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full  (--ph-)] bg-[var(--ph-cream)] text-[var(--ph-navy-soft)] transition-transform duration-200 group-hover:scale-105"
           >
             {icon}
           </span>
@@ -92,7 +92,7 @@ export function NumberedStep({
         {icon && (
           <span
             aria-hidden="true"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full   bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105"
           >
             {icon}
           </span>

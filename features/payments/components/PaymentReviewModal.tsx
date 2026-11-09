@@ -128,7 +128,7 @@ export function PaymentReviewModal({
           {/* Body */}
           <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
             {errorMsg && (
-              <div className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+              <div className="flex items-center gap-2 rounded-2xl   bg-danger-soft p-3 text-xs text-danger">
                 <XCircle className="h-4 w-4 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
@@ -136,7 +136,7 @@ export function PaymentReviewModal({
 
             {/* Summary Grid */}
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-muted/30 p-3.5">
+              <div className="rounded-2xl   bg-muted/30 p-3.5">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Amount Transferred
                 </span>
@@ -146,7 +146,7 @@ export function PaymentReviewModal({
                 <p className="text-[11px] text-muted-foreground">{transaction.description}</p>
               </div>
 
-              <div className="rounded-2xl border border-border bg-muted/30 p-3.5">
+              <div className="rounded-2xl   bg-muted/30 p-3.5">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   GCash Reference No.
                 </span>
@@ -176,7 +176,7 @@ export function PaymentReviewModal({
             </div>
 
             {/* Receipt Preview */}
-            <div className="rounded-2xl border border-border bg-black/40 p-3 text-center">
+            <div className="rounded-2xl   bg-black/40 p-3 text-center">
               <div className="flex items-center justify-between pb-2 text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground">Uploaded Receipt Screenshot</span>
                 {transaction.proof_image_url && (
@@ -215,14 +215,14 @@ export function PaymentReviewModal({
 
             {/* Payer's submitted note */}
             {transaction.proof_notes && (
-              <div className="rounded-2xl border border-border bg-muted/20 p-3 text-xs">
+              <div className="rounded-2xl   bg-muted/20 p-3 text-xs">
                 <span className="font-semibold text-foreground">Payer&apos;s Note: </span>
                 <span className="text-muted-foreground">{transaction.proof_notes}</span>
               </div>
             )}
 
             {/* Verification Warning */}
-            <div className="flex items-start gap-2.5 rounded-2xl border border-warning/30 bg-warning-soft p-3 text-xs text-muted-foreground">
+            <div className="flex items-start gap-2.5 rounded-2xl   bg-warning-soft p-3 text-xs text-muted-foreground">
               <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
               <p className="text-[11px] leading-relaxed">
                 <strong>Safety Check:</strong> Check your official GCash mobile app transaction history to confirm that <strong>{formatPHP(transaction.amount)}</strong> has actually arrived before confirming this session.
@@ -300,7 +300,7 @@ export function PaymentReviewModal({
           <img
             src={transaction.proof_image_url}
             alt="Full Receipt"
-            className="max-h-[90vh] max-w-[90vw] rounded-2xl border border-accent-border object-contain shadow-2xl"
+            className="max-h-[90vh] max-w-[90vw] rounded-2xl   object-contain shadow-2xl"
           />
         </div>
       )}

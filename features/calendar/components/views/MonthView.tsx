@@ -37,7 +37,7 @@ export function MonthView({
 
   return (
     <div className="flex flex-col">
-      <div className="grid grid-cols-7 border-b border-divider">
+      <div className="grid grid-cols-7  ">
         {WEEKDAY_SHORT.map((day) => (
           <div
             key={day}
@@ -73,8 +73,8 @@ export function MonthView({
                   year: 'numeric',
                 })}${entries.length ? `, ${entries.length} session${entries.length === 1 ? '' : 's'}` : ', no sessions'}`}
                 className={cn(
-                  'group flex min-h-[5.5rem] cursor-pointer flex-col gap-1 border-b border-r border-divider p-1.5 text-left transition sm:min-h-[7rem] sm:p-2',
-                  'last:border-r-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent',
+                  'group flex min-h-[5.5rem] cursor-pointer flex-col gap-1    p-1.5 text-left transition sm:min-h-[7rem] sm:p-2',
+                  'last: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                   inMonth ? 'bg-card' : 'bg-muted/30',
                   selected ? 'bg-accent-soft' : 'hover:bg-muted/60'
                 )}
@@ -147,10 +147,10 @@ function MonthChip({ entry }: { entry: CalendarEntry }) {
   return (
     <span
       className={cn(
-        'flex min-w-0 items-center gap-1 rounded-md border-l-2 bg-muted/70 px-1.5 py-0.5 text-[10px] leading-tight',
+        'flex min-w-0 items-center gap-1 rounded-md  bg-muted/70 px-1.5 py-0.5 text-[10px] leading-tight',
         entry.status === 'declined' || entry.status === 'cancelled'
-          ? 'border-muted-foreground/40 opacity-70'
-          : 'border-accent/70'
+          ? ' opacity-70'
+          : ''
       )}
     >
       <span className="shrink-0 tabular-nums text-accent-text">

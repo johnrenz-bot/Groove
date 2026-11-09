@@ -116,13 +116,15 @@ export function SingingCommunityView({ initialOrgs = VERIFIED_SINGING_ORGS }: Si
   // Sync state to URL params
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = new URLSearchParams();
-    if (region !== 'all') params.set('region', region);
-    if (category !== 'all') params.set('category', category);
-    if (selectedOrg !== 'all') params.set('org', selectedOrg);
-    if (searchQuery.trim()) params.set('q', searchQuery.trim());
-    if (language !== 'en') params.set('lang', language);
-    if (page > 1) params.set('page', String(page));
+    // Start from the current query so roster deep links (?crew, ?ensemble,
+    // ?company, ?theater-company) and any unrelated parameter survive.
+    const params = new URLSearchParams(window.location.search);
+    if (region !== 'all') params.set('region', region); else params.delete('region');
+    if (category !== 'all') params.set('category', category); else params.delete('category');
+    if (selectedOrg !== 'all') params.set('org', selectedOrg); else params.delete('org');
+    if (searchQuery.trim()) params.set('q', searchQuery.trim()); else params.delete('q');
+    if (language !== 'en') params.set('lang', language); else params.delete('lang');
+    if (page > 1) params.set('page', String(page)); else params.delete('page');
 
     const newQuery = params.toString();
     const newUrl = newQuery

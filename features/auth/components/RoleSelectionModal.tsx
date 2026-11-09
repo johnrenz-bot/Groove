@@ -172,12 +172,12 @@ export function RoleSelectionModal({
         ))}
       </motion.div>
 
-      <p className="mt-6 border-t border-divider pt-5 text-center text-xs text-muted-foreground">
+      <p className="mt-6   pt-5 text-center text-xs text-muted-foreground">
         Already have an account?{' '}
         <Link
           href="/login"
           onClick={handleClose}
-          className="group/signin relative inline-block font-semibold text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="group/signin relative inline-block font-semibold text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
         >
           Sign in
           <span

@@ -54,8 +54,8 @@ export const GrooveyArtistProfileView: React.FC = () => {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-5 max-w-3xl mx-auto w-full space-y-5 no-scrollbar">
       {/* Header Profile Card */}
-      <div className="bg-card rounded-2xl p-5 border border-border shadow-xs flex items-center gap-4">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent-soft p-1 shadow-xs shrink-0 border border-accent-border relative overflow-hidden flex items-center justify-center">
+      <div className="bg-card rounded-2xl p-5   shadow-xs flex items-center gap-4">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent-soft p-1 shadow-xs shrink-0   relative overflow-hidden flex items-center justify-center">
           {artistProfile.avatarUrl ? (
             <Image
               src={artistProfile.avatarUrl}
@@ -79,16 +79,16 @@ export const GrooveyArtistProfileView: React.FC = () => {
             {artistProfile.roleTitle || 'Performing Artist'}
           </p>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full bg-muted text-foreground text-[10px] font-medium border border-border">
+            <span className="px-2.5 py-0.5 rounded-full bg-muted text-foreground text-[10px] font-medium  ">
               {artistProfile.primaryDiscipline || 'Performing Arts'}
             </span>
             {artistProfile.movementStyle && (
-              <span className="px-2.5 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium border border-accent-border/50 truncate max-w-[200px]">
+              <span className="px-2.5 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium   truncate max-w-[200px]">
                 {artistProfile.movementStyle}
               </span>
             )}
             {artistProfile.vocalRange && (
-              <span className="px-2.5 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium border border-accent-border/50">
+              <span className="px-2.5 py-0.5 rounded-full bg-accent-soft text-accent-text text-[10px] font-medium  ">
                 {artistProfile.vocalRange}
               </span>
             )}
@@ -98,19 +98,19 @@ export const GrooveyArtistProfileView: React.FC = () => {
 
       {/* Rehearsal Metrics & Studio Status */}
       <div className="grid grid-cols-3 gap-2.5">
-        <div className="bg-card rounded-xl p-3 border border-border text-center">
+        <div className="bg-card rounded-xl p-3   text-center">
           <div className="text-lg font-bold text-accent-text">
             {conversations.length}
           </div>
           <div className="text-[10px] text-muted-foreground">Active Rehearsals</div>
         </div>
-        <div className="bg-card rounded-xl p-3 border border-border text-center">
+        <div className="bg-card rounded-xl p-3   text-center">
           <div className="text-lg font-bold text-accent-text">
             {repertoire.length}
           </div>
           <div className="text-[10px] text-muted-foreground">Saved Routines</div>
         </div>
-        <div className="bg-card rounded-xl p-3 border border-border text-center">
+        <div className="bg-card rounded-xl p-3   text-center">
           <div className="flex items-center justify-center gap-1.5 text-foreground">
             <span className="w-2 h-2 rounded-full bg-success" />
             <span className="text-xs font-bold">Online</span>
@@ -120,8 +120,8 @@ export const GrooveyArtistProfileView: React.FC = () => {
       </div>
 
       {/* Profile Form */}
-      <div className="bg-card rounded-2xl p-5 border border-border shadow-xs space-y-4">
-        <div className="flex items-center gap-2 border-b border-border pb-3">
+      <div className="bg-card rounded-2xl p-5   shadow-xs space-y-4">
+        <div className="flex items-center gap-2   pb-3">
           <User className="w-4 h-4 text-accent-text" />
           <h2 className="text-sm font-bold text-foreground">
             Artist Rehearsal Preferences
@@ -137,7 +137,7 @@ export const GrooveyArtistProfileView: React.FC = () => {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+              className="w-full px-3 py-2 bg-muted/50   rounded-xl text-foreground  focus: focus: focus: transition-all"
             />
           </div>
 
@@ -150,7 +150,7 @@ export const GrooveyArtistProfileView: React.FC = () => {
               value={formData.roleTitle}
               onChange={(e) => setFormData({ ...formData, roleTitle: e.target.value })}
               placeholder="e.g. Lead Vocalist / Contemporary Dancer / Audition Candidate"
-              className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+              className="w-full px-3 py-2 bg-muted/50   rounded-xl text-foreground  focus: focus: focus: transition-all"
             />
           </div>
 
@@ -165,7 +165,7 @@ export const GrooveyArtistProfileView: React.FC = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, primaryDiscipline: e.target.value as DisciplineType })
                 }
-                className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all cursor-pointer"
+                className="w-full px-3 py-2 bg-muted/50   rounded-xl text-foreground  focus: focus: focus: transition-all cursor-pointer"
               >
                 {['Singing', 'Dance', 'Acting', 'Theater', 'Musical Theater', 'Music', 'Choreography', 'Stage Performance', 'General'].map((d) => (
                   <option key={d} value={d}>
@@ -184,7 +184,7 @@ export const GrooveyArtistProfileView: React.FC = () => {
                 value={formData.vocalRange || ''}
                 onChange={(e) => setFormData({ ...formData, vocalRange: e.target.value })}
                 placeholder="e.g. Baritone (A2 - F4) / Intermediate / Soprano"
-                className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                className="w-full px-3 py-2 bg-muted/50   rounded-xl text-foreground  focus: focus: focus: transition-all"
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export const GrooveyArtistProfileView: React.FC = () => {
               value={formData.movementStyle || ''}
               onChange={(e) => setFormData({ ...formData, movementStyle: e.target.value })}
               placeholder="e.g. Hip-hop, Contemporary, Jazz, Ballet"
-              className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+              className="w-full px-3 py-2 bg-muted/50   rounded-xl text-foreground  focus: focus: focus: transition-all"
             />
           </div>
 
@@ -211,7 +211,7 @@ export const GrooveyArtistProfileView: React.FC = () => {
               value={formData.upcomingAudition || ''}
               onChange={(e) => setFormData({ ...formData, upcomingAudition: e.target.value })}
               placeholder="e.g. Upcoming Showcase / Recital / Callback"
-              className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+              className="w-full px-3 py-2 bg-muted/50   rounded-xl text-foreground  focus: focus: focus: transition-all"
             />
           </div>
 
@@ -232,8 +232,8 @@ export const GrooveyArtistProfileView: React.FC = () => {
       </div>
 
       {/* Studio Data Management */}
-      <div className="bg-card rounded-2xl p-5 border border-border shadow-xs space-y-4">
-        <div className="flex items-center gap-2 border-b border-border pb-3">
+      <div className="bg-card rounded-2xl p-5   shadow-xs space-y-4">
+        <div className="flex items-center gap-2   pb-3">
           <Database className="w-4 h-4 text-muted-foreground" />
           <h2 className="text-sm font-bold text-foreground">
             Storage & Studio Backups
@@ -248,7 +248,7 @@ export const GrooveyArtistProfileView: React.FC = () => {
           <button
             type="button"
             onClick={handleExportData}
-            className="px-3.5 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-border"
+            className="px-3.5 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer  "
           >
             <Download className="w-4 h-4" />
             <span>Export Backup (JSON)</span>
@@ -258,13 +258,13 @@ export const GrooveyArtistProfileView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowClearConfirm(true)}
-              className="px-3.5 py-2 rounded-xl bg-card border border-danger/40 text-danger hover:bg-danger/10 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-card   text-danger hover:bg-danger/10 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               <span>Clear Rehearsals</span>
             </button>
           ) : (
-            <div className="flex items-center gap-2 bg-danger-soft p-1.5 rounded-xl border border-danger/40">
+            <div className="flex items-center gap-2 bg-danger-soft p-1.5 rounded-xl  ">
               <span className="text-[11px] text-danger font-medium px-1">Confirm clear?</span>
               <button
                 type="button"

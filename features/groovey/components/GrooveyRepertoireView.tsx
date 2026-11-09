@@ -61,7 +61,7 @@ export const GrooveyRepertoireView: React.FC = () => {
             className={`px-3 py-1 rounded-full text-xs transition-all cursor-pointer ${
               filterDiscipline === disc
                 ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground border border-border hover:bg-muted hover:text-foreground'
+                : 'bg-card text-muted-foreground   hover:bg-muted hover:text-foreground'
             }`}
           >
             {disc}
@@ -71,7 +71,7 @@ export const GrooveyRepertoireView: React.FC = () => {
 
       {/* Repertoire Cards */}
       {filtered.length === 0 ? (
-        <div className="bg-card rounded-2xl p-8 text-center space-y-3 border border-border my-4">
+        <div className="bg-card rounded-2xl p-8 text-center space-y-3   my-4">
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
             <Bookmark className="w-6 h-6" />
           </div>
@@ -89,12 +89,12 @@ export const GrooveyRepertoireView: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className="bg-card rounded-2xl p-4 border border-border shadow-xs hover:border-border-strong transition-all space-y-3"
+                className="bg-card rounded-2xl p-4   shadow-xs hover: transition-all space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-full bg-accent-soft text-accent-text border border-accent-border/50 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-accent-soft text-accent-text   text-[10px] font-bold">
                         {item.discipline}
                       </span>
                       {item.targetBpm && (
@@ -123,7 +123,7 @@ export const GrooveyRepertoireView: React.FC = () => {
                 </p>
 
                 {item.tactileCue && (
-                  <div className="bg-accent-soft border-l-[3px] border-accent rounded-r-xl p-2.5 flex items-start gap-2 text-xs text-foreground">
+                  <div className="bg-accent-soft ]  rounded-r-xl p-2.5 flex items-start gap-2 text-xs text-foreground">
                     <Lightbulb className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                     <div>
                       <strong className="text-foreground">Tactile Cue: </strong>
@@ -133,7 +133,7 @@ export const GrooveyRepertoireView: React.FC = () => {
                 )}
 
                 {item.actionVerb && (
-                  <div className="bg-accent-soft border border-accent-border/50 rounded-xl p-2 flex items-center gap-2 text-xs text-accent-text">
+                  <div className="bg-accent-soft   rounded-xl p-2 flex items-center gap-2 text-xs text-accent-text">
                     <Drama className="w-4 h-4 text-accent shrink-0" />
                     <span>
                       <strong className="text-accent-text">Action Verb: </strong>
@@ -143,12 +143,12 @@ export const GrooveyRepertoireView: React.FC = () => {
                 )}
 
                 {isExpanded && (
-                  <div className="pt-2 border-t border-border text-xs font-mono bg-muted/50 p-3 rounded-xl whitespace-pre-wrap text-foreground">
+                  <div className="pt-2   text-xs font-mono bg-muted/50 p-3 rounded-xl whitespace-pre-wrap text-foreground">
                     {item.fullNotes}
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-1 border-t border-border">
+                <div className="flex items-center justify-between pt-1  ">
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}

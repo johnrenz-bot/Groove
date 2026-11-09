@@ -52,7 +52,7 @@ export function LegalLayout({
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
         if (visible) setActive(visible.target.id);
       },
-      { rootMargin: '-96px 0px -70% 0px', threshold: [0, 1] }
+      { rootMargin: '-144px 0px -70% 0px', threshold: [0, 1] }
     );
     sections.forEach((s) => {
       const el = document.getElementById(s.id);
@@ -126,7 +126,7 @@ export function LegalLayout({
             aria-current={isActive ? 'true' : undefined}
             className={cn(
               'group flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
               isActive
                 ? 'bg-accent-soft font-semibold text-accent-text'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -152,7 +152,7 @@ export function LegalLayout({
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+    <div className="dark flex min-h-screen flex-col bg-background font-sans text-foreground">
       {/* THE APP NAVIGATION. `/terms` and `/privacy` used to render no app
           header at all — just a 64px document bar with a back link — so these
           were the only two pages in the app a visitor could not navigate from.
@@ -170,12 +170,15 @@ export function LegalLayout({
         <AppHeader />
       </ThemeProvider>
 
-      {/* Document bar — back link + TOC + reading progress. */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
+      {/* Document bar — back link + TOC + reading progress. It docks BELOW the
+          app header (`top-[var(--hx-header-h)]`, the bar's own height) rather
+          than at `top-0`: both bars are sticky, so a `top-0` doc bar would
+          slide under the header (z-50 over z-30) and hide its top 56px. */}
+      <header className="sticky top-[var(--hx-header-h)] z-30 border-b border-border/60 bg-background/90 backdrop-blur-md">
         <div className="g-container flex h-16 items-center justify-between gap-4">
           <Link
             href={backHref}
-            className="inline-flex min-w-0 items-center gap-1.5 rounded-lg text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex min-w-0 items-center gap-1.5 rounded-lg text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
           >
             <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{backLabel}</span>
@@ -186,7 +189,7 @@ export function LegalLayout({
               <button
                 type="button"
                 onClick={() => setTocOpen((v) => !v)}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:hidden"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full   bg-card px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
                 aria-expanded={tocOpen}
                 aria-controls="legal-toc-mobile"
               >
@@ -213,7 +216,7 @@ export function LegalLayout({
         </div>
 
         {tocOpen && (
-          <div id="legal-toc-mobile" className="border-t border-border bg-background lg:hidden">
+          <div id="legal-toc-mobile" className="  bg-background lg:hidden">
             <div className="g-container max-h-[70vh] overflow-y-auto py-4">{toc}</div>
           </div>
         )}
@@ -244,7 +247,7 @@ export function LegalLayout({
           <div className="mt-8 gap-12 sm:mt-10 lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
             {/* Sticky table of contents */}
             {toc && (
-              <aside className="mb-8 hidden lg:sticky lg:top-24 lg:block lg:self-start lg:mb-0">
+              <aside className="mb-8 hidden lg:sticky lg:top-[calc(var(--hx-header-h)+4rem+2rem)] lg:block lg:self-start lg:mb-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
                   On this page
                 </p>

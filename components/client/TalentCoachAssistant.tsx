@@ -143,7 +143,7 @@ export function TalentCoachAssistant({ coach }: { coach: FullCoach }) {
       >
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl   bg-accent-soft text-accent-text"
         >
           <Bot className="h-5 w-5" />
         </span>
@@ -158,7 +158,7 @@ export function TalentCoachAssistant({ coach }: { coach: FullCoach }) {
             24/7 Smart Performing Arts Assistant
           </span>
         </span>
-        <span className="shrink-0 rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-semibold text-muted-foreground">
+        <span className="shrink-0 rounded-full   bg-muted px-3 py-1 text-[11px] font-semibold text-muted-foreground">
           {open ? 'Hide' : 'Ask'}
         </span>
       </button>
@@ -181,7 +181,7 @@ export function TalentCoachAssistant({ coach }: { coach: FullCoach }) {
       </div>
 
       {open && (
-        <div className="mt-4 border-t border-divider pt-4">
+        <div className="mt-4   pt-4">
           {/* Transcript */}
           <div
             ref={scrollRef}
@@ -190,14 +190,14 @@ export function TalentCoachAssistant({ coach }: { coach: FullCoach }) {
             aria-label="Assistant conversation"
           >
             {messages.length === 0 && !loading ? (
-              <div className="rounded-2xl border border-border bg-muted p-4 text-xs leading-relaxed text-muted-foreground">
+              <div className="rounded-2xl   bg-muted p-4 text-xs leading-relaxed text-muted-foreground">
                 {greeting}
               </div>
             ) : (
               <>
                 {/* Greeting always heads the transcript. */}
                 <div className="flex justify-start">
-                  <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-border bg-card p-3.5 text-xs leading-relaxed text-foreground">
+                  <div className="max-w-[85%] rounded-2xl rounded-bl-md   bg-card p-3.5 text-xs leading-relaxed text-foreground">
                     {greeting}
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export function TalentCoachAssistant({ coach }: { coach: FullCoach }) {
                       className={`max-w-[85%] whitespace-pre-line rounded-2xl p-3.5 text-xs leading-relaxed ${
                         m.role === 'user'
                           ? 'rounded-br-md bg-accent font-medium text-accent-foreground shadow-[var(--shadow-sm)]'
-                          : 'rounded-bl-md border border-border bg-card text-foreground'
+                          : 'rounded-bl-md   bg-card text-foreground'
                       }`}
                     >
                       {m.role === 'assistant' && (
@@ -228,7 +228,7 @@ export function TalentCoachAssistant({ coach }: { coach: FullCoach }) {
 
             {loading && (
               <div className="flex justify-start">
-                <div className="flex items-center gap-2 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 rounded-2xl rounded-bl-md   bg-card px-3.5 py-3 text-xs text-muted-foreground">
                   <Loader2 className="g-spin h-3.5 w-3.5 text-accent" aria-hidden="true" />
                   Coach {coachName.split(' ')[0]}&apos;s assistant is typing…
                 </div>
@@ -237,7 +237,7 @@ export function TalentCoachAssistant({ coach }: { coach: FullCoach }) {
           </div>
 
           {error && (
-            <div className="mt-3 flex items-start gap-2 rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+            <div className="mt-3 flex items-start gap-2 rounded-xl   bg-danger-soft p-3 text-xs text-danger">
               <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>{error}</span>
             </div>

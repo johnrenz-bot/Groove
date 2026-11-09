@@ -185,7 +185,7 @@ export function PaymentRequestModal({
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
           {errorMsg && (
-            <div className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+            <div className="flex items-center gap-2 rounded-2xl   bg-danger-soft p-3 text-xs text-danger">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -245,7 +245,7 @@ export function PaymentRequestModal({
                 Payee GCash Receiving Details
               </span>
               {payeeProfile?.qr_code_url && (
-                <span className="rounded-full border border-accent-border bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent-text">
+                <span className="rounded-full   bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent-text">
                   Smart QR Ready
                 </span>
               )}
@@ -300,7 +300,7 @@ export function PaymentRequestModal({
           </div>
 
           {/* Disclaimer warning */}
-          <p className="text-[11px] leading-relaxed text-muted-foreground bg-muted/30 rounded-xl p-3 border border-border">
+          <p className="text-[11px] leading-relaxed text-muted-foreground bg-muted/30 rounded-xl p-3  ">
             <strong>Security Reminder:</strong> Once requested, the payer can scan your Smart QR or send to your mobile number. When they submit proof, you will be notified to verify funds in your GCash app before marking as confirmed.
           </p>
 

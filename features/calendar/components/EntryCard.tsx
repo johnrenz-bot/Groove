@@ -33,7 +33,7 @@ export function EntryCard({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border bg-card p-4 transition hover:border-border-strong',
+        'rounded-2xl   bg-card p-4 transition hover:',
         statusBarClass(entry.status),
         compact && 'p-3',
         className
@@ -87,10 +87,10 @@ export function EntryCard({
       {/* The message link is the one action the old calendar offered; it is
           preserved verbatim so no existing affordance is lost. */}
       {entry.messageHref && (
-        <div className="mt-3 flex items-center justify-end border-t border-divider/60 pt-2.5">
+        <div className="mt-3 flex items-center justify-end   pt-2.5">
           <Link
             href={entry.messageHref}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent-text transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent-text transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
           >
             <MessageSquare className="h-3 w-3" aria-hidden="true" />
             Message {appointment.coach_id && entry.counterpartLabel.startsWith('Coach') ? 'Coach' : 'Student'}

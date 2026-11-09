@@ -256,13 +256,18 @@ export async function completeGoogleRegistration(
 
   /* -- New Google account: complete the row the trigger started --------- */
 
+  // The trigger has already set the role from metadata (restricted to client/coach).
+  // Do NOT trust the URL parameter for role assignment — read the authoritative
+  // value from the profiles row to prevent URL manipulation attacks.
+  const trustedRole = (existingProfile.role ?? 'client') as 'client' | 'coach';
+
   // Only fill names that are still empty, so a name typed during a previous
   // partial attempt is not overwritten by Google's display name.
   const patch: Record<string, unknown> = {
     email,
     // Google has verified the address; the trigger's default is not correct here.
     email_verified: true,
-    role,
+    // role is NOT updated here — the trigger's value is authoritative.
     status: 'offline',
   };
   if (!existingProfile.firstname || existingProfile.firstname === 'User') patch.firstname = firstname;
@@ -283,11 +288,20 @@ export async function completeGoogleRegistration(
     throw new Error(`Your profile could not be saved: ${profileErr.message}`);
   }
 
+  // Verify the requested role matches the trusted role from the database.
+  // This prevents a malicious user from changing the URL parameter to escalate
+  // between client and coach roles.
+  if (role !== trustedRole) {
+    throw new Error(
+      'Role mismatch between registration request and existing account. Please start over.'
+    );
+  }
+
   // The sub-profile row. Documents are intentionally omitted: valid_id_path is
   // nullable and the account stays unverified until the user uploads an ID from
   // their profile.
   const subPatch: Record<string, unknown> = { id: userId };
-  if (role === 'coach') {
+  if (trustedRole === 'coach') {
     subPatch.talents = 'Dance';
   } else {
     subPatch.talent = 'Dance';
@@ -321,7 +335,7 @@ export async function completeGoogleRegistration(
     }
   }
 
-  return { status: 'created', role };
+  return { status: 'created', role: trustedRole };
 }
 
 /**

@@ -137,7 +137,7 @@ export function AppointmentCalendar({
         id="calendar-view-panel"
         role="tabpanel"
         aria-label={`${title} calendar`}
-        className="overflow-hidden rounded-[20px] border border-border bg-card shadow-[var(--shadow-sm)] lg:col-span-2"
+        className="overflow-hidden rounded-[20px]   bg-card shadow-[var(--shadow-sm)] lg:col-span-2"
       >
         <CalendarToolbar
           title={title}
@@ -150,7 +150,7 @@ export function AppointmentCalendar({
 
         {/* A short summary of what is in view, so switching views gives the
             same answer to "is anything scheduled?" without reading the grid. */}
-        <p className="border-b border-divider px-4 py-2 text-xs text-muted-foreground sm:px-5">
+        <p className="  px-4 py-2 text-xs text-muted-foreground sm:px-5">
           {view === 'year'
             ? `${entries.length} session${entries.length === 1 ? '' : 's'} in ${anchor.getFullYear()}`
             : view === 'agenda'
@@ -189,9 +189,9 @@ export function AppointmentCalendar({
       </div>
 
       {/* Selected day — the original calendar's detail column, retained. */}
-      <aside className="flex flex-col rounded-[20px] border border-border bg-card shadow-[var(--shadow-sm)]">
+      <aside className="flex flex-col rounded-[20px]   bg-card shadow-[var(--shadow-sm)]">
         <div className="p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 border-b border-divider pb-4 text-base font-bold text-foreground">
+          <h3 className="flex items-center gap-2   pb-4 text-base font-bold text-foreground">
             <CalendarGlyph />
             <span className="truncate">
               Schedule for{' '}
@@ -216,7 +216,7 @@ export function AppointmentCalendar({
           </div>
         </div>
 
-        {footerAction && <div className="border-t border-divider p-5 sm:p-6">{footerAction}</div>}
+        {footerAction && <div className="  p-5 sm:p-6">{footerAction}</div>}
       </aside>
     </div>
   );

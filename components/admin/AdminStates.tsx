@@ -40,13 +40,13 @@ export function AdminErrorState({
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center justify-center rounded-[20px] border border-danger/30 bg-danger-soft px-6 py-12 text-center',
+        'flex flex-col items-center justify-center rounded-[20px]   bg-danger-soft px-6 py-12 text-center',
         className
       )}
     >
       <span
         aria-hidden="true"
-        className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-danger/30 bg-danger-soft text-danger"
+        className="mb-4 flex h-12 w-12 items-center justify-center rounded-full   bg-danger-soft text-danger"
       >
         <AlertTriangle className="h-5 w-5" />
       </span>
@@ -95,13 +95,13 @@ export function AdminEmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border-strong bg-card px-6 py-12 text-center',
+        'flex flex-col items-center justify-center rounded-[20px]    bg-card px-6 py-12 text-center',
         className
       )}
     >
       <span
         aria-hidden="true"
-        className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text"
+        className="mb-4 flex h-12 w-12 items-center justify-center rounded-full   bg-accent-soft text-accent-text"
       >
         {icon ?? (filtered ? <Inbox className="h-5 w-5" /> : <Inbox className="h-5 w-5" />)}
       </span>
@@ -169,10 +169,10 @@ export function ConfirmDialog({
             <span
               aria-hidden="true"
               className={cn(
-                'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ',
                 destructive
-                  ? 'border-danger/30 bg-danger-soft text-danger'
-                  : 'border-accent-border bg-accent-soft text-accent-text'
+                  ? ' bg-danger-soft text-danger'
+                  : ' bg-accent-soft text-accent-text'
               )}
             >
               <AlertTriangle className="h-4 w-4" />

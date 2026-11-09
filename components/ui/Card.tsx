@@ -15,16 +15,9 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * Card padding ladder, re-based against the 14px root in `app/globals.css`.
  *
- * Was `p-4` / `p-6` / `p-8` = 16 / 24 / 32px. Those are rem, so the root change
- * already took them to 14 / 21 / 28px — but 28px is still well outside the
- * 16-20px band this app now targets, and `md` is the DEFAULT, so it is the padding
- * most of the product actually renders. Tightened one step:
- *
  *     sm   p-4   14px      dense panels, nested cards
  *     md   p-5   17.5px    the default — most cards in the product
  *     lg   p-6   21px      feature cards that need to breathe
- *
- * The ladder keeps a visible three-step hierarchy rather than collapsing it.
  */
 const PADDING = { none: '', sm: 'p-4', md: 'p-5', lg: 'p-6' } as const;
 
@@ -37,7 +30,12 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={cn('g-card', hoverable && 'g-card-hover', PADDING[padding], className)}
+      className={cn(
+        'rounded-[16px] border border-border bg-card shadow-[var(--shadow-sm)]',
+        hoverable && 'transition-all duration-200 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5',
+        PADDING[padding],
+        className
+      )}
       {...props}
     >
       {children}
@@ -82,7 +80,7 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        'mb-5 flex items-start justify-between gap-4 border-b border-divider pb-5',
+        'mb-5 flex items-start justify-between gap-4 pb-5 border-b border-border',
         className
       )}
       {...props}
@@ -93,7 +91,7 @@ export function CardHeader({
             {icon && <IconBadge icon={icon} />}
             <div className="flex min-w-0 items-center gap-2">
               {typeof title === 'string' ? (
-                <h3 className="truncate text-base font-bold tracking-[-0.01em] text-foreground">
+                <h3 className="truncate text-base font-semibold tracking-[-0.01em] text-foreground">
                   {title}
                 </h3>
               ) : (
@@ -114,7 +112,7 @@ export function CardHeader({
 }
 
 /**
- * Small round lucide icon badge — the recurring corner motif on cards.
+ * Small round icon badge — the recurring corner motif on cards.
  * `position="corner"` pins it to the top-right of a relative parent.
  */
 export function IconBadge({
@@ -138,9 +136,9 @@ export function IconBadge({
     <span
       aria-hidden="true"
       className={cn(
-        'flex shrink-0 items-center justify-center border border-accent-border bg-accent-soft text-accent-text',
+        'flex shrink-0 items-center justify-center bg-accent-soft text-accent-text',
         dims,
-        position === 'corner' && 'absolute -right-3 -top-3 shadow-[var(--shadow-md)]',
+        position === 'corner' && 'absolute -right-3 -top-3 shadow-[var(--shadow-sm)]',
         className
       )}
     >
@@ -151,7 +149,7 @@ export function IconBadge({
 
 export function CardTitle({ children, className = '', ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn('text-base font-bold tracking-[-0.01em] text-foreground', className)} {...props}>
+    <h3 className={cn('text-base font-semibold tracking-[-0.01em] text-foreground', className)} {...props}>
       {children}
     </h3>
   );
@@ -177,7 +175,7 @@ export function CardFooter({ children, className = '', ...props }: React.HTMLAtt
   return (
     <div
       className={cn(
-        'mt-5 flex items-center justify-between border-t border-divider pt-5 text-xs text-muted-foreground',
+        'mt-5 flex items-center justify-between pt-5 border-t border-border text-xs text-muted-foreground',
         className
       )}
       {...props}

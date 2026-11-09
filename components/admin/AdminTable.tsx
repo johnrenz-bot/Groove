@@ -94,7 +94,7 @@ export function AdminTable<T extends { id: string | number }>({
     return (
       <Panel className={cn('overflow-hidden', className)}>
         {header}
-        <div className="flex gap-4 border-b border-border bg-muted px-5 py-3.5">
+        <div className="flex gap-4   bg-muted px-5 py-3.5">
           {columns.map((c) => (
             <div key={c.key} className={cn('flex-1', c.hideBelow && HIDE_CLASS[c.hideBelow])}>
               <Skeleton className="h-3 w-20" />
@@ -102,7 +102,7 @@ export function AdminTable<T extends { id: string | number }>({
           ))}
         </div>
         {Array.from({ length: skeletonRows }).map((_, r) => (
-          <div key={r} className="flex items-center gap-4 border-b border-divider px-5 py-4 last:border-0">
+          <div key={r} className="flex items-center gap-4   px-5 py-4 last:">
             {columns.map((c) => (
               <div key={c.key} className={cn('flex-1', c.hideBelow && HIDE_CLASS[c.hideBelow])}>
                 <Skeleton className="h-4 w-full max-w-[120px]" />
@@ -129,9 +129,9 @@ export function AdminTable<T extends { id: string | number }>({
       {/* Horizontal scroll containment: on a phone this scrolls sideways instead
           of breaking the dashboard layout. */}
       <div className="g-scroll w-full overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse text-left">
+        <table className="w-full min-w-[640px]  text-left">
           <thead>
-            <tr className="border-b border-border bg-muted">
+            <tr className="  bg-muted">
               {columns.map((c) => (
                 <th
                   key={c.key}
@@ -169,7 +169,7 @@ export function AdminTable<T extends { id: string | number }>({
                 key={rowKey(row)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 className={cn(
-                  'border-b border-divider transition-colors last:border-0',
+                  '  transition-colors last:',
                   onRowClick && 'cursor-pointer hover:bg-muted'
                 )}
               >
@@ -192,7 +192,7 @@ export function AdminTable<T extends { id: string | number }>({
         </table>
       </div>
       {footer && (
-        <div className="flex items-center justify-between gap-4 border-t border-divider px-5 py-3.5 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between gap-4   px-5 py-3.5 text-xs text-muted-foreground">
           {footer}
         </div>
       )}
@@ -286,7 +286,7 @@ export function AdminTabs<T extends string>({
   return (
     <div
       role="tablist"
-      className={cn('flex flex-wrap items-center gap-1.5 rounded-full border border-border bg-card p-1', className)}
+      className={cn('flex flex-wrap items-center gap-1.5 rounded-full   bg-card p-1', className)}
     >
       {tabs.map((tab) => {
         const active = tab.value === value;
@@ -362,7 +362,7 @@ export function Pagination({
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           aria-label="Previous page"
-          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full   bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -374,7 +374,7 @@ export function Pagination({
           onClick={() => onPageChange(page + 1)}
           disabled={page >= pageCount}
           aria-label="Next page"
-          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full   bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronRight className="h-4 w-4" />
         </button>

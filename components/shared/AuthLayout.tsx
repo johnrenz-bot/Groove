@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from './cn';
 import { AmbientBackground } from './AmbientBackground';
+import { PixelBackground } from './PixelBackground';
 import { AnimatedLogo } from '@/components/header/AnimatedLogo';
 
 /**
@@ -22,15 +23,16 @@ export function AuthLayout({
   title,
   subtext,
   eyebrow,
-  image = '/image/bg/hero-theater.jpg',
+  logo,
+  image = '/image/login/LoginPage.jpeg',
   quote,
   footer,
   wide = false,
   split = false,
   /**
    * Registration-only presentation. It opts the shared card into the wider,
-   * quieter registration surface. The brand bar itself is identical on every
-   * auth route.
+   * quieter registration surface, skips the brand bar, and renders the
+   * "Back to login" button at the top of the form column instead.
    */
   registration = false,
   // Role-specific image panel content for registration pages
@@ -42,6 +44,7 @@ export function AuthLayout({
   title: React.ReactNode;
   subtext?: React.ReactNode;
   eyebrow?: React.ReactNode;
+  logo?: React.ReactNode;
   /** Decorative backdrop texture. Always decorative — never the only content. */
   image?: string;
   quote?: string;
@@ -72,7 +75,23 @@ export function AuthLayout({
               : 'au-stack--narrow'
       )}
     >
+      {/* Registration routes: the one way back, pinned to the top of the
+          form column so it is always the first thing seen. */}
+      {registration && (
+        <Link
+          href="/login"
+          className="group inline-flex items-center gap-2 self-start rounded-[8px] bg-card/70 px-3.5 py-2 text-[13px] font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <ArrowLeft
+            className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none"
+            aria-hidden="true"
+          />
+          <span>Back to login</span>
+        </Link>
+      )}
+
       <header className={cn('flex flex-col gap-3', registration && 'au-registration-header')}>
+        {logo && <div className="flex justify-center">{logo}</div>}
         {eyebrow}
         <h1 className="au-title">{title}</h1>
         {subtext && <p className="au-lead">{subtext}</p>}
@@ -98,8 +117,9 @@ export function AuthLayout({
 
   const brandBar = (
     /* Brand bar. The same mascot mark + GroovePH wordmark lockup on every auth
-       route, so login, registration and password recovery all carry the complete
-       brand rather than a different subset of it. */
+       route, so login and password recovery carry the complete brand rather
+       than a different subset of it. Registration routes skip it entirely
+       (see the `!registration` guards at both render sites). */
     <div className="au-topbar">
       <AnimatedLogo
         href="/"
@@ -108,22 +128,26 @@ export function AuthLayout({
         className="au-brand-lockup"
       />
 
-      <Link
-        href="/"
-        className="group inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3.5 py-2 text-[13px] font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:border-[var(--border-strong)] hover:text-foreground"
-      >
-        <ArrowLeft
-          className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none"
-          aria-hidden="true"
-        />
-        <span>Back to home</span>
-      </Link>
+      {/* Split mode (login) carries no "Back to home" — the visitor is
+          already at the front door. The bare brand remains. */}
+      {!split && (
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-2 rounded-[8px] bg-card/70 px-3.5 py-2 text-[13px] font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <ArrowLeft
+            className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none"
+            aria-hidden="true"
+          />
+          <span>Back to home</span>
+        </Link>
+      )}
     </div>
   );
 
   // Split mode: form on left, cinematic image panel on right
   if (split) {
-    const panelImage = imagePanelImage || image || '/image/bg/hero-theater.jpg';
+    const panelImage = imagePanelImage || image || '/image/login/LoginPage.jpeg';
     const panelTitle = imagePanelTitle || 'Move to your own rhythm.';
     const panelDescription = imagePanelDescription || 'Discover verified coaches, book rehearsal studios, and grow your craft in Bulacan\'s premier performing arts hub.';
 
@@ -131,45 +155,31 @@ export function AuthLayout({
       <div className={cn('au-shell au-shell--split', registration && 'au-shell--registration')}>
         {/* Ambient background - auth variant (calmer, no particles) */}
         <AmbientBackground variant="auth" className="au-ambient" />
+        <PixelBackground intensity="medium" className="opacity-60" />
 
-        {brandBar}
+        {/* Registration routes render no brand bar — the form thinks alone. */}
+        {!registration && brandBar}
 
         <main className="au-split">
           <div className={cn('au-split-form', registration && 'au-split-form--registration')}>
             {stack}
           </div>
 
-          {/* Cinematic image panel */}
+          {/* Editorial image panel (right side, ~26%) */}
           <aside className="au-split-visual" aria-hidden="true">
-            <Image
-              src={panelImage}
-              alt=""
-              fill
-              priority
-              sizes="(min-width: 1024px) 50vw, 0px"
-              className="au-split-image"
-            />
-            {/* Gradient overlay for text legibility */}
-            <div className="au-split-scrim" />
-            {/* Gold accent border on the inner edge */}
-            <div className="au-split-gold-edge" aria-hidden="true" />
-            {/* Subtle pattern */}
-            <div className="au-split-pattern" />
-            {/* Content overlay */}
-            <div className="au-split-content">
-              {quote && (
-                <p className="au-split-quote">
-                  <span className="au-split-quote-text">&ldquo;{quote}&rdquo;</span>
-                  <span className="au-split-quote-place">San Jose del Monte, Bulacan</span>
-                </p>
-              )}
-              <div className="au-split-tagline">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-[-0.02em] text-white">
-                  {panelTitle}
-                </h2>
-                <p className="mt-3 text-base sm:text-lg text-white/80 max-w-xs leading-relaxed">
-                  {panelDescription}
-                </p>
+            <div className="au-split-visual-inner">
+              <p className="au-split-eyebrow">GroovePH · Performing Arts</p>
+              <h2 className="au-split-title">{panelTitle}</h2>
+              <p className="au-split-desc">{panelDescription}</p>
+              <div className="au-split-image-wrap">
+                <Image
+                  src={panelImage}
+                  alt=""
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 26vw, 0px"
+                  className="au-split-image"
+                />
               </div>
             </div>
           </aside>
@@ -183,8 +193,10 @@ export function AuthLayout({
     <div className={cn('au-shell', registration && 'au-shell--registration')}>
       {/* Ambient background - auth variant */}
       <AmbientBackground variant="auth" className="au-ambient" />
+      <PixelBackground intensity="medium" className="opacity-60" />
 
-      {brandBar}
+      {/* Registration routes render no brand bar — the form thinks alone. */}
+      {!registration && brandBar}
 
       <main
         className={cn(

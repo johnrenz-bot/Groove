@@ -85,7 +85,7 @@ export function BadgeCard({ badge, onClick, comingSoon = false }: BadgeCardProps
       }
       className={cn(
         'g-card flex min-h-[112px] cursor-pointer items-center gap-3 p-3 transition-all',
-        'hover:-translate-y-0.5 hover:shadow-md hover:border-accent-border',
+        'hover:-translate-y-0.5 hover:shadow-md hover:',
         isUnlocked && 'shadow-[0_0_14px_hsl(var(--success)/0.22)]'
       )}
     >
@@ -113,7 +113,7 @@ export function BadgeCard({ badge, onClick, comingSoon = false }: BadgeCardProps
         {/* Status row */}
         {isUnlocked ? (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-full border border-success/20 bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
+            <span className="inline-flex items-center rounded-full   bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
               Earned
             </span>
             {earnedDate && (

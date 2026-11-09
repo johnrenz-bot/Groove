@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
+import { GrooveSpinner } from '@/components/loading/GrooveSpinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'link';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
@@ -10,7 +10,11 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Pill (default) for chips and inline actions, or the 8px control radius. */
+  /**
+   * Opt IN to the pill radius. The default is the 8px control radius, because
+   * the product's buttons are rectangular: a full-width pill CTA reads as a
+   * marketing chip, not as a control. Chips and inline tags use `<Badge>`.
+   */
   pill?: boolean;
   loading?: boolean;
   icon?: React.ReactNode;
@@ -73,7 +77,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   {
     variant = 'primary',
     size = 'md',
-    pill = true,
+    pill = false,
     loading = false,
     disabled = false,
     icon,
@@ -85,7 +89,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   },
   ref
 ) {
-  const radius = pill ? 'rounded-full' : 'rounded-[8px]';
+  const radius = pill ? 'rounded-full' : 'rounded-[12px]';
 
   return (
     <button
@@ -94,7 +98,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'group inline-flex select-none items-center justify-center font-semibold tracking-[-0.01em] whitespace-nowrap cursor-pointer transition-all duration-200',
+        'group g-gold-border inline-flex select-none items-center justify-center font-semibold tracking-[-0.01em] whitespace-nowrap cursor-pointer transition-all duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
         variant === 'link' ? '' : radius,
@@ -105,7 +109,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       {...props}
     >
       {loading ? (
-        <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
+        <GrooveSpinner variant="orbit" size="sm" label="Loading" className="shrink-0" />
       ) : (
         icon && <span className="shrink-0">{icon}</span>
       )}

@@ -66,7 +66,7 @@ function unlockBodyScroll() {
 
    The Welcome Modal is the reference implementation for every dialog in the
    product. These constants are that reference's measurements pulled out into
-   one place — charcoal `--card` surfaces, an `--accent-border` hairline, the
+   one place — charcoal `--card` surfaces, an `--accent-` hairline, the
    soft accent glow instead of a hard drop shadow, cream primary actions and a
    circular muted close control. Components import them rather than copying the
    strings, so a future change to the reference lands everywhere at once.
@@ -77,39 +77,40 @@ function unlockBodyScroll() {
 
 /** Full-screen scrim: dimmed, blurred, and never clicks through to the page. */
 export const MODAL_OVERLAY_CLASS =
-  'g-modal-overlay fixed inset-0 z-[80] flex items-end justify-center bg-black/60 p-0 backdrop-blur-md select-none sm:items-center sm:p-4 motion-reduce:animate-none';
+  'g-modal-overlay fixed inset-0 z-[1200] flex items-end justify-center bg-black/60 p-0 backdrop-blur-md select-none sm:items-center sm:p-4 motion-reduce:animate-none';
 
-/** The dialog surface: rounded, hairline border, accent glow, bounded height. */
+/** The dialog surface: rounded, hairline, subtle border, bounded height. */
 export const MODAL_PANEL_CLASS =
-  'g-modal-panel relative flex max-h-[90dvh] w-full max-w-[95vw] flex-col overflow-hidden rounded-t-3xl border border-accent-border bg-card text-foreground shadow-[0_0_60px_-12px_var(--accent-soft)] sm:rounded-3xl';
+  'g-modal-panel relative flex max-h-[90dvh] w-full max-w-[95vw] flex-col overflow-hidden rounded-[24px] border border-[rgba(245,196,81,0.16)] bg-card/95 text-foreground backdrop-blur-[20px]';
 
 /** Header band with the Welcome Modal's quiet diagonal accent wash. */
 export const MODAL_HEADER_CLASS =
-  'relative flex shrink-0 items-start justify-between gap-4 overflow-hidden border-b border-divider bg-gradient-to-br from-accent-soft/60 via-card to-card px-6 py-4.5 sm:px-7';
+  'relative flex shrink-0 items-start justify-between gap-4 overflow-hidden border-b border-border/60 bg-card px-5 py-5 sm:px-7';
 
-/** The single close affordance every dialog uses. */
+/** The single close affordance every dialog uses. The 90° hover turn is the
+ *  signature micro-interaction for every dialog in the product. */
 export const MODAL_CLOSE_BUTTON_CLASS =
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-50';
+  'flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/70 bg-card text-foreground shadow-sm transition-all duration-200 hover:rotate-90 hover:border-accent-border hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 motion-reduce:transform-none';
 
 /** Scrollable body. `g-scroll` keeps the scrollbar on the product's palette. */
 export const MODAL_BODY_CLASS =
-  'g-scroll flex-1 min-h-0 overflow-y-auto px-6 py-5 sm:px-7 sm:py-6';
+  'g-scroll min-h-0 flex-1 overflow-y-auto rounded-[16px] border border-border/60 bg-card px-5 py-5 sm:px-7 sm:py-6';
 
 /** Action bar: stacked on phones, one right-aligned row from `sm` up. */
 export const MODAL_FOOTER_CLASS =
-  'flex shrink-0 flex-col-reverse gap-3 border-t border-divider bg-muted/40 px-6 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-7';
+  'flex shrink-0 flex-col-reverse gap-3 border-t border-border/60 bg-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-7';
 
 /** Inset content card (the Welcome Modal's Grooveyy AI panel). */
 export const MODAL_CARD_CLASS =
-  'rounded-2xl border border-accent-border bg-accent-soft/40 p-4';
+  'rounded-[14px] border border-border/60 bg-accent-soft/30 p-4';
 
 /** Icon chip used by steps, headers and empty states. */
 export const MODAL_ICON_TILE_CLASS =
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text';
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border/40 bg-accent-soft text-accent-text';
 
 /** Quiet secondary chip (the Welcome Modal's AI prompt chips). */
 export const MODAL_CHIP_CLASS =
-  'rounded-full border border-border bg-card px-3 py-1 text-[11px] font-medium text-foreground transition hover:border-accent-border hover:bg-accent-soft';
+  'rounded-full border border-border bg-card px-3 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-accent-border hover:bg-accent-soft';
 
 /**
  * Modal Design System Sub-components
@@ -417,7 +418,10 @@ export function Modal({
 
   const panelClassName = cn(
     MODAL_PANEL_CLASS,
-    !animated && 'transition-all duration-200 animate-in fade-in zoom-in-95 motion-reduce:animate-none',
+    // The CSS path (default) uses the panel's own entrance keyframe —
+    // opacity + a small rise/scale settle with a soft blur — so dialogs
+    // with and without framer-motion enter in the same voice.
+    !animated && 'g-modal-in',
     SIZES[size],
     className
   );

@@ -82,10 +82,10 @@ interface OffPathState {
 }
 
 const TONE_STYLES: Record<OffPathTone, string> = {
-  danger: 'border-danger/30 bg-danger-soft text-danger',
-  neutral: 'border-border bg-muted/60 text-muted-foreground',
-  warning: 'border-warning/30 bg-warning-soft text-warning',
-  accent: 'border-accent-border bg-accent-soft text-accent-text',
+  danger: ' bg-danger-soft text-danger',
+  neutral: ' bg-muted/60 text-muted-foreground',
+  warning: ' bg-warning-soft text-warning',
+  accent: ' bg-accent-soft text-accent-text',
 };
 
 /**
@@ -355,7 +355,7 @@ export function BookingTracker({
       {offPath && (
         <div
           className={cn(
-            'flex items-start gap-2.5 rounded-2xl border px-3.5 py-3 text-xs leading-relaxed',
+            'flex items-start gap-2.5 rounded-2xl  px-3.5 py-3 text-xs leading-relaxed',
             TONE_STYLES[offPath.tone]
           )}
           role="status"
@@ -394,12 +394,12 @@ export function BookingTracker({
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold transition-colors duration-300 motion-reduce:transition-none',
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full  text-[11px] font-bold transition-colors duration-300 motion-reduce:transition-none',
                     step.reached
-                      ? 'border-brand-sunburst-border bg-brand-sunburst text-brand-sunburst-fg'
-                      : 'border-border bg-muted/40 text-muted-foreground',
+                      ? '- bg-brand-sunburst text-brand-sunburst-fg'
+                      : ' bg-muted/40 text-muted-foreground',
                     step.current &&
-                      'ring-2 ring-brand-sunburst-border ring-offset-2 ring-offset-card'
+                      '   '
                   )}
                 >
                   {step.reached ? (
@@ -413,7 +413,7 @@ export function BookingTracker({
                     aria-hidden="true"
                     className={cn(
                       'my-1 w-px flex-1 transition-colors duration-500 motion-reduce:transition-none md:my-0 md:ml-2 md:h-px md:w-auto md:flex-1',
-                      connectorGold ? 'bg-brand-sunburst/60' : 'bg-border'
+                      connectorGold ? 'bg-brand-sunburst/60' : 'bg-'
                     )}
                   />
                 )}
@@ -458,12 +458,12 @@ export function BookingTracker({
 
       {/* ── Reschedule request ── */}
       {pendingRequest && (
-        <div className="rounded-2xl border border-accent-border bg-accent-soft/70 p-3.5 text-xs">
+        <div className="rounded-2xl   bg-accent-soft/70 p-3.5 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <CalendarClock className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
             <p className="font-bold text-foreground">Reschedule requested</p>
             {requestedWindow && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-accent-border bg-card px-2 py-0.5 font-semibold tabular-nums text-accent-text">
+              <span className="inline-flex items-center gap-1 rounded-full   bg-card px-2 py-0.5 font-semibold tabular-nums text-accent-text">
                 {requestedWindow}
               </span>
             )}
@@ -490,13 +490,13 @@ export function BookingTracker({
       {!offPath && (
         <div
           className={cn(
-            'flex items-start gap-2.5 rounded-2xl border border-border bg-muted/40 p-3.5',
+            'flex items-start gap-2.5 rounded-2xl   bg-muted/40 p-3.5',
             compact && 'p-3'
           )}
         >
           <span
             aria-hidden="true"
-            className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text"
+            className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full   bg-accent-soft text-accent-text"
           >
             <ArrowRight className="h-3.5 w-3.5" />
           </span>
@@ -511,7 +511,7 @@ export function BookingTracker({
 
       {/* ── History ── */}
       {history.length > 0 && (
-        <details className="group rounded-xl border border-border bg-muted/30 px-3.5 py-2.5">
+        <details className="group rounded-xl   bg-muted/30 px-3.5 py-2.5">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground">
             <History className="h-3.5 w-3.5" aria-hidden="true" />
             History ({history.length})

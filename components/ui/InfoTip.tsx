@@ -163,9 +163,9 @@ export function InfoTip({
         onFocus={showTip}
         onBlur={hideTip}
         className={cn(
-          'relative inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/70 bg-card/70 text-muted-foreground',
+          'relative inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground',
           'transition-colors duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent-text',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           'after:absolute after:-inset-1.5 after:content-[""]',
           className
         )}
@@ -191,7 +191,7 @@ export function InfoTip({
                   width: TIP_WIDTH,
                   transform: position.placement === 'top' ? 'translateY(-100%)' : undefined,
                 }}
-                className="pointer-events-none z-[95] rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs leading-relaxed text-foreground shadow-[var(--shadow-lg)]"
+                className="pointer-events-none z-[1050] rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs leading-relaxed text-foreground shadow-[var(--shadow-lg)]"
               >
                 {shortText || title}
               </motion.span>

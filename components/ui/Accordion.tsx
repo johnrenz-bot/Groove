@@ -30,7 +30,7 @@ export function Accordion({
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className={cn('divide-y divide-divider overflow-hidden rounded-xl border border-border', className)}>
+    <div className={cn('  overflow-hidden rounded-xl  ', className)}>
       {items.map((item) => {
         const open = item.id === openId;
         return (
@@ -40,7 +40,7 @@ export function Accordion({
               onClick={() => setOpenId(open ? null : item.id)}
               aria-expanded={open}
               aria-controls={`accordion-${item.id}`}
-              className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+              className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
             >
               {item.icon && <span className="shrink-0 text-accent-text">{item.icon}</span>}
               <span className="min-w-0 flex-1">

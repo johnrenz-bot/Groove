@@ -48,11 +48,11 @@ export function SelectCard({
           <label
             key={opt.value}
             className={cn(
-              'relative flex cursor-pointer items-start gap-3.5 rounded-2xl border bg-card p-4 transition-all duration-200',
-              'hover:border-border-strong hover:shadow-[var(--shadow-md)]',
+              'relative flex cursor-pointer items-start gap-3.5 rounded-2xl  bg-card p-4 transition-all duration-200',
+              'hover: hover:shadow-[var(--shadow-md)]',
               selected
-                ? 'border-accent bg-accent-soft shadow-[var(--shadow-sm)]'
-                : 'border-border',
+                ? ' bg-accent-soft shadow-[var(--shadow-sm)]'
+                : '',
               opt.disabled && 'cursor-not-allowed opacity-50'
             )}
           >
@@ -69,10 +69,10 @@ export function SelectCard({
               <span
                 aria-hidden="true"
                 className={cn(
-                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border',
+                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full ',
                   selected
-                    ? 'border-accent-border bg-accent-soft text-accent-text'
-                    : 'border-border bg-muted text-muted-foreground'
+                    ? ' bg-accent-soft text-accent-text'
+                    : ' bg-muted text-muted-foreground'
                 )}
               >
                 {opt.icon}
@@ -96,8 +96,8 @@ export function SelectCard({
             <span
               aria-hidden="true"
               className={cn(
-                'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors',
-                selected ? 'border-accent bg-accent text-accent-foreground' : 'border-border-strong'
+                'flex h-5 w-5 shrink-0 items-center justify-center rounded-full  transition-colors',
+                selected ? ' bg-accent text-accent-foreground' : ''
               )}
             >
               {selected && <Check className="h-3 w-3" />}
@@ -137,10 +137,10 @@ export function SelectCardMulti({
           <label
             key={opt.value}
             className={cn(
-              'inline-flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all duration-200',
+              'inline-flex cursor-pointer items-center gap-2 rounded-full  px-3.5 py-2 text-xs font-semibold transition-all duration-200',
               selected
-                ? 'border-accent bg-accent-soft text-accent-text'
-                : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
+                ? ' bg-accent-soft text-accent-text'
+                : ' bg-card text-muted-foreground hover: hover:text-foreground'
             )}
           >
             <input

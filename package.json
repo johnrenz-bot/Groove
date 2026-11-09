@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -14,6 +14,9 @@
     "test:booking": "node --experimental-strip-types --no-warnings scripts/test-booking-status.ts",
     "test:booking-ui": "node --experimental-strip-types --no-warnings scripts/test-booking-time.ts",
     "agent:dance": "node --experimental-strip-types --no-warnings agent/run-dance-agent.ts",
+    "agent:singing": "node --experimental-strip-types --no-warnings agent/run-singing-agent.ts",
+    "agent:acting": "node --experimental-strip-types --no-warnings agent/run-acting-agent.ts",
+    "agent:theater": "node --experimental-strip-types --no-warnings agent/run-theater-agent.ts",
     "seed:dance": "node --experimental-strip-types --no-warnings scripts/seed-dance-updates.ts",
     "logos:sync": "node --experimental-strip-types --no-warnings scripts/sync-dance-logos.ts",
     "images:sync": "node --experimental-strip-types --no-warnings scripts/sync-dance-update-images.ts",

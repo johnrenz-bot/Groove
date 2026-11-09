@@ -26,7 +26,7 @@ export function AdminSkeletonRows({ rows = 4 }: { rows?: number }) {
   return (
     <div className="space-y-2.5" aria-hidden="true">
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-muted px-4 py-3.5">
+        <div key={i} className="flex items-center justify-between gap-4 rounded-2xl   bg-muted px-4 py-3.5">
           <div className="flex-1 space-y-2">
             <Skeleton className="h-3.5 w-1/3" />
             <Skeleton className="h-3 w-1/2" />
@@ -42,7 +42,7 @@ export function AdminSkeletonRows({ rows = 4 }: { rows?: number }) {
 export function AdminSkeletonCard({ lines = 3 }: { lines?: number }) {
   return (
     <div className="g-card p-6" aria-hidden="true">
-      <div className="mb-5 flex items-center gap-3 border-b border-divider pb-5">
+      <div className="mb-5 flex items-center gap-3   pb-5">
         <Skeleton className="h-9 w-9 rounded-full" />
         <div className="flex-1 space-y-2">
           <Skeleton className="h-4 w-32" />

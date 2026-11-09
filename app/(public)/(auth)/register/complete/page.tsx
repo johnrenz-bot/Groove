@@ -115,7 +115,7 @@ function GoogleCompletionInner() {
         subtext="No Google session came back, so no account was created."
       >
         <div className="space-y-5">
-          <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 p-4">
+          <div className="flex items-start gap-3 rounded-lg   bg-warning/10 p-4">
             <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
             <p className="text-sm text-foreground">
               Google sign-in did not finish, so nothing was created. This usually means the
@@ -147,7 +147,7 @@ function GoogleCompletionInner() {
         subtext="This Google account is already registered with a different role."
       >
         <div className="space-y-5">
-          <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 p-4">
+          <div className="flex items-start gap-3 rounded-lg   bg-warning/10 p-4">
             <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
             <p className="text-sm text-foreground">
               This Google account is already registered as a{' '}
@@ -179,7 +179,7 @@ function GoogleCompletionInner() {
       subtext="Your Google account is verified, but its profile could not be completed."
     >
       <div className="space-y-5">
-        <div className="flex items-start gap-3 rounded-lg border border-danger/40 bg-danger/10 p-4">
+        <div className="flex items-start gap-3 rounded-lg   bg-danger/10 p-4">
           <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-danger" aria-hidden="true" />
           <p role="alert" className="text-sm text-foreground">
             {phase.message}

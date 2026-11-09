@@ -360,15 +360,16 @@ export default function ClientHomePage() {
                     key={coach.id}
                     type="button"
                     onClick={() => setSelectedCoach(coach)}
-                    className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
-                  >
-                    <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
-                      {coach.photo_url ? (
-                        <img src={coach.photo_url} alt={coach.firstname} className="h-full w-full object-cover" />
-                      ) : (
-                        getInitials(coach.firstname, coach.lastname)
-                      )}
-                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
+                    className="group flex min-h-[7.5rem] flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-card p-3.5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-muted hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"                  >
+                    <div className="relative mx-auto mb-2.5 flex h-14 w-14 shrink-0 items-center justify-center ring-2 ring-border transition-transform group-hover:scale-105">
+                      <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold text-foreground">
+                        {coach.photo_url ? (
+                          <img src={coach.photo_url} alt={coach.firstname} className="h-full w-full object-cover" />
+                        ) : (
+                          getInitials(coach.firstname, coach.lastname)
+                        )}
+                      </span>
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full   bg-success border-2 border-card" aria-hidden="true" />
                     </div>
                     <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
                       {coach.firstname} {coach.lastname}
@@ -451,7 +452,7 @@ export default function ClientHomePage() {
             </span>
           }
           headerAccent={
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-accent-border bg-accent-soft text-sm font-bold text-accent-text">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl   bg-accent-soft text-sm font-bold text-accent-text">
               {selectedCoach.photo_url ? (
                 <img src={selectedCoach.photo_url} alt="" className="h-full w-full object-cover" />
               ) : (
@@ -464,7 +465,7 @@ export default function ClientHomePage() {
             <>
               <Link
                 href={`/userprofile/${selectedCoach.id}`}
-                className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-card px-4 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+                className="inline-flex h-10 items-center justify-center rounded-xl   bg-card px-4 text-xs font-semibold text-foreground transition hover: hover:bg-muted"
               >
                 Full Profile
               </Link>
@@ -478,7 +479,7 @@ export default function ClientHomePage() {
           }
         >
           <div className="space-y-4 text-xs">
-            <div className="rounded-2xl border border-border bg-muted/30 p-4">
+            <div className="rounded-2xl   bg-muted/30 p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 About
               </p>
@@ -498,7 +499,7 @@ export default function ClientHomePage() {
             </div>
 
             <dl className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-border bg-card p-3.5">
+              <div className="rounded-2xl   bg-card p-3.5">
                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Session Rate
                 </dt>
@@ -506,7 +507,7 @@ export default function ClientHomePage() {
                   {formatCurrency(selectedCoach.coach_profile?.service_fee)}
                 </dd>
               </div>
-              <div className="rounded-2xl border border-border bg-card p-3.5">
+              <div className="rounded-2xl   bg-card p-3.5">
                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Standard Duration
                 </dt>

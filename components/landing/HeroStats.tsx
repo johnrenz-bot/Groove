@@ -10,10 +10,6 @@ interface HeroStatsClientProps {
   };
 }
 
-/**
- * Compact stats strip — sits at the bottom of the cinematic hero section.
- * Glass-morphism pill bar with three real-database numbers.
- */
 export function HeroStatsClient({ stats }: HeroStatsClientProps) {
   const displayStats = [
     { key: 'coaches', label: 'Verified coaches', count: stats.coaches },
@@ -24,19 +20,13 @@ export function HeroStatsClient({ stats }: HeroStatsClientProps) {
   if (displayStats.length === 0) return null;
 
   return (
-    <div className="ld-hero-stats" role="group" aria-label="Platform statistics">
+    <div className="mt-10 flex flex-wrap items-center justify-center gap-6" role="group" aria-label="Platform statistics">
       {displayStats.map((stat, idx) => (
-        <div key={stat.key} className="ld-hero-stat">
-          {idx > 0 && (
-            <div className="ld-hero-stat-rule" aria-hidden="true" />
-          )}
-          <span className="ld-hero-stat-value" aria-hidden="true">
+        <div key={stat.key} className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-foreground sm:text-3xl" aria-hidden="true">
             {formatStatValue(stat.count, stat.label)}
           </span>
-          <span className="ld-hero-stat-label" aria-hidden="true">{stat.label}</span>
-          <span className="sr-only">
-            {formatStatValue(stat.count, stat.label)} {stat.label}
-          </span>
+          <span className="text-sm text-muted-foreground">{stat.label}</span>
         </div>
       ))}
     </div>

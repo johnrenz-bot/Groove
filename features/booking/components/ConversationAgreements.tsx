@@ -183,7 +183,7 @@ export function ConversationAgreements({
             <div className="flex min-w-0 items-center gap-2.5">
               <span
                 aria-hidden="true"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text"
               >
                 <ShieldCheck className="h-4 w-4" />
               </span>
@@ -215,7 +215,7 @@ export function ConversationAgreements({
               type="button"
               onClick={() => setShowTerms((v) => !v)}
               aria-expanded={showTerms}
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-left text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted/60"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl   bg-card px-4 py-2.5 text-left text-xs font-semibold text-foreground transition hover: hover:bg-muted/60"
             >
               <span>View all terms</span>
               <ChevronDown
@@ -244,7 +244,7 @@ export function ConversationAgreements({
               type="button"
               onClick={() => setHistoryOpen((v) => !v)}
               aria-expanded={historyOpen}
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-3 text-left transition hover:border-border-strong hover:bg-muted/60"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl   bg-card px-4 py-3 text-left transition hover: hover:bg-muted/60"
             >
               <span className="flex min-w-0 items-center gap-2.5">
                 <History className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />

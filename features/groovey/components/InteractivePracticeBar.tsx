@@ -50,10 +50,10 @@ export const InteractivePracticeBar: React.FC<Props> = ({
   }, []);
 
   return (
-    <div className="bg-muted/60 rounded-2xl p-4 shadow-xs space-y-3.5 border border-border">
+    <div className="bg-muted/60 rounded-2xl p-4 shadow-xs space-y-3.5  ">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-full bg-accent-soft flex items-center justify-center text-accent-text border border-accent-border/50">
+          <span className="w-8 h-8 rounded-full bg-accent-soft flex items-center justify-center text-accent-text  ">
             <SlidersHorizontal className="w-4 h-4" />
           </span>
           <div>
@@ -73,7 +73,7 @@ export const InteractivePracticeBar: React.FC<Props> = ({
       </div>
 
       {/* Metronome Speed & Audio Wave Visualization */}
-      <div className="bg-card rounded-xl p-3 space-y-2.5 border border-border">
+      <div className="bg-card rounded-xl p-3 space-y-2.5  ">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Gauge className="w-4 h-4 text-accent" />
@@ -81,7 +81,7 @@ export const InteractivePracticeBar: React.FC<Props> = ({
             <span className="text-base text-accent-text font-bold font-mono">{bpm}</span>
             <span className="text-xs text-muted-foreground">BPM</span>
           </div>
-          <span className="text-xs px-2.5 py-0.5 rounded-full bg-accent-soft text-accent-text font-medium border border-accent-border/50">
+          <span className="text-xs px-2.5 py-0.5 rounded-full bg-accent-soft text-accent-text font-medium  ">
             {getTempoLabel(bpm)}
           </span>
         </div>
@@ -101,7 +101,7 @@ export const InteractivePracticeBar: React.FC<Props> = ({
         </div>
 
         {/* Waveform Animation Simulation with live beat tracking */}
-        <div className="h-10 bg-muted/70 rounded-lg flex items-center justify-center gap-1.5 px-3 overflow-hidden select-none border border-border">
+        <div className="h-10 bg-muted/70 rounded-lg flex items-center justify-center gap-1.5 px-3 overflow-hidden select-none  ">
           {[
             { h: 'h-3', peak: 'h-6' },
             { h: 'h-6', peak: 'h-8' },
@@ -135,13 +135,13 @@ export const InteractivePracticeBar: React.FC<Props> = ({
       {/* Transposition Key Selector */}
       <div className="flex items-center justify-between pt-1">
         <span className="text-xs text-muted-foreground font-medium">Transposition Key:</span>
-        <div className="flex items-center bg-card rounded-full p-1 gap-1 border border-border">
+        <div className="flex items-center bg-card rounded-full p-1 gap-1  ">
           <button
             type="button"
             onClick={() => setTransposition('baritone')}
             className={`px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
               transposition === 'baritone'
-                ? 'bg-accent-soft text-accent-text font-bold shadow-xs border border-accent-border/50'
+                ? 'bg-accent-soft text-accent-text font-bold shadow-xs  '
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -152,7 +152,7 @@ export const InteractivePracticeBar: React.FC<Props> = ({
             onClick={() => setTransposition('score')}
             className={`px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
               transposition === 'score'
-                ? 'bg-accent-soft text-accent-text font-bold shadow-xs border border-accent-border/50'
+                ? 'bg-accent-soft text-accent-text font-bold shadow-xs  '
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -163,7 +163,7 @@ export const InteractivePracticeBar: React.FC<Props> = ({
             onClick={() => setTransposition('tenor')}
             className={`px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
               transposition === 'tenor'
-                ? 'bg-accent-soft text-accent-text font-bold shadow-xs border border-accent-border/50'
+                ? 'bg-accent-soft text-accent-text font-bold shadow-xs  '
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >

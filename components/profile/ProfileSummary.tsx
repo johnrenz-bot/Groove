@@ -48,7 +48,7 @@ export function ProfileSummary({
           ))}
         </dl>
 
-        {children && <div className="mt-6 border-t border-divider pt-5">{children}</div>}
+        {children && <div className="mt-6   pt-5">{children}</div>}
       </PanelBody>
     </Panel>
   );
@@ -104,7 +104,7 @@ export function VerificationStatus({
         {effectiveStatus === 'rejected' && rejectionReason && (
           <div
             role="status"
-            className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4"
+            className="mb-5 rounded-2xl   bg-danger-soft p-4"
           >
             <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-danger">
               <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
@@ -130,7 +130,7 @@ export function VerificationStatus({
             label="Email Verified"
             value={emailVerified ? 'Confirmed' : 'Pending confirmation'}
           />
-          <div className="flex h-full min-w-0 flex-col gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-3">
+          <div className="flex h-full min-w-0 flex-col gap-2 rounded-2xl   bg-muted/40 px-4 py-3">
             <div className="flex items-center gap-3">
               <span className="text-accent-text">
                 <ShieldAlert className="h-4 w-4" aria-hidden="true" />
@@ -192,7 +192,7 @@ function StatusTile({
   }[tone];
 
   return (
-    <div className="flex h-full min-w-0 items-center gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3">
+    <div className="flex h-full min-w-0 items-center gap-3 rounded-2xl   bg-muted/40 px-4 py-3">
       <span className={`shrink-0 ${toneClass}`}>{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-xs font-semibold text-foreground break-words">{label}</span>

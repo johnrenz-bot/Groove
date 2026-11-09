@@ -116,7 +116,7 @@ export default function AdminAnnouncementsPage() {
             {formError && (
               <div
                 role="alert"
-                className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
+                className="rounded-xl   bg-danger-soft px-4 py-3 text-xs text-danger"
               >
                 {formError}
               </div>
@@ -188,7 +188,7 @@ export default function AdminAnnouncementsPage() {
               {announcements.map((a) => (
                 <li
                   key={a.id}
-                  className="rounded-[20px] border border-border bg-card p-5 transition-colors hover:border-border-strong"
+                  className="rounded-[20px]   bg-card p-5 transition-colors hover:"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
@@ -211,7 +211,7 @@ export default function AdminAnnouncementsPage() {
                     {a.message}
                   </p>
                   {a.cta_url && (
-                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent-border bg-accent-soft px-3 py-1 text-[11px] font-semibold text-accent-text">
+                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full   bg-accent-soft px-3 py-1 text-[11px] font-semibold text-accent-text">
                       {a.cta_label || 'View'}
                       <ExternalLink className="h-3 w-3" />
                     </span>

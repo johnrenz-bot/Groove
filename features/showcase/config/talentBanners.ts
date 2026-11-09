@@ -42,7 +42,7 @@ export interface TalentBanner {
   circleLabel: string;
   /** Token-driven gradient classes applied to the banner surface. */
   gradient: string;
-  /** Ring / border tint used on the active selector button. */
+  /** Ring /  tint used on the active selector button. */
   activeRing: string;
 }
 
@@ -55,7 +55,7 @@ export const talentBanners: Record<TalentKey, TalentBanner> = {
       'Share choreography, movement, training, and performance moments.',
     circleLabel: 'Dancer Circle',
     gradient: 'bg-gradient-to-br from-accent/18 via-accent/6 to-transparent',
-    activeRing: 'ring-accent/45',
+    activeRing: '',
   },
   singer: {
     key: 'singer',
@@ -65,7 +65,7 @@ export const talentBanners: Record<TalentKey, TalentBanner> = {
       'Connect through vocal practice, music, and live performances.',
     circleLabel: 'Singer Circle',
     gradient: 'bg-gradient-to-br from-danger/16 via-danger/6 to-transparent',
-    activeRing: 'ring-danger/45',
+    activeRing: '',
   },
   actor: {
     key: 'actor',
@@ -76,7 +76,7 @@ export const talentBanners: Record<TalentKey, TalentBanner> = {
       'Share acting exercises, monologues, auditions, and stage or screen work.',
     circleLabel: 'Actor Circle',
     gradient: 'bg-gradient-to-br from-brand-sunburst/22 via-brand-sunburst/8 to-transparent',
-    activeRing: 'ring-brand-sunburst/50',
+    activeRing: '',
   },
   theater: {
     key: 'theater',
@@ -86,7 +86,7 @@ export const talentBanners: Record<TalentKey, TalentBanner> = {
       'Explore stagecraft, productions, rehearsals, and collaborative storytelling.',
     circleLabel: 'Theater Circle',
     gradient: 'bg-gradient-to-br from-foreground/12 via-foreground/5 to-transparent',
-    activeRing: 'ring-foreground/30',
+    activeRing: '',
   },
 };
 

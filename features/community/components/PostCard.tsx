@@ -149,11 +149,11 @@ export function PostCard({
   });
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-sm)] transition-all duration-200 hover:border-border-strong sm:p-5">
+    <article className="rounded-2xl   bg-card p-4 shadow-[var(--shadow-sm)] transition-all duration-200 hover: sm:p-5">
       {/* 1. Header: author/avatar + role + timestamp + three-dot menu */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/80 bg-muted text-xs font-bold text-foreground shadow-2xs">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold text-foreground shadow-2xs">
             {post.author?.photo_url ? (
               <img
                 src={post.author.photo_url}
@@ -170,7 +170,7 @@ export function PostCard({
               <h4 className="truncate text-sm font-bold text-foreground">
                 {post.author?.firstname} {post.author?.lastname}
               </h4>
-              <span className="shrink-0 rounded-full border border-accent-border/60 bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-text">
+              <span className="shrink-0 rounded-full   bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-text">
                 {post.author?.role || 'Performer'}
               </span>
             </div>
@@ -197,7 +197,7 @@ export function PostCard({
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-full z-30 mt-1 w-44 rounded-xl border border-border bg-card p-1 shadow-lg backdrop-blur-md animate-in fade-in-0 zoom-in-95">
+            <div className="absolute right-0 top-full z-30 mt-1 w-44 rounded-xl   bg-card p-1 shadow-lg backdrop-blur-md animate-in fade-in-0 zoom-in-95">
               {isOwner && (
                 <>
                   <button
@@ -224,7 +224,7 @@ export function PostCard({
                     <span>Delete Post</span>
                   </button>
 
-                  <div className="my-1 border-t border-border/60" />
+                  <div className="my-1  " />
                 </>
               )}
 
@@ -252,7 +252,7 @@ export function PostCard({
               value={editDraft}
               onChange={(e) => onEditDraftChange(e.target.value)}
               rows={3}
-              className="w-full rounded-xl border border-border bg-muted/40 p-3 text-xs sm:text-[13px] leading-relaxed text-foreground outline-none focus:border-accent focus:bg-card focus:ring-2 focus:ring-accent/15"
+              className="w-full rounded-xl   bg-muted/40 p-3 text-xs sm:text-[13px] leading-relaxed text-foreground  focus: focus:bg-card "
               aria-label="Edit post text"
             />
             <div className="flex items-center justify-end gap-2">
@@ -260,7 +260,7 @@ export function PostCard({
                 type="button"
                 onClick={onCancelEdit}
                 disabled={savingEdit}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted/70 active:scale-95"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg   bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted/70 active:scale-95"
               >
                 <CancelIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Cancel</span>
@@ -297,7 +297,7 @@ export function PostCard({
       {/* Media Attachment */}
       {post.media_path &&
         (mediaUrl ? (
-          <div className="mt-3 overflow-hidden rounded-xl border border-border bg-black/40 shadow-inner">
+          <div className="mt-3 overflow-hidden rounded-xl   bg-black/40 shadow-inner">
             {isVideoPath(post.media_path) ? (
               <video
                 src={mediaUrl}
@@ -316,7 +316,7 @@ export function PostCard({
             )}
           </div>
         ) : mediaBroken ? (
-          <div className="mt-3 flex flex-col items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-6 text-center">
+          <div className="mt-3 flex flex-col items-center gap-1.5 rounded-xl    bg-muted/40 px-4 py-6 text-center">
             <ImageOff className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             <p className="text-xs font-semibold text-muted-foreground">Media unavailable</p>
             <p className="max-w-xs text-[11px] text-muted-foreground">
@@ -325,7 +325,7 @@ export function PostCard({
           </div>
         ) : (
           <div
-            className="mt-3 flex h-40 items-center justify-center rounded-xl border border-border bg-muted/40"
+            className="mt-3 flex h-40 items-center justify-center rounded-xl   bg-muted/40"
             role="status"
             aria-label="Loading media"
           >
@@ -354,7 +354,7 @@ export function PostCard({
       </div>
 
       {/* 4. Action Buttons: React and Comment */}
-      <div className="mt-2.5 grid grid-cols-2 gap-2 border-t border-border/70 pt-2">
+      <div className="mt-2.5 grid grid-cols-2 gap-2   pt-2">
         <button
           type="button"
           onClick={onReact}
@@ -362,8 +362,8 @@ export function PostCard({
           className={cn(
             'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl text-xs font-semibold transition-all active:scale-98',
             post.user_has_reacted
-              ? 'border border-accent-border/70 bg-accent-soft text-accent-text font-bold'
-              : 'border border-border/60 bg-muted/30 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground'
+              ? '  bg-accent-soft text-accent-text font-bold'
+              : '  bg-muted/30 text-muted-foreground hover: hover:bg-muted hover:text-foreground'
           )}
         >
           <Heart
@@ -383,8 +383,8 @@ export function PostCard({
           className={cn(
             'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl text-xs font-semibold transition-all active:scale-98',
             isCommentsOpen
-              ? 'border border-border-strong bg-muted text-foreground'
-              : 'border border-border/60 bg-muted/30 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground'
+              ? '  bg-muted text-foreground'
+              : '  bg-muted/30 text-muted-foreground hover: hover:bg-muted hover:text-foreground'
           )}
         >
           <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -394,8 +394,8 @@ export function PostCard({
 
       {/* 5. Comments Drawer */}
       {isCommentsOpen && (
-        <div className="mt-3 space-y-3 rounded-xl border border-border bg-muted/30 p-3.5 text-xs sm:p-4 animate-in fade-in-0 duration-200">
-          <div className="flex items-center justify-between pb-1 border-b border-border/50">
+        <div className="mt-3 space-y-3 rounded-xl   bg-muted/30 p-3.5 text-xs sm:p-4 animate-in fade-in-0 duration-200">
+          <div className="flex items-center justify-between pb-1  ">
             <h5 className="font-bold text-foreground text-xs">
               Comments ({post.comments_count || 0})
             </h5>
@@ -422,9 +422,9 @@ export function PostCard({
               {comments?.map((cmt) => (
                 <div
                   key={cmt.id}
-                  className="flex items-start gap-2.5 rounded-xl border border-border/70 bg-card p-3 shadow-2xs"
+                  className="flex items-start gap-2.5 rounded-xl   bg-card p-3 shadow-2xs"
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-[10px] font-bold text-foreground">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-muted text-[10px] font-bold text-foreground">
                     {cmt.user?.photo_url ? (
                       <img
                         src={cmt.user.photo_url}
@@ -449,7 +449,7 @@ export function PostCard({
           )}
 
           {currentUser && (
-            <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+            <div className="flex items-center gap-2 pt-2  ">
               <input
                 type="text"
                 placeholder="Write a supportive comment..."
@@ -461,7 +461,7 @@ export function PostCard({
                     onAddComment();
                   }
                 }}
-                className="flex-1 rounded-xl border border-border bg-card px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20"
+                className="flex-1 rounded-xl   bg-card px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus: focus: "
               />
               <button
                 type="button"
@@ -489,7 +489,7 @@ export function PostCard({
           <div className={cn(MODAL_PANEL_CLASS, 'max-w-sm animate-in zoom-in-95 duration-300')}>
             <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-danger/30 bg-danger-soft text-danger">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-danger-soft text-danger">
                   <Trash2 className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <h3 id={`delete-title-${post.id}`} className="min-w-0 text-base font-bold tracking-[-0.02em] text-foreground">
@@ -538,7 +538,7 @@ export function PostCard({
           <div className={cn(MODAL_PANEL_CLASS, 'max-w-md animate-in fade-in zoom-in-95 duration-300')}>
             <div className={cn(MODAL_HEADER_CLASS, 'items-center')}>
               <div className="flex min-w-0 items-center gap-2.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text">
                   <Info className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
@@ -552,49 +552,49 @@ export function PostCard({
             </div>
 
             <div className={cn(MODAL_BODY_CLASS, 'space-y-2 text-xs')}>
-              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+              <div className="flex items-center justify-between rounded-lg   bg-muted/30 px-3 py-2">
                 <span className="text-muted-foreground font-medium">Author</span>
                 <span className="font-semibold text-foreground">
                   {post.author?.firstname} {post.author?.lastname}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+              <div className="flex items-center justify-between rounded-lg   bg-muted/30 px-3 py-2">
                 <span className="text-muted-foreground font-medium">Role</span>
-                <span className="rounded-full border border-accent-border/60 bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-text">
+                <span className="rounded-full   bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-text">
                   {post.author?.role || 'Performer'}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+              <div className="flex items-center justify-between rounded-lg   bg-muted/30 px-3 py-2">
                 <span className="text-muted-foreground font-medium">Community Circle</span>
                 <span className="font-semibold text-foreground">{post.talent} Circle</span>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+              <div className="flex items-center justify-between rounded-lg   bg-muted/30 px-3 py-2">
                 <span className="text-muted-foreground font-medium">Published Date</span>
                 <span className="font-medium text-foreground">{fullDateTime}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-lg border border-border/60 bg-muted/30 p-2.5 text-center">
+                <div className="rounded-lg   bg-muted/30 p-2.5 text-center">
                   <span className="block text-[10px] font-semibold uppercase text-muted-foreground">Total Reactions</span>
                   <span className="text-sm font-bold text-accent-text">{post.reacts_count || 0}</span>
                 </div>
-                <div className="rounded-lg border border-border/60 bg-muted/30 p-2.5 text-center">
+                <div className="rounded-lg   bg-muted/30 p-2.5 text-center">
                   <span className="block text-[10px] font-semibold uppercase text-muted-foreground">Total Comments</span>
                   <span className="text-sm font-bold text-foreground">{post.comments_count || 0}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+              <div className="flex items-center justify-between rounded-lg   bg-muted/30 px-3 py-2">
                 <span className="text-muted-foreground font-medium">Media Attached</span>
                 <span className="font-medium text-muted-foreground">
                   {post.media_path ? (isVideoPath(post.media_path) ? 'Video attachment' : 'Image attachment') : 'No media attached'}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+              <div className="flex items-center justify-between rounded-lg   bg-muted/30 px-3 py-2">
                 <span className="text-muted-foreground font-medium">Post ID</span>
                 <span className="font-mono text-[11px] text-muted-foreground">#{post.id}</span>
               </div>

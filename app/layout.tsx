@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './fonts.css';
 import './globals.css';
+import '../src/styles/theme.css';
 import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 import { SessionProvider } from '@/components/header/SessionProvider';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -12,6 +13,7 @@ import { PresenceBridge } from '@/components/shared/PresenceBridge';
 import { ClickSoundBridge } from '@/features/sound/components/ClickSoundBridge';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 import { PageTransition } from '@/components/layout/PageTransition';
+import { RouteLoadingIndicator } from '@/components/loading/RouteTransition';
 import { BackToTopButton } from '@/components/shared/BackToTopButton';
 import { CustomCursor } from '@/components/shared/CustomCursor';
 import { SuccessNotificationProvider } from '@/components/notifications/SuccessNotificationProvider';
@@ -176,7 +178,18 @@ export default function RootLayout({
           />
         ))}
       </head>
-      <body className="isolate min-h-screen bg-background font-sans text-foreground antialiased">
+      {/* suppressHydrationWarning: a browser extension (e.g. a custom-cursor
+          add-on writing `style="cursor: url(data:image/png;…)"` and
+          `data-cc-prev-cursor` onto <body>) mutates this element before React
+          hydrates, which React reports as a hydration mismatch. Nothing in
+          this codebase writes either attribute — <CustomCursor /> only adds
+          the `g-custom-cursor` class to <html> (already suppressed above) and
+          never touches <body>. This prop is one level deep, so it silences
+          only the body's own attributes; children are still checked. */}
+      <body
+        suppressHydrationWarning
+        className="isolate min-h-screen bg-background font-sans text-foreground antialiased"
+      >
         <LanguageProvider>
           {/* The session lives HERE, above every route, not inside the /coach and
               /client groups. It used to be read separately by each header, which
@@ -202,6 +215,7 @@ export default function RootLayout({
                 <PlatformThemeSync />
                 <RouteThemeEnforcer />
                 <AppLoadingSplash />
+                <RouteLoadingIndicator />
                 {/* One presence subscription for the whole app, so /messages, coach
                     cards and the header all read the same live value. */}
                 <PresenceBridge />
@@ -211,10 +225,11 @@ export default function RootLayout({
                     listener would leave some routes silent and some clicks doubled.
                     Renders nothing. */}
                 <ClickSoundBridge />
-                {/* The one shared four-corner decoration for Landing, Client, Coach
-                    and Admin: fixed at z-0, behind everything. The page background
-                    colour lives ONLY on <body> (see globals.css), every full-page
-                    wrapper below is transparent, and all page content sits in the
+                {/* The one shared global background for EVERY route: woven gold
+                    edge rails + compass ornaments, fixed at z-0 behind everything.
+                    The page background colour lives ONLY on <body> (see
+                    globals.css bridge rules), every full-page wrapper below is
+                    transparent in practice, and all page content sits in the
                     `relative z-10` layer after this — see components/layout/PagePatterns.tsx. */}
                 <SmoothScrollProvider>
                   <PagePatterns />

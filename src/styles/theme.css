@@ -1,0 +1,64 @@
+/* ==============================================================================
+   GROOVE — surface helpers
+
+   Semantic colours live in `app/globals.css` and nowhere else. This file used
+   to redeclare --background, --foreground, --accent and friends on :root, and
+   because it is imported after globals.css those dark values silently won in
+   Light mode. Keep only the non-semantic helpers here so one theme system owns
+   the palette.
+   ============================================================================== */
+
+:root {
+  /* Glass helpers (used by `.glass-surface` when a surface needs transparency) */
+  --surface-glass: rgba(255, 255, 255, 0.08);
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --glass-border-hover: rgba(255, 255, 255, 0.22);
+  --glass-blur: 20px;
+
+  /* Shadows & glow */
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --glow-accent: 0 0 40px rgba(244, 190, 77, 0.25);
+  --glow-border: 0 0 0 1px rgba(244, 190, 77, 0.18);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+}
+
+/* Utility helpers. Prefer the semantic `bg-card` / `border-border` utilities in
+   components; this remains for the few photo/hero surfaces that genuinely need
+   a translucent glass treatment. */
+.glass-surface {
+  background: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius-card);
+}
+
+.glow-border {
+  position: relative;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(244, 190, 77, 0.5), rgba(255, 255, 255, 0.08));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}

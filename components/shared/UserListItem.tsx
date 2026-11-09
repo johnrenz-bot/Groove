@@ -48,10 +48,10 @@ export function UserListItem({
     <li className="flex items-center gap-3 py-2.5">
       <Link
         href={`/userprofile/${person.id}`}
-        className="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
         aria-label={`View ${display}'s profile`}
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-accent-text">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold text-accent-text">
           {person.photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={person.photo_url} alt="" className="h-full w-full object-cover" />
@@ -64,7 +64,7 @@ export function UserListItem({
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <span className="truncate text-sm font-semibold text-foreground">{display}</span>
             {isYou && (
-              <span className="rounded-full border border-border bg-muted px-1.5 py-px text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+              <span className="rounded-full   bg-muted px-1.5 py-px text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                 You
               </span>
             )}
@@ -108,10 +108,10 @@ export function UserListItem({
           aria-pressed={following === true}
           aria-label={following ? `Unfollow ${display}` : `Follow ${display}`}
           className={cn(
-            'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full border px-3 text-[11px] font-bold transition-all active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60',
+            'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full  px-3 text-[11px] font-bold transition-all active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60',
             following
-              ? 'border-accent-border bg-accent-soft text-accent-text hover:bg-accent/20'
-              : 'border-accent bg-accent text-accent-foreground hover:bg-accent-hover'
+              ? ' bg-accent-soft text-accent-text hover:bg-accent/20'
+              : ' bg-accent text-accent-foreground hover:bg-accent-hover'
           )}
         >
           {busy ? (

@@ -427,10 +427,10 @@ export default function AdminBookingsPage() {
                       onClick={() => handleStatusChange(selected, status)}
                       disabled={busyId === String(selected.id) || active}
                       className={
-                        'inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold capitalize transition-colors ' +
+                        'inline-flex cursor-pointer items-center gap-1.5 rounded-full  px-3.5 py-1.5 text-xs font-semibold capitalize transition-colors ' +
                         (active
-                          ? 'border-accent-border bg-accent-soft text-accent-text'
-                          : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50')
+                          ? ' bg-accent-soft text-accent-text'
+                          : ' bg-card text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50')
                       }
                     >
                       {active && <Check className="h-3.5 w-3.5" />}
@@ -483,7 +483,7 @@ export default function AdminBookingsPage() {
                       <MessageSquare className="h-3.5 w-3.5 text-accent-text" />
                       Client message
                     </h4>
-                    <p className="whitespace-pre-line rounded-2xl border border-border bg-muted px-4 py-3 text-sm leading-relaxed text-foreground">
+                    <p className="whitespace-pre-line rounded-2xl   bg-muted px-4 py-3 text-sm leading-relaxed text-foreground">
                       {selected.message}
                     </p>
                   </div>
@@ -494,7 +494,7 @@ export default function AdminBookingsPage() {
                       <MessageSquare className="h-3.5 w-3.5 text-accent-text" />
                       Session feedback
                     </h4>
-                    <p className="whitespace-pre-line rounded-2xl border border-border bg-muted px-4 py-3 text-sm leading-relaxed text-foreground">
+                    <p className="whitespace-pre-line rounded-2xl   bg-muted px-4 py-3 text-sm leading-relaxed text-foreground">
                       {selected.feedback}
                     </p>
                   </div>
@@ -559,7 +559,7 @@ function SummaryTile({
 
 function InfoCard({ title, rows }: { title: string; rows: { icon: React.ReactNode; value: string }[] }) {
   return (
-    <div className="rounded-2xl border border-border bg-muted p-4">
+    <div className="rounded-2xl   bg-muted p-4">
       <h5 className="mb-3 text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
         {title}
       </h5>
@@ -577,7 +577,7 @@ function InfoCard({ title, rows }: { title: string; rows: { icon: React.ReactNod
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-muted px-3 py-2.5">
+    <div className="rounded-xl   bg-muted px-3 py-2.5">
       <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground">
         {label}
       </dt>

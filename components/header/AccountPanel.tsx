@@ -70,13 +70,11 @@ export function AccountPanel({
   return (
     <div className="flex flex-col h-full max-h-[85dvh] w-full">
       {/* 1. USER CARD (Fixed Header) */}
-      <div className="shrink-0 p-4 border-b border-border/50 bg-muted/20">
+      <div className="shrink-0 p-4   bg-muted/20">
         <div className="flex items-center gap-3">
           <div className="relative shrink-0">
             <Avatar user={user} size={48} />
-            <div className="absolute -bottom-0.5 -right-0.5">
-              <PresenceDot status={user.status} size="sm" />
-            </div>
+            <PresenceDot badge status={user.status} size="sm" />
           </div>
           <div className="min-w-0 overflow-hidden">
             <div className="flex items-center gap-2">
@@ -121,7 +119,7 @@ export function AccountPanel({
               <ModalIconTile
                 icon={item.icon}
                 className={cn(
-                  'h-8 w-8 shrink-0 border-accent-border',
+                  'h-8 w-8 shrink-0 -accent-',
                   item.active ? 'bg-accent-soft text-accent-text' : 'bg-accent-soft/40 text-accent-text'
                 )}
               />
@@ -138,21 +136,21 @@ export function AccountPanel({
         </div>
 
         {/* Quick Settings */}
-        <div className="bg-muted/30 rounded-2xl border border-border overflow-hidden">
+        <div className="bg-muted/30 rounded-2xl   overflow-hidden">
           {/* Status Row */}
-          <div className="flex items-center justify-between px-3 py-2.5 min-h-11 border-b border-border/50">
+          <div className="flex items-center justify-between px-3 py-2.5 min-h-11  ">
             <span className="text-xs font-medium text-muted-foreground">Status</span>
             <StatusSelect userId={user.id} fallbackStatus={user.status} />
           </div>
 
           {/* Language Row */}
-          <div className="flex items-center justify-between px-3 py-2.5 min-h-11 border-b border-border/50">
+          <div className="flex items-center justify-between px-3 py-2.5 min-h-11  ">
             <span className="text-xs font-medium text-muted-foreground">Language</span>
             <LanguageSwitcher />
           </div>
 
           {/* Appearance Row */}
-          <div className="flex items-center justify-between px-3 py-2.5 min-h-11 border-b border-border/50">
+          <div className="flex items-center justify-between px-3 py-2.5 min-h-11  ">
             <span className="text-xs font-medium text-muted-foreground">Appearance</span>
             <ThemeModeSelect />
           </div>
@@ -174,7 +172,7 @@ export function AccountPanel({
       </div>
 
       {/* 4. SIGN OUT (Fixed Footer) */}
-      <div className="shrink-0 p-3 border-t border-border/50 bg-muted/20">
+      <div className="shrink-0 p-3   bg-muted/20">
         <button
           type="button"
           onClick={() => void onLogout()}
@@ -182,7 +180,7 @@ export function AccountPanel({
         >
           <ModalIconTile
             icon={LogOut}
-            className="h-8 w-8 shrink-0 bg-danger-soft text-danger border-danger/30"
+            className="h-8 w-8 shrink-0 bg-danger-soft text-danger "
           />
           <span className="text-xs font-bold">Sign out</span>
         </button>

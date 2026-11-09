@@ -135,10 +135,10 @@ export function FollowButton({
         disabled={busy || unavailable || !ready}
         aria-pressed={isFollowing}
         aria-label={isFollowing ? 'Unfollow this member' : 'Follow this member'}
-        className={`inline-flex cursor-pointer items-center gap-1.5 border px-4 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60 ${radius} ${
+        className={`inline-flex cursor-pointer items-center gap-1.5  px-4 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60 ${radius} ${
           isFollowing
-            ? 'border-accent-border bg-accent-soft text-accent-text hover:bg-accent/20'
-            : 'border-accent bg-accent text-accent-foreground shadow-[var(--shadow-accent)] hover:bg-accent-hover'
+            ? ' bg-accent-soft text-accent-text hover:bg-accent/20'
+            : ' bg-accent text-accent-foreground shadow-[var(--shadow-accent)] hover:bg-accent-hover'
         }`}
       >
         <span

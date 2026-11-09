@@ -417,10 +417,10 @@ export function MusicMiniPlayer({ music, className }: MusicMiniPlayerProps) {
           : 'Paused';
 
   const iconButton =
-    'inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50';
+    'inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50';
 
   const playButton =
-    'inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm shadow-accent/25 transition hover:bg-accent-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed disabled:opacity-60';
+    'inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm shadow-accent/25 transition hover:bg-accent-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60';
 
   return (
     <>
@@ -448,8 +448,8 @@ export function MusicMiniPlayer({ music, className }: MusicMiniPlayerProps) {
       >
         <div
           className={cn(
-            'overflow-hidden rounded-2xl border border-accent-border/60 bg-card/95 text-foreground shadow-[0_18px_50px_-18px_rgba(0,0,0,0.85)] ring-1 ring-white/5 backdrop-blur-xl',
-            isWaitingForGesture && 'border-accent/70',
+            'overflow-hidden rounded-2xl   bg-card/95 text-foreground shadow-[0_18px_50px_-18px_rgba(0,0,0,0.85)]   backdrop-blur-xl',
+            isWaitingForGesture && '',
             dragging && 'cursor-grabbing shadow-[0_24px_60px_-18px_rgba(0,0,0,0.9)]'
           )}
         >
@@ -461,13 +461,13 @@ export function MusicMiniPlayer({ music, className }: MusicMiniPlayerProps) {
               aria-label="Move music player. Use arrow keys to change its position."
               title="Drag to move · arrow keys to dock"
               onKeyDown={handleGripKeyDown}
-              className="flex h-9 w-4 shrink-0 cursor-grab items-center justify-center rounded text-muted-foreground/70 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:cursor-grabbing"
+              className="flex h-9 w-4 shrink-0 cursor-grab items-center justify-center rounded text-muted-foreground/70 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:cursor-grabbing"
             >
               <GripVertical className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
 
             <span
-              className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-muted"
+              className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg   bg-muted"
               title={mode === 'minimized' ? trackTitle : undefined}
             >
               {currentTrackThumbnail ? (
@@ -632,7 +632,7 @@ export function MusicMiniPlayer({ music, className }: MusicMiniPlayerProps) {
 
           {/* Expanded controls. */}
           {mode === 'expanded' && (
-            <div className="border-t border-border/70 bg-muted/20 px-2.5 pb-2.5 pt-2">
+            <div className="  bg-muted/20 px-2.5 pb-2.5 pt-2">
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -689,20 +689,20 @@ export function MusicMiniPlayer({ music, className }: MusicMiniPlayerProps) {
                   type="button"
                   data-no-drag
                   onClick={() => setDetailsOpen(true)}
-                  className="ml-auto inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2.5 text-[10px] font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="ml-auto inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg   bg-card px-2.5 text-[10px] font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   <Music className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>Track</span>
                 </button>
               </div>
 
-              <div className="mt-2 flex items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-2 py-1.5">
+              <div className="mt-2 flex items-center gap-2 rounded-lg   bg-card/70 px-2 py-1.5">
                 <button
                   type="button"
                   data-no-drag
                   onClick={toggleMuted}
                   aria-label={isMuted ? 'Unmute music' : 'Mute music'}
-                  className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   {isMuted || volume === 0 ? (
                     <VolumeX className="h-3.5 w-3.5 text-danger" aria-hidden="true" />
@@ -735,7 +735,7 @@ export function MusicMiniPlayer({ music, className }: MusicMiniPlayerProps) {
               </div>
 
               {unavailableMessage && (
-                <div className="mt-2 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1.5 text-[10px] leading-relaxed text-warning">
+                <div className="mt-2 flex items-start gap-2 rounded-lg   bg-warning/10 px-2.5 py-1.5 text-[10px] leading-relaxed text-warning">
                   <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <div className="min-w-0 flex-1">
                     <p>{unavailableMessage}</p>

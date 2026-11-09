@@ -116,7 +116,7 @@ export function DancerCircleRules() {
       id: 'respect',
       icon: HeartHandshake,
       title: t('showcase.rule1Title', '1. Mutual Respect & Pakikisama (Anti-Harassment)'),
-      color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+      color: 'text-emerald-500 bg-emerald-500/10 ',
       description:
         t('showcase.rule1Body', 'Dance is a universal language of expression. We enforce zero tolerance for bullying, hate speech, body-shaming, discrimination, or aggressive mockery in battle comments. Welcome beginners and uplift fellow dancers across all styles.'),
     },
@@ -124,7 +124,7 @@ export function DancerCircleRules() {
       id: 'safety',
       icon: ShieldCheck,
       title: t('showcase.rule2Title', '2. Physical Safety & Appropriate Content'),
-      color: 'text-accent bg-accent/10 border-accent/20',
+      color: 'text-accent bg-accent/10 ',
       description:
         t('showcase.rule2Body', 'Share choreography, practice runs, and stage highlights that celebrate movement. Do not post hazardous stunts or unassisted acrobatics without proper crash pads and warnings. Explicit, vulgar, or unsafe footage will be removed.'),
     },
@@ -132,7 +132,7 @@ export function DancerCircleRules() {
       id: 'privacy',
       icon: Eye,
       title: t('showcase.rule3Title', '3. Studio Privacy & Recording Consent'),
-      color: 'text-sky-500 bg-sky-500/10 border-sky-500/20',
+      color: 'text-sky-500 bg-sky-500/10 ',
       description:
         t('showcase.rule3Body', 'Always ask for consent before recording rehearsal footage that features other studio members, students, or instructors in the background. Never publish private phone numbers, rehearsal studio door codes, or sensitive personal data.'),
     },
@@ -140,7 +140,7 @@ export function DancerCircleRules() {
       id: 'copyright',
       icon: Copyright,
       title: t('showcase.rule4Title', '4. Choreography Credits & Music Copyright'),
-      color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+      color: 'text-amber-500 bg-amber-500/10 ',
       description:
         t('showcase.rule4Body', 'Always tag and credit the original choreographer, crew, and music producer in your captions. Routine plagiarism or claiming another creator’s choreo as your original work violates community trust.'),
     },
@@ -148,7 +148,7 @@ export function DancerCircleRules() {
       id: 'scam',
       icon: AlertTriangle,
       title: t('showcase.rule5Title', '5. Audition Safety & Anti-Scam Protection'),
-      color: 'text-warning bg-warning/10 border-warning/20',
+      color: 'text-warning bg-warning/10 ',
       description:
         t('showcase.rule5Body', 'Legitimate dance auditions, backup dancer castings, and crew auditions never ask for unverified upfront placement fees or sensitive documents via private messaging. Always verify calls with registered organizations.'),
     },
@@ -156,7 +156,7 @@ export function DancerCircleRules() {
       id: 'reporting',
       icon: Flag,
       title: t('showcase.rule6Title', '6. Reporting Inappropriate Behavior'),
-      color: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
+      color: 'text-rose-500 bg-rose-500/10 ',
       description:
         t('showcase.rule6Body', 'If you encounter harassment, copyright infringement, or spam, click the three dots (⋮) on the post or comment to report it, or contact Groove community moderators. All reports are confidential and reviewed promptly.'),
     },
@@ -165,7 +165,7 @@ export function DancerCircleRules() {
   return (
     <section
       aria-label="Dancer Circle Community Rules & Guidelines"
-      className="overflow-hidden rounded-2xl border border-border/70 bg-card/90 shadow-[var(--shadow-sm)] backdrop-blur-md"
+      className="overflow-hidden rounded-2xl   bg-card/90 shadow-[var(--shadow-sm)] backdrop-blur-md"
     >
       {/* Summary row — the entire panel when collapsed. */}
       <button
@@ -174,9 +174,9 @@ export function DancerCircleRules() {
         aria-expanded={expanded}
         aria-controls={panelId}
         aria-label={expanded ? t('showcase.rulesCollapse', 'Collapse community rules') : t('showcase.rulesExpand', 'Expand community rules')}
-        className="flex w-full cursor-pointer items-center gap-2.5 p-3 text-left transition hover:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:gap-3 sm:px-4"
+        className="flex w-full cursor-pointer items-center gap-2.5 p-3 text-left transition hover:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:gap-3 sm:px-4"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent-border/60 bg-accent-soft text-accent-text">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text">
           <ShieldCheck className="h-4.5 w-4.5" aria-hidden="true" />
         </span>
 
@@ -195,10 +195,10 @@ export function DancerCircleRules() {
         </span>
 
         <span className="hidden shrink-0 items-center gap-1.5 sm:flex">
-          <span className="rounded-full border border-border/70 bg-muted/50 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+          <span className="rounded-full   bg-muted/50 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
             {t('showcase.rulesCount', '{count} rules', { count: rules.length })}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+          <span className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
             <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
             {t('showcase.rulesActive', 'Active')}
           </span>
@@ -230,7 +230,7 @@ export function DancerCircleRules() {
         )}
       >
         <div className="min-h-0 overflow-hidden">
-          <div className="border-t border-border/70 px-3 py-3 sm:px-4 sm:py-3.5">
+          <div className="  px-3 py-3 sm:px-4 sm:py-3.5">
             <div className="space-y-1.5">
               {rules.map((rule) => {
                 const Icon = rule.icon;
@@ -241,10 +241,10 @@ export function DancerCircleRules() {
                   <div
                     key={rule.id}
                     className={cn(
-                      'overflow-hidden rounded-xl border transition-colors',
+                      'overflow-hidden rounded-xl  transition-colors',
                       isOpen
-                        ? 'border-accent-border/50 bg-muted/35'
-                        : 'border-border/60 bg-muted/15 hover:bg-muted/30'
+                        ? ' bg-muted/35'
+                        : ' bg-muted/15 hover:bg-muted/30'
                     )}
                   >
                     <h3>
@@ -253,11 +253,11 @@ export function DancerCircleRules() {
                         onClick={() => setOpenRule(isOpen ? null : rule.id)}
                         aria-expanded={isOpen}
                         aria-controls={contentId}
-                        className="flex w-full cursor-pointer items-center gap-2.5 p-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+                        className="flex w-full cursor-pointer items-center gap-2.5 p-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                       >
                         <span
                           className={cn(
-                            'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border',
+                            'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ',
                             rule.color
                           )}
                         >
@@ -295,7 +295,7 @@ export function DancerCircleRules() {
             </div>
 
             {/* Footer note — preserved from the full card. */}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/50 bg-card/80 p-2.5 text-[11px]">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl   bg-card/80 p-2.5 text-[11px]">
               <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
                 <Award className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
                 <span className="leading-snug">
@@ -308,7 +308,7 @@ export function DancerCircleRules() {
             </div>
 
             {/* Acknowledgement — persisted per device. */}
-            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/20 p-2.5">
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl   bg-muted/20 p-2.5">
               <div className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
                 <ShieldCheck
                   className={cn('h-4 w-4 shrink-0', acknowledged ? 'text-success' : 'text-accent-text')}
@@ -325,7 +325,7 @@ export function DancerCircleRules() {
                 <div className="flex items-center gap-2">
                   <span
                     role="status"
-                    className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2.5 py-1 text-[10px] font-bold text-success"
+                    className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2.5 py-1 text-[10px] font-bold text-success"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                     {t('showcase.acknowledged', 'Acknowledged')}
@@ -333,7 +333,7 @@ export function DancerCircleRules() {
                   <button
                     type="button"
                     onClick={undoAcknowledgment}
-                    className="cursor-pointer rounded-md px-1.5 py-1 text-[10px] font-semibold text-muted-foreground underline-offset-2 transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="cursor-pointer rounded-md px-1.5 py-1 text-[10px] font-semibold text-muted-foreground underline-offset-2 transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                   >
                     {t('showcase.acknowledgeUndo', 'Undo')}
                   </button>
@@ -342,7 +342,7 @@ export function DancerCircleRules() {
                 <button
                   type="button"
                   onClick={acknowledge}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-[11px] font-bold text-accent-foreground shadow-sm shadow-accent/20 transition hover:bg-accent-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-[11px] font-bold text-accent-foreground shadow-sm shadow-accent/20 transition hover:bg-accent-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   <Check className="h-3.5 w-3.5" aria-hidden="true" />
                   {t('showcase.acknowledgeRules', 'I acknowledge these rules')}

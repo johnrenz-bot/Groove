@@ -144,7 +144,7 @@ function FileUploadCard({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div
         onDragOver={(e) => {
           if (disabled) return;
@@ -159,13 +159,11 @@ function FileUploadCard({
           handleFile(e.dataTransfer.files?.[0] ?? null);
         }}
         className={cn(
-          'reg-upload-card group relative cursor-pointer rounded-xl border-2 border-dashed p-3 text-center transition-all',
-          file
-            ? 'border-accent-border bg-card/80 shadow-sm'
-            : 'border-border bg-muted/25 hover:border-accent-border hover:bg-muted/50',
-          dragging && 'border-accent bg-accent-soft/50',
-          focused && 'border-accent bg-accent-soft/40',
-          shownError && 'border-danger/60',
+          'reg-upload-card group',
+          file && 'reg-upload-card--filled',
+          dragging && 'reg-upload-card--dragging',
+          focused && 'reg-upload-card--dragging',
+          shownError && 'reg-upload-card--error',
           disabled && 'cursor-not-allowed opacity-60'
         )}
       >
@@ -183,32 +181,32 @@ function FileUploadCard({
           aria-describedby={shownError ? `${id}-error` : undefined}
           className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
         />
-        <div className="flex flex-col items-center gap-1.5">
+        <div className="flex flex-col items-center gap-4">
           {file ? (
             <>
               {preview ? (
-                <div className="relative overflow-hidden rounded-lg border border-glass-border bg-muted/60 p-1">
+                <div className="relative overflow-hidden rounded-xl border border-border bg-muted/60 p-1.5">
                   {/* Blob preview only; next/image cannot optimise object URLs. */}
                   <img
                     src={preview}
                     alt={`Preview of ${label}`}
-                    className="max-h-20 rounded-md object-contain"
+                    className="max-h-28 rounded-lg object-contain"
                   />
                 </div>
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-success/30 bg-success-soft text-success">
-                  <FileCheck className="h-4 w-4" aria-hidden="true" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-success/30 bg-success-soft text-success">
+                  <FileCheck className="h-6 w-6" aria-hidden="true" />
                 </div>
               )}
               <div className="max-w-full text-center">
-                <span className="block truncate text-xs font-semibold text-foreground" title={file.name}>
+                <span className="block truncate text-sm font-semibold text-foreground" title={file.name}>
                   {file.name}
                 </span>
-                <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                <span className="mt-1 block text-xs text-muted-foreground">
                   {formatFileSize(file.size)} · Attached
                 </span>
               </div>
-              <div className="relative z-20 flex flex-wrap items-center justify-center gap-1.5">
+              <div className="relative z-20 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
                   disabled={disabled}
@@ -216,9 +214,9 @@ function FileUploadCard({
                     e.stopPropagation();
                     inputRef.current?.click();
                   }}
-                  className="inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground transition-colors hover:border-accent-border hover:bg-accent-soft hover:text-accent-text disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-accent-border hover:bg-accent-soft hover:text-accent-text disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <FileCheck className="h-3 w-3" aria-hidden="true" />
+                  <FileCheck className="h-3.5 w-3.5" aria-hidden="true" />
                   Replace
                 </button>
                 <button
@@ -228,27 +226,26 @@ function FileUploadCard({
                     e.stopPropagation();
                     remove();
                   }}
-                  className="inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground transition-colors hover:border-danger/30 hover:bg-danger-soft hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-danger/40 hover:bg-danger-soft hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <X className="h-3 w-3" aria-hidden="true" />
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
                   Remove
                 </button>
               </div>
             </>
           ) : (
             <>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-accent-border bg-accent-soft text-accent-text transition-transform group-hover:scale-105">
-                <Icon className="h-5 w-5" aria-hidden="true" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text transition-transform group-hover:scale-105">
+                <Icon className="h-6 w-6" aria-hidden="true" />
               </div>
               <div>
-                <span className="block text-xs font-semibold text-foreground">{label}</span>
-                <span className="mt-0.5 block text-[10px] text-muted-foreground">{hint}</span>
+                <span className="block text-sm font-semibold text-foreground">{label}</span>
+                <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{hint}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="g-pill-accent text-[10px] font-semibold">Click or drop</span>
-                <span className="text-[10px] text-subtle-foreground">
-                  {required ? 'Required' : 'Optional'} · max 5 MB
-                </span>
+              <div className="reg-upload-badges">
+                <span>Click or drop</span>
+                <span>{required ? 'Required' : 'Optional'}</span>
+                <span>Max 5 MB</span>
               </div>
             </>
           )}
@@ -949,7 +946,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
         // Image panel props for coach registration
         imagePanelTitle="Mentor the next generation."
         imagePanelDescription="Join verified coaches across the Philippines. Set your rates, teach your genres, and build your coaching practice with Groove System."
-        imagePanelImage="/image/bg/hero-theater.jpg"
+        imagePanelImage="/image/login/LoginPage.jpeg"
         footer={
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
@@ -999,12 +996,12 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
           ]}
         />
 
-        <div className="space-y-5">
-          {error && <FormError message={error} className="mb-5" />}
+        <div className="space-y-6">
+          {error && <FormError message={error} className="mb-6" />}
 
         {/* ─── STEP 1: Personal, Address & Bio ─── */}
         {step === 1 && (
-          <div ref={step1FormRef} className="space-y-4">
+          <div ref={step1FormRef} className="space-y-6">
             <RegistrationStepHeader
               step={1}
               total={3}
@@ -1043,6 +1040,9 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
               loading={false}
               externalError={error}
               showSubmitButton={false}
+              initialPersonal={step1Data?.personal}
+              initialContact={step1Data?.contact}
+              initialAddress={step1Data?.address}
               onValidatedData={handleStep1Validated}
               bioField={
                 <div>
@@ -1064,7 +1064,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                     rows={3}
                     aria-invalid={bioError ? 'true' : undefined}
                     aria-describedby={bioError ? 'coach-bio-error' : undefined}
-                    className={cn('g-input min-h-[96px] resize-y', bioError && 'border-danger')}
+                    className="g-input min-h-[112px] resize-y"
                   />
                   {bioError ? (
                     <p id="coach-bio-error" className="g-field-error" role="alert">
@@ -1084,7 +1084,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             <Button
               type="button"
               size="lg"
-              className="h-11 w-full"
+              className="h-12 w-full font-bold"
               trailingIcon={<ArrowRight className="h-4 w-4" />}
               onClick={() => {
                 // RegistrationFormFields owns this step's <form> and calls
@@ -1107,7 +1107,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
 
         {/* ─── STEP 2: Skills & Genre Selection ─── */}
         {step === 2 && (
-          <div className="space-y-5 animate-in fade-in duration-200">
+          <div className="space-y-6 animate-in fade-in duration-200">
             <RegistrationStepHeader
               step={2}
               total={3}
@@ -1133,7 +1133,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {availableSkills.map((skill) => {
                   const isSelected = selectedSkill === skill;
                   const Icon = SKILL_ICONS[skill] || Sparkles;
@@ -1144,25 +1144,28 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                       type="button"
                       key={skill}
                       onClick={() => handleSelectSkill(skill)}
-                      className={`flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border p-3 text-center transition-all ${
+                      aria-pressed={isSelected}
+                      className={`reg-choice-card reg-choice-card--center ${
                         isSelected
-                          ? 'border-accent bg-accent-soft text-accent-text shadow-[var(--shadow-sm)]'
-                          : 'border-border bg-card text-muted-foreground hover:-translate-y-px hover:border-border-strong hover:text-foreground'
+                          ? 'reg-choice-card--selected text-accent-text'
+                          : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
+                        className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all ${
                           isSelected ? 'bg-accent text-accent-foreground shadow-sm' : 'bg-muted text-muted-foreground'
                         }`}
                       >
                         <Icon className="h-5 w-5" />
                       </div>
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center gap-0.5">
                         <span className="text-sm font-bold">{skill}</span>
-                        {isSelected && (
-                          <span className="text-[10px] text-foreground font-medium">
+                        {isSelected ? (
+                          <span className="text-xs font-medium text-foreground">
                             {count} {count === 1 ? 'genre' : 'genres'}
                           </span>
+                        ) : (
+                          <span className="text-xs font-medium text-subtle-foreground">Tap to select</span>
                         )}
                       </div>
                     </button>
@@ -1172,7 +1175,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             </div>
 
             {/* Dynamic Genres Section for the single selected skill */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               <RegistrationSectionHeading
                 id="coach-genres-heading"
                 index={2}
@@ -1187,10 +1190,10 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 const SkillIcon = SKILL_ICONS[selectedSkill] || Sparkles;
 
                 return (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-lg   bg-muted text-foreground">
                           <SkillIcon className="h-4 w-4" />
                         </div>
                         <h3 className="text-sm font-bold text-foreground">{selectedSkill} Genres</h3>
@@ -1203,7 +1206,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                     </div>
 
                     {/* Chips for predefined genres */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2.5">
                       {genresForSkill.map((genre) => {
                         const isSelected = activePredefinedGenres.includes(genre);
                         return (
@@ -1211,13 +1214,10 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                             type="button"
                             key={genre}
                             onClick={() => toggleGenre(genre)}
-                            className={`inline-flex select-none cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                              isSelected
-                                ? 'border-accent-border bg-accent-soft font-semibold text-accent-text'
-                                : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
-                            }`}
+                            aria-pressed={isSelected}
+                            className={`reg-chip ${isSelected ? 'reg-chip--selected' : ''}`}
                           >
-                            {isSelected && <Check className="h-3 w-3 text-foreground" />}
+                            {isSelected && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                             <span>{genre}</span>
                           </button>
                         );
@@ -1227,33 +1227,31 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                       <button
                         type="button"
                         onClick={toggleOther}
-                        className={`inline-flex select-none cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          hasOther
-                            ? 'border-accent-border bg-accent-soft font-semibold text-accent-text'
-                            : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
-                        }`}
+                        aria-pressed={hasOther}
+                        className={`reg-chip ${hasOther ? 'reg-chip--selected' : ''}`}
                       >
-                        {hasOther && <Check className="h-3 w-3 text-foreground" />}
+                        {hasOther && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                         <span>Other</span>
                       </button>
                     </div>
 
                     {/* Other / Custom Genre Input Fields */}
                     {hasOther && (
-                      <div className="pt-3 border-t border-border space-y-3 animate-in fade-in duration-150">
-                        <label className="block text-xs font-semibold text-foreground">
-                          Specify your genre <span className="text-muted-foreground font-normal">(Custom)</span>
+                      <div className="reg-summary animate-in space-y-4 fade-in duration-150">
+                        <label className="block text-sm font-semibold text-foreground">
+                          Specify your genre <span className="font-normal text-muted-foreground">(Custom)</span>
                         </label>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {activeCustomGenresList.map((customVal, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
+                            <div key={idx} className="flex items-center gap-2.5">
                               <input
                                 type="text"
                                 value={customVal}
+                                aria-label={`Custom genre ${idx + 1}`}
                                 onChange={(e) => handleCustomGenreChange(idx, e.target.value)}
                                 placeholder="e.g. Krump, Waacking, Afro-Fusion..."
-                                className="g-input h-10 flex-1 text-sm"
+                                className="g-input flex-1 text-sm"
                               />
                               {activeCustomGenresList.length > 1 && (
                                 <button
@@ -1261,8 +1259,9 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                                   onClick={() => handleRemoveCustomGenre(idx)}
                                   className="g-topbar-action cursor-pointer"
                                   title="Remove custom genre"
+                                  aria-label={`Remove custom genre ${idx + 1}`}
                                 >
-                                  <X className="h-3.5 w-3.5" />
+                                  <X className="h-4 w-4" />
                                 </button>
                               )}
                             </div>
@@ -1272,9 +1271,9 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                         <button
                           type="button"
                           onClick={handleAddAnotherCustomGenre}
-                          className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-accent-text transition-colors hover:underline hover:underline-offset-4"
+                          className="inline-flex cursor-pointer items-center gap-1 text-sm font-semibold text-accent-text transition-colors hover:underline hover:underline-offset-4"
                         >
-                          <span>+ Add another</span>
+                          <span>+ Add another custom genre</span>
                         </button>
                       </div>
                     )}
@@ -1284,21 +1283,21 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             </div>
 
             {/* Structured Selection Summary Box */}
-            <div className="space-y-2 rounded-lg border border-divider bg-muted/30 p-3">
+            <div className="reg-summary space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Selection summary
                 </span>
-                <span className="text-[11px] text-subtle-foreground font-medium">Auto-structured</span>
+                <span className="text-[11px] font-medium text-subtle-foreground">Auto-structured</span>
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {allActiveGenres.length > 0 ? (
                   <div className="g-pill text-xs text-foreground">
                     <span className="font-bold text-foreground">{selectedSkill}:</span>
                     <span className="text-muted-foreground">{allActiveGenres.join(', ')}</span>
                   </div>
                 ) : (
-                  <span className="text-xs text-muted-foreground italic">
+                  <span className="text-xs italic text-muted-foreground">
                     No genres selected yet for {selectedSkill}.
                   </span>
                 )}
@@ -1306,12 +1305,12 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             </div>
 
             {/* Step 2 Action Buttons */}
-            <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
+            <div className="reg-actions">
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                className="h-11 w-full sm:w-1/3"
+                className="h-12 w-full sm:w-1/3"
                 onClick={() => setStep(1)}
               >
                 Back
@@ -1319,7 +1318,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
               <Button
                 type="button"
                 size="lg"
-                className="h-11 w-full sm:flex-1"
+                className="h-12 w-full font-bold sm:flex-1"
                 trailingIcon={<ArrowRight className="h-4 w-4" />}
                 onClick={handleStep2Proceed}
               >
@@ -1334,7 +1333,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
           <form
             onSubmit={handleFinalSubmit}
             noValidate
-            className="flex animate-in flex-col gap-5 fade-in duration-200"
+            className="flex animate-in flex-col gap-6 fade-in duration-200"
           >
             <RegistrationStepHeader
               step={3}
@@ -1345,7 +1344,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             />
 
             {/* Service fee & Duration */}
-            <div className="space-y-4">
+            <div className="reg-section space-y-6">
               <RegistrationSectionHeading
                 id="coach-rates-heading"
                 index={1}
@@ -1355,15 +1354,15 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 description="Set the rate and payment method clients will see on your profile."
               />
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="reg-field">
                   <label className={labelClasses} htmlFor="coach-service-fee">
                     Standard rate (PHP) <span className="text-accent-text">*</span>
                   </label>
                   <div className="relative">
                     <span
                       aria-hidden="true"
-                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground"
+                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground"
                     >
                       ₱
                     </span>
@@ -1382,19 +1381,23 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                       required
                       placeholder="500"
                       aria-invalid={step3Errors.service_fee ? 'true' : undefined}
-                      aria-describedby={step3Errors.service_fee ? 'coach-service-fee-error' : undefined}
-                      className={cn(inputClasses, 'g-input-has-icon', step3Errors.service_fee && 'border-danger')}
+                      aria-describedby={step3Errors.service_fee ? 'coach-service-fee-error' : 'coach-service-fee-hint'}
+                      className={cn(inputClasses, 'g-input-has-icon')}
                     />
                   </div>
-                  {step3Errors.service_fee && (
+                  {step3Errors.service_fee ? (
                     <p id="coach-service-fee-error" className="g-field-error" role="alert">
                       <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       <span>{step3Errors.service_fee}</span>
                     </p>
+                  ) : (
+                    <p id="coach-service-fee-hint" className="g-field-hint">
+                      Minimum ₱100 per session. Clients see this on your profile.
+                    </p>
                   )}
                 </div>
 
-                <div>
+                <div className="reg-field">
                   <label className={labelClasses} htmlFor="coach-duration">
                     Session duration
                   </label>
@@ -1409,11 +1412,14 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                     <option value="2 hours">2 hours</option>
                     <option value="3 hours">3 hours</option>
                   </select>
+                  <p className="g-field-hint">
+                    How long one standard session runs.
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="reg-field">
                   <label className={labelClasses} htmlFor="coach-payment-mode">
                     Accepted payment mode
                   </label>
@@ -1431,10 +1437,13 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                     <option value="cash">Cash on Session</option>
                     <option value="online">Online Payment (GCash / Maya)</option>
                   </select>
+                  <p className="g-field-hint">
+                    Choose a mobile number if you accept online payments.
+                  </p>
                 </div>
 
                 {step3Data.payment === 'online' && (
-                  <div>
+                  <div className="reg-field">
                     <label className={labelClasses} htmlFor="coach-payment-handle">
                       GCash / Maya mobile number <span className="text-accent-text">*</span>
                     </label>
@@ -1452,14 +1461,18 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                       required
                       aria-invalid={step3Errors.payment_handle ? 'true' : undefined}
                       aria-describedby={
-                        step3Errors.payment_handle ? 'coach-payment-handle-error' : undefined
+                        step3Errors.payment_handle ? 'coach-payment-handle-error' : 'coach-payment-handle-hint'
                       }
-                      className={cn(inputClasses, step3Errors.payment_handle && 'border-danger')}
+                      className={inputClasses}
                     />
-                    {step3Errors.payment_handle && (
+                    {step3Errors.payment_handle ? (
                       <p id="coach-payment-handle-error" className="g-field-error" role="alert">
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>{step3Errors.payment_handle}</span>
+                      </p>
+                    ) : (
+                      <p id="coach-payment-handle-hint" className="g-field-hint">
+                        The number clients pay when booking online.
                       </p>
                     )}
                   </div>
@@ -1468,7 +1481,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             </div>
 
             {/* Document Uploads */}
-            <div className="space-y-4 border-t border-divider pt-4">
+            <div className="reg-section space-y-6">
               <RegistrationSectionHeading
                 id="coach-documents-heading"
                 index={2}
@@ -1478,17 +1491,19 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 description="Required for coach review. Files are uploaded only after the account is created."
               />
 
-              <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="rounded-md border border-border bg-card px-2 py-0.5 font-medium">PDF</span>
-                <span className="rounded-md border border-border bg-card px-2 py-0.5 font-medium">JPG</span>
-                <span className="rounded-md border border-border bg-card px-2 py-0.5 font-medium">PNG</span>
-                <span>· Max 5 MB each</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <div className="reg-upload-badges">
+                  <span>PDF</span>
+                  <span>JPG</span>
+                  <span>PNG</span>
+                  <span>Max 5 MB each</span>
+                </div>
                 <span className="ml-auto font-semibold text-foreground">
                   {[validIdFile, idSelfieFile].filter(Boolean).length} of 2 required attached
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FileUploadCard
                   id="coach-valid-id"
                   label="Government ID"
@@ -1550,7 +1565,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 state hooks near the top of this component. */}
 
             {/* Terms */}
-            <div className="space-y-4 border-t border-divider pt-4">
+            <div className="reg-section space-y-6">
               <RegistrationSectionHeading
                 id="coach-terms-heading"
                 index={3}
@@ -1559,7 +1574,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 title="Agreement & submit"
                 description="Confirm the coaching terms before submitting for review."
               />
-              <div className="flex items-start gap-3">
+              <div className={cn('reg-terms-card', step3Errors.terms && 'reg-terms-card--error')}>
                 <input
                   type="checkbox"
                   id="coachTerms"
@@ -1577,7 +1592,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
                 />
                 <label
                   htmlFor="coachTerms"
-                  className="cursor-pointer select-none text-xs leading-relaxed text-muted-foreground"
+                  className="cursor-pointer select-none text-sm leading-relaxed text-muted-foreground"
                 >
                   I agree to the{' '}
                   <Link
@@ -1599,30 +1614,28 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
             </div>
 
             {/* Form Actions */}
-            <div className="space-y-3">
-              <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  className="h-11 w-full sm:w-1/3"
-                  disabled={loading}
-                  onClick={() => setStep(2)}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="h-11 w-full sm:flex-1"
-                  loading={loading}
-                  trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
-                >
-                  {loading ? submitStage || 'Submitting your application…' : 'Submit coach registration'}
-                </Button>
-              </div>
+            <div className="reg-actions">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="h-12 w-full sm:w-1/3"
+                disabled={loading}
+                onClick={() => setStep(2)}
+              >
+                Back
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                className="h-12 w-full font-bold sm:flex-1"
+                loading={loading}
+                trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
+              >
+                {loading ? submitStage || 'Submitting your application…' : 'Submit coach registration'}
+              </Button>
               {loading && (
-                <p className="text-center text-xs text-muted-foreground" role="status" aria-live="polite">
+                <p className="w-full text-center text-xs text-muted-foreground" role="status" aria-live="polite">
                   Keep this tab open while we create your account and upload your documents.
                 </p>
               )}

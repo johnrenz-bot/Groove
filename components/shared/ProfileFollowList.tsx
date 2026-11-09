@@ -203,7 +203,7 @@ export function ProfileFollowList({
         <div
           role="tablist"
           aria-label="Follow lists"
-          className="flex rounded-xl border border-border bg-muted/50 p-1"
+          className="flex rounded-xl   bg-muted/50 p-1"
         >
           {(['followers', 'following'] as const).map((s) => (
             <button
@@ -235,13 +235,13 @@ export function ProfileFollowList({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={`Search ${heading.toLowerCase()}…`}
             aria-label={`Search ${heading}`}
-            className="w-full rounded-xl border border-border bg-surface py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent-border focus:outline-none focus:ring-2 focus:ring-accent/25"
+            className="w-full rounded-xl   bg-surface py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus: focus: "
           />
         </div>
       </div>
 
       {loading ? (
-        <ul className="divide-y divide-[var(--divider)]">
+        <ul className=" (--divider)]">
           {[0, 1, 2, 3].map((i) => (
             <UserListItemSkeleton key={i} />
           ))}
@@ -266,7 +266,7 @@ export function ProfileFollowList({
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-[var(--divider)]">
+          <ul className=" (--divider)]">
             {filtered.map((person) => {
               const isSelf = viewerId !== null && person.id === viewerId;
               return (

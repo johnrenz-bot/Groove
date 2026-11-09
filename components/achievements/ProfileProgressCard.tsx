@@ -43,7 +43,7 @@ export function ProfileProgressCard({
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <FeatureProgress
-          variant="ring"
+          variant=""
           size="lg"
           tone={complete ? 'success' : 'gold'}
           completed={completed}

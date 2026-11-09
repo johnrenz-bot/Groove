@@ -169,7 +169,7 @@ export function Footer({
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full   text-muted-foreground transition-colors hover:(--)] hover:text-foreground"
                   >
                     <Icon className="h-4 w-4" />
                   </a>

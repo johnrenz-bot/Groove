@@ -2,166 +2,239 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-
-/**
- * Performer / Coach, as a segmented control over a single column of features.
- *
- * The tab panel is driven by `aria-selected` + `aria-controls` on real
- * `role="tab"` buttons, and arrow-key movement is wired to the same roving
- * model the WAI-ARIA tabs pattern expects — previously the control was
- * click-only, so it was unusable from the keyboard.
- *
- * Switching panels cross-fades and slides by 8px rather than a full column
- * width: a large lateral slide on a 600px panel is motion for its own sake.
- */
-const clientFeatures = [
-  { title: 'Find verified coaches nearby', description: 'Search by discipline, location, and budget. Filter by ratings, availability, and specialization.' },
-  { title: 'Book rehearsal sessions and studios', description: 'Real-time calendar with instant confirmation. Reschedule or cancel with one tap.' },
-  { title: 'Digital contracts and e-signatures', description: 'Legally binding session agreements. Auto-generated PDFs with timestamps and audit trail.' },
-  { title: 'Showcase Feed: share performances', description: 'Post videos, photos, and updates. Get feedback from coaches and peers.' },
-  { title: 'Messages and calendar in one place', description: 'Unified inbox for coach chats, session reminders, and booking updates.' },
-  { title: 'Track bookings, status, and progress', description: 'Personal dashboard with session history, skill milestones, and progress analytics.' },
-  { title: 'Groovey AI coach assistant', description: '24/7 instant answers about bookings, coach bios, pricing, and platform policies.' },
-];
-
-const coachFeatures = [
-  { title: 'Public coach profile and portfolio', description: 'Showcase credentials, specialties, rates, and verified reviews. SEO-optimized.' },
-  { title: 'Manage schedule and availability', description: 'Set recurring slots, block dates, and sync with Google Calendar.' },
-  { title: 'Accept/decline bookings', description: 'Review requests with student details. One-tap confirm or propose alternatives.' },
-  { title: 'Create and send contracts', description: 'Template-based digital agreements. Auto-fill student info. Track signature status.' },
-  { title: 'Community Showcase to attract talents', description: 'Post teaching demos, student highlights, and class announcements.' },
-  { title: 'Earnings and session tracking', description: 'Revenue dashboard with payouts, pending sessions, and tax-ready reports.' },
-  { title: 'Groovey AI assistant', description: 'Automated scheduling, student matching, and policy questions answered instantly.' },
-];
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import {
+  ArrowRight,
+  Search,
+  MapPin,
+  ShieldCheck,
+  MessageSquare,
+  Sparkles,
+  Zap,
+  Award,
+  CalendarDays,
+  CheckCircle2,
+  FileText,
+  TrendingUp,
+} from 'lucide-react';
+import { SectionHeading } from '@/components/ui/SectionHeading';
+import { GradientButton } from '@/components/ui/GradientButton';
+import { OutlineButton } from '@/components/ui/OutlineButton';
 
 type Audience = 'client' | 'coach';
 
-const AUDIENCE_COPY: Record<Audience, { label: string; heading: string; lead: string; cta: string; href: string }> = {
-  client: {
-    label: 'For Performers',
-    heading: 'Everything you need to grow your craft',
-    lead: 'Browse coaches, manage bookings, and connect with the community — all from one place.',
-    cta: 'Join as Performer',
-    href: '/register/client',
-  },
-  coach: {
-    label: 'For Coaches',
-    heading: 'Grow your coaching practice',
-    lead: 'Tools built for instructors — manage your schedule, connect with local talent, and build a reputation in the SJDM performing arts scene.',
-    cta: 'Join as Coach',
-    href: '/register/coach',
-  },
-};
+interface FeatureCard {
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
 
-import { Reveal } from '@/components/shared/Reveal';
+const PERFORMER_FEATURES: FeatureCard[] = [
+  {
+    icon: Search,
+    title: 'Verified Coach Directory',
+    description: 'Browse vetted instructor profiles filtered by discipline, specialization, rates, and verified credentials.',
+  },
+  {
+    icon: MapPin,
+    title: 'Rehearsal Studio Locator',
+    description: 'Locate nearby dance, vocal, and rehearsal spaces across San Jose del Monte with map navigation and hourly rates.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Digital Session Agreements',
+    description: 'Lock in sessions with transparent terms, digital signatures, and fee schedules together in one official record.',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Direct Consultation Chat',
+    description: 'Message instructors beforehand to discuss routine goals, song choices, and expectations before confirming.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Community Showcase Feed',
+    description: 'Share routine clips, monologues, and rehearsal milestones to gain visibility with peers and coaches.',
+  },
+  {
+    icon: Zap,
+    title: 'Groovey AI Guidance',
+    description: 'Get 24/7 smart assistant help for studio directions, discipline navigation, and booking guidance.',
+  },
+];
+
+const COACH_FEATURES: FeatureCard[] = [
+  {
+    icon: Award,
+    title: 'Professional Portfolio',
+    description: 'Showcase your credentials, certifications, disciplines, performance reels, and verified student reviews.',
+  },
+  {
+    icon: CalendarDays,
+    title: 'Schedule & Availability',
+    description: 'Set custom recurring slots, blackout dates, and manage booking requests in one unified calendar.',
+  },
+  {
+    icon: CheckCircle2,
+    title: 'Student Booking Management',
+    description: 'Review incoming session requests with full student context, goals, and confirm or propose alternate times.',
+  },
+  {
+    icon: FileText,
+    title: 'Automated Digital Contracts',
+    description: 'Pre-fill legally clear session agreements with automatic PDF generation and timestamped e-signatures.',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Direct Student Messaging',
+    description: 'Coordinate session routines, share audio tracks, notes, and give constructive feedback seamlessly.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Local Scene Recognition',
+    description: 'Build your reputation in San Jose del Monte and Bulacan, connecting with dedicated performers ready to learn.',
+  },
+];
 
 export function AudienceTabs() {
   const [activeTab, setActiveTab] = useState<Audience>('client');
-  const copy = AUDIENCE_COPY[activeTab];
-  const features = activeTab === 'client' ? clientFeatures : coachFeatures;
+  const prefersReducedMotion = useReducedMotion();
 
-  /**
-   * Roving focus: ←/→ and Home/End move between the two tabs, matching the
-   * WAI-ARIA tabs pattern. Without it the control is two separate buttons and
-   * the panel relationship is announced but not operable.
-   */
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const order: Audience[] = ['client', 'coach'];
-    const current = order.indexOf(activeTab);
-    let next: number | null = null;
-
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (current + 1) % order.length;
-    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (current - 1 + order.length) % order.length;
-    else if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = order.length - 1;
-
-    if (next === null) return;
-    event.preventDefault();
-    setActiveTab(order[next]);
-    document.getElementById(`audience-tab-${order[next]}`)?.focus();
-  };
+  const isPerformer = activeTab === 'client';
+  const features = isPerformer ? PERFORMER_FEATURES : COACH_FEATURES;
 
   return (
-    /* `id="coaches"` is the scroll target for the "Coaches" entry in the public
-       landing header (`LANDING_ANCHORS` in navConfig.ts). It used to be
-       `id="audience"`, which nothing linked to — so that nav entry was a dead
-       anchor and clicking "Coaches" moved nowhere. The heading id is still
-       `audience-heading` and `aria-labelledby` still points at it; only the
-       scroll target moved. */
-    <section id="coaches" className="ld-section ld-band" aria-labelledby="audience-heading">
-      <div className="ld-wrap">
-        <Reveal className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
-          <p className="ld-eyebrow">Audience</p>
-          <h2 id="audience-heading" className="ld-h2">
-            Built for performers and the coaches who guide them
-          </h2>
-          <p className="ld-p">
-            Two experiences, one platform. Choose your path and discover tools designed
-            specifically for you.
-          </p>
-        </Reveal>
+    <section id="for-artists" className="relative mx-auto max-w-[1240px] px-6 py-24 sm:px-8 lg:px-10 lg:py-32 scroll-mt-24">
+      {/* Section Header */}
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <SectionHeading
+          eyebrow="Two Experiences · One Platform"
+          title="Built for performers and the coaches who guide them."
+          description="Tailored toolsets for artists honing their craft and mentors building a professional coaching practice in Bulacan."
+          align="left"
+        />
+      </motion.div>
 
-        <div className="mt-10 flex justify-center">
-          <div
-            className="ld-seg"
-            role="tablist"
-            aria-label="Select audience"
-            onKeyDown={onKeyDown}
+      {/* Animated Tab Switcher */}
+      <div className="mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
+        <div className="inline-flex rounded-full border border-white/10 bg-[#121212]/80 p-1.5 backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => setActiveTab('client')}
+            className={`relative rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors duration-200 ${
+              isPerformer ? 'text-black' : 'text-white/70 hover:text-white'
+            }`}
           >
-            {(['client', 'coach'] as Audience[]).map((audience) => (
-              <button
-                key={audience}
-                type="button"
-                role="tab"
-                id={`audience-tab-${audience}`}
-                aria-selected={activeTab === audience}
-                aria-controls="audience-panel"
-                tabIndex={activeTab === audience ? 0 : -1}
-                onClick={() => setActiveTab(audience)}
-                className="ld-seg__btn transition-all duration-200"
-              >
-                {audience === 'client' ? 'Performer' : 'Coach'}
-              </button>
-            ))}
-          </div>
+            {isPerformer && (
+              <motion.div
+                layoutId="audienceTabActivePill"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E8B84B] to-[#f4be4d] shadow-[0_0_20px_rgba(232,184,75,0.4)]"
+                transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              For Performers
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('coach')}
+            className={`relative rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors duration-200 ${
+              !isPerformer ? 'text-black' : 'text-white/70 hover:text-white'
+            }`}
+          >
+            {!isPerformer && (
+              <motion.div
+                layoutId="audienceTabActivePill"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E8B84B] to-[#f4be4d] shadow-[0_0_20px_rgba(232,184,75,0.4)]"
+                transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              <Award className="h-3.5 w-3.5" />
+              For Coaches
+            </span>
+          </button>
         </div>
 
-        <div
-          id="audience-panel"
-          role="tabpanel"
-          aria-labelledby={`audience-tab-${activeTab}`}
-          tabIndex={0}
-          className="mx-auto mt-12 max-w-3xl focus-visible:outline-none"
-        >
-          <div key={activeTab} className="ld-panel-in">
-            <div className="flex flex-col items-center gap-3 text-center">
-              <p className="ld-eyebrow">{copy.label}</p>
-              <h3 className="ld-h2">{copy.heading}</h3>
-              <p className="ld-p max-w-xl">{copy.lead}</p>
-            </div>
+        {/* Tab Meta Info */}
+        <p className="text-xs text-white/50">
+          {isPerformer
+            ? '6 core tools for performers, dancers, vocalists and actors'
+            : '6 specialized tools for verified instructors, choreographers and directors'}
+        </p>
+      </div>
 
-            <ul className="mt-10 grid gap-3 sm:grid-cols-2">
-              {features.map((feature, idx) => (
-                <li
-                  key={feature.title}
-                  style={{ animationDelay: `${idx * 40}ms` }}
-                  className="ld-card ld-card--tight gap-2 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-md animate-in fade-in"
-                >
-                  <h4 className="ld-h4">{feature.title}</h4>
-                  <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">
+      {/* 6 Feature Cards Grid */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={prefersReducedMotion ? undefined : { opacity: 0, y: -15 }}
+          transition={{ duration: 0.35 }}
+          className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {features.map((feature, idx) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div
+                key={feature.title}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
+                whileHover={
+                  prefersReducedMotion
+                    ? undefined
+                    : {
+                        y: -4,
+                        borderColor: 'rgba(232, 184, 75, 0.4)',
+                        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(232, 184, 75, 0.08)',
+                      }
+                }
+                className="group relative flex flex-col justify-between rounded-[22px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#E8B84B]/25 bg-[#E8B84B]/10 text-[#E8B84B] shadow-[0_0_12px_rgba(232,184,75,0.15)] group-hover:border-[#E8B84B]/50 transition-colors">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-white/40">
+                      0{idx + 1}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-base font-semibold text-white tracking-wide">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-white/60">
                     {feature.description}
                   </p>
-                </li>
-              ))}
-            </ul>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </AnimatePresence>
 
-            <div className="mt-10 flex justify-center">
-              <Link href={copy.href} className="ld-btn">
-                {copy.cta}
-              </Link>
-            </div>
-          </div>
-        </div>
+      {/* Dynamic CTAs */}
+      <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
+        <Link href={isPerformer ? '/register/client' : '/register/coach'}>
+          <GradientButton className="px-6 py-3.5">
+            {isPerformer ? 'Get started as Performer' : 'Apply as Coach'}
+            <ArrowRight className="h-4 w-4" />
+          </GradientButton>
+        </Link>
+        <Link href="#how-it-works">
+          <OutlineButton className="px-6 py-3.5">
+            See how it works
+          </OutlineButton>
+        </Link>
       </div>
     </section>
   );

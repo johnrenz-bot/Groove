@@ -51,13 +51,13 @@ export function YearView({
         <section
           key={month.getFullYear() + '-' + index}
           aria-label={month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-          className="rounded-2xl border border-border bg-card p-3"
+          className="rounded-2xl   bg-card p-3"
         >
           <div className="mb-2 flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={() => onSelectMonth(month)}
-              className="min-w-0 cursor-pointer truncate rounded-md px-1 text-xs font-bold uppercase tracking-[0.08em] text-foreground transition hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="min-w-0 cursor-pointer truncate rounded-md px-1 text-xs font-bold uppercase tracking-[0.08em] text-foreground transition hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
             >
               {month.toLocaleDateString(undefined, { month: 'short' })}
             </button>
@@ -106,7 +106,7 @@ export function YearView({
                     })}${entries?.length ? `, ${entries.length} session${entries.length === 1 ? '' : 's'}` : ', no sessions'}`}
                     className={cn(
                       'relative flex h-6 cursor-pointer items-center justify-center rounded text-[10px] tabular-nums transition',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                       today
                         ? 'bg-accent font-extrabold text-accent-foreground'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'

@@ -140,7 +140,7 @@ export default function PrivacyPolicyPage() {
               This policy supplements our{' '}
               <Link
                 href="/terms"
-                className="font-semibold text-accent-text underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="font-semibold text-accent-text underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 Terms &amp; Conditions
               </Link>
@@ -157,7 +157,7 @@ export default function PrivacyPolicyPage() {
               {DATA_COLLECTED.map((item) => (
                 <li
                   key={item.title}
-                  className="g-card px-5 py-4 transition-colors hover:border-border-strong"
+                  className="g-card px-5 py-4 transition-colors hover:"
                 >
                   <p className="text-sm font-bold text-foreground">{item.title}</p>
                   <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
@@ -176,11 +176,11 @@ export default function PrivacyPolicyPage() {
               {USES.map(({ icon: Icon, title, body }) => (
                 <div
                   key={title}
-                  className="g-card p-5 transition-colors hover:border-border-strong"
+                  className="g-card p-5 transition-colors hover:"
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text"
+                    className="flex h-9 w-9 items-center justify-center rounded-full   bg-accent-soft text-accent-text"
                   >
                     <Icon className="h-4 w-4" />
                   </span>
@@ -250,11 +250,11 @@ export default function PrivacyPolicyPage() {
               {RIGHTS.map(({ icon: Icon, title, body }) => (
                 <div
                   key={title}
-                  className="flex items-start gap-4 rounded-2xl border border-border bg-card/60 p-5"
+                  className="flex items-start gap-4 rounded-2xl   bg-card/60 p-5"
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full   bg-accent-soft text-accent-text"
                   >
                     <Icon className="h-4 w-4" />
                   </span>
@@ -305,10 +305,10 @@ export default function PrivacyPolicyPage() {
         <section id="contact" className="scroll-mt-24">
           <SectionHeading title="Contact Us" icon={<Mail className="h-4 w-4" />} />
           <Prose>
-            <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-5">
+            <div className="flex items-center gap-4 rounded-2xl   bg-card/60 p-5">
               <span
                 aria-hidden="true"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-accent-text"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl   bg-muted text-accent-text"
               >
                 <Mail className="h-4 w-4" />
               </span>
@@ -318,7 +318,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <a
                   href="mailto:grooveyyph@gmail.com"
-                  className="break-all text-sm font-semibold text-accent-text underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="break-all text-sm font-semibold text-accent-text underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   grooveyyph@gmail.com
                 </a>
@@ -342,7 +342,7 @@ function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode 
     <div className="mb-4 flex items-center gap-3.5">
       <span
         aria-hidden="true"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text"
       >
         {icon}
       </span>

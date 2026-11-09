@@ -186,7 +186,7 @@ export function BookingActionDialog({
           )}
         </ModalIconTile>
         <div className="min-w-0 flex-1">
-          <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs">
+          <div className="rounded-xl   bg-muted/40 px-3 py-2 text-xs">
             <p className="font-semibold text-foreground">
               {formatBookingDate(detail.appointment.date)} ·{' '}
               {formatClock(detail.appointment.start_time)} –{' '}
@@ -198,7 +198,7 @@ export function BookingActionDialog({
           </div>
 
           {mode === 'approve-reschedule' && detail.agreement && (
-            <p className="mt-3 rounded-xl border border-warning/30 bg-warning-soft px-3 py-2 text-[11px] font-medium leading-relaxed text-warning">
+            <p className="mt-3 rounded-xl   bg-warning-soft px-3 py-2 text-[11px] font-medium leading-relaxed text-warning">
               This booking already has a session agreement. Approving changes the booking
               only; the agreement&apos;s stored date and time remain as signed.
             </p>
@@ -206,12 +206,12 @@ export function BookingActionDialog({
 
           {mode === 'approve-reschedule' &&
             (requestedTimePassed ? (
-              <p className="mt-3 rounded-xl border border-warning/30 bg-warning-soft px-3 py-2.5 text-xs leading-relaxed text-warning">
+              <p className="mt-3 rounded-xl   bg-warning-soft px-3 py-2.5 text-xs leading-relaxed text-warning">
                 The requested time has already passed, so it cannot be approved. Keep the
                 original time and message the client to agree a new booking.
               </p>
             ) : canApprove && request ? (
-              <div className="mt-3 rounded-xl border border-accent-border bg-accent-soft px-3 py-2.5 text-xs">
+              <div className="mt-3 rounded-xl   bg-accent-soft px-3 py-2.5 text-xs">
                 <p className="font-bold text-accent-text">Requested new time</p>
                 <p className="mt-0.5 font-semibold tabular-nums text-foreground">
                   {formatBookingDate(request.requestedDate)} ·{' '}
@@ -229,7 +229,7 @@ export function BookingActionDialog({
                 )}
               </div>
             ) : (
-              <p className="mt-3 rounded-xl border border-warning/30 bg-warning-soft px-3 py-2.5 text-xs leading-relaxed text-warning">
+              <p className="mt-3 rounded-xl   bg-warning-soft px-3 py-2.5 text-xs leading-relaxed text-warning">
                 The requested time was not recorded in the note, so it cannot be approved here.
                 Keep the original time and message the client to agree a new booking.
               </p>
@@ -259,7 +259,7 @@ export function BookingActionDialog({
           {errorMessage ? (
             <p
               role="alert"
-              className="mt-3 rounded-xl border border-danger/30 bg-danger-soft px-3 py-2 text-xs font-medium leading-relaxed text-danger"
+              className="mt-3 rounded-xl   bg-danger-soft px-3 py-2 text-xs font-medium leading-relaxed text-danger"
             >
               {errorMessage}
             </p>

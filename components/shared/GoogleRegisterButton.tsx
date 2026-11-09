@@ -85,10 +85,10 @@ export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegi
             : buttonText
         }
         title={!GOOGLE_OAUTH_ENABLED ? 'Google sign-up is coming soon' : undefined}
-        className={`group relative flex h-11 w-full items-center justify-center gap-3 rounded-lg border px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F4BE4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] ${
+        className={`group relative flex h-11 w-full items-center justify-center gap-3 rounded-lg  px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-[#F4BE4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--background)] ${
           !GOOGLE_OAUTH_ENABLED
-            ? 'cursor-not-allowed border-border bg-muted text-subtle-foreground opacity-75 select-none'
-            : 'cursor-pointer border-border bg-card text-foreground hover:border-accent-border hover:bg-muted active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
+            ? 'cursor-not-allowed  bg-muted text-subtle-foreground opacity-75 select-none'
+            : 'cursor-pointer  bg-card text-foreground hover: hover:bg-muted active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
         } ${className}`}
       >
         {busy ? (
@@ -109,7 +109,7 @@ export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegi
         <div
           role="alert"
           aria-live="polite"
-          className="mt-2.5 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs font-medium text-danger"
+          className="mt-2.5 rounded-lg   bg-danger/10 px-3 py-2 text-center text-xs font-medium text-danger"
         >
           {error}
         </div>

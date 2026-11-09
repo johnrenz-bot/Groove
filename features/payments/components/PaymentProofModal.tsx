@@ -172,21 +172,21 @@ export function PaymentProofModal({
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
             <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
             {errorMsg && (
-              <div className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+              <div className="flex items-center gap-2 rounded-2xl   bg-danger-soft p-3 text-xs text-danger">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {isConfirmed && (
-              <div className="flex items-center gap-2 rounded-2xl border border-success/30 bg-success-soft p-3 text-xs text-success">
+              <div className="flex items-center gap-2 rounded-2xl   bg-success-soft p-3 text-xs text-success">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                 <span>This transaction has been confirmed by the payee.</span>
               </div>
             )}
 
             {isAlreadySubmitted && !isConfirmed && (
-              <div className="flex items-center gap-2 rounded-2xl border border-warning/30 bg-warning-soft p-3 text-xs text-warning">
+              <div className="flex items-center gap-2 rounded-2xl   bg-warning-soft p-3 text-xs text-warning">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>
                   Payment proof is currently submitted and awaiting review. You can update your receipt details below if needed.
@@ -195,8 +195,8 @@ export function PaymentProofModal({
             )}
 
             {/* Transaction Payee Details Card */}
-            <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-2.5">
-              <div className="flex items-center justify-between border-b border-divider pb-2.5">
+            <div className="rounded-2xl   bg-muted/30 p-4 space-y-2.5">
+              <div className="flex items-center justify-between   pb-2.5">
                 <span className="text-xs text-muted-foreground">Amount Due</span>
                 <span className="font-mono text-base font-bold text-accent-text">
                   {formatPHP(transaction.amount)}
@@ -249,14 +249,14 @@ export function PaymentProofModal({
             </div>
 
             {/* Receipt Image Upload */}
-            <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4">
+            <div className="rounded-2xl    bg-muted/20 p-4">
               <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 GCash Transaction Receipt / Screenshot <span className="text-danger">*</span>
               </label>
 
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 {previewUrl ? (
-                  <div className="relative max-h-48 w-full max-w-xs overflow-hidden rounded-xl border border-border bg-black/40 p-2 text-center">
+                  <div className="relative max-h-48 w-full max-w-xs overflow-hidden rounded-xl   bg-black/40 p-2 text-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previewUrl}
@@ -265,7 +265,7 @@ export function PaymentProofModal({
                     />
                   </div>
                 ) : (
-                  <div className="flex h-36 w-full flex-col items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground text-center p-4">
+                  <div className="flex h-36 w-full flex-col items-center justify-center rounded-xl   bg-muted/40 text-muted-foreground text-center p-4">
                     <Upload className="h-8 w-8 opacity-40 mb-1" />
                     <p className="text-xs font-medium text-foreground">
                       Upload screenshot from GCash app
@@ -339,7 +339,7 @@ export function PaymentProofModal({
             </div>
 
             {/* Important Disclaimer Notice */}
-            <div className="flex items-start gap-2.5 rounded-2xl border border-warning/30 bg-warning-soft p-3.5 text-xs text-muted-foreground">
+            <div className="flex items-start gap-2.5 rounded-2xl   bg-warning-soft p-3.5 text-xs text-muted-foreground">
               <ShieldAlert className="h-4 w-4 shrink-0 text-warning" />
               <div className="space-y-1">
                 <p className="font-bold text-foreground">Important GroovePH Notice:</p>

@@ -22,7 +22,7 @@ export default function AdminPasscodePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 font-sans text-foreground">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-2xl">
+      <div className="w-full max-w-md rounded-3xl   bg-card p-8 text-center shadow-2xl">
         <PasscodeHeaderIcon />
         <h1 className="text-2xl font-bold text-foreground">Admin Verification</h1>
         <p className="mt-2 text-xs text-muted-foreground">
@@ -34,7 +34,7 @@ export default function AdminPasscodePage() {
         ) : (
           <div
             role="alert"
-            className="mt-6 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning-soft p-3 text-left text-xs text-warning"
+            className="mt-6 flex items-start gap-2 rounded-xl   bg-warning-soft p-3 text-left text-xs text-warning"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>

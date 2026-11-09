@@ -52,7 +52,7 @@ export function SegmentedControl<T extends string | number>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={cn(
-        'relative inline-flex items-center gap-0.5 rounded-full border border-border bg-muted/70 p-1',
+        'relative inline-flex items-center gap-0.5 rounded-full   bg-muted/70 p-1',
         className
       )}
       onKeyDown={(event) => {

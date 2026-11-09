@@ -219,7 +219,7 @@ export function PersonalSection({
             value={values.suffix}
             onChange={(e) => set({ suffix: e.target.value })}
             placeholder="Jr., III"
-            className={cn(inputClasses, err('suffix') && 'border-danger')}
+            className={cn(inputClasses, err('suffix') && '')}
             aria-invalid={err('suffix') ? 'true' : undefined}
             aria-describedby={err('suffix') ? 'pf-suffix-error' : undefined}
           />
@@ -308,7 +308,7 @@ export function AddressSection({
   disabled?: boolean;
 }) {
   return (
-    <fieldset className="space-y-4 border-t border-border pt-7" disabled={disabled}>
+    <fieldset className="space-y-4   pt-7" disabled={disabled}>
       <SectionHeading icon={<MapPin className="h-4 w-4 text-accent-text" aria-hidden="true" />}>
         Service Location
       </SectionHeading>
@@ -348,7 +348,7 @@ export function ContactSection({
   const usernameValid = values.username ? isValidUsername(values.username) : false;
 
   return (
-    <fieldset className="space-y-5 border-t border-border pt-7" disabled={disabled}>
+    <fieldset className="space-y-5   pt-7" disabled={disabled}>
       <SectionHeading icon={<Phone className="h-4 w-4 text-accent-text" aria-hidden="true" />}>
         Contact &amp; Account Details
       </SectionHeading>
@@ -361,7 +361,7 @@ export function ContactSection({
           </FieldLabel>
           <div className="flex w-full">
             <span
-              className="g-input-static w-auto min-w-[86px] justify-center rounded-r-none border-r-0 font-semibold"
+              className="g-input-static w-auto min-w-[86px] justify-center rounded-r-none  font-semibold"
               aria-hidden="true"
             >
               <img
@@ -385,7 +385,7 @@ export function ContactSection({
               required
               aria-invalid={err('contact') ? 'true' : undefined}
               aria-describedby={err('contact') ? 'pf-contact-error' : 'pf-contact-hint'}
-              className="g-input flex-1 rounded-l-none border-l-0"
+              className="g-input flex-1 rounded-l-none "
             />
           </div>
           {err('contact') ? (
@@ -481,7 +481,7 @@ export function ClientTalentSection({
   disabled?: boolean;
 }) {
   return (
-    <fieldset className="space-y-4 border-t border-border pt-7" disabled={disabled}>
+    <fieldset className="space-y-4   pt-7" disabled={disabled}>
       <SectionHeading icon={<ShieldCheck className="h-4 w-4 text-accent-text" aria-hidden="true" />}>
         Performing Interest
       </SectionHeading>
@@ -553,7 +553,7 @@ export function CoachSkillsSection({
     });
 
   return (
-    <fieldset className="space-y-4 border-t border-border pt-7" disabled={disabled}>
+    <fieldset className="space-y-4   pt-7" disabled={disabled}>
       <SectionHeading icon={<ShieldCheck className="h-4 w-4 text-accent-text" aria-hidden="true" />}>
         Skills &amp; Genres
       </SectionHeading>
@@ -591,10 +591,10 @@ export function CoachSkillsSection({
                 type="button"
                 onClick={() => toggleGenre(genre)}
                 aria-pressed={selected}
-                className={`inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                className={`inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg  px-3 py-1.5 text-xs font-medium transition ${
                   selected
-                    ? 'border-accent-border bg-accent-soft font-semibold text-accent-text'
-                    : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
+                    ? ' bg-accent-soft font-semibold text-accent-text'
+                    : ' bg-card text-muted-foreground hover: hover:text-foreground'
                 }`}
               >
                 {selected && <Check className="h-3 w-3 text-foreground" />}
@@ -623,7 +623,7 @@ export function CoachRatesSection({
   const set = (patch: Partial<CoachFormValues>) => onChange({ ...values, ...patch });
 
   return (
-    <fieldset className="space-y-4 border-t border-border pt-7" disabled={disabled}>
+    <fieldset className="space-y-4   pt-7" disabled={disabled}>
       <SectionHeading icon={<FileText className="h-4 w-4 text-accent-text" aria-hidden="true" />}>
         Service Rates &amp; Payment Options
       </SectionHeading>
@@ -729,7 +729,7 @@ export function CoachBioSection({
   disabled?: boolean;
 }) {
   return (
-    <fieldset className="space-y-4 border-t border-border pt-7" disabled={disabled}>
+    <fieldset className="space-y-4   pt-7" disabled={disabled}>
       <SectionHeading icon={<UserIcon className="h-4 w-4 text-accent-text" aria-hidden="true" />}>
         Bio / About Your Coaching
       </SectionHeading>
@@ -771,7 +771,7 @@ export function VerificationReadOnly({
   rows: { label: string; uploaded: boolean; detail?: string }[];
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-muted/40 p-5">
+    <div className="rounded-2xl   bg-muted/40 p-5">
       <div className="flex items-center gap-2">
         <ShieldCheck className="h-4 w-4 text-accent-text" aria-hidden="true" />
         <h3 className="text-sm font-bold text-foreground">Identity Verification</h3>
@@ -785,7 +785,7 @@ export function VerificationReadOnly({
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs"
+            className="flex items-center justify-between gap-3 rounded-xl   bg-card px-3.5 py-2.5 text-xs"
           >
             <dt className="font-medium text-muted-foreground">{row.label}</dt>
             <dd className="flex items-center gap-2 font-semibold">

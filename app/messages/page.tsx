@@ -408,16 +408,16 @@ function MessagesMessenger() {
         </div>
 
         {/* 2-Pane Main Messenger Card */}
-        <div className="g-card relative flex min-h-0 flex-1 overflow-hidden border border-border shadow-xl">
+        <div className="g-card relative flex min-h-0 flex-1 overflow-hidden   shadow-xl">
           {/* ── Pane 1: Conversation List ── */}
           <aside
             aria-label="Conversations"
-            className={`flex flex-col border-divider bg-card transition-all duration-200 md:w-80 lg:w-96 md:border-r ${
+            className={`flex flex-col  bg-card transition-all duration-200 md:w-80 lg:w-96 md: ${
               mobileTab === 'contacts' ? 'flex w-full' : 'hidden md:flex'
             }`}
           >
             {/* Search Bar */}
-            <div className="shrink-0 border-b border-divider p-3 sm:p-4">
+            <div className="shrink-0   p-3 sm:p-4">
               <div className="relative">
                 <Search
                   className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -472,23 +472,23 @@ function MessagesMessenger() {
                       key={partner.id}
                       onClick={() => selectPartner(partner)}
                       aria-current={isSelected ? 'true' : undefined}
-                      className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border p-2.5 text-left transition-all ${
+                      className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl  p-2.5 text-left transition-all ${
                         isSelected
-                          ? 'border-accent-border bg-accent-soft/80 shadow-sm'
-                          : 'border-transparent hover:border-border/60 hover:bg-muted/70'
+                          ? ' bg-accent-soft/80 shadow-sm'
+                          : ' hover: hover:bg-muted/70'
                       }`}
                     >
                       {/* Avatar with Presence dot */}
                       <span
-                        className={`relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border text-xs font-bold uppercase transition ${
+                        className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full  text-xs font-bold uppercase transition ${
                           isSelected
-                            ? 'border-accent-border shadow-sm'
-                            : 'border-border group-hover:border-border-strong'
+                            ? ' shadow-sm'
+                            : ' group-hover:'
                         }`}
                       >
                         <span
                           aria-hidden="true"
-                          className={`flex h-full w-full items-center justify-center ${
+                          className={`flex h-full w-full items-center justify-center overflow-hidden rounded-full ${
                             isSelected
                               ? 'bg-accent text-accent-foreground'
                               : 'bg-muted text-muted-foreground'
@@ -551,12 +551,12 @@ function MessagesMessenger() {
             {activePartner ? (
               <>
                 {/* Thread Header */}
-                <header className="flex shrink-0 items-center justify-between gap-3 border-b border-divider bg-card/90 px-4 py-3 backdrop-blur-md sm:px-6 sm:py-3.5">
+                <header className="flex shrink-0 items-center justify-between gap-3   bg-card/90 px-4 py-3 backdrop-blur-md sm:px-6 sm:py-3.5">
                   <div className="flex min-w-0 items-center gap-3">
                     {/* Mobile Back Button */}
                     <button
                       onClick={() => setMobileTab('contacts')}
-                      className="md:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground cursor-pointer"
+                      className="md:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-card text-muted-foreground hover:text-foreground cursor-pointer"
                       aria-label="Back to contacts list"
                     >
                       <ArrowLeft className="h-4 w-4" />
@@ -564,7 +564,7 @@ function MessagesMessenger() {
 
                     <span
                       aria-hidden="true"
-                      className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold uppercase text-muted-foreground shadow-sm"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold uppercase text-muted-foreground shadow-sm"
                     >
                       {activePartner.photo_url ? (
                         <img
@@ -597,10 +597,10 @@ function MessagesMessenger() {
                       type="button"
                       onClick={() => setShowPartnerPanel((v) => !v)}
                       aria-label="Toggle profile information"
-                      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition cursor-pointer sm:h-9 sm:w-auto sm:px-3 sm:gap-1.5 ${
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg  text-xs font-medium transition cursor-pointer sm:h-9 sm:w-auto sm:px-3 sm:gap-1.5 ${
                         showPartnerPanel
-                          ? 'border-accent-border bg-accent-soft text-accent-text'
-                          : 'border-border text-muted-foreground hover:bg-muted hover:text-foreground'
+                          ? ' bg-accent-soft text-accent-text'
+                          : ' text-muted-foreground hover:bg-muted hover:text-foreground'
                       }`}
                     >
                       <Info className="h-4 w-4" />
@@ -609,7 +609,7 @@ function MessagesMessenger() {
 
                     <Link
                       href={`/userprofile/${activePartner.id}`}
-                      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-semibold text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground sm:h-9 sm:px-3.5"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-full   bg-card px-3 text-xs font-semibold text-muted-foreground transition hover: hover:bg-muted hover:text-foreground sm:h-9 sm:px-3.5"
                     >
                       <span>Profile</span>
                       <ExternalLink className="h-3 w-3" />
@@ -638,9 +638,9 @@ function MessagesMessenger() {
                         : (i - 1 + THREAD_TABS.length) % THREAD_TABS.length;
                     setThreadTab(THREAD_TABS[next].id);
                   }}
-                  className="shrink-0 border-b border-divider bg-card/60 px-3 py-2 sm:px-5"
+                  className="shrink-0   bg-card/60 px-3 py-2 sm:px-5"
                 >
-                  <div className="flex gap-1 rounded-full border border-border bg-muted/60 p-1">
+                  <div className="flex gap-1 rounded-full   bg-muted/60 p-1">
                     {THREAD_TABS.map((t) => {
                       const selected = t.id === threadTab;
                       return (
@@ -654,7 +654,7 @@ function MessagesMessenger() {
                           tabIndex={selected ? 0 : -1}
                           onClick={() => setThreadTab(t.id)}
                           className={cn(
-                            'inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card sm:flex-none',
+                            'inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:flex-none',
                             selected
                               ? 'bg-accent text-accent-foreground shadow-[var(--shadow-sm)]'
                               : 'text-muted-foreground hover:bg-card hover:text-foreground'
@@ -680,7 +680,7 @@ function MessagesMessenger() {
                   <div className="g-scroll flex-1 min-h-0 overflow-y-auto p-4 space-y-3.5 sm:p-6">
                     {messages.length === 0 ? (
                       <div className="flex h-full flex-col items-center justify-center space-y-4 py-12 text-center text-muted-foreground">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text shadow-sm">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl   bg-accent-soft text-accent-text shadow-sm">
                           <MessageSquare className="h-7 w-7" aria-hidden="true" />
                         </div>
                         <div className="max-w-sm space-y-1">
@@ -702,7 +702,7 @@ function MessagesMessenger() {
                             <button
                               key={promptText}
                               onClick={() => setNewMessage(promptText)}
-                              className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-accent-border hover:bg-accent-soft hover:text-accent-text cursor-pointer text-left"
+                              className="rounded-full   bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover: hover:bg-accent-soft hover:text-accent-text cursor-pointer text-left"
                             >
                               💬 {promptText}
                             </button>
@@ -717,7 +717,7 @@ function MessagesMessenger() {
                         <div className="flex flex-col items-center gap-1.5 pb-1 pt-2 text-center">
                           <span
                             aria-hidden="true"
-                            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold uppercase text-muted-foreground"
+                            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold uppercase text-muted-foreground"
                           >
                             {activePartner.photo_url ? (
                               <img
@@ -767,7 +767,7 @@ function MessagesMessenger() {
                             <React.Fragment key={m.id}>
                               {showDateHeader && (
                                 <div className="my-4 flex items-center justify-center">
-                                  <span className="rounded-full border border-border bg-muted/60 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground shadow-xs">
+                                  <span className="rounded-full   bg-muted/60 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground shadow-xs">
                                     {formatMessageGroupDate(m.created_at)}
                                   </span>
                                 </div>
@@ -788,7 +788,7 @@ function MessagesMessenger() {
                                   <span
                                     aria-hidden="true"
                                     className={cn(
-                                      'h-7 w-7 shrink-0 overflow-hidden rounded-full border border-border bg-muted text-[10px] font-bold uppercase text-muted-foreground',
+                                      'h-7 w-7 shrink-0 overflow-hidden rounded-full   bg-muted text-[10px] font-bold uppercase text-muted-foreground',
                                       startsGroup ? 'visible' : 'invisible'
                                     )}
                                   >
@@ -810,7 +810,7 @@ function MessagesMessenger() {
                                   className={`max-w-[80%] space-y-2 rounded-2xl p-3.5 text-xs leading-relaxed shadow-sm transition sm:max-w-[70%] ${
                                     isMe
                                       ? 'bg-accent font-medium text-accent-foreground shadow-[var(--shadow-sm)]'
-                                      : 'border border-border bg-card text-foreground shadow-xs'
+                                      : '  bg-card text-foreground shadow-xs'
                                   } ${
                                     // The tail is only squared on the corner the
                                     // burst actually continues from.
@@ -824,7 +824,7 @@ function MessagesMessenger() {
                                   }`}
                                 >
                                   {m.media_path && (
-                                    <div className="max-h-60 overflow-hidden rounded-xl border border-border/20 bg-muted">
+                                    <div className="max-h-60 overflow-hidden rounded-xl   bg-muted">
                                       {m.media_path.endsWith('.mp4') || m.media_path.endsWith('.mov') ? (
                                         <video
                                           src={m.media_path}
@@ -877,10 +877,10 @@ function MessagesMessenger() {
                       send path. */}
                   <form
                     onSubmit={handleSendMessage}
-                    className="flex shrink-0 items-center gap-2 border-t border-divider bg-card px-3 py-3 sm:px-5 sm:py-3.5"
+                    className="flex shrink-0 items-center gap-2   bg-card px-3 py-3 sm:px-5 sm:py-3.5"
                   >
                   <label
-                    className="g-topbar-action flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-border text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground"
+                    className="g-topbar-action flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl   text-muted-foreground transition hover: hover:bg-muted hover:text-foreground"
                     aria-label="Attach photo, video, or file"
                     title="Attach photo, video, or file"
                   >
@@ -947,7 +947,7 @@ function MessagesMessenger() {
               </>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center text-muted-foreground">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card shadow-sm">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl   bg-card shadow-sm">
                   <MessageSquare className="h-7 w-7 text-subtle-foreground" aria-hidden="true" />
                 </div>
                 <div>

@@ -73,7 +73,7 @@ function Field({
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-divider px-4 py-3.5 first:border-t-0 sm:px-5">
+    <section className="  px-4 py-3.5 first: sm:px-5">
       <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text">
         {title}
       </h4>
@@ -110,7 +110,7 @@ function SignatureRow({
 }) {
   const signed = Boolean(signedAt);
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/40 px-3 py-2.5">
+    <div className="flex items-center justify-between gap-3 rounded-xl   bg-muted/40 px-3 py-2.5">
       <div className="flex min-w-0 items-center gap-2">
         <span
           aria-hidden="true"
@@ -168,15 +168,15 @@ export function AgreementTermsForm({
     <section
       aria-label={`Terms of session agreement ${ref}`}
       className={cn(
-        'w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm',
+        'w-full overflow-hidden rounded-2xl   bg-card shadow-sm',
         className
       )}
     >
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-divider bg-muted/30 px-4 py-3 sm:px-5">
+      <header className="flex flex-wrap items-center justify-between gap-2   bg-muted/30 px-4 py-3 sm:px-5">
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             aria-hidden="true"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-accent-border bg-accent-soft text-accent-text"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg   bg-accent-soft text-accent-text"
           >
             <ShieldCheck className="h-4 w-4" />
           </span>
@@ -265,7 +265,7 @@ export function AgreementTermsForm({
         </div>
       </Group>
 
-      <p className="flex items-start gap-2 border-t border-divider bg-muted/20 px-4 py-3 text-[11px] leading-relaxed text-muted-foreground sm:px-5">
+      <p className="flex items-start gap-2   bg-muted/20 px-4 py-3 text-[11px] leading-relaxed text-muted-foreground sm:px-5">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
         <span>{editRule}</span>
       </p>

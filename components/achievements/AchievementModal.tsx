@@ -129,9 +129,9 @@ export function AchievementModal({
   // declared here so every descendant inherits it without repeating itself.
   const panelStyle = {
     '--am-accent': isCoach ? 'var(--brand-sunburst)' : 'var(--success)',
-    // globals.css sets a universal border-color outside @layer, which outranks
-    // every Tailwind border-colour utility — so the panel hairline is set here.
-    borderColor: 'var(--accent-border)',
+    // globals.css sets a universal -color outside @layer, which outranks
+    // every Tailwind -colour utility — so the panel hairline is set here.
+    borderColor: 'var(--accent-)',
     background: [
       'radial-gradient(56% 32% at 50% 9%, color-mix(in srgb, var(--am-accent) 7%, transparent) 0%, transparent 72%)',
       'linear-gradient(180deg, color-mix(in srgb, var(--card) 77%, #000) 0%, var(--card) 42%, color-mix(in srgb, var(--card) 99%, #fff) 100%)',
@@ -204,7 +204,7 @@ export function AchievementModal({
             {/* Thin soft ring, then a single shimmer sweep across the face. */}
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-foreground/10"
+              className="pointer-events-none absolute inset-0 rounded-3xl   "
             />
             <span
               aria-hidden="true"
@@ -217,7 +217,7 @@ export function AchievementModal({
           {/* Verified seal, bottom-right of the frame. */}
           <span
             className={cn(
-              'am-seal absolute -bottom-1.5 -right-1.5 flex h-8 w-8 items-center justify-center rounded-full border',
+              'am-seal absolute -bottom-1.5 -right-1.5 flex h-8 w-8 items-center justify-center rounded-full ',
               animate && 'am-seal-pop'
             )}
             aria-hidden="true"
@@ -258,7 +258,7 @@ export function AchievementModal({
           <p
             className={cn('mt-3.5', animate && 'am-rise am-delay-4')}
           >
-            <span className="am-hair inline-flex items-center gap-1.5 rounded-full border bg-foreground/[0.03] px-2.5 py-1 text-[11px] text-subtle-foreground">
+            <span className="am-hair inline-flex items-center gap-1.5 rounded-full  bg-foreground/[0.03] px-2.5 py-1 text-[11px] text-subtle-foreground">
               <CalendarCheck className="h-3 w-3" aria-hidden="true" />
               <time dateTime={new Date(unlockedTime).toISOString()}>Unlocked {formattedDate}</time>
             </span>
@@ -283,9 +283,9 @@ export function AchievementModal({
               {tasks.map((task, index) => (
                 <li
                   key={`${task.title}-${index}`}
-                  className="am-faint-hair flex min-h-[52px] items-center gap-3 rounded-2xl border bg-foreground/[0.02] px-3 py-2.5"
+                  className="am-faint-hair flex min-h-[52px] items-center gap-3 rounded-2xl  bg-foreground/[0.02] px-3 py-2.5"
                 >
-                  <span className="am-tick flex h-7 w-7 shrink-0 items-center justify-center rounded-full border">
+                  <span className="am-tick flex h-7 w-7 shrink-0 items-center justify-center rounded-full ">
                     <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
@@ -469,7 +469,7 @@ export function AchievementModal({
           top: calc(75px + var(--am-oy));
           width: var(--am-size);
           height: var(--am-size);
-          border-radius: 9999px;
+          : 9999px;
           background-color: var(--am-accent);
           animation: am-spark var(--am-dur) cubic-bezier(0.22, 0.61, 0.36, 1) var(--am-delay) 1 both;
         }
@@ -482,8 +482,8 @@ export function AchievementModal({
            hairline, one label, one seal, one tick.
 
            The two .am-hair rules exist because globals.css declares a
-           universal border-color outside @layer, which outranks every Tailwind
-           border-colour utility. Anything that wants its own border has to say
+           universal  outside @layer, which outranks every Tailwind
+            utility. Anything that wants its own  has to say
            so here, where the scoped selector wins. */
         .am-top-rule {
           background-image: linear-gradient(
@@ -494,22 +494,22 @@ export function AchievementModal({
           );
         }
         .am-hair {
-          border-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+          : color-mix(in srgb, var(--foreground) 10%, transparent);
         }
         .am-faint-hair {
-          border-color: color-mix(in srgb, var(--foreground) 6%, transparent);
+          : color-mix(in srgb, var(--foreground) 6%, transparent);
         }
         .am-label {
           color: color-mix(in srgb, var(--am-accent) 88%, var(--foreground));
         }
         .am-seal {
           color: var(--am-accent);
-          border-color: color-mix(in srgb, var(--am-accent) 30%, transparent);
+          : color-mix(in srgb, var(--am-accent) 30%, transparent);
           background-color: color-mix(in srgb, var(--card) 88%, #000);
         }
         .am-tick {
           color: var(--am-accent);
-          border-color: color-mix(in srgb, var(--am-accent) 26%, transparent);
+          : color-mix(in srgb, var(--am-accent) 26%, transparent);
           background-color: color-mix(in srgb, var(--am-accent) 10%, transparent);
         }
         .am-badge {

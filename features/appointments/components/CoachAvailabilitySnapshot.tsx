@@ -85,24 +85,24 @@ export function CoachAvailabilitySnapshot({
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-[20px] border border-border bg-card',
+        'overflow-hidden rounded-[20px]   bg-card',
         className
       )}
       aria-label="Coach availability snapshot"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-divider px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-2   px-5 py-3.5">
         <div>
           <h2 className="text-sm font-bold text-foreground">Booking rules &amp; week ahead</h2>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             Read from your coach profile and the sessions already on your calendar.
           </p>
         </div>
-        <span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+        <span className="rounded-full   bg-muted/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
           Read-only
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-px bg- sm:grid-cols-4">
         <div className="bg-card p-3.5">
           <p className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
             <Wallet className="h-3 w-3 text-accent-text" aria-hidden="true" />
@@ -139,7 +139,7 @@ export function CoachAvailabilitySnapshot({
         </div>
       </div>
 
-      <div className="border-t border-divider p-3.5">
+      <div className="  p-3.5">
         <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
           <CalendarDays className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
           Next 7 days — sessions already booked
@@ -149,10 +149,10 @@ export function CoachAvailabilitySnapshot({
             <li
               key={day.value}
               className={cn(
-                'rounded-xl border px-2.5 py-2',
+                'rounded-xl  px-2.5 py-2',
                 day.windows.length > 0
-                  ? 'border-accent-border bg-accent-soft/60'
-                  : 'border-border bg-muted/30'
+                  ? ' bg-accent-soft/60'
+                  : ' bg-muted/30'
               )}
             >
               <p className="text-[11px] font-bold text-foreground">

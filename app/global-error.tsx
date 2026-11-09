@@ -65,8 +65,12 @@ export default function GlobalError({
   };
 
   return (
-    <html lang="en">
-      <body
+    // suppressHydrationWarning on both elements: the same browser extensions
+    // that mutate <body> (inline cursor style / data-cc-* attributes) before
+    // hydration in the root layout can do so here, where <body> also carries
+    // an inline style. See app/layout.tsx.
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning
         style={{
           margin: 0,
           minHeight: '100vh',

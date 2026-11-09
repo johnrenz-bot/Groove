@@ -38,7 +38,7 @@ export function DayView({ anchor, entries }: { anchor: Date; entries: CalendarEn
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-baseline gap-3 border-b border-divider px-4 py-3 sm:px-5">
+      <div className="flex items-baseline gap-3   px-4 py-3 sm:px-5">
         <span className="text-2xl font-bold tabular-nums text-foreground">{anchor.getDate()}</span>
         <span className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           {WEEKDAY_SHORT[anchor.getDay()]}
@@ -59,9 +59,9 @@ export function DayView({ anchor, entries }: { anchor: Date; entries: CalendarEn
         />
       ) : (
         <div className="relative flex">
-          <div className="w-16 shrink-0 border-r border-divider">
+          <div className="w-16 shrink-0  ">
             {hours.map((hour) => (
-              <div key={hour} className="relative h-20 border-b border-divider/60">
+              <div key={hour} className="relative h-20  ">
                 <span className="absolute -top-1.5 right-1.5 whitespace-nowrap text-[10px] tabular-nums text-subtle-foreground">
                   {formatHourLabel(hour * 60)}
                 </span>
@@ -71,7 +71,7 @@ export function DayView({ anchor, entries }: { anchor: Date; entries: CalendarEn
 
           <div className="relative flex-1">
             {hours.map((hour) => (
-              <div key={hour} className="h-20 border-b border-divider/60" />
+              <div key={hour} className="h-20  " />
             ))}
 
             {isToday && nowMinutes >= startHour * 60 && nowMinutes <= endHour * 60 && (
@@ -91,7 +91,7 @@ export function DayView({ anchor, entries }: { anchor: Date; entries: CalendarEn
                 <div
                   key={entry.id}
                   className={cn(
-                    'absolute inset-x-2 top-2 rounded-xl border border-l-2 p-3',
+                    'absolute inset-x-2 top-2 rounded-xl   p-3',
                     statusBarClass(entry.status)
                   )}
                 >
@@ -130,7 +130,7 @@ function DayBlock({
   return (
     <div
       className={cn(
-        'absolute inset-x-2 z-10 overflow-hidden rounded-xl border border-l-2 p-2.5',
+        'absolute inset-x-2 z-10 overflow-hidden rounded-xl   p-2.5',
         statusBarClass(entry.status)
       )}
       style={{ top, height }}

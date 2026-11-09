@@ -53,17 +53,17 @@ export function SignInMethodCard({
         info={`App Builders PH uses ${providerName} to sign you in. This is your active sign-in method and is managed by the authentication provider.`}
         infoShort={`${providerName} is your active sign-in method.`}
         action={
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+          <span className="hidden sm:inline-flex items-center gap-1 rounded-full   bg-muted/60 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-accent-text" />
             <span>Secured</span>
           </span>
         }
       />
       <PanelBody>
-        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4.5 shadow-xs">
+        <div className="flex flex-col gap-4 rounded-2xl   bg-card p-4.5 shadow-xs">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl   bg-surface shadow-xs">
               {isGoogle ? (
                 <GoogleIcon className="h-6 w-6" />
               ) : isGithub ? (
@@ -77,7 +77,7 @@ export function SignInMethodCard({
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-sm font-bold text-foreground">{providerName}</h3>
-                <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+                <span className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
                   <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                   Connected
                 </span>
@@ -90,7 +90,7 @@ export function SignInMethodCard({
           </div>
 
           <div className="flex justify-start sm:justify-end">
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-xl   bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 text-success" />
               <span>Active &amp; Verified</span>
             </span>

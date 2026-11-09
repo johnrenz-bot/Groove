@@ -292,7 +292,7 @@ export function BookingCalendar({
         onClick={() => (open ? setOpen(false) : openCalendar())}
         className={cn(
           'g-input flex h-11 w-full cursor-pointer items-center justify-between gap-2 text-left',
-          invalid && 'border-danger',
+          invalid && '',
           disabled && 'cursor-not-allowed opacity-60'
         )}
       >
@@ -329,7 +329,7 @@ export function BookingCalendar({
               width: position.width,
             }}
             onKeyDown={handlePopoverKeyDown}
-            className="z-[120] rounded-2xl border border-accent-border bg-card p-3.5 text-foreground shadow-[var(--shadow-lg)]"
+            className="z-[120] rounded-2xl   bg-card p-3.5 text-foreground shadow-[var(--shadow-lg)]"
           >
             <div className="mb-2 flex items-center justify-between gap-2">
               <button
@@ -337,7 +337,7 @@ export function BookingCalendar({
                 onClick={() => shiftMonth(-1)}
                 disabled={!canGoPrevious}
                 aria-label="Previous month"
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-30"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-30"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -348,7 +348,7 @@ export function BookingCalendar({
                 type="button"
                 onClick={() => shiftMonth(1)}
                 aria-label="Next month"
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -398,17 +398,17 @@ export function BookingCalendar({
                         }${STATUS_LABEL[cell.status]}${today ? ', today' : ''}`}
                         onClick={() => chooseDate(cell.value)}
                         className={cn(
-                          'flex h-9 w-full items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                          'flex h-9 w-full items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                           selected
                             ? 'bg-accent text-accent-foreground shadow-[var(--shadow-sm)]'
                             : cell.status === 'available'
                               ? 'cursor-pointer text-foreground hover:bg-muted'
                               : cell.status === 'notice'
-                                ? 'cursor-not-allowed border border-dashed border-border text-subtle-foreground/60'
+                                ? 'cursor-not-allowed    text-subtle-foreground/60'
                                 : cell.status === 'past'
                                   ? 'cursor-not-allowed text-subtle-foreground/45 line-through'
                                   : 'cursor-not-allowed bg-muted/30 text-subtle-foreground/55 line-through',
-                          today && !selected && 'ring-1 ring-border-strong/50'
+                          today && !selected && ' '
                         )}
                       >
                         {cell.day}
@@ -419,21 +419,21 @@ export function BookingCalendar({
               ))}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border-t border-divider pt-2.5 text-[10px] text-muted-foreground">
+            <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5   pt-2.5 text-[10px] text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-[3px] bg-accent" aria-hidden="true" />
                 Selected
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span
-                  className="h-2.5 w-2.5 rounded-[3px] border border-border"
+                  className="h-2.5 w-2.5 rounded-[3px]  "
                   aria-hidden="true"
                 />
                 Available
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span
-                  className="h-2.5 w-2.5 rounded-[3px] border border-dashed border-border"
+                  className="h-2.5 w-2.5 rounded-[3px]   "
                   aria-hidden="true"
                 />
                 Notice

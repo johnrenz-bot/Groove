@@ -58,14 +58,14 @@ function MiniCalendar() {
   return (
     <Card padding="none" className="overflow-hidden">
       <CardHeader
-        className="mb-0 border-b border-border px-5 pb-4"
+        className="mb-0   px-5 pb-4"
         icon={<CalendarIcon className="h-4 w-4" />}
         title={`${monthName} ${year}`}
         action={
           <Link
             href="/coach/calendar"
             aria-label="Open calendar"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:border-accent-border hover:bg-muted hover:text-foreground"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full   bg-card text-muted-foreground transition hover: hover:bg-muted hover:text-foreground"
           >
             <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
@@ -119,7 +119,7 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
         </span>
       }
       headerAccent={
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-accent-border bg-accent-soft text-sm font-bold text-accent-text">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-accent-soft text-sm font-bold text-accent-text">
           {user.photo_url ? (
             <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
           ) : (
@@ -131,7 +131,7 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
         <>
           <Link
             href={`/messages?user=${user.id}`}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-card px-5 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+            className="inline-flex h-10 items-center justify-center rounded-xl   bg-card px-5 text-xs font-semibold text-foreground transition hover: hover:bg-muted"
           >
             Message
           </Link>
@@ -145,7 +145,7 @@ function ProfileModal({ user, onClose }: { user: Profile | null; onClose: () => 
       }
     >
       <div className="space-y-3">
-        <div className="space-y-2 rounded-2xl border border-border bg-muted/30 p-4">
+        <div className="space-y-2 rounded-2xl   bg-muted/30 p-4">
           <p className="flex items-start gap-2 text-xs text-muted-foreground">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
             <span>{user.city_name || user.address_summary || 'San Jose del Monte, Bulacan'}</span>
@@ -234,7 +234,7 @@ function TicketModal({ coach, onClose }: { coach: Profile | null; onClose: () =>
       ) : (
         <form id="coach-support-ticket-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
           {error && (
-            <div className="rounded-xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger">
+            <div className="rounded-xl   bg-danger-soft p-3 text-xs text-danger">
               {error}
             </div>
           )}
@@ -532,15 +532,16 @@ const [loadError, setLoadError] = useState<string | null>(null);
                     key={user.id}
                     type="button"
                     onClick={() => setSelectedUser(user)}
-                    className="group cursor-pointer rounded-2xl border border-border bg-card p-3.5 text-center transition hover:border-accent-border hover:bg-muted hover:shadow-[0_2px_8px_rgba(20,40,75,0.04)]"
-                  >
-                    <div className="relative mx-auto mb-2.5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground transition-transform group-hover:scale-105">
-                      {user.photo_url ? (
-                        <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
-                      ) : (
-                        getInitials(user.firstname, user.lastname)
-                      )}
-                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" aria-hidden="true" />
+                    className="group flex min-h-[7.5rem] flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-card p-3.5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-muted hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"                  >
+                    <div className="relative mx-auto mb-2.5 flex h-14 w-14 shrink-0 items-center justify-center ring-2 ring-border transition-transform group-hover:scale-105">
+                      <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold text-foreground">
+                        {user.photo_url ? (
+                          <img src={user.photo_url} alt={user.firstname} className="h-full w-full object-cover" />
+                        ) : (
+                          getInitials(user.firstname, user.lastname)
+                        )}
+                      </span>
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full   bg-success border-2 border-card" aria-hidden="true" />
                     </div>
                     <p className="truncate text-xs font-bold text-foreground transition-colors group-hover:text-accent-text">
                       {user.firstname} {user.lastname}

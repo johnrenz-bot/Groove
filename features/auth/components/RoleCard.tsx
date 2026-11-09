@@ -102,11 +102,11 @@ export function RoleCard({
         }}
         aria-hidden={hidden || undefined}
         className={cn(
-          'group/role relative flex h-full min-h-[220px] flex-col justify-end overflow-hidden rounded-2xl border bg-card transition-[border-color,box-shadow] duration-300 motion-reduce:transition-none sm:min-h-[420px]',
-          'focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 focus-within:ring-offset-background',
+          'group/role relative flex h-full min-h-[220px] flex-col justify-end overflow-hidden rounded-2xl  bg-card transition-[,box-shadow] duration-300 motion-reduce:transition-none sm:min-h-[420px]',
+          'focus-within: focus-within: focus-within: focus-within:',
           glow
-            ? 'border-accent/60 shadow-[0_0_0_1px_rgba(244,190,77,0.24),0_26px_80px_-30px_rgba(244,190,77,0.5)]'
-            : 'border-white/15 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)]',
+            ? ' shadow-[0_0_0_1px_rgba(244,190,77,0.24),0_26px_80px_-30px_rgba(244,190,77,0.5)]'
+            : ' shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)]',
           hidden && 'pointer-events-none'
         )}
       >
@@ -162,13 +162,13 @@ export function RoleCard({
               if (!locked) onSelect(role);
             }
           }}
-          className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-none"
+          className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <span className="sr-only">{role.title}</span>
         </Link>
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-end gap-3 p-5 sm:justify-start sm:p-6">
-          <span className="inline-flex items-center rounded-full border border-accent/45 bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text backdrop-blur-md">
+          <span className="inline-flex items-center rounded-full   bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text backdrop-blur-md">
             {role.chip}
           </span>
         </div>

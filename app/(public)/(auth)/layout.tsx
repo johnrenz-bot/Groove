@@ -15,7 +15,7 @@ import React from 'react';
  */
 export default function AuthGroupLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="groove-auth min-h-screen antialiased selection:bg-[var(--accent)]/30 selection:text-[var(--accent-foreground)]">
+    <div className="dark tsp-auth min-h-screen bg-black text-white antialiased selection:bg-[var(--accent)]/30 selection:text-[var(--accent-foreground)]">
       {children}
     </div>
   );

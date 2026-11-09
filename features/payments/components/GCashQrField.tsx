@@ -157,10 +157,10 @@ export function GCashQrUploader({
   const pendingUpload = mode === 'deferred' && Boolean(file);
 
   return (
-    <div className="rounded-2xl border border-dashed border-border-strong bg-muted/20 p-4 transition hover:border-accent-border hover:bg-muted/30">
+    <div className="rounded-2xl    bg-muted/20 p-4 transition hover: hover:bg-muted/30">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-sm">
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl   bg-white p-1 shadow-sm">
             {resolving ? (
               <span className="flex h-full w-full items-center justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
@@ -388,7 +388,7 @@ export function GCashQrCard({
         infoShort="Optional scannable GCash QR for direct payments."
         action={
           hasRecord && !error ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success-soft px-2.5 py-0.5 text-[11px] font-semibold text-success">
+            <span className="inline-flex items-center gap-1.5 rounded-full   bg-success-soft px-2.5 py-0.5 text-[11px] font-semibold text-success">
               <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
               Saved
             </span>
@@ -462,7 +462,7 @@ export function GCashQrCard({
           </p>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-divider pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3   pt-4">
           <div>
             {hasRecord && (
               <Button

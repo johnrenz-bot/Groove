@@ -43,10 +43,12 @@ function navRoleFor(role: 'coach' | 'client' | 'admin' | 'none' | 'guest'): NavR
  * configuration object (`appHeaderConfig.ts`); every destination, menu item and
  * quick link comes from that object and nowhere else.
  *
- * SCROLL: transparent at the top, translucent black + blur after 8px, hidden
- * after 120px of downward travel and revealed on the first meaningful upward
- * move. The progress bar is a 2px scaleX transform, not a width, so tracking it
- * never reflows the page.
+ * SCROLL: `position: sticky`, always visible. Near-solid at the top and
+ * translucent + blur + hairline + shadow after 8px (`[data-scrolled]`), with
+ * the two states transitioning together over 260ms. The progress bar is a 2px
+ * scaleX transform, not a width, so tracking it never reflows the page.
+ * Route changes re-read the scroll offset (`resetKey` = pathname), because
+ * cached layouts keep this bar mounted across navigations.
  */
 export function AppHeader({ homeHref }: AppHeaderProps = {}) {
   const pathname = usePathname();
@@ -73,7 +75,7 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const { scrolled, hidden } = useHeaderScroll(progressRef);
+  const { scrolled } = useHeaderScroll(progressRef, pathname);
 
   const activeItem: HeaderNavItem | undefined = navItems.find((item) =>
     isHeaderNavActive(item, pathname)
@@ -164,7 +166,6 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
   }, [user, router]);
 
   const brandHref = homeHref ?? config.homeHref;
-  const hideHeader = hidden && !openMenu && !drawerOpen && !paletteOpen;
 
   return (
     <>
@@ -172,14 +173,14 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
         className="hx-header"
         data-variant={isLandingPage ? 'landing' : 'app'}
         data-scrolled={scrolled || undefined}
-        data-hidden={hideHeader || undefined}
         data-resolving={resolving || undefined}
       >
         <div ref={barRef} className="hx-header-inner">
           <div className="hx-header-brand">
             <AnimatedLogo
               href={brandHref}
-              variant="lockup"
+              variant={isLandingPage ? 'lockup' : 'lockup'}
+              name="GroovePH"
               subtitle="Performing Arts"
               onNavigate={closeMenus}
               className={isLandingPage ? 'hx-logo--landing' : 'hx-logo--header'}

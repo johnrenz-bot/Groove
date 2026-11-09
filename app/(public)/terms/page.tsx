@@ -116,7 +116,7 @@ export default function TermsAndConditionsPage() {
         <section id="definitions" className="scroll-mt-24">
           <SectionHeading title="Definitions" icon={<BookOpen className="h-4 w-4" />} />
           <Prose>
-            <dl className="g-card divide-y divide-divider overflow-hidden">
+            <dl className="g-card   overflow-hidden">
               {DEFINITIONS.map(({ term, def }) => (
                 <div
                   key={term}
@@ -206,7 +206,7 @@ export default function TermsAndConditionsPage() {
               How we handle your personal information is set out in full in our{' '}
               <Link
                 href="/privacy"
-                className="font-semibold text-accent-text underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="font-semibold text-accent-text underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 Privacy Policy
               </Link>
@@ -273,10 +273,10 @@ export default function TermsAndConditionsPage() {
         <section id="contact" className="scroll-mt-24">
           <SectionHeading title="Contact" icon={<Mail className="h-4 w-4" />} />
           <Prose>
-            <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-5">
+            <div className="flex items-center gap-4 rounded-2xl   bg-card/60 p-5">
               <span
                 aria-hidden="true"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-accent-text"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl   bg-muted text-accent-text"
               >
                 <Mail className="h-4 w-4" />
               </span>
@@ -284,7 +284,7 @@ export default function TermsAndConditionsPage() {
                 <p className="text-xs text-muted-foreground">Email us at</p>
                 <a
                   href="mailto:grooveyyph@gmail.com"
-                  className="break-all text-sm font-semibold text-accent-text underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="break-all text-sm font-semibold text-accent-text underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                 >
                   grooveyyph@gmail.com
                 </a>
@@ -308,7 +308,7 @@ function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode 
     <div className="mb-4 flex items-center gap-3.5">
       <span
         aria-hidden="true"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-soft text-accent-text"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text"
       >
         {icon}
       </span>
@@ -333,14 +333,14 @@ function Callout({
   children: React.ReactNode;
 }) {
   const tones = {
-    warning: 'border-warning/25 bg-warning-soft text-warning',
-    danger: 'border-danger/25 bg-danger-soft text-danger',
-    info: 'border-info/25 bg-info-soft text-info',
-    accent: 'border-accent-border bg-accent-soft text-accent-text',
+    warning: '-warning/25 bg-warning-soft text-warning',
+    danger: '-danger/25 bg-danger-soft text-danger',
+    info: '-info/25 bg-info-soft text-info',
+    accent: '-accent- bg-accent-soft text-accent-text',
   } as const;
 
   return (
-    <div className={`flex gap-3 rounded-xl border p-4 text-sm leading-relaxed ${tones[tone]}`}>
+    <div className={`flex gap-3 rounded-xl  p-4 text-sm leading-relaxed ${tones[tone]}`}>
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
       <div className="text-foreground">{children}</div>
     </div>

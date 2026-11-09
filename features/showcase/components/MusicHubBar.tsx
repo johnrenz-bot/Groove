@@ -6,7 +6,7 @@
  * Dedicated to the Groove Rehearsal Mix (https://youtu.be/3vmewzGcX2I)
  *
  * FEATURES:
- *   - Sleek glassmorphic container with refined dark/light border and blur.
+ *   - Sleek glassmorphic container with refined dark/light  and blur.
  *   - Auto-play attempt on entering allowed routes (/coach/talents & /client/talent).
  *   - Autoplay policy compliance with clear visual prompt when browser requires gesture.
  *   - Direct real-time volume slider (0-100), quick presets (25%, 50%, 80%, 100%), and mute/unmute.
@@ -103,8 +103,8 @@ export function MusicHubBar({
       <section
         aria-label="Groove Rehearsal Mix Music Hub"
         className={cn(
-          'sticky top-[68px] z-20 rounded-2xl border border-border/80 bg-card/95 shadow-md shadow-black/5 backdrop-blur-xl transition-all duration-300 dark:border-border/60 dark:bg-card/90 dark:shadow-black/20',
-          isWaitingForGesture && 'ring-2 ring-accent/40 border-accent/60',
+          'sticky top-[68px] z-20 rounded-2xl   bg-card/95 shadow-md shadow-black/5 backdrop-blur-xl transition-all duration-300 dark: dark:bg-card/90 dark:shadow-black/20',
+          isWaitingForGesture && '  ',
           className
         )}
       >
@@ -121,12 +121,12 @@ export function MusicHubBar({
               onClick={() => setDetailsModalOpen(true)}
               title="Open Track Details & Rehearsal Catalogue"
               className={cn(
-                'relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition-all duration-300 active:scale-95',
+                'relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl  transition-all duration-300 active:scale-95',
                 isPlaying
-                  ? 'border-accent/40 bg-accent/15 text-accent shadow-sm shadow-accent/20'
+                  ? ' bg-accent/15 text-accent shadow-sm shadow-accent/20'
                   : isWaitingForGesture
-                  ? 'border-accent bg-accent/10 text-accent animate-pulse'
-                  : 'border-border/70 bg-muted/60 text-muted-foreground hover:border-accent/40 hover:bg-muted'
+                  ? ' bg-accent/10 text-accent animate-pulse'
+                  : ' bg-muted/60 text-muted-foreground hover: hover:bg-muted'
               )}
               aria-label="Open Track Details & Rehearsal Catalogue"
             >
@@ -218,8 +218,8 @@ export function MusicHubBar({
               className={cn(
                 'inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all active:scale-95',
                 isWaitingForGesture || !isPlaying
-                  ? 'bg-accent text-accent-foreground shadow-sm shadow-accent/25 hover:bg-accent-hover ring-2 ring-accent/30'
-                  : 'border border-border/80 bg-muted/80 text-foreground hover:bg-muted'
+                  ? 'bg-accent text-accent-foreground shadow-sm shadow-accent/25 hover:bg-accent-hover  '
+                  : '  bg-muted/80 text-foreground hover:bg-muted'
               )}
             >
               {isLoading ? (
@@ -237,7 +237,7 @@ export function MusicHubBar({
               type="button"
               onClick={toggleMuted}
               aria-label={isMuted ? 'Unmute music' : 'Mute music'}
-              className="inline-flex h-8.5 w-8.5 cursor-pointer items-center justify-center rounded-xl border border-border/70 bg-card text-muted-foreground transition hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
+              className="inline-flex h-8.5 w-8.5 cursor-pointer items-center justify-center rounded-xl   bg-card text-muted-foreground transition hover: hover:bg-muted hover:text-foreground active:scale-95"
               title={isMuted ? 'Unmute' : `Mute (Current: ${volume}%)`}
             >
               {isMuted || volume === 0 ? (
@@ -255,7 +255,7 @@ export function MusicHubBar({
               onClick={() => setDetailsModalOpen(true)}
               aria-label="Track Details & Song Catalogue"
               title="Track Details & Song Catalogue"
-              className="hidden sm:inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-xl border border-border/70 bg-card px-2.5 text-xs font-semibold text-muted-foreground transition hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
+              className="hidden sm:inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-xl   bg-card px-2.5 text-xs font-semibold text-muted-foreground transition hover: hover:bg-muted hover:text-foreground active:scale-95"
             >
               <SlidersHorizontal className="h-3.5 w-3.5" />
               <span>Details</span>
@@ -268,10 +268,10 @@ export function MusicHubBar({
               aria-expanded={isExpanded}
               aria-label={isExpanded ? 'Collapse music controls' : 'Expand music controls'}
               className={cn(
-                'inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition-all active:scale-95',
+                'inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-xl  px-3 text-xs font-semibold transition-all active:scale-95',
                 isExpanded
-                  ? 'border-accent/40 bg-accent/10 text-accent-text shadow-2xs'
-                  : 'border-border/70 bg-card text-foreground hover:border-border hover:bg-muted'
+                  ? ' bg-accent/10 text-accent-text shadow-2xs'
+                  : ' bg-card text-foreground hover: hover:bg-muted'
               )}
             >
               <span>{isExpanded ? 'Less' : 'Controls'}</span>
@@ -288,7 +288,7 @@ export function MusicHubBar({
 
         {/* Recent Playback Resumption Alert Banner (if returning with saved position) */}
         {hasRecentSession && savedSession && (
-          <div className="flex items-center justify-between border-t border-accent/30 bg-accent/10 px-3.5 py-1.5 text-xs font-medium text-foreground sm:px-5">
+          <div className="flex items-center justify-between   bg-accent/10 px-3.5 py-1.5 text-xs font-medium text-foreground sm:px-5">
             <div className="flex items-center gap-2 truncate">
               <Sparkles className="h-3.5 w-3.5 text-accent shrink-0" />
               <span className="truncate">
@@ -310,10 +310,10 @@ export function MusicHubBar({
 
       {/* Expanded Controls Drawer */}
       {isExpanded && (
-        <div className="border-t border-border/70 bg-muted/30 px-3.5 py-3.5 sm:px-5">
+        <div className="  bg-muted/30 px-3.5 py-3.5 sm:px-5">
           {/* Autoplay restriction prompt if browser paused playback */}
           {isWaitingForGesture && (
-            <div className="mb-3 flex items-center justify-between rounded-xl border border-accent/40 bg-accent/10 px-3.5 py-2 text-xs font-medium text-foreground shadow-2xs">
+            <div className="mb-3 flex items-center justify-between rounded-xl   bg-accent/10 px-3.5 py-2 text-xs font-medium text-foreground shadow-2xs">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent shrink-0" />
                 <span>Browser autoplay policy paused audio. Click <strong>Play Mix</strong> to enable background music.</span>
@@ -356,10 +356,10 @@ export function MusicHubBar({
                 aria-pressed={isLooping}
                 title={isLooping ? 'Continuous loop is ON' : 'Turn continuous loop ON'}
                 className={cn(
-                  'inline-flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition active:scale-95',
+                  'inline-flex cursor-pointer items-center gap-1.5 rounded-xl  px-3 py-2 text-xs font-semibold transition active:scale-95',
                   isLooping
-                    ? 'border-accent/50 bg-accent/15 text-accent shadow-2xs'
-                    : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? ' bg-accent/15 text-accent shadow-2xs'
+                    : ' bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
               >
                 <Repeat className={cn('h-3.5 w-3.5', isLooping && 'text-accent')} aria-hidden="true" />
@@ -372,7 +372,7 @@ export function MusicHubBar({
                 onClick={handlePrev}
                 title="Previous track"
                 aria-label="Previous track"
-                className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-border bg-card px-2.5 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-xl   bg-card px-2.5 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <SkipBack className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Prev</span>
@@ -383,7 +383,7 @@ export function MusicHubBar({
                 onClick={handleNext}
                 title="Next track"
                 aria-label="Next track"
-                className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-border bg-card px-2.5 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-xl   bg-card px-2.5 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <span className="hidden sm:inline">Next</span>
                 <SkipForward className="h-3.5 w-3.5" />
@@ -394,7 +394,7 @@ export function MusicHubBar({
                 type="button"
                 onClick={() => music.seekTo(0)}
                 title="Restart track from 0:00"
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl   bg-card px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Restart</span>
@@ -405,7 +405,7 @@ export function MusicHubBar({
                 type="button"
                 onClick={() => setDetailsModalOpen(true)}
                 title="Open Music Hub details modal"
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/15 px-3 py-2 text-xs font-bold text-accent-text transition hover:bg-accent hover:text-accent-foreground active:scale-95"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl   bg-accent/15 px-3 py-2 text-xs font-bold text-accent-text transition hover:bg-accent hover:text-accent-foreground active:scale-95"
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Track Details</span>
@@ -414,7 +414,7 @@ export function MusicHubBar({
 
             {/* Volume, Slider & Presets */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-card px-3 py-1.5 shadow-2xs">
+              <div className="flex items-center gap-2 rounded-xl   bg-card px-3 py-1.5 shadow-2xs">
                 <button
                   type="button"
                   onClick={toggleMuted}
@@ -460,8 +460,8 @@ export function MusicHubBar({
                     className={cn(
                       'h-7 rounded-lg px-2 text-[10px] font-bold transition active:scale-95 cursor-pointer',
                       !isMuted && volume === val
-                        ? 'bg-accent/20 text-accent font-extrabold border border-accent/40'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground border border-border/50'
+                        ? 'bg-accent/20 text-accent font-extrabold  '
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground  '
                     )}
                   >
                     {val}%
@@ -473,7 +473,7 @@ export function MusicHubBar({
 
           {/* Graceful error / Audio Note notice if any */}
           {unavailableMessage && (
-            <div className="mt-3 flex items-center justify-between rounded-xl border border-warning/30 bg-warning/10 px-3.5 py-2 text-xs text-warning">
+            <div className="mt-3 flex items-center justify-between rounded-xl   bg-warning/10 px-3.5 py-2 text-xs text-warning">
               <div className="flex items-center gap-2">
                 <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>{unavailableMessage}</span>

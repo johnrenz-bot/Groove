@@ -222,7 +222,7 @@ export default function AdminDashboardPage() {
             action={
               <Link
                 href="/admin/coaches"
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-accent-text transition-colors hover:border-accent-border hover:bg-accent-soft"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full   bg-card px-3 py-1.5 text-xs font-semibold text-accent-text transition-colors hover: hover:bg-accent-soft"
               >
                 Manage <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
@@ -271,7 +271,7 @@ export default function AdminDashboardPage() {
             action={
               <Link
                 href="/admin/bookings"
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-accent-text transition-colors hover:border-accent-border hover:bg-accent-soft"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full   bg-card px-3 py-1.5 text-xs font-semibold text-accent-text transition-colors hover: hover:bg-accent-soft"
               >
                 All bookings <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
@@ -287,7 +287,7 @@ export default function AdminDashboardPage() {
                 {bookingMix.map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-2xl border border-border bg-muted p-4"
+                    className="rounded-2xl   bg-muted p-4"
                   >
                     <p className="text-2xl font-bold tabular-nums tracking-[-0.03em] text-foreground">
                       {item.value}
@@ -300,7 +300,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ))}
               </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-divider pt-4 text-xs text-muted-foreground">
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-2   pt-4 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
                   {o.bookingsToday} booking{o.bookingsToday === 1 ? '' : 's'} scheduled today
@@ -321,7 +321,7 @@ export default function AdminDashboardPage() {
           action={
             <Link
               href="/admin/bookings"
-              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-accent-text transition-colors hover:border-accent-border hover:bg-accent-soft"
+              className="inline-flex shrink-0 items-center gap-1 rounded-full   bg-card px-3 py-1.5 text-xs font-semibold text-accent-text transition-colors hover: hover:bg-accent-soft"
             >
               View all <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
@@ -344,7 +344,7 @@ export default function AdminDashboardPage() {
             {bookings.data.map((b) => (
               <li
                 key={b.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-muted px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl   bg-muted px-4 py-3"
               >
                 <div className="min-w-0 space-y-0.5">
                   <p className="truncate text-sm font-bold text-foreground">
@@ -441,16 +441,16 @@ function AttentionCard({
     <div
       className={cn(
         'g-card g-card-hover group flex items-start gap-3.5 p-5 transition-colors',
-        tone === 'danger' ? 'border-danger/30' : 'border-warning/30'
+        tone === 'danger' ? '' : ''
       )}
     >
       <span
         aria-hidden="true"
         className={cn(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border',
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ',
           tone === 'danger'
-            ? 'border-danger/30 bg-danger-soft text-danger'
-            : 'border-warning/30 bg-warning-soft text-warning'
+            ? ' bg-danger-soft text-danger'
+            : ' bg-warning-soft text-warning'
         )}
       >
         {icon}
@@ -459,7 +459,7 @@ function AttentionCard({
         <div className="flex items-start gap-2">
           <Link
             href={href}
-            className="text-sm font-bold text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="text-sm font-bold text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
           >
             {title}
           </Link>

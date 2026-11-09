@@ -109,7 +109,7 @@ export function BookingAgreementPanel({
 
   return (
     <>
-      <div className="rounded-2xl border border-accent-border/40 bg-accent-soft/40 p-3.5 text-xs">
+      <div className="rounded-2xl   bg-accent-soft/40 p-3.5 text-xs">
         <p className="flex items-center gap-1.5 font-semibold text-foreground">
           <FileSignature className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
           Session agreement
@@ -175,7 +175,7 @@ export function BookingAgreementPanel({
 /** Inline spinner used while a booking card is loading its own data. */
 export function AgreementSkeleton() {
   return (
-    <div className="flex items-center gap-2 rounded-2xl border border-border bg-muted/40 p-3.5 text-xs text-muted-foreground">
+    <div className="flex items-center gap-2 rounded-2xl   bg-muted/40 p-3.5 text-xs text-muted-foreground">
       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
       Loading agreement…
     </div>

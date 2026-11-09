@@ -39,11 +39,7 @@ export function Section({
       {(title || action || eyebrow) && (
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
-            {eyebrow && (
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
-                {eyebrow}
-              </p>
-            )}
+            {eyebrow && <p className="g-eyebrow mb-1.5">{eyebrow}</p>}
             {title && (
               <div className="flex items-center gap-2">
                 {typeof title === 'string' ? (

@@ -158,7 +158,7 @@ export const FEATURED_THEATER_COMPANIES: TheaterCompany[] = [
       fallbackReason: 'Official resident company heraldry',
     },
     image: {
-      url: '/hero-theater.jpg',
+      url: '/image/bg/hero-theater.jpg',
       alt: 'Ornate theater auditorium with gilded balconies and red velvet seating',
       credit: 'Repertory Philippines Archive',
       source_url: 'https://repertoryphilippines.ph/',
@@ -298,7 +298,7 @@ export const FEATURED_THEATER_COMPANIES: TheaterCompany[] = [
       fallbackReason: 'Official festival mark',
     },
     image: {
-      url: '/image/bg/hero-stage.jpg',
+      url: '/image/bg/hero-theater.jpg',
       alt: 'Actors on black box theater stage during a Virgin Labfest premiere',
       credit: 'CCP Digital Archives',
       source_url: 'https://digitalarchives.culturalcenter.gov.ph/',

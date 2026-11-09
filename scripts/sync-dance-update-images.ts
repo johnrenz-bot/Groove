@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Dance Update Image Sync
  * ============================================================================
  * Discovers, validates, and DOWNLOADS the official artwork for every Latest

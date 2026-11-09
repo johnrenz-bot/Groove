@@ -1,10 +1,11 @@
-﻿import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { DanceUpdateInput } from '../../../lib/dance/schema.ts';
 import { DEFAULT_LIMIT, MAX_LIMIT, UPCOMING_CATEGORIES } from '../../../lib/dance/constants.ts';
 import { resolveVerifiedItemImage } from '../../../lib/dance/imageVerification.ts';
 // Relative (no @/ alias): this service is also imported by scripts run through
 // `node --experimental-strip-types`, which cannot resolve the webpack alias.
 import { buildOrContains } from '../../../lib/postgrest.ts';
+import { isImageUsedGlobally } from '../../../lib/dance/globalImageDedup.ts';
 import { VERIFIED_DANCE_UPDATES } from '../data/danceUpdates.ts';
 
 export interface DanceUpdateRecord extends DanceUpdateInput {
@@ -353,6 +354,15 @@ export async function ingestDanceUpdates(updates: DanceUpdateInput[]) {
 
       // A record with no image must say why. An unexplained blank is
       // indistinguishable from a broken page.
+      if (finalImageUrl) {
+        if (await isImageUsedGlobally(finalImageUrl)) {
+          finalImageUrl = null;
+          finalImageCredit = null;
+          finalImageVerified = false;
+          finalFallbackReason = 'this official photo is already used in another performing-arts category; showing the branded fallback instead of repeating it';
+        }
+      }
+
       if (!finalImageUrl && !finalFallbackReason) {
         finalFallbackReason =
           'no official source image could be verified for this update';
@@ -385,7 +395,7 @@ export async function ingestDanceUpdates(updates: DanceUpdateInput[]) {
   try {
     const { data, error } = await supabase
       .from('dance_updates')
-      .upsert(processedRows, { onConflict: 'source_url' })
+      .upsert(processedRows, { onConflict: 'source_url,title' })
       .select('id');
 
     if (error) {

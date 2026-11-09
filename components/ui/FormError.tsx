@@ -23,7 +23,7 @@ export function FormError({
       role="alert"
       aria-live="assertive"
       className={cn(
-        'flex items-start gap-3 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3.5',
+        'flex items-start gap-3 rounded-2xl  -danger/30 bg-danger-soft px-4 py-3.5',
         className
       )}
     >
@@ -53,7 +53,7 @@ export function FormNotice({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-2xl border border-info/25 bg-info-soft px-4 py-3.5',
+        'flex items-start gap-3 rounded-2xl  -info/25 bg-info-soft px-4 py-3.5',
         className
       )}
     >
@@ -74,7 +74,7 @@ export function FormSuccess({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-2xl border border-success/25 bg-success-soft px-4 py-3.5',
+        'flex items-start gap-3 rounded-2xl  -success/25 bg-success-soft px-4 py-3.5',
         className
       )}
     >

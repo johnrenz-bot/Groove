@@ -133,7 +133,7 @@ export default function AdminUsersPage() {
         <div className="flex min-w-0 items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-accent-border bg-accent-soft text-[11px] font-bold text-accent-text"
+            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl   bg-accent-soft text-[11px] font-bold text-accent-text"
           >
             {u.photo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -449,14 +449,14 @@ function SummaryTile({
       <span
         aria-hidden="true"
         className={
-          'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ' +
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl  ' +
           (tone === 'warning'
-            ? 'border-warning/30 bg-warning-soft text-warning'
+            ? ' bg-warning-soft text-warning'
             : tone === 'danger'
-              ? 'border-danger/30 bg-danger-soft text-danger'
+              ? ' bg-danger-soft text-danger'
               : tone === 'success'
-                ? 'border-success/30 bg-success-soft text-success'
-                : 'border-accent-border bg-accent-soft text-accent-text')
+                ? ' bg-success-soft text-success'
+                : ' bg-accent-soft text-accent-text')
         }
       >
         {icon}

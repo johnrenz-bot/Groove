@@ -14,6 +14,32 @@ import type { LandingStats } from './landingStats';
  * "hide that number" rather than to a made-up one: `HeroStatsClient` filters out
  * anything at zero, so a stat the database cannot answer simply does not appear.
  */
+export interface CommunityMember {
+  id: string;
+  firstname: string | null;
+  lastname: string | null;
+  photo_url: string | null;
+  role: string;
+}
+
+export async function getCommunityMembers(limit = 12): Promise<CommunityMember[]> {
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, firstname, lastname, photo_url, role')
+      .in('role', ['coach', 'client'])
+      .eq('status', 'active')
+      .order('role', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error || !data) return [];
+    return data as CommunityMember[];
+  } catch {
+    return [];
+  }
+}
+
 export async function getLandingStats(): Promise<LandingStats> {
   const supabase = await createClient();
 

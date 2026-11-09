@@ -40,7 +40,7 @@ interface NotificationDropdownProps {
  * WHAT WAS ACTUALLY WRONG
  * The panel carried `className="g-menu ..."`, and `.g-menu` has never had a rule
  * in globals.css — only `.g-menu-item` and friends exist. So the dropdown shipped
- * with no background, no border, no shadow and no radius, and each row was a
+ * with no background, no , no shadow and no radius, and each row was a
  * separately bordered card. It read as a loose stack of boxes rather than a menu.
  * The surface is now `.g-notif-panel`, and a row is `.g-notif-item`.
  *
@@ -252,7 +252,7 @@ export function NotificationDropdown({
       >
         <Bell className="h-[18px] w-[18px]" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-accent-foreground ring-2 ring-card">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-accent-foreground  ">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -381,7 +381,7 @@ export function NotificationDropdown({
                 <div className="flex flex-col items-center gap-2 px-4 py-9 text-center">
                   <span
                     aria-hidden="true"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-subtle-foreground"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl   bg-muted text-subtle-foreground"
                   >
                     <Inbox className="h-4 w-4" />
                   </span>

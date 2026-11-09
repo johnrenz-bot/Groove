@@ -51,9 +51,9 @@ export const ACCENTS: { value: Accent; label: string; description: string; swatc
 ];
 
 export const DEFAULT_ACCENT: Accent = 'unity';
-/** A first-time visitor follows the OS. Dark remains the no-JS fallback. */
-export const DEFAULT_MODE: ThemeMode = 'system';
-export const DEFAULT_THEME: Theme = 'dark';
+/** Default to the new light editorial palette everywhere. */
+export const DEFAULT_MODE: ThemeMode = 'light';
+export const DEFAULT_THEME: Theme = 'light';
 
 export const GLOBAL_THEME_KEY = 'groove-global-theme';
 const THEME_KEY = 'groove-theme';
@@ -281,9 +281,42 @@ export function setAccent(next: Accent) {
 export function resolveInitialGlobalTheme(): GlobalThemeId {
   if (typeof window === 'undefined') return DEFAULT_THEME;
   try {
-    const mode = resolveInitialMode();
-    if (mode !== 'system') return mode;
-    return systemTheme();
+    let hasExplicitMode = false;
+    let storedMode = null;
+    try {
+      storedMode = window.localStorage.getItem(MODE_KEY);
+      if (storedMode === 'light' || storedMode === 'dark' || storedMode === 'system') {
+        hasExplicitMode = true;
+      } else {
+        const legacy = window.localStorage.getItem(THEME_KEY);
+        if (legacy === 'light' || legacy === 'dark') {
+          storedMode = legacy;
+          hasExplicitMode = true;
+        }
+      }
+    } catch {
+      // Storage blocked; fall through to the OS default.
+    }
+
+    const mode = (hasExplicitMode && storedMode
+      ? storedMode
+      : resolveInitialMode()) as ThemeMode;
+
+    if (hasExplicitMode) {
+      if (mode === 'system') return systemTheme();
+      return mode as GlobalThemeId;
+    }
+
+    try {
+      const storedGlobal = window.localStorage.getItem(GLOBAL_THEME_KEY);
+      if (storedGlobal && GLOBAL_THEMES.some((t) => t.id === storedGlobal)) {
+        return storedGlobal as GlobalThemeId;
+      }
+    } catch {
+      // ignore
+    }
+
+    return mode === 'system' ? systemTheme() : (mode as GlobalThemeId);
   } catch {
     return DEFAULT_THEME;
   }

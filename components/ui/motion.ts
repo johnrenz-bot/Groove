@@ -15,7 +15,8 @@ export const DURATION = {
   base: 0.18,
   slow: 0.24,
   card: 0.3,
-  modal: 0.22,
+  modal: 0.28,
+  loading: 0.42,
   image: 0.6,
 } as const;
 
@@ -59,9 +60,9 @@ export const backdropVariants: Variants = {
   },
 };
 
-/** Panel: fade + a slight rise and scale, 220ms in, quicker out. */
+/** Panel: fade + a slight rise and scale, 280ms in, quicker out. */
 export const modalPanel: Variants = {
-  hidden: { opacity: 0, scale: 0.96, y: 8 },
+  hidden: { opacity: 0, scale: 0.96, y: 12 },
   visible: {
     opacity: 1,
     scale: 1,
@@ -71,8 +72,32 @@ export const modalPanel: Variants = {
   exit: {
     opacity: 0,
     scale: 0.97,
-    y: 6,
+    y: 8,
     transition: { duration: DURATION.fast, ease: EASE_OUT },
+  },
+};
+
+/** Loading overlay: cinematic fade with a gentle blur settle. */
+export const loadingOverlay: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3, ease: EASE_OUT } },
+  exit: { opacity: 0, transition: { duration: 0.2, ease: EASE_OUT } },
+};
+
+/** Loading panel: slightly more deliberate than a generic modal. */
+export const loadingPanel: Variants = {
+  hidden: { opacity: 0, scale: 0.94, y: 16 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: DURATION.loading, ease: EASE_OUT },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.97,
+    y: 10,
+    transition: { duration: 0.18, ease: EASE_OUT },
   },
 };
 

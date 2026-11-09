@@ -543,7 +543,7 @@ export default function CoachAppointmentsPage() {
         action={
           <div className="flex flex-wrap items-center gap-2">
             <span
-              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
+              className="inline-flex h-10 items-center gap-1.5 rounded-full   bg-card px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
               title={
                 liveMode === 'live'
                   ? 'Connected to Supabase realtime. A 60-second poll runs as a fallback.'
@@ -565,7 +565,7 @@ export default function CoachAppointmentsPage() {
               onClick={() => void refresh()}
               disabled={refreshing}
               aria-label="Refresh requests"
-              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-transparent text-foreground transition hover:border-border-strong hover:bg-muted disabled:opacity-60"
+              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full   bg-transparent text-foreground transition hover: hover:bg-muted disabled:opacity-60"
             >
               <RefreshCw
                 className={cn('h-4 w-4 text-accent-text', refreshing && 'animate-spin')}
@@ -574,7 +574,7 @@ export default function CoachAppointmentsPage() {
             </button>
             <Link
               href="/coach/calendar"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border bg-transparent px-5 text-sm font-semibold tracking-[-0.01em] text-foreground transition-all duration-200 hover:border-border-strong hover:bg-muted"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full   bg-transparent px-5 text-sm font-semibold tracking-[-0.01em] text-foreground transition-all duration-200 hover: hover:bg-muted"
             >
               <Calendar className="h-4 w-4 text-accent-text" aria-hidden="true" />
               Calendar View
@@ -602,7 +602,7 @@ export default function CoachAppointmentsPage() {
       {actionError && (
         <div
           role="alert"
-          className="flex items-start justify-between gap-3 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
+          className="flex items-start justify-between gap-3 rounded-2xl   bg-danger-soft px-4 py-3 text-xs text-danger"
         >
           <span className="flex items-start gap-2">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
@@ -645,7 +645,7 @@ export default function CoachAppointmentsPage() {
             Loading appointment requests...
           </p>
           {[0, 1, 2].map((i) => (
-            <div key={i} className="space-y-4 rounded-[20px] border border-border bg-card p-5 sm:p-6">
+            <div key={i} className="space-y-4 rounded-[20px]   bg-card p-5 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="g-skeleton h-12 w-12 shrink-0 rounded-full" />
                 <div className="flex-1 space-y-2">

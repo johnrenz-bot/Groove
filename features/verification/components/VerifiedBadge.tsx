@@ -45,7 +45,7 @@ export function VerifiedBadge({
   return (
     <span
       className={cn(
-        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full border border-success/30 bg-success-soft font-semibold uppercase tracking-[0.08em] text-success',
+        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full   bg-success-soft font-semibold uppercase tracking-[0.08em] text-success',
         s.wrap,
         className
       )}
@@ -82,17 +82,17 @@ const STATUS_STYLES: Record<
   { wrap: string; icon: React.ElementType; label: string }
 > = {
   verified: {
-    wrap: 'border-success/30 bg-success-soft text-success',
+    wrap: ' bg-success-soft text-success',
     icon: CheckCircle2,
     label: 'Verified',
   },
   pending: {
-    wrap: 'border-warning/30 bg-warning-soft text-warning',
+    wrap: ' bg-warning-soft text-warning',
     icon: Clock,
     label: 'Pending review',
   },
   rejected: {
-    wrap: 'border-danger/30 bg-danger-soft text-danger',
+    wrap: ' bg-danger-soft text-danger',
     icon: XCircle,
     label: 'Rejected',
   },
@@ -121,7 +121,7 @@ export function VerificationStatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full border font-semibold',
+        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full  font-semibold',
         style.wrap,
         s.wrap,
         className

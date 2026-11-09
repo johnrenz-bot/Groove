@@ -60,7 +60,7 @@ export function BackToTopButton() {
       onClick={handleScrollTop}
       aria-label="Back to top"
       title="Back to top"
-      className={`group fixed z-50 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/85 text-foreground shadow-[var(--shadow-md)] backdrop-blur-md transition-all duration-300 hover:border-accent hover:bg-accent hover:text-accent-foreground hover:shadow-[var(--shadow-accent)] hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent animate-in fade-in zoom-in-90 ${
+      className={`group fixed z-50 flex h-11 w-11 items-center justify-center rounded-full   bg-card/85 text-foreground shadow-[var(--shadow-md)] backdrop-blur-md transition-all duration-300 hover: hover:bg-accent hover:text-accent-foreground hover:shadow-[var(--shadow-accent)] hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background animate-in fade-in zoom-in-90 ${
         isDashboardRoute
           ? 'bottom-20 right-5 sm:bottom-24 sm:right-6'
           : 'bottom-5 right-5 sm:bottom-6 sm:right-6'

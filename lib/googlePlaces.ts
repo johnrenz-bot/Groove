@@ -529,7 +529,7 @@ export function interpretGooglePlacesError(
           ? windowStartSeconds * 1000
           : 0;
       const candidate = windowStartMs ? windowStartMs + DAY_MS : 0;
-      const resetAt = candidate > now + 30_000 ? candidate : nextUtcMidnight(now);
+      const resetAt = candidate > 0 ? candidate : nextUtcMidnight(now);
       return {
         status: 'quota',
         message: `Google Places daily search quota is exhausted${

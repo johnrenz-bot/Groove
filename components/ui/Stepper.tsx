@@ -46,15 +46,12 @@ export function Stepper({
                     disabled={!reachable}
                     aria-current={active ? 'step' : undefined}
                     className={cn(
-                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-all duration-200',
-                      done
-                        ? 'border-accent bg-accent text-accent-foreground'
-                        : active
-                          ? 'border-accent bg-accent-soft text-accent-text'
-                          : 'border-border bg-card text-subtle-foreground',
-                      reachable && 'cursor-pointer hover:border-accent hover:shadow-[var(--shadow-sm)]',
-                      !reachable && !active && 'cursor-default'
+                      'g-index h-8 w-8 text-xs',
+                      reachable && 'cursor-pointer hover:shadow-[var(--shadow-sm)]',
+                      !reachable && 'cursor-default'
                     )}
+                    data-active={active || undefined}
+                    data-done={done || undefined}
                   >
                     {done ? <Check className="h-4 w-4" aria-hidden="true" /> : i + 1}
                   </button>
@@ -63,7 +60,7 @@ export function Stepper({
                       aria-hidden="true"
                       className={cn(
                         'h-px flex-1 transition-colors duration-200',
-                        done ? 'bg-accent' : 'bg-border'
+                        done ? 'bg-accent' : 'bg-'
                       )}
                     />
                   )}
@@ -133,11 +130,11 @@ export function StepActions({
           'inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-accent px-7 text-sm font-semibold text-accent-foreground',
           'shadow-[var(--shadow-sm)] transition-all duration-200 hover:bg-accent-hover hover:shadow-[var(--shadow-accent)]',
           'active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
-          error && !submitting && 'ring-2 ring-danger ring-offset-2 ring-offset-background'
+          error && !submitting && '   '
         )}
       >
         {submitting && (
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+          <span className="h-4 w-4 animate-spin rounded-full   " aria-hidden="true" />
         )}
         {submitting ? 'Please wait…' : submitLabel || nextLabel}
       </button>

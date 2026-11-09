@@ -56,7 +56,7 @@ function DetailRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/30 px-3 py-2.5">
+    <div className="flex items-start gap-2.5 rounded-xl   bg-muted/30 px-3 py-2.5">
       <span className="mt-0.5 shrink-0 text-accent-text" aria-hidden="true">
         {icon}
       </span>
@@ -153,11 +153,11 @@ export function BookingDetailsModal({
     >
       <ModalSection className="space-y-4">
         {/* Identity */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 p-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl   bg-muted/30 p-3.5">
           <div className="flex min-w-0 items-center gap-3">
             <span
               className={cn(
-                'flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden border border-border bg-card text-sm font-bold text-accent-text',
+                'flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden   bg-card text-sm font-bold text-accent-text',
                 role === 'client' ? 'rounded-2xl' : 'rounded-full'
               )}
             >
@@ -267,7 +267,7 @@ export function BookingDetailsModal({
         )}
 
         {appointment.feedback && (
-          <ModalCard className="border-warning/30 bg-warning-soft text-warning">
+          <ModalCard className=" bg-warning-soft text-warning">
             <div className="flex items-center gap-1.5 font-bold">
               <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
               <span className="tabular-nums">

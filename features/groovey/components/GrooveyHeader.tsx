@@ -46,7 +46,7 @@ export const GrooveyHeader: React.FC = () => {
           dotClass: 'bg-success',
           badgeText: serverHealth.model || 'Gemini 3.8 Flash',
           label: 'Ready',
-          colorClass: 'text-success bg-success-soft border-success/30',
+          colorClass: 'text-success bg-success-soft ',
           icon: CheckCircle2,
         };
       case 'connecting':
@@ -54,7 +54,7 @@ export const GrooveyHeader: React.FC = () => {
           dotClass: 'bg-warning animate-pulse',
           badgeText: 'Connecting...',
           label: 'Connecting',
-          colorClass: 'text-warning bg-warning-soft border-warning/30',
+          colorClass: 'text-warning bg-warning-soft ',
           icon: Clock,
         };
       case 'unavailable':
@@ -62,7 +62,7 @@ export const GrooveyHeader: React.FC = () => {
           dotClass: 'bg-warning animate-pulse',
           badgeText: 'High Demand',
           label: 'Retrying',
-          colorClass: 'text-warning bg-warning-soft border-warning/30',
+          colorClass: 'text-warning bg-warning-soft ',
           icon: AlertCircle,
         };
       case 'configuration-error':
@@ -71,7 +71,7 @@ export const GrooveyHeader: React.FC = () => {
           dotClass: 'bg-danger',
           badgeText: 'Setup Required',
           label: 'Config Error',
-          colorClass: 'text-danger bg-danger-soft border-danger/30',
+          colorClass: 'text-danger bg-danger-soft ',
           icon: AlertCircle,
         };
     }
@@ -81,7 +81,7 @@ export const GrooveyHeader: React.FC = () => {
   const StatusIcon = statusInfo.icon;
 
   return (
-    <header className="border-b border-border bg-card/95 backdrop-blur-md px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2.5 sm:gap-4 shrink-0 transition-colors z-20">
+    <header className="  bg-card/95 backdrop-blur-md px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2.5 sm:gap-4 shrink-0 transition-colors z-20">
       <div className="flex items-center justify-between gap-3 w-full flex-wrap sm:flex-nowrap">
         {/* Left: History Toggle + Mascot Branding */}
         <div className="flex items-center gap-2.5 min-w-0">
@@ -89,10 +89,10 @@ export const GrooveyHeader: React.FC = () => {
             type="button"
             aria-label="Toggle rehearsal history drawer"
             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-            className={`p-1.5 sm:p-2 rounded-xl transition-colors cursor-pointer border ${
+            className={`p-1.5 sm:p-2 rounded-xl transition-colors cursor-pointer  ${
               isDrawerOpen
-                ? 'bg-accent-soft text-accent-text border-accent-border'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted border-transparent'
+                ? 'bg-accent-soft text-accent-text '
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted '
             }`}
             title={isDrawerOpen ? 'Close Rehearsal Sessions' : 'Open Rehearsal Sessions'}
           >
@@ -104,7 +104,7 @@ export const GrooveyHeader: React.FC = () => {
             onClick={() => setActiveTab('coach')}
           >
             <div className="relative shrink-0">
-              <div className="w-8 h-8 rounded-full border border-border bg-muted overflow-hidden flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full   bg-muted overflow-hidden flex items-center justify-center">
                 <Image
                   src="/groovey/grooveyy-mascot.png"
                   alt="Grooveyy Mascot"
@@ -114,14 +114,14 @@ export const GrooveyHeader: React.FC = () => {
                   unoptimized
                 />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-success ring-2 ring-card" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-success border-2 border-card  " />
             </div>
 
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-accent-text transition-colors truncate">
                 Grooveyy AI
               </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-accent-soft text-accent-text text-[10px] font-semibold tracking-wide uppercase border border-accent-border">
+              <span className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-accent-soft text-accent-text text-[10px] font-semibold tracking-wide uppercase  ">
                 <Sparkles className="w-2.5 h-2.5 inline" /> Studio
               </span>
             </div>
@@ -130,7 +130,7 @@ export const GrooveyHeader: React.FC = () => {
 
         {/* Center: Segmented Navigation Tabs */}
         <div className="order-3 sm:order-2 w-full sm:w-auto flex items-center justify-center pt-1.5 sm:pt-0">
-          <div className="inline-flex items-center p-1 rounded-xl bg-muted border border-border shadow-xs">
+          <div className="inline-flex items-center p-1 rounded-xl bg-muted   shadow-xs">
             <button
               type="button"
               onClick={() => setActiveTab('coach')}
@@ -156,7 +156,7 @@ export const GrooveyHeader: React.FC = () => {
               <BookOpen className="w-3.5 h-3.5 text-accent-text" />
               <span>Repertoire</span>
               {repertoire.length > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-accent-soft text-accent-text border border-accent-border/50">
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-accent-soft text-accent-text  ">
                   {repertoire.length}
                 </span>
               )}
@@ -184,7 +184,7 @@ export const GrooveyHeader: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowStatusPopover(!showStatusPopover)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${statusInfo.colorClass}`}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium  transition-all cursor-pointer ${statusInfo.colorClass}`}
               title="Click to view AI engine status"
             >
               <span className={`w-2 h-2 rounded-full ${statusInfo.dotClass}`} />
@@ -199,8 +199,8 @@ export const GrooveyHeader: React.FC = () => {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowStatusPopover(false)}
                 />
-                <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-card border border-border shadow-xl p-3.5 z-50 animate-groovey-in text-xs space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-border">
+                <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-card   shadow-xl p-3.5 z-50 animate-groovey-in text-xs space-y-3">
+                  <div className="flex items-center justify-between pb-2  ">
                     <span className="font-semibold text-foreground flex items-center gap-1.5">
                       <StatusIcon className="w-4 h-4 text-accent" /> Engine Diagnostics
                     </span>
@@ -239,7 +239,7 @@ export const GrooveyHeader: React.FC = () => {
                   </div>
 
                   {serverHealth.freeTierNote && (
-                    <div className="p-2 rounded-lg bg-accent-soft border border-accent-border text-[11px] text-accent-text">
+                    <div className="p-2 rounded-lg bg-accent-soft   text-[11px] text-accent-text">
                       {serverHealth.freeTierNote}
                     </div>
                   )}

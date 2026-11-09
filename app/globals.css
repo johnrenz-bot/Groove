@@ -9,7 +9,7 @@
      UNITY BLUE      #2F4E8C  primary action, links, active nav, focus accents
      RELIEF RED      #AE313A  destructive actions, errors, important warnings
      SUNBURST YELLOW #F4BE4D  restrained accent only — featured, verified, badges
-     WHITEWASHED     #F7F0E1  light background, light surfaces, text on dark
+     WHITEWASHED     #ffffff  light background, light surfaces, text on dark
        FENCE (cream)
      CARBON          #353535  dark background, dark text on light surfaces
 
@@ -97,13 +97,13 @@
   --color-glass-border-hover: var(--glass-border-hover);
 
   /* --- Shape & rhythm -------------------------------------------------------
-     Two radii, one scale. Controls (buttons, inputs, chips) sit at 8px; cards
-     and panels sit at 14px; anything that holds a photograph goes to 16px.
-     `--radius-card` / `--radius-control` are aliased into Tailwind below so a
-     component can ask for the scale by name instead of guessing a pixel value. */
+     One card step (16px) and one control step (12px), shared by every surface
+     and field in the product — `.g-card`, `<Card>`, `<Panel>`, `<Button>`
+     and both field systems. Photo cards hold imagery at the same 16px, so
+     there is a single rounded rectangle across the whole app. */
   --radius: 14px;
-  --radius-control: 8px;
-  --radius-card: 14px;
+  --radius-control: 12px;
+  --radius-card: 16px;
   --radius-panel: 16px;
 
   /* --- TYPE SCALE -----------------------------------------------------------
@@ -195,7 +195,7 @@
      --background   #000000  the page
      --surface      #171717  nav rail, sidebars
      --card         #171717  cards, modals, panels
-     --foreground   #F7F0E1  primary text and important icons
+     --foreground   #ffffff  primary text and important icons
      --border       #353535  subtle charcoal hairlines and dividers
 
    On a black page the one-pixel border is doing more work than it used to:
@@ -207,8 +207,8 @@
 
      --muted-foreground  #A8A093  6.9:1 on --card   8.1:1 on --background
      --subtle-foreground #948C7E  5.4:1 on --card   6.3:1 on --background
-     --accent            #F7F0E1  18.5:1 vs its black foreground
-     --accent-text       #F7F0E1  15.8:1 on --card
+     --accent            #ffffff  18.5:1 vs its black foreground
+     --accent-text       #ffffff  15.8:1 on --card
      --danger            #E58C93  8.2:1 on --card
      --success           #6FBF93  8.9:1 on --card
      --warning           #D9A94A  9.9:1 on --card
@@ -260,17 +260,20 @@ html.g-custom-cursor :is(
   cursor: pointer !important;
 }
 
-/* The cursor layer itself. Two nested transforms: the outer `.g-cur__pos`
-   tracks the pointer (written from a single RAF loop), while the inner ring/dot
-   own their scale transitions. Keeping those transforms separate is what stops
-   the old center-offset misalignment and the transform-transition lag. */
+/* The cursor layer: one organic play-button shape plus a softer trailing
+   ghost. Position is driven by Framer Motion springs (main follow, trailing
+   follow, magnetic pull summed onto the main follow) and shape state — scale,
+   vertical morph stretch and rotation — is also spring-driven, so this file
+   only owns paint: fill, stroke, glow and visibility. The `data-state`
+   attribute (`idle` | `button` | `link` | `card` | `native`) lets CSS handle
+   the colour/glow transition while motion owns the geometry. */
 .g-cur {
   position: fixed;
   inset: 0;
   z-index: 2147483000;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 160ms ease-out;
+  transition: opacity 180ms ease-out;
   contain: layout style;
 }
 .g-cur[data-visible='true'] {
@@ -290,64 +293,94 @@ html.g-custom-cursor :is(
   will-change: transform;
 }
 
-.g-cur__ring {
+.g-cur__center {
   position: absolute;
   top: 0;
   left: 0;
-  width: 30px;
-  height: 30px;
-  border: 1px solid rgba(247, 240, 225, 0.72);
-  border-radius: 9999px;
-  background: transparent;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.28),
-    0 0 16px rgba(0, 0, 0, 0.16);
-  transform: translate(-50%, -50%) scale(1);
-  transition:
-    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 240ms ease,
-    background-color 240ms ease,
-    box-shadow 240ms ease;
+  transform: translate(-50%, -50%);
 }
 
-.g-cur__dot {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  /* Cream, not gold: the primary CTA is gold, and a gold dot disappeared on
-     top of it. The dark hairline keeps the dot visible on light surfaces. */
-  background: #f7f0e1;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 0 10px rgba(247, 240, 225, 0.4);
-  transform: translate(-50%, -50%) scale(1);
-  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+/* The play shape. 28px blob target: big enough to read as a glyph, small
+   enough to stay a cursor. The dark hairline stroke + drop shadows keep the
+   white fill legible on the light cream theme and on photography, the same
+   contrast trick the native arrow uses. */
+.g-cur__shape {
+  width: 28px;
+  height: 28px;
+  will-change: transform, filter;
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 4px 14px rgba(0, 0, 0, 0.28));
+  transition: filter 240ms ease;
+}
+.g-cur__shape svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
 }
 
-.g-cur[data-state='pointer'] .g-cur__ring {
-  border-color: rgba(244, 190, 77, 0.9);
-  background-color: rgba(244, 190, 77, 0.1);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.22),
-    0 0 20px rgba(244, 190, 77, 0.2);
-  transform: translate(-50%, -50%) scale(1.5);
-}
-.g-cur[data-state='pointer'] .g-cur__dot {
-  transform: translate(-50%, -50%) scale(0.55);
+.g-cur__path {
+  fill: #ffffff;
+  stroke: rgba(26, 24, 20, 0.55);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition: fill 200ms ease, stroke 200ms ease;
 }
 
-.g-cur[data-state='down'] .g-cur__ring {
-  border-color: rgba(247, 240, 225, 0.95);
-  transform: translate(-50%, -50%) scale(0.82);
+/* GROOVE sunburst yellow on every interactive surface. The token is
+   #F5C451 in both themes, so one rule covers dark and light. Scoped to
+   `.g-cur__shape` so the trailing ghost keeps its own translucent tint. */
+.g-cur[data-state='button'] .g-cur__shape .g-cur__path,
+.g-cur[data-state='link'] .g-cur__shape .g-cur__path,
+.g-cur[data-state='card'] .g-cur__shape .g-cur__path {
+  fill: var(--brand-sunburst, #f5c451);
 }
-.g-cur[data-state='down'] .g-cur__dot {
-  transform: translate(-50%, -50%) scale(0.7);
+
+.g-cur[data-state='button'] .g-cur__shape {
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 10px rgba(245, 196, 81, 0.45));
+}
+.g-cur[data-state='link'] .g-cur__shape {
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 12px rgba(245, 196, 81, 0.5));
+}
+.g-cur[data-state='card'] .g-cur__shape {
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 18px rgba(245, 196, 81, 0.6));
+}
+
+/* Trailing ghost: the same play glyph at half size, sunburst-tinted and
+   translucent, on its own slower spring. Never blocks input (`pointer-events:
+   none` on `.g-cur`) and fades with the layer. */
+.g-cur__trail {
+  display: block;
+  width: 14px;
+  height: 14px;
+  opacity: 0.45;
+}
+.g-cur__trail svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+.g-cur__trail .g-cur__path {
+  fill: rgba(245, 196, 81, 0.55);
+  stroke: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .g-cur {
+    display: none;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
   .g-cur {
     display: none;
   }
@@ -357,15 +390,15 @@ html.g-custom-cursor :is(
   color-scheme: dark;
 
   --background: #000000;
-  --surface: #171717;
-  --elevated: #171717;
-  --card: #171717;
-  --card-foreground: #f7f0e1;
+  --surface: #050505;
+  --elevated: #0A0A0A;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
 
-  --foreground: #f7f0e1;
-  --muted: #1c1c1c;
-  --muted-foreground: #a8a093; /* 6.9:1 on --card */
-  --subtle-foreground: #948c7e; /* 5.4:1 on --card */
+  --foreground: #FFFFFF;
+  --muted: #111111;
+  --muted-foreground: #A1A1AA; /* 6.9:1 on --card */
+  --subtle-foreground: #71717A; /* 5.4:1 on --card */
 
   --border: #353535;
   --border-strong: #6b6b6b; /* 3.2:1 on --card */
@@ -374,15 +407,23 @@ html.g-custom-cursor :is(
      is held to 3:1. `--border` above stays quiet for resting surface edges. */
   --input: #707070; /* 3.6:1 on --card */
 
-  --accent: #f7f0e1;
-  --accent-hover: #e4dcc9;
+  --accent: #F5C451;
+  --accent-hover: #FFD36B;
   --accent-foreground: #000000; /* 18.5:1 */
-  --accent-text: #f7f0e1;
-  --accent-soft: rgba(247, 240, 225, 0.1);
-  --accent-border: rgba(247, 240, 225, 0.28);
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
 
-  --ring: rgba(247, 240, 225, 0.55);
+  --ring: rgba(245,196,81,0.5);
   --overlay: rgba(0, 0, 0, 0.74);
+
+  /* Scrollbar palette. Dark: near-black track, charcoal thumb, gold hover.
+     These reference theme tokens, so a Light/Dark/seasonal switch repaints
+     every scrollbar on the next frame with no JS. */
+  --scrollbar-track: var(--surface);
+  --scrollbar-thumb: var(--border-strong);
+  --scrollbar-thumb-hover: var(--accent);
+  --scrollbar-corner: var(--surface);
 
   /* Destructive: `--danger` is the AA-safe TEXT/ICON red. The button fill is a
      separate token because the brand red carries cream at 5.6:1 on both the
@@ -390,7 +431,7 @@ html.g-custom-cursor :is(
   --danger: #e58c93;
   --danger-soft: rgba(174, 49, 58, 0.26);
   --danger-solid: #ae313a;
-  --danger-foreground: #f7f0e1;
+  --danger-foreground: #ffffff;
 
   --success: #6fbf93;
   --success-soft: rgba(46, 107, 79, 0.26);
@@ -402,20 +443,20 @@ html.g-custom-cursor :is(
   /* Sunburst Yellow. Scarce by contract: featured marks, verified badges, a
      selected highlight. `--brand-sunburst-fg` is Carbon, never white — white on
      #F4BE4D is 1.6:1 and fails AA by a wide margin. */
-  --brand-sunburst: #f4be4d;
-  --brand-sunburst-fg: #353535;
-  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
-  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+  --brand-sunburst: #F5C451;
+  --brand-sunburst-fg: #000000;
+  --brand-sunburst-soft: rgba(245,196,81,0.16);
+  --brand-sunburst-border: rgba(245,196,81,0.42);
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
   --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
-  --shadow-accent: 0 8px 24px -10px rgba(247, 240, 225, 0.16);
+  --shadow-accent: 0 8px 24px -10px rgba(245,196,81,0.25);
 
   /* Glass tokens — Dark default */
-  --glass-bg: rgba(23, 23, 23, 0.82);
-  --glass-border: rgba(247, 240, 225, 0.12);
-  --glass-border-hover: rgba(247, 240, 225, 0.36);
+  --glass-bg: rgba(255,255,255,0.045);
+  --glass-border: rgba(255,255,255,0.10);
+  --glass-border-hover: rgba(255,255,255,0.18);
   --glass-blur: 16px;
   --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
   --glass-highlight: rgba(247, 240, 225, 0.05);
@@ -456,35 +497,35 @@ html.g-custom-cursor :is(
   color-scheme: dark;
 
   --background: #000000;
-  --surface: #171717;
-  --elevated: #171717;
-  --card: #171717;
-  --card-foreground: #f7f0e1;
+  --surface: #050505;
+  --elevated: #0A0A0A;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
 
-  --foreground: #f7f0e1;
-  --muted: #1c1c1c;
-  --muted-foreground: #a8a093;
-  --subtle-foreground: #948c7e;
+  --foreground: #FFFFFF;
+  --muted: #111111;
+  --muted-foreground: #A1A1AA;
+  --subtle-foreground: #71717A;
 
   --border: #353535;
   --border-strong: #6b6b6b;
   --divider: #353535;
   --input: #707070;
 
-  --accent: #f7f0e1;
-  --accent-hover: #e4dcc9;
+  --accent: #F5C451;
+  --accent-hover: #FFD36B;
   --accent-foreground: #000000;
-  --accent-text: #f7f0e1;
-  --accent-soft: rgba(247, 240, 225, 0.1);
-  --accent-border: rgba(247, 240, 225, 0.28);
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
 
-  --ring: rgba(247, 240, 225, 0.55);
+  --ring: rgba(245,196,81,0.5);
   --overlay: rgba(0, 0, 0, 0.74);
 
   --danger: #e58c93;
   --danger-soft: rgba(174, 49, 58, 0.26);
   --danger-solid: #ae313a;
-  --danger-foreground: #f7f0e1;
+  --danger-foreground: #ffffff;
 
   --success: #6fbf93;
   --success-soft: rgba(46, 107, 79, 0.26);
@@ -493,19 +534,19 @@ html.g-custom-cursor :is(
   --info: #7fb0d0;
   --info-soft: rgba(61, 106, 130, 0.26);
 
-  --brand-sunburst: #f4be4d;
-  --brand-sunburst-fg: #353535;
-  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
-  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+  --brand-sunburst: #F5C451;
+  --brand-sunburst-fg: #000000;
+  --brand-sunburst-soft: rgba(245,196,81,0.16);
+  --brand-sunburst-border: rgba(245,196,81,0.42);
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
   --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
-  --shadow-accent: 0 8px 24px -10px rgba(247, 240, 225, 0.16);
+  --shadow-accent: 0 8px 24px -10px rgba(245,196,81,0.25);
 
-  --glass-bg: rgba(23, 23, 23, 0.82);
-  --glass-border: rgba(247, 240, 225, 0.12);
-  --glass-border-hover: rgba(247, 240, 225, 0.36);
+  --glass-bg: rgba(255,255,255,0.045);
+  --glass-border: rgba(255,255,255,0.10);
+  --glass-border-hover: rgba(255,255,255,0.18);
   --glass-blur: 16px;
   --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
   --glass-highlight: rgba(247, 240, 225, 0.05);
@@ -528,7 +569,7 @@ html.g-custom-cursor :is(
 /* ------------------------------------------------------------------------------
    LIGHT — Whitewashed Fence cream. Applied by adding `light` to <html>.
 
-     --background          #F7F0E1  the warm neutral foundation
+     --background          #ffffff  the warm neutral foundation
      --surface             #EFE6D2  nav rail / sidebar, one step down
      --card                #FCF8EF  elevated surfaces, a step up
      --accent              #2F3A45  Slate
@@ -547,6 +588,7 @@ html.g-custom-cursor :is(
 :root[data-theme='light'] {
   color-scheme: light;
 
+  /* Whitewashed Fence — warm white surfaces with Carbon type. */
   --background: #f7f0e1;
   --surface: #efe6d2;
   --elevated: #fcf8ef;
@@ -563,20 +605,22 @@ html.g-custom-cursor :is(
   --divider: #e7ddc9;
   --input: #8a8172; /* 3.6:1 on --card — a field has to announce itself */
 
-  --accent: #2f3a45;
-  --accent-hover: #3b4854;
-  --accent-foreground: #ffffff; /* 11.6:1 on --accent */
-  --accent-text: #2f3a45; /* 10.9:1 on --card, 8.9:1 on --accent-soft */
-  --accent-soft: #dde2e6;
-  --accent-border: rgba(47, 58, 69, 0.28);
+  /* Gold fill, bronze ink. Sunburst itself is not readable as text on cream,
+     so `--accent-text` is the deepened bronze; fills keep the brand gold. */
+  --accent: #F5C451;
+  --accent-hover: #E5AF40;
+  --accent-foreground: #241a00; /* dark ink on gold */
+  --accent-text: #80601b; /* 5.8:1 on --card */
+  --accent-soft: rgba(245, 196, 81, 0.2);
+  --accent-border: rgba(128, 96, 27, 0.35);
 
-  --ring: rgba(47, 58, 69, 0.4);
+  --ring: rgba(128, 96, 27, 0.4);
   --overlay: rgba(53, 53, 53, 0.42);
 
   --danger: #ae313a; /* Relief Red — 5.6:1 on cream */
   --danger-soft: rgba(174, 49, 58, 0.1);
   --danger-solid: #ae313a;
-  --danger-foreground: #f7f0e1; /* 5.6:1 */
+  --danger-foreground: #ffffff; /* 5.6:1 */
 
   --success: #2e6b4f;
   --success-soft: rgba(46, 107, 79, 0.12);
@@ -585,24 +629,27 @@ html.g-custom-cursor :is(
   --info: #3d6a82;
   --info-soft: rgba(61, 106, 130, 0.12);
 
-  --brand-sunburst: #f4be4d;
-  --brand-sunburst-fg: #353535;
-  --brand-sunburst-soft: rgba(244, 190, 77, 0.28);
-  --brand-sunburst-border: rgba(190, 142, 38, 0.5);
+  --brand-sunburst: #F5C451;
+  --brand-sunburst-fg: #241a00;
+  --brand-sunburst-soft: rgba(245, 196, 81, 0.24);
+  --brand-sunburst-border: rgba(128, 96, 27, 0.4);
 
   --shadow-sm: 0 1px 2px 0 rgba(53, 53, 53, 0.05);
   --shadow-md: 0 4px 14px -6px rgba(53, 53, 53, 0.12);
   --shadow-lg: 0 18px 40px -20px rgba(53, 53, 53, 0.22);
-  --shadow-accent: 0 8px 24px -12px rgba(47, 58, 69, 0.35);
+  --shadow-accent: 0 8px 24px -10px rgba(128, 96, 27, 0.22);
 
   /* Glass tokens — Light override */
   --glass-bg: rgba(252, 248, 239, 0.86);
   --glass-border: rgba(221, 209, 184, 0.85);
-  --glass-border-hover: rgba(47, 58, 69, 0.4);
+  --glass-border-hover: rgba(128, 96, 27, 0.4);
   --glass-blur: 16px;
   --glass-shadow: 0 16px 40px -20px rgba(53, 53, 53, 0.18);
   --glass-highlight: rgba(255, 255, 255, 0.8);
   --vignette-color: rgba(53, 53, 53, 0.03);
+
+  /* Scrollbar: light track, grey thumb, dark hover. */
+  --scrollbar-thumb-hover: var(--foreground);
 
   /* Corner patterns on cream: same gold, lower opacity (subtle). */
   --pattern-color: #c9a24a;
@@ -676,14 +723,14 @@ html.g-custom-cursor :is(
   --divider: #e7ddc9;
   --input: #8a8172;
 
-  --accent: #2f4e8c;
-  --accent-hover: #274273;
-  --accent-foreground: #f7f0e1;
-  --accent-text: #2f4e8c;
-  --accent-soft: rgba(47, 78, 140, 0.09);
-  --accent-border: rgba(47, 78, 140, 0.26);
+  --accent: #F5C451;
+  --accent-hover: #E5AF40;
+  --accent-foreground: #241a00;
+  --accent-text: #80601b;
+  --accent-soft: rgba(245, 196, 81, 0.20);
+  --accent-border: rgba(128, 96, 27, 0.35);
 
-  --ring: rgba(47, 78, 140, 0.3);
+  --ring: rgba(128, 96, 27, 0.4);
   --overlay: rgba(53, 53, 53, 0.42);
 
   --danger: #ae313a;
@@ -716,6 +763,9 @@ html.g-custom-cursor :is(
   --glass-highlight: rgba(255, 255, 255, 0.7);
   --vignette-color: rgba(53, 53, 53, 0.04);
 
+  /* Scrollbar: light track, grey thumb, dark hover. */
+  --scrollbar-thumb-hover: var(--foreground);
+
   /* Same cream-page treatment as `.light` (see above). */
   --pattern-color: #c9a24a;
   --pattern-opacity: 0.15;
@@ -732,35 +782,35 @@ html.g-custom-cursor :is(
   color-scheme: dark;
 
   --background: #000000;
-  --surface: #151517;
-  --elevated: #151517;
-  --card: #151517;
-  --card-foreground: #f7f0e1;
+  --surface: #050505;
+  --elevated: #0A0A0A;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
 
-  --foreground: #f7f0e1;
-  --muted: #1a1a1d;
-  --muted-foreground: #a49c93;
-  --subtle-foreground: #918a80;
+  --foreground: #FFFFFF;
+  --muted: #111111;
+  --muted-foreground: #A1A1AA;
+  --subtle-foreground: #71717A;
 
   --border: #353535;
   --border-strong: #6b6b6b;
   --divider: #303033;
   --input: #707070;
 
-  --accent: #f7f0e1;
-  --accent-hover: #e4dcc9;
+  --accent: #F5C451;
+  --accent-hover: #FFD36B;
   --accent-foreground: #000000;
-  --accent-text: #f7f0e1;
-  --accent-soft: rgba(247, 240, 225, 0.1);
-  --accent-border: rgba(247, 240, 225, 0.28);
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
 
-  --ring: rgba(247, 240, 225, 0.55);
+  --ring: rgba(245,196,81,0.5);
   --overlay: rgba(0, 0, 0, 0.76);
 
   --danger: #e58c93;
   --danger-soft: rgba(174, 49, 58, 0.28);
   --danger-solid: #ae313a;
-  --danger-foreground: #f7f0e1;
+  --danger-foreground: #ffffff;
 
   --success: #6fbf93;
   --success-soft: rgba(46, 107, 79, 0.26);
@@ -769,19 +819,19 @@ html.g-custom-cursor :is(
   --info: #7fb0d0;
   --info-soft: rgba(61, 106, 130, 0.26);
 
-  --brand-sunburst: #f4be4d;
-  --brand-sunburst-fg: #353535;
-  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
-  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+  --brand-sunburst: #F5C451;
+  --brand-sunburst-fg: #000000;
+  --brand-sunburst-soft: rgba(245,196,81,0.16);
+  --brand-sunburst-border: rgba(245,196,81,0.42);
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
   --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
-  --shadow-accent: 0 8px 24px -10px rgba(244, 190, 77, 0.18);
+  --shadow-accent: 0 8px 24px -10px rgba(245,196,81,0.25);
 
-  --glass-bg: rgba(21, 21, 23, 0.82);
-  --glass-border: rgba(247, 240, 225, 0.12);
-  --glass-border-hover: rgba(244, 190, 77, 0.36);
+  --glass-bg: rgba(255,255,255,0.045);
+  --glass-border: rgba(255,255,255,0.10);
+  --glass-border-hover: rgba(255,255,255,0.18);
   --glass-blur: 16px;
   --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
   --glass-highlight: rgba(247, 240, 225, 0.05);
@@ -797,35 +847,35 @@ html.g-custom-cursor :is(
   color-scheme: dark;
 
   --background: #000000;
-  --surface: #171614;
-  --elevated: #171614;
-  --card: #171614;
-  --card-foreground: #f7f0e1;
+  --surface: #050505;
+  --elevated: #0A0A0A;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
 
-  --foreground: #f7f0e1;
-  --muted: #1c1b18;
-  --muted-foreground: #aaa297;
-  --subtle-foreground: #978e83;
+  --foreground: #FFFFFF;
+  --muted: #111111;
+  --muted-foreground: #A1A1AA;
+  --subtle-foreground: #71717A;
 
   --border: #353535;
   --border-strong: #6b6b6b;
   --divider: #32302c;
   --input: #707070;
 
-  --accent: #f7f0e1;
-  --accent-hover: #e4dcc9;
+  --accent: #F5C451;
+  --accent-hover: #FFD36B;
   --accent-foreground: #000000;
-  --accent-text: #f7f0e1;
-  --accent-soft: rgba(247, 240, 225, 0.1);
-  --accent-border: rgba(247, 240, 225, 0.28);
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
 
-  --ring: rgba(247, 240, 225, 0.55);
+  --ring: rgba(245,196,81,0.5);
   --overlay: rgba(0, 0, 0, 0.76);
 
   --danger: #e58c93;
   --danger-soft: rgba(174, 49, 58, 0.3);
   --danger-solid: #ae313a;
-  --danger-foreground: #f7f0e1;
+  --danger-foreground: #ffffff;
 
   --success: #6fbf93;
   --success-soft: rgba(46, 107, 79, 0.26);
@@ -834,19 +884,19 @@ html.g-custom-cursor :is(
   --info: #7fb0d0;
   --info-soft: rgba(61, 106, 130, 0.26);
 
-  --brand-sunburst: #f4be4d;
-  --brand-sunburst-fg: #353535;
-  --brand-sunburst-soft: rgba(244, 190, 77, 0.16);
-  --brand-sunburst-border: rgba(244, 190, 77, 0.42);
+  --brand-sunburst: #F5C451;
+  --brand-sunburst-fg: #000000;
+  --brand-sunburst-soft: rgba(245,196,81,0.16);
+  --brand-sunburst-border: rgba(245,196,81,0.42);
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
   --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.85);
-  --shadow-accent: 0 8px 24px -10px rgba(174, 49, 58, 0.22);
+  --shadow-accent: 0 8px 24px -10px rgba(245,196,81,0.25);
 
-  --glass-bg: rgba(23, 22, 20, 0.82);
-  --glass-border: rgba(247, 240, 225, 0.12);
-  --glass-border-hover: rgba(174, 49, 58, 0.4);
+  --glass-bg: rgba(255,255,255,0.045);
+  --glass-border: rgba(255,255,255,0.10);
+  --glass-border-hover: rgba(255,255,255,0.18);
   --glass-blur: 16px;
   --glass-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
   --glass-highlight: rgba(247, 240, 225, 0.05);
@@ -882,36 +932,36 @@ html.g-custom-cursor :is(
    keep their own identity but each one is given an explicitly checked
    foreground rather than inheriting a default. */
 :root[data-accent='unity'] {
-  --accent: #f7f0e1;
-  --accent-hover: #e4dcc9;
+  --accent: #F5C451;
+  --accent-hover: #FFD36B;
   --accent-foreground: #000000;
-  --accent-text: #f7f0e1;
-  --accent-soft: rgba(247, 240, 225, 0.1);
-  --accent-border: rgba(247, 240, 225, 0.28);
-  --ring: rgba(247, 240, 225, 0.55);
-  --shadow-accent: 0 8px 24px -10px rgba(247, 240, 225, 0.16);
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
+  --ring: rgba(245,196,81,0.5);
+  --shadow-accent: 0 8px 24px -10px rgba(245,196,81,0.25);
 }
 
 :root[data-accent='relief'] {
-  --accent: #d9616a;
-  --accent-hover: #e47079;
+  --accent: #F5C451;
+  --accent-hover: #FFD36B;
   --accent-foreground: #000000; /* 5.9:1 */
-  --accent-text: #f0a3a9;
-  --accent-soft: rgba(217, 97, 106, 0.2);
-  --accent-border: rgba(217, 97, 106, 0.45);
-  --ring: rgba(240, 163, 169, 0.5);
-  --shadow-accent: 0 8px 24px -10px rgba(217, 97, 106, 0.35);
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
+  --ring: rgba(245,196,81,0.5);
+  --shadow-accent: 0 8px 24px -10px rgba(245,196,81,0.25);
 }
 
 :root[data-accent='sunburst'] {
-  --accent: #f4be4d;
-  --accent-hover: #e5af40;
+  --accent: #F5C451;
+  --accent-hover: #FFD36B;
   --accent-foreground: #000000; /* 12.3:1 */
-  --accent-text: #f4be4d;
-  --accent-soft: rgba(244, 190, 77, 0.18);
-  --accent-border: rgba(244, 190, 77, 0.45);
-  --ring: rgba(244, 190, 77, 0.5);
-  --shadow-accent: 0 8px 24px -10px rgba(244, 190, 77, 0.3);
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
+  --ring: rgba(245,196,81,0.5);
+  --shadow-accent: 0 8px 24px -10px rgba(245,196,81,0.25);
 }
 
 /* Light-mode pairs — UNCHANGED by the dark revision EXCEPT for one required
@@ -923,36 +973,36 @@ html.g-custom-cursor :is(
    `--accent-foreground` is a single token shared by every `bg-accent` surface,
    so it has to be declared on both sides of the pair. */
 .light[data-accent='unity'] {
-  --accent: #2f3a45;
-  --accent-hover: #3b4854;
-  --accent-foreground: #ffffff; /* 11.6:1 */
-  --accent-text: #2f3a45;
-  --accent-soft: #dde2e6;
-  --accent-border: rgba(47, 58, 69, 0.28);
-  --ring: rgba(47, 58, 69, 0.4);
+  --accent: #F5C451;
+  --accent-hover: #E5AF40;
+  --accent-foreground: #241a00; /* dark ink on gold */
+  --accent-text: #80601b; /* 5.8:1 on cream */
+  --accent-soft: rgba(245, 196, 81, 0.2);
+  --accent-border: rgba(128, 96, 27, 0.35);
+  --ring: rgba(128, 96, 27, 0.4);
 }
 
 .light[data-accent='relief'] {
-  --accent: #ae313a;
-  --accent-hover: #93272f;
-  --accent-foreground: #f7f0e1; /* 5.6:1 */
-  --accent-text: #ae313a;
-  --accent-soft: rgba(174, 49, 58, 0.1);
-  --accent-border: rgba(174, 49, 58, 0.28);
-  --ring: rgba(174, 49, 58, 0.3);
+  --accent: #F5C451;
+  --accent-hover: #E5AF40;
+  --accent-foreground: #241a00;
+  --accent-text: #80601b;
+  --accent-soft: rgba(245, 196, 81, 0.2);
+  --accent-border: rgba(128, 96, 27, 0.35);
+  --ring: rgba(128, 96, 27, 0.4);
 }
 
 .light[data-accent='sunburst'] {
-  /* Sunburst is 1.6:1 on cream, so it is never a fill in light mode. The fill
-     drops to a darkened Sunburst that carries cream at 5.1:1; the pure brand
-     yellow stays available through `--brand-sunburst`. */
-  --accent: #8a6312;
-  --accent-hover: #75520e;
-  --accent-foreground: #f7f0e1; /* 4.8:1 */
-  --accent-text: #8a5d08;
-  --accent-soft: rgba(244, 190, 77, 0.3);
-  --accent-border: rgba(138, 99, 18, 0.45);
-  --ring: rgba(138, 99, 18, 0.4);
+  /* Sunburst itself is ~1.6:1 on cream, so it is never used as TEXT there.
+     Fills keep the brand gold and carry dark ink; `--accent-text` deepens to
+     bronze so links, icons and badges stay readable at AA. */
+  --accent: #F5C451;
+  --accent-hover: #E5AF40;
+  --accent-foreground: #241a00;
+  --accent-text: #80601b;
+  --accent-soft: rgba(245, 196, 81, 0.2);
+  --accent-border: rgba(128, 96, 27, 0.35);
+  --ring: rgba(128, 96, 27, 0.4);
 }
 
 * {
@@ -985,6 +1035,9 @@ html {
   font-size: 87.5%; /* 14px root */
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  background-color: var(--background);
+  color-scheme: dark;
+  overflow-x: hidden;
 }
 
 /* Reserve the scrollbar track on pointer-driven layouts so a short page -> long
@@ -995,6 +1048,61 @@ html {
   html {
     scrollbar-gutter: stable;
   }
+}
+
+/* ------------------------------------------------------------------------------
+   THEME-AWARE SCROLLBARS
+
+   One palette, declared on :root and overridden by the Light/Classic blocks, so
+   a theme switch repaints every scrollbar immediately — no reload, no JS.
+
+     Dark   near-black track, charcoal thumb, gold hover
+     Light  cream track, grey thumb, Carbon hover
+
+   Applied to the page AND every nested scroller (`*`), not just `.g-scroll`.
+   Firefox reads `scrollbar-width` / `scrollbar-color`; Chrome, Edge, Brave and
+   Safari use the WebKit pseudo-elements. Arrow buttons are removed entirely.
+   ------------------------------------------------------------------------------ */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a #121212;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a #121212;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #3a3a3a;
+  border: 1px solid #121212;
+  border-radius: 9999px;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #4a4a4a;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: #121212;
+}
+
+/* The legacy arrow buttons are never wanted: they double the chrome and break
+   the rounded thumb on Windows. */
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* ------------------------------------------------------------------------------
@@ -1060,6 +1168,11 @@ html {
 }
 
 body {
+  /* Page colour holder for the global PagePatterns layer: must read the
+     theme token (not a hard-coded dark value) so the fixed woven rails sit
+     on black in dark mode and on cream in light mode. Shells are made
+     transparent by the solid, same-colour bridge below, so this is what
+     actually paints behind them. */
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
@@ -1067,9 +1180,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 200ms var(--ease-out-expo), color 200ms var(--ease-out-expo);
   position: relative;
-  /* Full-bleed decorations must never create a horizontal scrollbar. `clip`
-     does not turn <body> into a scroll container the way `hidden` would. */
-  overflow-x: clip;
+  /* Full-bleed decorations must never create a horizontal scrollbar. */
+  overflow-x: hidden;
 }
 
 /* Route entrance. CSS-only so reduced-motion is honoured on the very first
@@ -1711,13 +1823,26 @@ textarea {
 }
 
 /* ------------------------------------------------------------------------------
-   Card - rounded 20px, 1px soft border, no heavy shadow, hover lift
+   Card — the ONE card surface for the whole product (Panel renders this via
+   `g-card`, and every `g-card` ad-hoc block across dashboards, profiles,
+   admin and community inherits it).
+
+   Dark charcoal with a soft top-to-bottom gradient (elevated → card) and a
+   faint inner highlight, so the surface reads as depth rather than flat
+   paint; light mode keeps the same geometry on cream. Radius 16px is the
+   single card step (photo cards sit at the same 16px, controls at 12px).
+   Hoverable cards (`g-card-hover`) lift 2px and tint their border toward
+   the brand gold — the one gold "active" signal in the system; static
+   cards never tint, so nothing flashes gold while reading.
    ------------------------------------------------------------------------------ */
 .g-card {
   background-color: var(--card);
+  /* Soft top light: a theme-aware highlight fading down the card face, so
+     every surface carries the same subtle depth in both themes. */
+  background-image: linear-gradient(180deg, var(--glass-highlight) 0%, transparent 42%);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 var(--glass-highlight);
 }
 
 .g-card-hover {
@@ -1725,9 +1850,9 @@ textarea {
     border-color 200ms ease;
 }
 .g-card-hover:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-highlight);
   transform: translateY(-2px);
-  border-color: var(--border-strong);
+  border-color: color-mix(in srgb, var(--brand-sunburst) 35%, var(--border));
 }
 
 /* ------------------------------------------------------------------------------
@@ -1744,7 +1869,7 @@ textarea {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 16px; /* the photo scale — one step up from .g-card */
+  border-radius: 16px; /* same card scale as .g-card */
   background-color: var(--card);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 220ms var(--ease-out-expo), transform 220ms var(--ease-out-expo),
@@ -1927,42 +2052,45 @@ textarea {
 }
 
 /* ------------------------------------------------------------------------------
-   Inputs - 38px, token-driven. Shared by every form on every page, so field
+   Inputs - 40px, token-driven. Shared by every form on every page, so field
    geometry is defined once rather than per page.
 
-   `height` was `44px`, a px value, so it would have survived the 14px root
-   untouched — every field in the app would have stayed 44px tall while its own
-   label shrank, which reads as LOOSER, not denser. It is now `2.75rem`
-   (38.5px at the 14px root), inside the 36-40px target band and still a
-   comfortable target on touch.
+   `height` is `2.875rem` (40px at the 14px root): tall enough to breathe, still
+   inside the 36-40px touch target band. Every field — text, select, textarea
+   base, and the locked `.g-input-static` beside them — shares this one height,
+   so a row of fields always aligns on one baseline.
 
-   `font-size` was `0.875rem` = 14px against the old 16px root; the root change
-   would have silently dropped the typed text to 12.25px, which is too small for
-   the primary content of a field. `0.9375rem` (13.1px) keeps it compact and
-   matched to `text-sm`, while staying well clear of the iOS 16px auto-zoom
-   threshold.
+   `font-size` is `0.9375rem` (13.1px): compact and matched to `text-sm`, while
+   staying well clear of the iOS 16px auto-zoom threshold (which would trigger
+   unless the page opts out with `maximum-scale`).
+
+   Registration rhythm lives here too: a 14px radius, 1rem inline padding, a
+   neutral surface one step above the card, and a single accent ring on focus.
    ------------------------------------------------------------------------------ */
 .g-input {
   width: 100%;
-  height: 2.75rem;
-  padding-inline: 0.875rem;
-  background-color: var(--card);
+  height: 2.875rem;
+  padding-inline: 1rem;
+  background-color: var(--muted);
   border: 1px solid var(--input);
-  border-radius: 8px;
+  border-radius: 14px;
   color: var(--foreground);
   font-size: 0.9375rem;
+  line-height: 1.4;
   outline: none;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 .g-input::placeholder {
   color: var(--subtle-foreground);
 }
 .g-input:hover:not(:disabled) {
   border-color: var(--border-strong);
+  background-color: var(--card);
 }
 .g-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--ring);
+  background-color: var(--card);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 .g-input:disabled {
   background-color: var(--muted);
@@ -1976,14 +2104,13 @@ textarea {
 .g-input[aria-invalid='true']:focus,
 .g-input.border-danger:focus {
   border-color: var(--danger);
-  box-shadow: 0 0 0 4px var(--danger-soft);
+  box-shadow: 0 0 0 3px var(--danger-soft);
 }
 
-/* Icon inset for fields with a leading glyph (mail, lock, phone). Was 2.75rem
-   against the old 44px field; tightened to keep the glyph optically centred in
-   the shorter 38.5px control. */
+/* Icon inset for fields with a leading glyph (mail, lock, phone). The glyph
+   sits at a fixed 1rem offset; the text clears it with 2.75rem of padding. */
 .g-input-has-icon {
-  padding-left: 2.5rem;
+  padding-left: 2.75rem;
 }
 
 /* Autofill must not repaint the canvas with the OS's opposite color */
@@ -2368,46 +2495,98 @@ select.g-input option {
 .g-input-static {
   display: flex;
   align-items: center;
-  height: 2.75rem;
-  padding-inline: 0.875rem;
+  height: 2.875rem;
+  padding-inline: 1rem;
   background-color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 14px; /* matches .g-input so the pair shares a seam */
   color: var(--muted-foreground);
   font-size: 0.9375rem;
+  line-height: 1.4;
 }
 
 .g-label {
   display: block;
-  margin-bottom: 0.4375rem;
-  font-size: 0.9375rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.4;
   color: var(--foreground);
   letter-spacing: -0.01em;
 }
 
 .g-field-error {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.375rem;
-  margin-top: 0.4375rem;
-  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
   color: var(--danger);
 }
 
 .g-field-hint {
-  margin-top: 0.4375rem;
-  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: var(--muted-foreground);
 }
 
-/* Inline "this passes" affordance next to a label. */
+/* Subtle top ambient lighting in dark themes: a faint gold wash above the
+   fold so the charcoal reads premium rather than flat. Light themes stay
+   flat cream (a gold wash would warm the page and fight the beige scale);
+   the global woven PagePatterns layer sits above this and carries the
+   visible pattern. */
+html:not(.light) body {
+  background-image: radial-gradient(120% 55% at 50% -8%, rgba(201, 162, 74, 0.05), transparent 55%);
+}
+
+/* ------------------------------------------------------------------------------
+   Index numbers — numbered results, steps and list markers.
+
+   One badge for every index in the product (studio results, stepper steps,
+   legal / resource lists), sized by the consumer (`h-7 w-7`, `h-8 w-8`,
+   …) so the number step matches the control around it. Default is muted;
+   `data-done` paints solid gold (completed), `data-active` paints the gold
+   soft tint (current). Colours come from tokens, so both themes keep AA.
+   ------------------------------------------------------------------------------ */
+.g-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.g-index[data-done="true"] {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.g-index[data-active="true"] {
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+/* Inline "this passes" affordance next to a label. Rendered as a quiet pill so
+   it never competes with the field it validates. */
 .g-field-valid {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  background-color: var(--success-soft);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
   font-size: 11px;
   font-weight: 600;
+  line-height: 1.5;
   color: var(--success);
 }
 
@@ -2415,18 +2594,26 @@ select.g-input option {
    Checkbox - themed via accent-color so it follows the palette
    ------------------------------------------------------------------------------ */
 .g-checkbox {
-  width: 1rem;
-  height: 1rem;
-  margin-top: 0.1875rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.0625rem;
   flex-shrink: 0;
-  border-radius: 0.375rem;
-  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  border: 1.5px solid var(--border-strong);
   accent-color: var(--accent);
   cursor: pointer;
 }
 .g-checkbox:checked {
   background-color: var(--accent);
   border-color: var(--accent);
+}
+.g-checkbox:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.g-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 /* ------------------------------------------------------------------------------
@@ -2599,21 +2786,33 @@ select.g-input option {
 /* ------------------------------------------------------------------------------
    Scrollbars
    ------------------------------------------------------------------------------ */
+.g-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a #121212;
+}
 .g-scroll::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 .g-scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background-color: #121212;
 }
 .g-scroll::-webkit-scrollbar-thumb {
-  background-color: var(--border-strong);
+  background-color: #3a3a3a;
   border-radius: 9999px;
-  border: 3px solid transparent;
-  background-clip: content-box;
+  border: 1px solid #121212;
+  background-clip: padding-box;
 }
 .g-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: var(--subtle-foreground);
+  background-color: #4a4a4a;
+}
+.g-scroll::-webkit-scrollbar-corner {
+  background-color: #121212;
+}
+.g-scroll::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* ------------------------------------------------------------------------------
@@ -3754,23 +3953,35 @@ select.g-input option {
   color: var(--subtle-foreground);
 }
 
-/* The badge that rides an avatar — the header trigger and the messages contact
-   list. A ring cuts a hole in the avatar edge so the face stays readable. */
-.g-header-avatar-wrap {
-  position: relative;
-  display: inline-flex;
-  flex-shrink: 0;
-}
+/* The badge that rides an avatar — the header trigger, account panels, the
+   messages contact list and every other avatar. ONE geometry for every avatar
+   size:
+
+     position  absolute, bottom-right, inset ~8% (mostly inside the circle,
+               brushing its border — never outside, never clipped by an
+               `overflow-hidden` avatar wrapper, since the ring fully clears
+               the wrapper edge)
+     size      28% of the avatar width (10px floor), so a 28px avatar and a
+               64px avatar carry a proportional dot
+     ring      2px cut in `--card`, so the dot reads as a badge sewn onto the
+               avatar in every theme instead of sitting under the photo
+
+   Colour still comes from `g-presence-dot--*` / the PresenceDot palette, so
+   online/away/busy/offline keep their existing tokens and logic. */
 .g-presence-badge {
   position: absolute;
-  right: -1px;
-  bottom: -1px;
-  height: 0.625rem;
-  width: 0.625rem;
+  right: 2%;
+  bottom: 2%;
+  width: 28%;
+  height: 28%;
+  min-width: 10px;
+  min-height: 10px;
   border-radius: 9999px;
-  box-shadow:
-    0 0 0 2px var(--background),
-    inset 0 0 0 2px var(--background);
+  /* Contrasting ring: cut in the avatar's surface so the dot reads as a badge
+     riding the bottom-right edge instead of sitting under the photo. */
+  box-shadow: 0 0 0 2px var(--card);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .g-presence-error {
@@ -3813,6 +4024,23 @@ select.g-input option {
 .g-map:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Floating locator panels (top search bar, Search Parameters, Results).
+   Deep navy-charcoal over the always-theme-aware card colour: the navy
+   wash is dark-themes only, so light mode keeps the cream card and the
+   gold accent carries the reference's identity in both themes. */
+.g-locator-panel {
+  border: 1px solid color-mix(in srgb, var(--brand-sunburst) 16%, var(--border));
+}
+html:not(.light) .g-locator-panel {
+  background-image: linear-gradient(
+    180deg,
+    rgba(22, 35, 63, 0.55) 0%,
+    rgba(11, 18, 32, 0.12) 46%,
+    rgba(11, 18, 32, 0) 78%
+  );
+  border-color: rgba(201, 162, 74, 0.22);
 }
 
 /* Custom Advanced Markers. The content element is positioned by Google with its
@@ -4469,14 +4697,17 @@ select.g-input option {
 .hx-header {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 1000;
   /* Near-solid so page content cannot show through while scrolling. */
   background-color: color-mix(in srgb, var(--background) 95%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
   border-bottom: 1px solid var(--hx-hairline);
+  /* `border-color` transitions with the rest, so the hairline, surface and
+     shadow change as one movement rather than appearing independently. */
   transition:
     background-color var(--nav-dur) var(--nav-ease),
+    border-color var(--nav-dur) var(--nav-ease),
     box-shadow var(--nav-dur) var(--nav-ease);
 }
 .hx-header[data-scrolled] {
@@ -5831,7 +6062,7 @@ select.g-input option {
 .hx-drawer-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: 1100;
   /* Opaque scrim. It was `var(--overlay)` behind a blur, which left the page
      legible underneath the drawer and made the whole sheet feel like it was
      floating in the same space as the content it was covering. */
@@ -6390,6 +6621,8 @@ select.g-input option {
 /* ===== GroovePH pattern backdrop: CSS only (SVG shapes inlined as masks) ===== */
 :root {
   --gp-gold: 196 160 90;
+  --gp-diamond: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2040%2040'%3E%3Cg%20fill='none'%20stroke='black'%3E%3Cpath%20d='M20%204%20L36%2020%20L20%2036%20L4%2020%20Z'%20stroke-width='1.4'/%3E%3Cpath%20d='M20%2011%20L29%2020%20L20%2029%20L11%2020%20Z'%20stroke-width='1'/%3E%3C/g%3E%3Cg%20fill='black'%3E%3Cpath%20d='M20%2017.2%20L22.8%2020%20L20%2022.8%20L17.2%2020%20Z'/%3E%3Cpath%20d='M20%20-4%20L24%200%20L20%204%20L16%200%20Z'/%3E%3Cpath%20d='M20%2036%20L24%2040%20L20%2044%20L16%2040%20Z'/%3E%3Cpath%20d='M-4%2020%20L0%2024%20L4%2020%20L0%2016%20Z'/%3E%3Cpath%20d='M36%2020%20L40%2024%20L44%2020%20L40%2016%20Z'/%3E%3Cpath%20d='M0%20-4%20L4%200%20L0%204%20L-4%200%20Z'/%3E%3Cpath%20d='M36%200%20L40%204%20L44%200%20L40%20-4%20Z'/%3E%3Cpath%20d='M0%2036%20L4%2040%20L0%2044%20L-4%2040%20Z'/%3E%3Cpath%20d='M36%2040%20L40%2044%20L44%2040%20L40%2036%20Z'/%3E%3C/g%3E%3C/svg%3E");
+  --gp-compass: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20200%20200'%3E%3Cg%20fill='black'%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(0%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(22.5%20100%20100)'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(45%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(67.5%20100%20100)'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(90%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(112.5%20100%20100)'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(135%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(157.5%20100%20100)'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(180%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(202.5%20100%20100)'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(225%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(247.5%20100%20100)'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(270%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(292.5%20100%20100)'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate(315%20100%20100)'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28%20Z'%20transform='rotate(337.5%20100%20100)'/%3E%3Cpath%20d='M100%2066%20L104%2070%20L100%2074%20L96%2070%20Z'/%3E%3Cpath%20d='M100%20126%20L104%20130%20L100%20134%20L96%20130%20Z'/%3E%3Cpath%20d='M66%20100%20L70%20104%20L74%20100%20L70%2096%20Z'/%3E%3Cpath%20d='M126%20100%20L130%20104%20L134%20100%20L130%2096%20Z'/%3E%3Cpath%20fill-rule='evenodd'%20d='M74,100a26,26%200%201,0%2052,0a26,26%200%201,0%20-52,0Z%20M100.00,85.00%20L103.82,94.74%20L114.27,95.36%20L106.18,102.01%20L108.82,112.14%20L100.00,106.50%20L91.18,112.14%20L93.82,102.01%20L85.73,95.36%20L96.18,94.74Z'/%3E%3Ccircle%20cx='100'%20cy='100'%20r='92'%20fill='none'%20stroke='black'%20stroke-width='1.6'/%3E%3Ccircle%20cx='100'%20cy='100'%20r='82'%20fill='none'%20stroke='black'%20stroke-width='0.8'/%3E%3Ccircle%20cx='100'%20cy='100'%20r='40'%20fill='none'%20stroke='black'%20stroke-width='1'/%3E%3C/g%3E%3C/svg%3E");
   --gp-brick: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2040%2024'%3E%3Cg%20fill='black'%3E%3Crect%20x='0'%20y='0'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='20'%20y='0'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='-10'%20y='12'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='10'%20y='12'%20width='18'%20height='10'%20rx='1.5'/%3E%3Crect%20x='30'%20y='12'%20width='18'%20height='10'%20rx='1.5'/%3E%3C/g%3E%3C/svg%3E");
   --gp-chevron: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20280%20560'%3E%3Cg%20fill='none'%20stroke='black'%20stroke-width='7'%3E%3Cpolyline%20points='0,5.0%20250,280%200,555.0'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,5.0%20250,280%200,555.0'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3Cpolyline%20points='0,42.4%20216,280%200,517.6'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,42.4%20216,280%200,517.6'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3Cpolyline%20points='0,79.8%20182,280%200,480.2'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,79.8%20182,280%200,480.2'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3Cpolyline%20points='0,117.2%20148,280%200,442.8'%20stroke-dasharray='15%204'/%3E%3Cpolyline%20points='0,117.2%20148,280%200,442.8'%20transform='translate%28-12%200%29'%20stroke-dasharray='15%204'%20stroke-dashoffset='9'/%3E%3C/g%3E%3C/svg%3E");
   --gp-sun: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20200%20200'%3E%3Cg%20fill='black'%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%280%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%2822.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%2845%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%2867.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%2890%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28112.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28135%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28157.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28180%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28202.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28225%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28247.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28270%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28292.5%20100%20100%29'/%3E%3Cpolygon%20points='100,4%20111,68%2089,68'%20transform='rotate%28315%20100%20100%29'/%3E%3Cpath%20d='M100,28%20Q114,46%20100,64%20Q86,46%20100,28Z'%20transform='rotate%28337.5%20100%20100%29'/%3E%3Cpath%20fill-rule='evenodd'%20d='M74,100a26,26%200%201,0%2052,0a26,26%200%201,0%20-52,0Z%20M100.00,85.00%20L103.82,94.74%20L114.27,95.36%20L106.18,102.01%20L108.82,112.14%20L100.00,106.50%20L91.18,112.14%20L93.82,102.01%20L85.73,95.36%20L96.18,94.74Z'/%3E%3C/g%3E%3C/svg%3E");
@@ -6548,6 +6781,214 @@ select.g-input option {
    keeps it still for reduced-motion users. */
 @media (prefers-reduced-motion: reduce) {
   .page-patterns .pp-art { animation: none !important; }
+}
+
+/* ------------------------------------------------------------------------------
+   Global woven edge rails + compass ornaments (PagePatterns, root-mounted).
+
+   One implementation for every route — the rails and ornaments below are the
+   ONLY global background. No page adds its own pattern. The wrapper
+   `.page-patterns` is `fixed inset-0 z-0` with `pointer-events-none` (see
+   PagePatterns.tsx), so this layer never scrolls with the page, never blocks
+   a click or a focus state, and never creates horizontal scroll
+   (`overflow-hidden` crops anything off-screen).
+
+   Artwork note: `--gp-diamond` (nested diamonds + solid diamonds in the
+   gaps) and `--gp-compass` (rings + eight rays + centre star) are CSS masks
+   over data-URI SVGs, so colour comes from `var(--pattern-color)` / the
+   per-theme opacities and the weave stays razor-sharp at any size with no
+   extra image requests and no blur filters.
+
+   Geometry lives here, not in Tailwind: rail widths and compass sizes are
+   driven by `--pp-rail-w` / `--pp-compass-s` so one breakpoint change
+   resizes the weave, its trim line and the ornaments together. The centre
+   viewport is always left clean — both rails fade to transparent before
+   the middle (radial mask), and compasses sit over the rails only.
+
+   Mobile-first reduction (spec §3): compasses are the first thing hidden
+   (gone below 768px), rails narrow to 84px / 60px with a finer tile, and
+   only the weave + trim survive on phones so text stays readable.
+   ------------------------------------------------------------------------------ */
+.page-patterns {
+  --pp-rail-w: 168px;
+  --pp-compass-s: 148px;
+}
+
+/* Diagonal metallic wash — depth on the black without adding brightness. */
+.pp-metallic {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    165deg,
+    rgba(201, 162, 74, 0.08) 0%,
+    rgba(201, 162, 74, 0.005) 38%,
+    rgba(201, 162, 74, 0.003) 66%,
+    rgba(201, 162, 74, 0.06) 100%
+  );
+}
+
+/* --- Edge rails ---------------------------------------------------------- */
+.pp-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--pp-rail-w);
+}
+.pp-rail-left { left: 0; }
+.pp-rail-right { right: 0; }
+
+/* Radial fade: opaque at the outer edge centre, dissolving toward the
+   centre viewport and toward the top/bottom ends. Single mask layer, so
+   no mask-composite quirks in any engine. */
+.pp-rail-left {
+  -webkit-mask-image: radial-gradient(ellipse 150% 112% at 0% 50%, #000 50%, transparent 90%);
+          mask-image: radial-gradient(ellipse 150% 112% at 0% 50%, #000 50%, transparent 90%);
+}
+.pp-rail-right {
+  -webkit-mask-image: radial-gradient(ellipse 150% 112% at 100% 50%, #000 50%, transparent 90%);
+          mask-image: radial-gradient(ellipse 150% 112% at 100% 50%, #000 50%, transparent 90%);
+}
+
+.pp-rail-weave {
+  position: absolute;
+  inset: 0;
+  display: block;
+  /* Solid fallback for engines without color-mix / gradient sheen. */
+  background-color: var(--pattern-color);
+  /* Subtle metallic sheen clipped by the diamond mask below: a near-white
+     lift at the top-left, a deep shade at the bottom-right. */
+  background-image: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(0, 0, 0, 0.10) 100%
+  );
+  opacity: var(--pattern-opacity);
+  -webkit-mask: var(--gp-diamond) 0 0 / 32px 32px repeat;
+          mask: var(--gp-diamond) 0 0 / 32px 32px repeat;
+}
+
+/* --- Inner trim line (sibling of the masked rail, so the fade above
+   can never hide it) ----------------------------------------------------- */
+.pp-trim {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--pattern-color) 14%,
+    var(--pattern-color) 86%,
+    transparent 100%
+  );
+  opacity: var(--pattern-opacity);
+}
+.pp-trim-left { left: var(--pp-rail-w); }
+.pp-trim-right { right: var(--pp-rail-w); }
+
+/* --- Compass / sunburst ornaments ---------------------------------------- */
+.pp-compass {
+  position: absolute;
+  width: var(--pp-compass-s);
+  height: var(--pp-compass-s);
+}
+.pp-compass-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: var(--pattern-color);
+  opacity: var(--pattern-opacity-sun);
+  -webkit-mask: var(--gp-compass) center / contain no-repeat;
+          mask: var(--gp-compass) center / contain no-repeat;
+}
+.pp-compass-tl { top: 96px; left: 12px; }
+.pp-compass-tr { top: 96px; right: 12px; }
+.pp-compass-bl { bottom: 96px; left: 12px; }
+.pp-compass-br { bottom: 96px; right: 12px; }
+
+/* --- Responsive scale ------------------------------------------------------ */
+@media (min-width: 1600px) {
+  .page-patterns { --pp-rail-w: 200px; --pp-compass-s: 164px; }
+}
+@media (max-width: 1023px) {
+  .page-patterns { --pp-rail-w: 124px; --pp-compass-s: 104px; }
+  .pp-rail-weave { -webkit-mask-size: 28px 28px; mask-size: 28px 28px; }
+  .pp-compass-tl, .pp-compass-tr { top: 84px; }
+  .pp-compass-bl, .pp-compass-br { bottom: 84px; }
+}
+@media (max-width: 767px) {
+  .page-patterns { --pp-rail-w: 84px; }
+  .pp-rail-weave { -webkit-mask-size: 24px 24px; mask-size: 24px 24px; }
+  /* Ornaments are decorative only — first to go on phones so nothing
+     competes with the header, the drawer or body text. */
+  .pp-compass { display: none; }
+}
+@media (max-width: 479px) {
+  .page-patterns { --pp-rail-w: 60px; }
+  .pp-rail-weave { -webkit-mask-size: 20px 20px; mask-size: 20px 20px; }
+  .pp-trim { opacity: calc(var(--pattern-opacity) * 0.7); }
+}
+
+/* Dimmed contexts (admin tables + landing hero): same artwork, quieter. */
+.page-patterns[data-dim='strong'] .pp-rail-weave,
+.page-patterns[data-dim='strong'] .pp-compass-art,
+.page-patterns[data-dim='strong'] .pp-trim { opacity: 0.08; }
+.page-patterns[data-dim='soft'] .pp-rail-weave,
+.page-patterns[data-dim='soft'] .pp-compass-art,
+.page-patterns[data-dim='soft'] .pp-trim { opacity: 0.12; }
+
+/* Print views: no decoration (same rule as the legacy corners above). */
+@media print { .page-patterns { display: none !important; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-patterns .pp-rail-weave,
+  .page-patterns .pp-compass-art { animation: none !important; }
+}
+
+/* ------------------------------------------------------------------------------
+   GLOBAL BACKGROUND BRIDGE — why these three rules exist, and why they are
+   the only "layout" change the global background needs.
+
+   The page colour lives on <body> (theme token, see the `body` rule near
+   the root scale) and the single PagePatterns layer sits behind everything
+   at z-0, while all content sits in the `relative z-10` wrapper above it.
+   Several full-page shells still carry an opaque background class, which
+   would paint over the fixed pattern and hide it on every route using those
+   shells. Rather than editing any layout, sidebar, navigation or component
+   file, the shells are made transparent here — the body colour (identical,
+   same token, same theme) shows through, and the woven rails appear.
+
+   Rule 1 — theme-aware shells (DashboardLayout, AppShell, the (public)
+   group layout and every page root that used `min-h-screen bg-background`):
+   safe in both themes, because body and shell read the same token. Scoped
+   to `div` so <body> itself (which also carries `min-h-screen
+   bg-background`) always keeps its colour, and to `:not(.dark)` so the
+   dedicated rules below can treat the `.dark` shells differently.
+
+   Rule 2 — `.dark` + `bg-background` (LegalLayout): its background utility
+   still resolves to the <html> theme (Tailwind `@theme` indirection), so in
+   light mode it is cream-on-cream, not forced dark — making it transparent
+   is safe in every theme and keeps its dark variants correct.
+
+   Rule 3 — `.dark` + `flex-col` in dark themes only (PublicLayout, whose
+   hard-coded `bg-[#0a0a0a]` + dark tokens render always-dark content).
+   Making it transparent in light mode would put white text on a cream body,
+   so it is only revealed in dark themes (every theme except the two cream
+   ones), where body is black and the swap is invisible except for the
+   pattern itself. In light mode it keeps today's exact forced-dark surface
+   — no behaviour, contrast or navigation change. Auth (`tsp-auth bg-black`)
+   is deliberately excluded: auth pages keep their own cinematic background
+   and PagePatterns stays off there.
+   ------------------------------------------------------------------------------ */
+div.min-h-screen.bg-background:not(.dark) {
+  background-color: transparent;
+}
+.dark.min-h-screen.bg-background {
+  background-color: transparent;
+}
+html:not(.light):not(.classic) .dark.flex.min-h-screen.flex-col {
+  background-color: transparent;
 }
 
 /* ==============================================================================
@@ -7443,14 +7884,35 @@ select.g-input option {
 .groove-landing .hx-header-inner {
   max-width: 1240px;
 }
-.groove-landing .hx-header {
-  background-color: rgba(7, 7, 9, 0.86);
-  border-bottom-color: rgba(247, 240, 225, 0.1);
-  color: #f7f0e1;
+/* Sticky, NOT fixed: `position: fixed` here broke on the homepage because the
+   page-enter animation on `.page-enter` (app/layout.tsx) fills forwards with
+   `translate3d(0,0,0)` — a transformed ancestor turns fixed elements
+   relative to that box, so the bar scrolled away with the content. Sticky is
+   immune to that and keeps the bar pinned at the top of every route. */
+.groove-landing .hx-header,
+.hx-header[data-variant='landing'] {
+  position: sticky;
+  top: 0;
+  background-color: transparent !important;
+  backdrop-filter: blur(0px) !important;
+  -webkit-backdrop-filter: blur(0px) !important;
+  border-bottom: 1px solid transparent !important;
+  box-shadow: none !important;
+  color: #ffffff;
+  transition:
+    background-color 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    -webkit-backdrop-filter 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-.groove-landing .hx-header[data-scrolled] {
-  background-color: rgba(7, 7, 9, 0.96);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.32);
+.groove-landing .hx-header[data-scrolled],
+.hx-header[data-variant='landing'][data-scrolled] {
+  background-color: rgba(10, 10, 10, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
 }
 .groove-landing .hx-header .hx-logo:focus-visible {
   outline-color: #d8b15a;
@@ -7464,7 +7926,7 @@ select.g-input option {
 .groove-landing .hx-header .hx-link:hover,
 .groove-landing .hx-header .hx-link[data-active='true'] {
   background-color: rgba(247, 240, 225, 0.07);
-  color: #f7f0e1;
+  color: #ffffff;
 }
 .groove-landing .hx-header .hx-link--anchor {
   color: rgba(247, 240, 225, 0.72);
@@ -7473,7 +7935,7 @@ select.g-input option {
 }
 .groove-landing .hx-header .hx-link--anchor:hover {
   background-color: rgba(247, 240, 225, 0.07);
-  color: #f7f0e1;
+  color: #ffffff;
 }
 /* Text-only anchors keep the centre compact; the dropdown trigger and About
    still read as links without spending width on repeated icons. */
@@ -7499,7 +7961,7 @@ select.g-input option {
 .groove-landing .hx-header .hx-burger:hover {
   border-color: rgba(216, 177, 90, 0.4);
   background-color: rgba(247, 240, 225, 0.09);
-  color: #f7f0e1;
+  color: #ffffff;
 }
 .groove-landing .hx-header .hx-search-kbd {
   border-color: rgba(247, 240, 225, 0.14);
@@ -7519,7 +7981,7 @@ select.g-input option {
   border-radius: 9999px;
   border-color: rgba(247, 240, 225, 0.18);
   background-color: transparent;
-  color: #f7f0e1;
+  color: #ffffff;
   font-size: 14px;
   font-weight: 500;
 }
@@ -7560,7 +8022,7 @@ select.g-input option {
 .groove-landing .hx-panel {
   border-color: rgba(247, 240, 225, 0.12);
   background-color: #0c0c0f;
-  color: #f7f0e1;
+  color: #ffffff;
 }
 .groove-landing .hx-panel .hx-menu-item {
   color: rgba(247, 240, 225, 0.76);
@@ -7568,7 +8030,7 @@ select.g-input option {
 .groove-landing .hx-panel .hx-menu-item:hover,
 .groove-landing .hx-panel .hx-menu-item:focus-visible {
   background-color: rgba(247, 240, 225, 0.07);
-  color: #f7f0e1;
+  color: #ffffff;
 }
 .groove-landing .hx-panel .hx-panel-heading {
   color: rgba(247, 240, 225, 0.52);
@@ -7645,7 +8107,7 @@ select.g-input option {
 }
 
 .groove-landing .ld-footer {
-  border-top: 1px solid var(--ld-line);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   background-color: var(--surface);
   color: var(--ld-body);
 }
@@ -7662,7 +8124,7 @@ select.g-input option {
   font-weight: 600;
 }
 .groove-landing .ld-footer-rule {
-  border-top: 1px solid var(--ld-line);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* --- Reduced motion ------------------------------------------------------ */
@@ -8519,28 +8981,28 @@ select.g-input option {
    Black/charcoal backgrounds, warm gold accents, polished inputs, and gold focus.
    ============================================================================== */
 .groove-auth {
-  --background: #08090b;
-  --foreground: #f5f5f5;
-  --surface: #0f1015;
-  --elevated: #161820;
-  --card: #111218;
-  --card-foreground: #f5f5f5;
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --surface: #050505;
+  --elevated: #0A0A0A;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
   --border: #242630;
   --border-strong: #363946;
   --divider: #1d1e26;
   --input: #262832;
-  --muted: #15171e;
-  --muted-foreground: #9e9ea8;
-  --subtle-foreground: #6e707e;
+  --muted: #111111;
+  --muted-foreground: #A1A1AA;
+  --subtle-foreground: #71717A;
 
   /* Warm Gold Accent tokens */
-  --accent: #F4BE4D;
-  --accent-foreground: #121008;
-  --accent-hover: #E5B23E;
-  --accent-text: #F4BE4D;
-  --accent-soft: rgba(244, 190, 77, 0.12);
-  --accent-border: rgba(244, 190, 77, 0.32);
-  --ring: rgba(244, 190, 77, 0.35);
+  --accent: #F5C451;
+  --accent-foreground: #000000;
+  --accent-hover: #FFD36B;
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245,196,81,0.15);
+  --accent-border: rgba(245,196,81,0.35);
+  --ring: rgba(245,196,81,0.5);
 
   /* Re-point the Tailwind colour variables on this element as well. `@theme`
      resolves `--color-*: var(--*)` on :root, so utilities like `bg-card` and
@@ -8626,6 +9088,16 @@ select.g-input option {
   overflow: hidden;
 }
 
+/* Registration shell: `overflow: hidden` on a scroll ancestor silently
+   disables `position: sticky` for everything inside it. The shell's only
+   absolutely-anchored children are the background layers (AmbientBackground
+   is `fixed`, PixelBackground is `inset-0`), so lifting the clip here is
+   safe — `overflow-x: hidden` on `html`/`body` still guards the page. The
+   shell needs it for the sticky step-progress rail inside the form card. */
+.au-shell--registration {
+  overflow: visible;
+}
+
 /* Decorative wash behind the form. `background` is only used as a texture; the
    token gradient in `::after` is what makes the page readable, so the photo can
    stay quiet in both themes. */
@@ -8664,6 +9136,12 @@ select.g-input option {
     padding: 1.5rem 2.5rem;
   }
 }
+
+/* Registration routes render NO brand bar: AuthLayout skips `.au-topbar`
+   entirely when `registration` is set, so there is no sticky chrome here —
+   only the step-progress rail inside the card sticks (see `.reg-progress`
+   below). The base `.au-topbar` above still serves login, forgot and reset
+   password, where it renders as a plain (non-sticky) bar. */
 
 /* Auth pages and the registration success card use the same complete lockup as
    the site header: mascot mark + GroovePH wordmark + strapline. */
@@ -8723,10 +9201,23 @@ select.g-input option {
   max-width: 760px;
 }
 .au-stack--registration {
-  /* A long multi-section form reads best in a single comfortable column. 760px
-     keeps paired fields usable without stretching every input across the page. */
-  max-width: 760px;
-  gap: 1.25rem;
+  /* A long multi-section form reads best in a single comfortable column. 920px
+     keeps paired fields usable without stretching every input across the page,
+     and leaves room for field icons and inline validation chips to breathe. */
+  max-width: 920px;
+  gap: 2rem;
+}
+/* Registration header — eyebrow, title and lead share one left-aligned column
+   so the eye starts in the same place on both registration routes. */
+.au-registration-header {
+  align-items: flex-start;
+  text-align: left;
+}
+.au-registration-header .au-eyebrow {
+  align-self: flex-start;
+}
+.au-registration-main {
+  width: 100%;
 }
 .au-eyebrow {
   display: inline-flex;
@@ -8775,11 +9266,14 @@ select.g-input option {
   box-shadow: var(--shadow-sm);
 }
 .au-card--registration {
-  padding: 1.75rem;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
 }
 @media (max-width: 640px) {
   .au-card--registration {
-    padding: 1.125rem;
+    padding: 1.25rem;
+    border-radius: 16px;
   }
 }
 
@@ -8790,7 +9284,24 @@ select.g-input option {
 .reg-progress {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--card) 94%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: var(--shadow-sm);
+}
+/* On registration routes the step rail stays visible while the sections
+   scroll beneath it (synced automatically, since the pages re-render it
+   with the live step). With no brand bar on these routes it docks at the
+   viewport top; it unsticks with the end of its card, so it never covers
+   the submit row. */
+.au-shell--registration .reg-progress {
+  position: sticky;
+  top: 1rem;
+  z-index: 40;
 }
 .reg-progress-meta {
   display: flex;
@@ -8814,7 +9325,7 @@ select.g-input option {
   font-variant-numeric: tabular-nums;
 }
 .reg-progress-track {
-  height: 5px;
+  height: 8px;
   width: 100%;
   overflow: hidden;
   border-radius: 9999px;
@@ -8843,19 +9354,21 @@ select.g-input option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
   width: 100%;
-  min-height: 3.75rem;
-  padding: 0.5rem 0.375rem;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background-color: transparent;
+  min-height: 4.5rem;
+  padding: 0.625rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background-color: var(--card);
   color: var(--muted-foreground);
   cursor: pointer;
-  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease,
+    box-shadow 150ms ease;
   text-align: center;
 }
 .reg-step:hover:not(:disabled) {
+  border-color: var(--border-strong);
   background-color: var(--muted);
   color: var(--foreground);
 }
@@ -8863,24 +9376,30 @@ select.g-input option {
   border-color: var(--accent-border);
   background-color: var(--accent-soft);
   color: var(--accent-text);
+  box-shadow: var(--shadow-sm);
 }
 .reg-step--complete {
+  border-color: color-mix(in srgb, var(--success) 30%, var(--border));
   color: var(--foreground);
 }
 .reg-step--disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
+}
+.reg-step:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .reg-step-circle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 9999px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   background-color: var(--muted);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -8894,26 +9413,29 @@ select.g-input option {
 .reg-step--complete .reg-step-circle {
   background-color: var(--success-soft);
   color: var(--success);
-  border-color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
 }
 .reg-step-label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 .reg-step-detail {
   display: block;
-  margin-top: 0.1rem;
-  font-size: 0.65rem;
+  margin-top: 0.125rem;
+  font-size: 0.6875rem;
   color: var(--subtle-foreground);
-  line-height: 1.25;
+  line-height: 1.35;
 }
 @media (max-width: 640px) {
+  .reg-progress {
+    padding: 0.75rem;
+  }
   .reg-step {
-    min-height: 3.25rem;
-    gap: 0.3rem;
-    padding: 0.4rem 0.15rem;
+    min-height: 4rem;
+    gap: 0.375rem;
+    padding: 0.5rem 0.25rem;
   }
   .reg-step-label {
     font-size: 0.6875rem;
@@ -8928,7 +9450,7 @@ select.g-input option {
 
 /* Step heading — same phrasing as the rail so the two can never disagree. */
 .reg-step-header {
-  padding-bottom: 0.875rem;
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border);
 }
 .reg-step-header-kicker {
@@ -8947,40 +9469,57 @@ select.g-input option {
   background-color: var(--border);
 }
 .reg-step-header-title {
-  margin: 0.3rem 0 0;
+  margin: 0.4375rem 0 0;
   color: var(--foreground);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 .reg-step-header-description {
-  margin: 0.2rem 0 0;
+  margin: 0.375rem 0 0;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
-  line-height: 1.5;
+  font-size: 0.875rem;
+  line-height: 1.55;
 }
 
+/* ---------------------------------------------------------------------------
+   Registration sections. Each related group of fields lives in one quiet
+   card: a hairline border, a single step of surface, and generous inner
+   padding. The numbered heading sits at the top of its card, so a long form
+   reads as 3-5 scannable blocks instead of one endless list.
+   --------------------------------------------------------------------------- */
+.reg-section {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+  padding: 1.5rem;
+}
+@media (max-width: 640px) {
+  .reg-section {
+    padding: 1.125rem;
+  }
+}
 /* Numbered section heading. The badge is the anchor; the icon stays with the
    title so the heading reads as one compact line on narrow screens. */
 .reg-section-heading {
   display: flex;
   align-items: flex-start;
-  gap: 0.625rem;
+  gap: 0.75rem;
 }
 .reg-section-index {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.85rem;
-  height: 1.4rem;
-  margin-top: 0.05rem;
-  padding: 0 0.35rem;
+  min-width: 2.25rem;
+  height: 1.625rem;
+  margin-top: 0.0625rem;
+  padding: 0 0.5rem;
   border: 1px solid var(--accent-border);
-  border-radius: 6px;
+  border-radius: 9999px;
   background-color: var(--accent-soft);
   color: var(--accent-text);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -8990,19 +9529,20 @@ select.g-input option {
 .reg-section-title {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4375rem;
   margin: 0;
   color: var(--foreground);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   scroll-margin-top: 5.5rem;
 }
 .reg-section-description {
-  margin: 0.15rem 0 0;
+  margin: 0.25rem 0 0;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-size: 0.875rem;
+  line-height: 1.55;
 }
 
 /* One-line required-field legend instead of a full-width panel. */
@@ -9022,20 +9562,20 @@ select.g-input option {
 
 .reg-oauth-card {
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background-color: var(--muted);
-  padding: 0.875rem 1rem;
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--muted) 60%, transparent);
+  padding: 1.25rem;
 }
 .reg-oauth-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.875rem;
-  height: 1.875rem;
-  border-radius: 8px;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
   background-color: var(--accent-soft);
   color: var(--accent-text);
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 .reg-soft-badge {
   display: inline-flex;
@@ -9070,6 +9610,256 @@ select.g-input option {
 }
 .reg-required-note {
   /* au-note already styles; keep hook */
+}
+
+/* ==========================================================================
+   REGISTRATION FORM BLOCKS
+   Upload zones, selection cards, genre chips, terms rows and action bars.
+   These classes carry the geometry so the TSX stays readable and every route
+   shares the same spacing, radius and focus treatment.
+   ========================================================================== */
+
+/* Whole-form rhythm: sections, cards and step containers stack on one scale. */
+.reg-form {
+  gap: 1.75rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Upload zone (ID documents, coach verification files). Previously referenced
+   as `reg-upload-card` with no rule behind it, so the cards rendered as plain
+   transparent boxes with broken dashed utility fragments. One dashed,
+   theme-aware zone for every file input in registration.
+   --------------------------------------------------------------------------- */
+.reg-upload-card {
+  position: relative;
+  border: 2px dashed var(--border-strong);
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--muted) 45%, transparent);
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+.reg-upload-card:hover {
+  border-color: var(--accent-border);
+  background-color: var(--accent-soft);
+}
+.reg-upload-card:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.reg-upload-card--filled {
+  border-style: solid;
+  border-color: var(--accent-border);
+  background-color: var(--card);
+}
+.reg-upload-card--error {
+  border-color: var(--danger);
+}
+.reg-upload-card--dragging {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+}
+/* File-type badges inside an upload zone (PDF / JPG / PNG / max 5 MB). */
+.reg-upload-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--subtle-foreground);
+}
+.reg-upload-badges > span {
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+.reg-upload-badges > span:last-child {
+  background-color: transparent;
+  border-color: transparent;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Selection cards — the service-location radios (AddressSelector) and the
+   coach skill single-select. Unselected: quiet card. Selected: accent fill
+   with a full accent border so the choice reads at a glance. Keyboard focus
+   lands on the card via :focus-within on the wrapped radio/button.
+   --------------------------------------------------------------------------- */
+.reg-choice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background-color: var(--card);
+  padding: 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease,
+    transform 150ms ease;
+}
+.reg-choice-card:hover {
+  border-color: var(--border-strong);
+  background-color: var(--muted);
+}
+.reg-choice-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.reg-choice-card:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.reg-choice-card--selected {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+  box-shadow: var(--shadow-sm);
+}
+.reg-choice-card--selected:hover {
+  background-color: var(--accent-soft);
+}
+/* Centred, icon-first variant for the skill grid. */
+.reg-choice-card--center {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 7.5rem;
+  text-align: center;
+}
+/* Radio dot used inside location choice cards. */
+.reg-choice-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 1.5px solid var(--border-strong);
+  background-color: var(--card);
+}
+.reg-choice-card--selected .reg-choice-dot {
+  border-color: var(--accent);
+}
+.reg-choice-dot::after {
+  content: '';
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background-color: transparent;
+}
+.reg-choice-card--selected .reg-choice-dot::after {
+  background-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Genre chips — multi-select toggles. Selected chips carry the accent fill
+   with dark ink (white on gold fails AA); unselected chips stay quiet cards.
+   --------------------------------------------------------------------------- */
+.reg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1.5px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--card);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+.reg-chip:hover {
+  border-color: var(--border-strong);
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+.reg-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.reg-chip--selected {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+  font-weight: 600;
+}
+.reg-chip--selected:hover {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   Terms row — the agreement checkbox framed as its own card so it reads as a
+   deliberate step, not a loose checkbox floating between sections.
+   --------------------------------------------------------------------------- */
+.reg-terms-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background-color: var(--card);
+  padding: 1rem 1.125rem;
+  transition: border-color 150ms ease;
+}
+.reg-terms-card:hover {
+  border-color: var(--border-strong);
+}
+.reg-terms-card--error {
+  border-color: var(--danger);
+}
+
+/* ---------------------------------------------------------------------------
+   Action bar — Back / Next / Submit row. One top rule and one gap scale so
+   every step across both routes closes the same way.
+   --------------------------------------------------------------------------- */
+.reg-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--divider);
+}
+@media (min-width: 640px) {
+  .reg-actions {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* Summary strip (coach genre summary, address preview). */
+.reg-summary {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background-color: color-mix(in srgb, var(--muted) 50%, transparent);
+  padding: 1rem 1.125rem;
+}
+
+/* Field cell alignment: fields in a grid share one baseline. */
+.reg-field {
+  min-width: 0;
+}
+/* Micro-label above DOB / grouped selects (Year · Month · Day). */
+.reg-select-caption {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle-foreground);
 }
 .au-note {
   display: flex;
@@ -9846,7 +10636,7 @@ select.g-input option {
   gap: 0.25rem;
   margin: 0;
   padding: 2rem;
-  color: #f7f0e1;
+  color: #ffffff;
 }
 .au-split-quote-text {
   font-family: var(--font-display, inherit);
@@ -10073,6 +10863,339 @@ html {
   .g-shake,
   .g-shimmer {
     animation: none !important;
+  }
+}
+
+/* ============================================================================
+   GROOVE LOADING SYSTEM — cinematic startup, visualizer, modals, transitions.
+   All motion is transform/opacity only. `prefers-reduced-motion` freezes
+   every loading animation to a static, legible state.
+   ========================================================================== */
+
+/* --- Equalizer bars (GrooveSpinner `bars`, splash visualizer) --- */
+@keyframes g-eq {
+  0%, 100% { transform: scaleY(0.22); }
+  35% { transform: scaleY(1); }
+  60% { transform: scaleY(0.45); }
+}
+.g-eq-bar {
+  display: inline-block;
+  transform-origin: bottom;
+  animation: g-eq 1s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* --- Orbit spinner --- */
+@keyframes g-orbit {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.g-orbit {
+  animation: g-orbit 1.3s linear infinite;
+  will-change: transform;
+}
+.g-orbit-slow {
+  animation: g-orbit 22s linear infinite;
+  will-change: transform;
+}
+@keyframes g-orbit-dot {
+  0% { transform: rotate(0deg) translateX(0); opacity: 0.9; }
+  100% { transform: rotate(360deg) translateX(0); opacity: 0.9; }
+}
+
+/* --- Pulse variant --- */
+@keyframes g-pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  70% { transform: scale(1.25); opacity: 0; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+.g-pulse-ring {
+  animation: g-pulse-ring 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: transform, opacity;
+}
+@keyframes g-pulse-core {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.88); opacity: 0.8; }
+}
+.g-pulse-core {
+  animation: g-pulse-core 1.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* --- Morphing squircle --- */
+@keyframes g-morph {
+  0% { border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%; transform: rotate(0deg) scale(1); }
+  33% { border-radius: 55% 45% 38% 62% / 50% 60% 40% 50%; transform: rotate(120deg) scale(0.94); }
+  66% { border-radius: 42% 58% 60% 40% / 58% 36% 64% 42%; transform: rotate(240deg) scale(1.03); }
+  100% { border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%; transform: rotate(360deg) scale(1); }
+}
+.g-morph {
+  animation: g-morph 3.2s ease-in-out infinite;
+  will-change: border-radius, transform;
+}
+
+/* --- Dots variant --- */
+@keyframes g-dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.55; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+.g-dot-bounce {
+  display: inline-block;
+  animation: g-dot-bounce 1.2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* --- Gold particles --- */
+@keyframes g-particle-drift {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  12% { opacity: var(--particle-opacity, 0.5); }
+  50% { transform: translate3d(8px, calc(var(--drift, 40px) * -1), 0); }
+  88% { opacity: var(--particle-opacity, 0.5); }
+  100% { transform: translate3d(-6px, calc(var(--drift, 40px) * -1.4), 0); opacity: 0; }
+}
+.g-particle {
+  animation: g-particle-drift 14s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* --- Aurora washes --- */
+@keyframes g-aurora {
+  0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+.g-aurora {
+  animation: g-aurora 9s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+@keyframes g-aurora-delayed {
+  0%, 100% { opacity: 0.55; transform: translateY(0) scale(1); }
+  50% { opacity: 0.85; transform: translateY(-14px) scale(1.04); }
+}
+.g-aurora-delayed {
+  animation: g-aurora-delayed 12s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+/* --- Light trails sweeping the stage --- */
+@keyframes g-trail {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+.g-trail {
+  animation: g-trail 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+@keyframes g-trail-rev {
+  0% { transform: translateX(320%); }
+  100% { transform: translateX(-120%); }
+}
+.g-trail-reverse {
+  animation: g-trail-rev 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+/* --- Progress sheen --- */
+@keyframes g-progress-sheen {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(320%); }
+}
+.g-progress-sheen {
+  animation: g-progress-sheen 1.9s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* --- Logo medallion halo pulse --- */
+@keyframes g-logo-halo {
+  0%, 100% { box-shadow: 0 0 44px rgba(245,196,81,0.14); }
+  50% { box-shadow: 0 0 64px rgba(245,196,81,0.24); }
+}
+
+/* --- Loading modal surface --- */
+.g-loading-modal {
+  box-shadow:
+    0 24px 64px -16px rgba(0, 0, 0, 0.85),
+    0 0 48px -12px rgba(245, 196, 81, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+@media (hover: hover) and (pointer: fine) {
+  .g-loading-modal {
+    transition: border-color 220ms ease, box-shadow 220ms ease;
+  }
+  .g-loading-modal:hover {
+    border-color: rgba(245, 196, 81, 0.32);
+    box-shadow:
+      0 28px 72px -16px rgba(0, 0, 0, 0.9),
+      0 0 56px -10px rgba(245, 196, 81, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  }
+}
+
+/* --- <Modal> panel polish: keep the gold hairline + deep shadow --- */
+.g-modal-panel {
+  box-shadow:
+    var(--shadow-lg),
+    0 0 44px -12px rgba(245, 196, 81, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-color: rgba(245, 196, 81, 0.16);
+}
+@media (hover: hover) and (pointer: fine) {
+  .g-modal-panel {
+    transition: border-color 220ms ease, box-shadow 220ms ease;
+  }
+  .g-modal-panel:hover {
+    border-color: rgba(245, 196, 81, 0.28);
+  }
+}
+
+/* --- Dialog entrance (CSS path, the default <Modal>): opacity + a small
+   rise/scale settle with a soft blur. Transform/opacity/filter only, 240ms,
+   so it stays on the compositor and exits stay instant (no JS exit). */
+@keyframes g-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+.g-modal-in {
+  animation: g-modal-in 240ms var(--ease-out-expo) both;
+  will-change: opacity, transform;
+}
+
+/* --- Skeleton: gold-tinted shimmer (upgrades the existing muted sweep) --- */
+.g-skeleton {
+  background-color: color-mix(in srgb, var(--muted) 88%, var(--accent-soft) 12%);
+}
+.g-skeleton::after {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0,
+    color-mix(in srgb, var(--accent) 14%, transparent) 38%,
+    color-mix(in srgb, var(--accent) 26%, transparent) 50%,
+    color-mix(in srgb, var(--accent) 14%, transparent) 62%,
+    transparent 100%
+  );
+}
+
+/* --- View Transitions (Next.js guide: Suspense reveals + crossfades) --- */
+:root {
+  --duration-exit: 150ms;
+  --duration-enter: 210ms;
+  --duration-move: 400ms;
+}
+::view-transition-old(.slide-down) {
+  animation:
+    var(--duration-exit) ease-out both fade reverse,
+    var(--duration-exit) ease-out both slide-y reverse;
+}
+::view-transition-new(.slide-up) {
+  animation:
+    var(--duration-enter) ease-in var(--duration-exit) both fade,
+    var(--duration-move) ease-in both slide-y;
+}
+@keyframes fade {
+  from { filter: blur(3px); opacity: 0; }
+  to { filter: blur(0); opacity: 1; }
+}
+@keyframes slide-y {
+  from { transform: translateY(10px); }
+  to { transform: translateY(0); }
+}
+@keyframes slide {
+  from { translate: var(--slide-offset, 0); }
+  to { translate: 0; }
+}
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    150ms ease-in both fade reverse,
+    400ms ease-in-out both slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    210ms ease-out 150ms both fade,
+    400ms ease-in-out both slide;
+}
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    150ms ease-in both fade reverse,
+    400ms ease-in-out both slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    210ms ease-out 150ms both fade,
+    400ms ease-in-out both slide;
+}
+::view-transition {
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+  .g-eq-bar, .g-orbit, .g-orbit-slow, .g-pulse-ring, .g-pulse-core,
+  .g-morph, .g-dot-bounce, .g-particle, .g-aurora, .g-aurora-delayed,
+  .g-trail, .g-trail-reverse, .g-progress-sheen, .g-loading-logo,
+  .g-loading-bar-indicator, .g-modal-in {
+    animation: none !important;
+  }
+}
+@media (hover: none) {
+  .g-loading-modal:hover,
+  .g-modal-panel:hover {
+    border-color: rgba(245, 196, 81, 0.16);
+  }
+}
+
+/* --- Splash entrance (CSS-only so SSR and first client render match) --- */
+@keyframes g-loader-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); filter: blur(6px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+.g-loader-enter {
+  animation: g-loader-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+}
+
+/* --- Splash vignette: deep edge in dark, a soft cream depth in light --- */
+.g-loader-vignette {
+  background: radial-gradient(
+    ellipse 90% 90% at 50% 50%,
+    transparent 55%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+.light .g-loader-vignette,
+.classic .g-loader-vignette,
+:root[data-theme='light'] .g-loader-vignette,
+:root[data-theme='classic'] .g-loader-vignette {
+  background: radial-gradient(
+    ellipse 90% 90% at 50% 50%,
+    transparent 55%,
+    rgba(53, 53, 53, 0.12) 100%
+  );
+}
+@keyframes g-message-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.g-message-fade {
+  animation: g-message-fade 0.3s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-loader-enter, .g-message-fade {
+    animation: none;
   }
 }
 

@@ -43,9 +43,9 @@ export function TambayanPulseCard() {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm backdrop-blur-md">
+    <div className="overflow-hidden rounded-2xl   bg-card shadow-sm backdrop-blur-md">
       {/* Top Banner with Tambayan Theme */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-accent/20 via-brand-sunburst/15 to-accent/10 px-4 py-3.5 border-b border-border/70">
+      <div className="relative overflow-hidden bg-gradient-to-r from-accent/20 via-brand-sunburst/15 to-accent/10 px-4 py-3.5  ">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
@@ -83,7 +83,7 @@ export function TambayanPulseCard() {
             {tags.map((tag) => (
               <span
                 key={tag.label}
-                className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/30 px-2 py-1 text-[10px] font-semibold text-foreground hover:border-accent/40 hover:bg-accent/10 transition cursor-default"
+                className="inline-flex items-center gap-1 rounded-lg   bg-muted/30 px-2 py-1 text-[10px] font-semibold text-foreground hover: hover:bg-accent/10 transition cursor-default"
               >
                 <span>{tag.label}</span>
                 <span className="text-muted-foreground/70 text-[9px] font-normal">
@@ -95,7 +95,7 @@ export function TambayanPulseCard() {
         </div>
 
         {/* Quick Tambayan Cheer */}
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-accent/30 bg-accent/10 p-2.5">
+        <div className="flex items-center justify-between gap-2 rounded-xl   bg-accent/10 p-2.5">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-accent shrink-0" />
             <div className="text-[11px]">
@@ -111,7 +111,7 @@ export function TambayanPulseCard() {
             className={cn(
               'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition active:scale-95 cursor-pointer',
               hasCheered
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-emerald-500/20 text-emerald-400  '
                 : 'bg-accent text-accent-foreground hover:bg-accent-hover shadow-xs'
             )}
           >

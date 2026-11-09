@@ -89,7 +89,7 @@ export function UpcomingSessionsWidget({
             return (
               <div
                 key={appt.id}
-                className="rounded-2xl border border-border bg-card p-3.5 transition hover:border-border-strong"
+                className="rounded-2xl   bg-card p-3.5 transition hover:"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="truncate text-xs font-bold text-foreground">{name}</span>

@@ -101,7 +101,7 @@ export function AgreementSignature({
   const hasStamp = Boolean(signedAt);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-3">
+    <div className="rounded-lg   bg-card p-3">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
           {role}
@@ -118,7 +118,7 @@ export function AgreementSignature({
       </div>
 
       {/* White ground regardless of theme: the stored PNG is near-black ink. */}
-      <div className="mt-2 flex h-20 items-center justify-center rounded-md border border-border bg-white px-2">
+      <div className="mt-2 flex h-20 items-center justify-center rounded-md   bg-white px-2">
         {loading ? (
           <span className="text-[11px] text-slate-400">Loading…</span>
         ) : url ? (

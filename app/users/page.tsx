@@ -346,7 +346,7 @@ export default function UsersDirectoryPage() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or @username…"
               aria-label="Search members"
-              className="w-full rounded-xl border border-border bg-surface py-2.5 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent-border focus:outline-none focus:ring-2 focus:ring-accent/25"
+              className="w-full rounded-xl   bg-surface py-2.5 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus: focus: "
             />
             {query && (
               <button
@@ -364,7 +364,7 @@ export default function UsersDirectoryPage() {
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
             aria-label="Sort members"
-            className="h-[42px] cursor-pointer rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-foreground focus:border-accent-border focus:outline-none focus:ring-2 focus:ring-accent/25"
+            className="h-[42px] cursor-pointer rounded-xl   bg-surface px-3 text-xs font-semibold text-foreground focus: focus: "
           >
             <option value="followers">Most followers</option>
             <option value="newest">Newest</option>
@@ -375,7 +375,7 @@ export default function UsersDirectoryPage() {
           <div
             role="group"
             aria-label="Change layout"
-            className="flex h-[42px] items-center rounded-xl border border-border bg-muted/50 p-1"
+            className="flex h-[42px] items-center rounded-xl   bg-muted/50 p-1"
           >
             {(
               [
@@ -409,7 +409,7 @@ export default function UsersDirectoryPage() {
           <div
             role="tablist"
             aria-label="Filter by role"
-            className="inline-flex rounded-xl border border-border bg-muted/50 p-1"
+            className="inline-flex rounded-xl   bg-muted/50 p-1"
           >
             {roleTabs.map((tab) => (
               <button
@@ -445,10 +445,10 @@ export default function UsersDirectoryPage() {
                   aria-pressed={verifiedFilter === opt.value}
                   onClick={() => setVerifiedFilter(opt.value)}
                   className={cn(
-                    'inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold transition',
+                    'inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full  px-3 py-1 text-[11px] font-semibold transition',
                     verifiedFilter === opt.value
-                      ? 'border-accent-border bg-accent-soft text-accent-text'
-                      : 'border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
+                      ? ' bg-accent-soft text-accent-text'
+                      : ' bg-card text-muted-foreground hover:-strong hover:text-foreground'
                   )}
                 >
                   {opt.value === 'yes' && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
@@ -461,7 +461,7 @@ export default function UsersDirectoryPage() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold text-muted-foreground transition hover:border-border-strong hover:text-foreground"
+                className="inline-flex min-h-[32px] cursor-pointer items-center gap-1 rounded-full   bg-card px-3 py-1 text-[11px] font-semibold text-muted-foreground transition hover: hover:text-foreground"
               >
                 <X className="h-3 w-3" aria-hidden="true" />
                 Clear filters
@@ -473,11 +473,11 @@ export default function UsersDirectoryPage() {
         {/* ── Top followed ── */}
         {topUsers.length > 0 && !query && roleFilter === 'all' && (
           <section className="g-card mb-6 overflow-hidden" aria-label="Top followed members">
-            <h2 className="flex items-center gap-2 border-b border-divider px-5 py-4 text-sm font-bold tracking-[-0.01em] text-foreground">
+            <h2 className="flex items-center gap-2   px-5 py-4 text-sm font-bold tracking-[-0.01em] text-foreground">
               <Trophy className="h-4 w-4 text-warning" aria-hidden="true" />
               Top followed
             </h2>
-            <ul className="divide-y divide-[var(--divider)] px-5">
+            <ul className=" (--divider)] px-5">
               {topUsers.slice(0, 5).map((user) => (
                 <UserListItem key={user.id} {...rowProps(user)} />
               ))}
@@ -486,9 +486,9 @@ export default function UsersDirectoryPage() {
         )}
         {topLoading && !error && (
           <div className="g-card mb-6 overflow-hidden" aria-hidden="true">
-            <div className="h-12 animate-pulse border-b border-divider bg-muted/60" />
+            <div className="h-12 animate-pulse   bg-muted/60" />
             {[0, 1, 2].map((i) => (
-              <div key={i} className="border-b border-divider px-5 py-3">
+              <div key={i} className="  px-5 py-3">
                 <div className="flex items-center gap-3">
                   <span className="h-10 w-10 animate-pulse rounded-full bg-muted" />
                   <span className="h-3.5 w-2/5 animate-pulse rounded bg-muted" />
@@ -502,7 +502,7 @@ export default function UsersDirectoryPage() {
         {error ? (
           <div
             role="alert"
-            className="flex flex-col items-center gap-4 rounded-2xl border border-danger/30 bg-danger-soft px-6 py-12 text-center"
+            className="flex flex-col items-center gap-4 rounded-2xl   bg-danger-soft px-6 py-12 text-center"
           >
             <span className="text-sm text-danger">{error}</span>
             <Button
@@ -535,7 +535,7 @@ export default function UsersDirectoryPage() {
             </div>
           ) : (
             <div className="g-card overflow-hidden" role="status" aria-live="polite">
-              <ul className="divide-y divide-[var(--divider)] px-5">
+              <ul className=" (--divider)] px-5">
                 {[0, 1, 2, 3, 4].map((i) => (
                   <UserListItemSkeleton key={i} />
                 ))}
@@ -543,8 +543,8 @@ export default function UsersDirectoryPage() {
             </div>
           )
         ) : users.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-muted text-subtle-foreground">
+          <div className="flex flex-col items-center gap-3 rounded-2xl   bg-card px-6 py-12 text-center">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl   bg-muted text-subtle-foreground">
               <UsersIcon className="h-5 w-5" aria-hidden="true" />
             </span>
             <p className="text-sm text-muted-foreground">
@@ -594,15 +594,15 @@ export default function UsersDirectoryPage() {
                   return (
                     <li
                       key={user.id}
-                      className="g-card flex flex-col p-5 transition-colors hover:border-accent-border"
+                      className="g-card flex flex-col p-5 transition-colors hover:"
                     >
                       <div className="flex items-start gap-3">
                         <Link
                           href={`/userprofile/${user.id}`}
                           aria-label={`View ${display}'s profile`}
-                          className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                          className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                         >
-                          <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-bold text-accent-text">
+                          <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full   bg-muted text-sm font-bold text-accent-text">
                             {user.photo_url ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={user.photo_url} alt="" className="h-full w-full object-cover" />
@@ -670,7 +670,7 @@ export default function UsersDirectoryPage() {
                           inside an anchor is invalid nesting and cannot be
                           reliably clicked. Same rule as UserListItem. */}
                       {viewerId && !isSelf && (
-                        <div className="mt-4 border-t border-divider pt-3">
+                        <div className="mt-4   pt-3">
                           <Button
                             size="sm"
                             variant={isFollowing ? 'outline' : 'primary'}
@@ -693,7 +693,7 @@ export default function UsersDirectoryPage() {
               </ul>
             ) : (
               <div className="g-card overflow-hidden">
-                <ul className="divide-y divide-[var(--divider)] px-5">
+                <ul className=" (--divider)] px-5">
                   {users.map((user) => (
                     <UserListItem key={user.id} {...rowProps(user)} />
                   ))}
@@ -709,12 +709,12 @@ export default function UsersDirectoryPage() {
             )}
 
             {hasMore && (
-              <div className="mt-5 border-t border-divider pt-4 text-center">
+              <div className="mt-5   pt-4 text-center">
                 <button
                   type="button"
                   onClick={() => void loadPage(page + 1, 'more')}
                   disabled={loadingMore}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted disabled:opacity-60"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full   bg-surface px-4 py-2 text-xs font-semibold text-foreground transition hover: hover:bg-muted disabled:opacity-60"
                 >
                   {loadingMore && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
                   {loadingMore ? 'Loading…' : 'Load more'}

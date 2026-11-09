@@ -29,7 +29,7 @@ function CoachPresence({ coach }: { coach: FullCoach }) {
   if (presence === 'offline') return null;
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/65 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md"
+      className="inline-flex items-center gap-1.5 rounded-full   bg-black/65 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md"
       title={`Status: ${meta.label}`}
     >
       <span className={`g-presence-dot g-presence-dot--${presence}`} aria-hidden="true" />
@@ -66,7 +66,7 @@ export function CoachCard({
   return (
     <article
       className={cn(
-        'group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border/80 bg-card shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-xl aspect-[3/4] sm:aspect-[4/5] min-h-[26rem] w-full',
+        'group g-gold-border relative flex flex-col justify-between overflow-hidden rounded-[24px]   bg-card shadow-md transition-all duration-300 hover:-translate-y-1 hover: hover:shadow-xl aspect-[3/4] sm:aspect-[4/5] min-h-[26rem] w-full',
         className
       )}
     >
@@ -80,7 +80,7 @@ export function CoachCard({
         />
       ) : (
         <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-muted/60">
-          <span className="flex h-20 w-20 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-2xl font-black uppercase tracking-wider text-accent-text shadow-sm">
+          <span className="flex h-20 w-20 items-center justify-center rounded-full   bg-accent-soft text-2xl font-black uppercase tracking-wider text-accent-text shadow-sm">
             {getInitials(coach.firstname, coach.lastname)}
           </span>
         </div>
@@ -108,7 +108,7 @@ export function CoachCard({
       {/* 3. Top Floating Badges */}
       <div className="relative z-20 flex items-start justify-between gap-2 p-4">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center rounded-full border border-white/20 bg-black/65 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md shadow-sm">
+          <span className="inline-flex items-center rounded-full   bg-black/65 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md shadow-sm">
             {category}
           </span>
           <CoachPresence coach={coach} />
@@ -116,12 +116,12 @@ export function CoachCard({
             verified={coach.account_verified}
             size="sm"
             label="Verified"
-            className="border-white/20 bg-black/65 text-white backdrop-blur-md"
+            className=" bg-black/65 text-white backdrop-blur-md"
           />
         </div>
 
         {/* Rating */}
-        <div className="inline-flex shrink-0 items-center gap-1 rounded-full border border-white/20 bg-black/65 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md shadow-sm">
+        <div className="inline-flex shrink-0 items-center gap-1 rounded-full   bg-black/65 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md shadow-sm">
           <Star className="h-3.5 w-3.5 fill-accent text-accent" />
           <span>{typeof rating === 'number' ? rating.toFixed(1) : rating}</span>
           <span className="font-normal text-white/60">({ratingCount})</span>
@@ -133,7 +133,7 @@ export function CoachCard({
         {/* Persistent Details (Visible Always) */}
         <div className="space-y-1.5">
           {/* Fee Pill */}
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-black/70 px-3 py-1 text-xs font-bold tabular-nums text-accent-text backdrop-blur-md shadow-sm">
+          <div className="inline-flex items-center gap-1.5 rounded-full   bg-black/70 px-3 py-1 text-xs font-bold tabular-nums text-accent-text backdrop-blur-md shadow-sm">
             {fee === null ? (
               'Rate on request'
             ) : (
@@ -162,7 +162,7 @@ export function CoachCard({
               {genres.slice(0, 3).map((g) => (
                 <span
                   key={g}
-                  className="rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-sm"
+                  className="rounded-md   bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-sm"
                 >
                   {g}
                 </span>
@@ -187,7 +187,7 @@ export function CoachCard({
           <div className="grid grid-cols-3 gap-2">
             <Link
               href={`/userprofile/${coach.id}`}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-black/50 px-2 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white hover:text-black hover:border-white"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl   bg-black/50 px-2 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white hover:text-black hover:"
             >
               <User className="h-3.5 w-3.5" />
               <span>Profile</span>
@@ -195,7 +195,7 @@ export function CoachCard({
 
             <Link
               href={`/messages?user=${coach.id}`}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-black/50 px-2 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white hover:text-black hover:border-white"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl   bg-black/50 px-2 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white hover:text-black hover:"
             >
               <MessageSquare className="h-3.5 w-3.5" />
               <span>Chat</span>
@@ -204,7 +204,7 @@ export function CoachCard({
             <button
               type="button"
               onClick={() => onAskAI?.(coach)}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-accent/40 bg-accent-soft/80 px-2 text-xs font-semibold text-accent-text backdrop-blur-md transition hover:bg-accent hover:text-accent-foreground"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl   bg-accent-soft/80 px-2 text-xs font-semibold text-accent-text backdrop-blur-md transition hover:bg-accent hover:text-accent-foreground"
             >
               <Bot className="h-3.5 w-3.5" />
               <span>AI</span>
@@ -225,7 +225,7 @@ export function CoachCard({
             <button
               type="button"
               onClick={() => onBlockedBook?.(coach)}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-black/60 px-4 text-xs font-semibold text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl   bg-black/60 px-4 text-xs font-semibold text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white"
             >
               <Calendar className="h-4 w-4" />
               <span>Verify First to Book</span>

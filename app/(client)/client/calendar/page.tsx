@@ -69,7 +69,7 @@ export default function ClientCalendarPage() {
               onClick={() => void fetchAppointments()}
               disabled={loading}
               aria-label="Refresh calendar"
-              className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-border-strong hover:bg-muted disabled:opacity-60"
+              className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full   bg-card text-foreground transition hover: hover:bg-muted disabled:opacity-60"
             >
               <RefreshCw
                 className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
@@ -79,7 +79,7 @@ export default function ClientCalendarPage() {
             <Link
               href="/client/appointments"
               aria-label="Back to appointments"
-              className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-border-strong hover:bg-muted"
+              className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full   bg-card text-foreground transition hover: hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -95,7 +95,7 @@ export default function ClientCalendarPage() {
       ) : error ? (
         <div
           role="alert"
-          className="flex items-start gap-3 rounded-[20px] border border-danger/30 bg-danger-soft p-5"
+          className="flex items-start gap-3 rounded-[20px]   bg-danger-soft p-5"
         >
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-danger" aria-hidden="true" />
           <div className="min-w-0">
@@ -107,7 +107,7 @@ export default function ClientCalendarPage() {
             <button
               type="button"
               onClick={() => void fetchAppointments()}
-              className="mt-3 inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-danger/30 bg-card px-4 text-xs font-semibold text-danger transition hover:border-danger/50 hover:bg-danger-soft"
+              className="mt-3 inline-flex min-h-[36px] items-center gap-1.5 rounded-full   bg-card px-4 text-xs font-semibold text-danger transition hover: hover:bg-danger-soft"
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
               Try again

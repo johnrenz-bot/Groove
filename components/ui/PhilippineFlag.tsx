@@ -68,7 +68,7 @@ export function PhilippineFlag({ className, width = 20, height = 14 }: Philippin
       height={height}
       role="img"
       aria-label="Philippines flag"
-      className={cn('rounded-sm overflow-hidden ring-1 ring-black/10', className)}
+      className={cn('rounded-sm overflow-hidden  ', className)}
     >
       {/* Blue (top) and red (bottom) fields */}
       <rect x="0" y="0" width="30" height="10" fill={BLUE} />

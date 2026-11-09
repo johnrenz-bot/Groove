@@ -377,11 +377,11 @@ export const FEATURED_CREWS: DanceCrew[] = [
       fallbackReason: 'Official text pill fallback',
     },
     image: {
-      url: null,
-      alt: 'Legit Status Dance Crew Philippines',
-      credit: 'Official HHI / Legit Status',
-      source_url: 'https://hiphopinternational.com/',
-      license: 'Promotional competition media',
+      url: '/crews/legit-status/team.jpg',
+      alt: 'Legit Status performing on stage at the 2023 HHI World Hip Hop Dance Championship finals',
+      credit: 'Official HHI 2023 World Finals still · Hip Hop International',
+      source_url: 'https://www.youtube.com/watch?v=_00vZ1xMzcc',
+      license: 'Official competition media (editorial use)',
     },
     achievements: [
       {
@@ -447,13 +447,18 @@ export const FEATURED_CREWS: DanceCrew[] = [
       fallbackReason: 'Official text pill fallback',
     },
     image: {
-      url: null,
-      alt: 'UPeepz World Champion Dance Company Philippines',
-      credit: 'UPeepz Official',
-      source_url: 'https://hiphopinternational.com/',
-      license: 'Promotional competition media',
+      url: '/crews/upeepz/team.png',
+      alt: 'UPeepz celebrating with the Philippine flag on the 2024 HHI World Championship podium',
+      credit: 'Official HHI 2024 MegaCrew podium · Hip Hop International',
+      source_url: 'https://hiphopinternational.com/medalists/',
+      license: 'Official competition media (editorial use)',
     },
     achievements: [
+      {
+        title: 'HHI World Hip Hop Dance Championship — MegaCrew Gold Champions',
+        year: 2024,
+        source_url: 'https://hiphopinternational.com/medalists/',
+      },
       {
         title: 'HHI World Hip Hop Dance Championship — MegaCrew Gold Champions (Back-to-back)',
         year: '2016, 2017',
@@ -516,11 +521,11 @@ export const FEATURED_CREWS: DanceCrew[] = [
       verified: false,
     },
     image: {
-      url: null,
-      alt: 'HQ Dance Crew Manila Philippines',
-      credit: 'HQ Official',
-      source_url: 'https://hiphopinternational.com/',
-      license: 'Promotional competition media',
+      url: '/crews/hq/team.jpg',
+      alt: 'HQ performing on stage at the 2023 HHI World Hip Hop Dance Championship adult finals',
+      credit: 'Official HHI 2023 World Finals still · Hip Hop International',
+      source_url: 'https://www.youtube.com/watch?v=jAbbc1Y1aLw',
+      license: 'Official competition media (editorial use)',
     },
     achievements: [
       {
@@ -557,17 +562,17 @@ export const FEATURED_CREWS: DanceCrew[] = [
     bio: 'Official Philippine National Champions of Red Bull Dance Your Style—the world\'s premier 1-on-1 all-styles street dance competition where the crowd decides the winner. Champions represent the Philippines on the global battle stage.',
     source_url: 'https://www.redbull.com/ph-en/events/dance-your-style-philippines',
     logo: {
-      url: '/logos/red-bull-dance-your-style.png',
+      url: '/logos/Dance-Leagues/red-bull-dance-your-style.png',
       alt: 'Red Bull Dance Your Style logo',
       source_url: 'https://www.redbull.com/ph-en/events/dance-your-style-philippines',
       verified: true,
     },
     image: {
-      url: '/dance-updates/redbull-dys-world-final-2026.jpg',
-      alt: 'Red Bull Dance Your Style Philippines Champions',
-      credit: 'Red Bull Content Pool',
-      source_url: 'https://www.redbull.com/ph-en/events/dance-your-style-philippines',
-      license: 'Official Red Bull media',
+      url: '/crews/redbull-dys/team.jpg',
+      alt: 'Izzy Johnson holding the Red Bull Dance Your Style Philippines 2026 championship trophy',
+      credit: 'Izzy Johnson, 2026 PH Champion · Red Bull / Manila Standard',
+      source_url: 'https://manilastandard.net/spotlight/314726192/red-bull-dance-your-style-philippines-crowns-new-champion-as-manilas-izzy-johnson-qualifies-for-world-finals-in-zurich.html',
+      license: 'Official Red Bull event photography (editorial use)',
     },
     achievements: [
       {
@@ -719,7 +724,7 @@ export const FEATURED_CREWS: DanceCrew[] = [
     bio: 'A creative collective blending urban dance with a distinct "Kinjaz" aesthetic, known for intricate choreography and global influence. They are recognized for bridging eastern and western dance cultures.',
     source_url: 'https://www.kinjaz.com/',
     logo: {
-      url: '/logos/kinjaz.jpg',
+      url: '/logos/Dance-Leagues/kinjaz.jpg',
       alt: 'Kinjaz logo',
       source_url: 'https://www.kinjaz.com/',
       verified: true,

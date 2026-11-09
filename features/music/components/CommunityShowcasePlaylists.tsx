@@ -40,7 +40,7 @@ interface CommunityShowcasePlaylistsProps {
   community?: string | null;
   /**
    * Drops the outer card chrome so the hub can live inside a dialog without a
-   * border nested inside a border. Everything else is identical.
+   *  nested inside a . Everything else is identical.
    */
   embedded?: boolean;
   /** Open straight into the playlist-creation form. */
@@ -298,11 +298,11 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
     <div
       className={cn(
         'space-y-5',
-        !embedded && 'rounded-3xl border border-border/80 bg-card/60 p-5 sm:p-7 backdrop-blur-sm shadow-sm transition-all'
+        !embedded && 'rounded-3xl   bg-card/60 p-5 sm:p-7 backdrop-blur-sm shadow-sm transition-all'
       )}
     >
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4  ">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="p-1.5 rounded-xl bg-accent-soft text-accent">
@@ -333,7 +333,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+      <div className="flex items-center gap-2   pb-3">
         <button
           type="button"
           onClick={() => setActiveTab('browse')}
@@ -376,7 +376,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                 <div className="g-skeleton h-14 rounded-2xl w-full" />
               </div>
             ) : playlists.length === 0 ? (
-              <div className="p-4 rounded-2xl border border-border/60 bg-muted/30 text-center text-xs text-muted-foreground">
+              <div className="p-4 rounded-2xl   bg-muted/30 text-center text-xs text-muted-foreground">
                 No playlists found. Click &quot;New Playlist&quot; to create your first rehearsal mix!
               </div>
             ) : (
@@ -389,10 +389,10 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                       key={pl.id}
                       onClick={() => setSelectedPlaylistId(pl.id)}
                       className={cn(
-                        'group flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all',
+                        'group flex items-center justify-between p-3 rounded-2xl  cursor-pointer transition-all',
                         isSelected
-                          ? 'border-accent/50 bg-accent-soft/40 shadow-xs'
-                          : 'border-border/60 bg-card hover:bg-muted/40 hover:border-border'
+                          ? ' bg-accent-soft/40 shadow-xs'
+                          : ' bg-card hover:bg-muted/40 hover:'
                       )}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -439,9 +439,9 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
           {/* Right Column: Selected Playlist Details & Track List */}
           <div className="lg:col-span-8">
             {selectedPlaylist ? (
-              <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 space-y-4">
+              <div className="rounded-2xl   bg-card p-4 sm:p-5 space-y-4">
                 {/* Playlist Header Card */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3  ">
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-lg font-bold text-foreground">
@@ -475,7 +475,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                     <button
                       type="button"
                       onClick={() => setActiveTab('search')}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-border text-xs font-medium text-foreground hover:bg-muted/50 transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl   text-xs font-medium text-foreground hover:bg-muted/50 transition-colors"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Track</span>
@@ -486,7 +486,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                 {/* Track List */}
                 <div className="space-y-2">
                   {selectedPlaylist.tracks.length === 0 ? (
-                    <div className="p-8 text-center rounded-xl border border-dashed border-border/80 bg-muted/20">
+                    <div className="p-8 text-center rounded-xl    bg-muted/20">
                       <Music className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-60" />
                       <p className="text-sm font-medium text-foreground">
                         This playlist is empty
@@ -513,10 +513,10 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                         <div
                           key={track.id || idx}
                           className={cn(
-                            'group flex items-center justify-between p-2.5 rounded-xl border transition-all',
+                            'group flex items-center justify-between p-2.5 rounded-xl  transition-all',
                             isCurrentTrack
-                              ? 'border-accent bg-accent-soft/30'
-                              : 'border-border/60 bg-card hover:bg-muted/40'
+                              ? ' bg-accent-soft/30'
+                              : ' bg-card hover:bg-muted/40'
                           )}
                         >
                           {/* Track info & Play Button */}
@@ -525,7 +525,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                               {idx + 1}
                             </span>
 
-                            <div className="relative h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden border border-border bg-muted">
+                            <div className="relative h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden   bg-muted">
                               {track.thumbnail ? (
                                 <Image
                                   src={track.thumbnail}
@@ -631,7 +631,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                 placeholder="Search song, rehearsal beats, vocal warmups, or paste any YouTube URL / Video ID…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground text-xs sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl   bg-card text-foreground text-xs sm:text-sm placeholder:text-muted-foreground focus: "
               />
             </div>
             <button
@@ -646,7 +646,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
 
           {/* API notice if running in curated fallback */}
           {searchNotice && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-accent-soft/50 border border-accent/30 text-xs text-foreground">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-accent-soft/50   text-xs text-foreground">
               <Info className="h-4 w-4 text-accent flex-shrink-0" />
               <span>{searchNotice}</span>
             </div>
@@ -654,12 +654,12 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
 
           {/* Destination Playlist Selector */}
           {playlists.length > 0 && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl border border-border/60">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl  ">
               <span className="font-semibold text-foreground">Adding tracks to:</span>
               <select
                 value={selectedPlaylist?.id}
                 onChange={(e) => setSelectedPlaylistId(e.target.value)}
-                className="bg-card border border-border text-foreground rounded-lg px-2 py-1 text-xs font-medium focus:ring-1 focus:ring-accent"
+                className="bg-card   text-foreground rounded-lg px-2 py-1 text-xs font-medium "
               >
                 {playlists.map((pl) => (
                   <option key={pl.id} value={pl.id}>
@@ -680,10 +680,10 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
               return (
                 <div
                   key={result.youtubeId}
-                  className="flex flex-col justify-between p-3 rounded-2xl border border-border/80 bg-card hover:border-accent/40 transition-all shadow-xs"
+                  className="flex flex-col justify-between p-3 rounded-2xl   bg-card hover: transition-all shadow-xs"
                 >
                   <div className="space-y-2">
-                    <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-border bg-muted group">
+                    <div className="relative aspect-video w-full rounded-xl overflow-hidden   bg-muted group">
                       {result.thumbnail && (
                         <Image
                           src={result.thumbnail}
@@ -725,7 +725,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                     </div>
                   </div>
 
-                  <div className="pt-3 mt-2 border-t border-border/60 flex items-center justify-between">
+                  <div className="pt-3 mt-2   flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() =>
@@ -750,7 +750,7 @@ export const CommunityShowcasePlaylists: React.FC<CommunityShowcasePlaylistsProp
                       className={cn(
                         'inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold transition-all',
                         isAdded
-                          ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-500  '
                           : 'bg-accent text-accent-foreground hover:opacity-90 active:scale-95'
                       )}
                     >

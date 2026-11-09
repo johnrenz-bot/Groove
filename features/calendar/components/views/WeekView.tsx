@@ -48,14 +48,14 @@ export function WeekView({
 
   return (
     <div className="flex flex-col">
-      <div className="grid grid-cols-7 border-b border-divider">
+      <div className="grid grid-cols-7  ">
         {days.map((day) => (
           <button
             key={toDateKey(day)}
             type="button"
             onClick={() => onSelectDate(day)}
             className={cn(
-              'cursor-pointer px-1 py-2 text-center transition hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent',
+              'cursor-pointer px-1 py-2 text-center transition hover:bg-muted/60 focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
               isToday(day) && 'bg-accent-soft'
             )}
           >
@@ -75,9 +75,9 @@ export function WeekView({
       </div>
 
       <div className="relative flex">
-        <div className="w-16 shrink-0 border-r border-divider">
+        <div className="w-16 shrink-0  ">
           {hours.map((hour) => (
-            <div key={hour} className="relative h-14 border-b border-divider/60">
+            <div key={hour} className="relative h-14  ">
               <span className="absolute -top-1.5 right-1.5 whitespace-nowrap text-[10px] tabular-nums text-subtle-foreground">
                 {formatHourLabel(hour * 60)}
               </span>
@@ -93,12 +93,12 @@ export function WeekView({
               <div
                 key={key}
                 className={cn(
-                  'relative border-r border-divider/60 last:border-r-0',
+                  'relative  -divider/60 last:',
                   isToday(day) && 'bg-accent-soft/30'
                 )}
               >
                 {hours.map((hour) => (
-                  <div key={hour} className="h-14 border-b border-divider/60" />
+                  <div key={hour} className="h-14  " />
                 ))}
 
                 {/* Now-line, only on today's column. */}
@@ -141,7 +141,7 @@ function WeekBlock({
         type="button"
         onClick={() => onSelectDate(new Date(entry.date))}
         className={cn(
-          'absolute inset-x-1 top-1 z-10 cursor-pointer rounded-lg border-l-2 p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+          'absolute inset-x-1 top-1 z-10 cursor-pointer rounded-lg  p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
           statusBarClass(entry.status)
         )}
         title={entry.counterpartLabel}
@@ -164,7 +164,7 @@ function WeekBlock({
       onClick={() => onSelectDate(new Date(entry.date))}
       title={`${entry.timeLabel} · ${entry.counterpartLabel} · ${entry.status}`}
       className={cn(
-        'absolute inset-x-1 z-10 cursor-pointer overflow-hidden rounded-lg border-l-2 p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        'absolute inset-x-1 z-10 cursor-pointer overflow-hidden rounded-lg  p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
         statusBarClass(entry.status)
       )}
       style={{ top, height }}

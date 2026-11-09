@@ -215,23 +215,25 @@ function CoachAIModalContent({
       {/* Header */}
       <div className={cn(MODAL_HEADER_CLASS, 'items-center gap-3 p-4 sm:p-4')}>
         <div className="flex items-center gap-3 min-w-0">
-          <div className="relative w-10 h-10 rounded-2xl bg-accent-soft border border-accent-border/60 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
-            {coachContext?.photoUrl ? (
-              <Image
-                src={coachContext.photoUrl}
-                alt={coachName}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover"
-                unoptimized
-              />
-            ) : (
-              <span className="text-xs font-bold text-accent-text uppercase">
-                {initials}
-              </span>
-            )}
+          <div className="relative w-10 h-10 shrink-0 shadow-xs">
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl bg-accent-soft  ">
+              {coachContext?.photoUrl ? (
+                <Image
+                  src={coachContext.photoUrl}
+                  alt={coachName}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <span className="text-xs font-bold text-accent-text uppercase">
+                  {initials}
+                </span>
+              )}
+            </div>
             <span
-              className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-success border-2 border-card"
+              className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-success border-2 border-card "
               title="AI Assistant Active"
             />
           </div>
@@ -275,7 +277,7 @@ function CoachAIModalContent({
       </div>
 
       {/* Quick Question Chips */}
-      <div className="px-3.5 py-2 bg-muted/30 border-b border-border/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar select-none shrink-0">
+      <div className="px-3.5 py-2 bg-muted/30   flex items-center gap-1.5 overflow-x-auto no-scrollbar select-none shrink-0">
         <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1 shrink-0 pl-0.5 pr-1">
           <HelpCircle className="w-3 h-3 text-accent-text" />
           Ask:
@@ -286,7 +288,7 @@ function CoachAIModalContent({
             type="button"
             onClick={() => handleSendPrompt(p.prompt)}
             disabled={loading}
-            className="shrink-0 px-2.5 py-1 rounded-full bg-card hover:bg-accent-soft text-foreground hover:text-accent-text text-[11px] font-medium border border-border shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40"
+            className="shrink-0 px-2.5 py-1 rounded-full bg-card hover:bg-accent-soft text-foreground hover:text-accent-text text-[11px] font-medium   shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40"
           >
             {p.label}
           </button>
@@ -304,7 +306,7 @@ function CoachAIModalContent({
             className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.sender === 'assistant' ? (
-              <div className="max-w-[88%] bg-card border border-border text-foreground rounded-2xl rounded-tl-sm p-3.5 shadow-xs space-y-2">
+              <div className="max-w-[88%] bg-card   text-foreground rounded-2xl rounded-tl-sm p-3.5 shadow-xs space-y-2">
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-accent-text uppercase tracking-wide mb-1">
                   <Bot className="w-3.5 h-3.5" />
                   <span>Coach Assistant</span>
@@ -323,7 +325,7 @@ function CoachAIModalContent({
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-3.5 flex items-center gap-2 text-muted-foreground text-xs shadow-xs">
+            <div className="bg-card   rounded-2xl rounded-tl-sm p-3.5 flex items-center gap-2 text-muted-foreground text-xs shadow-xs">
               <Loader2 className="w-4 h-4 animate-spin text-accent-text shrink-0" />
               <span>Coach Assistant is thinking...</span>
             </div>
@@ -334,7 +336,7 @@ function CoachAIModalContent({
       {/* Prompt Input Composer */}
       <form
         onSubmit={handleSubmit}
-        className="p-3 border-t border-border bg-card flex flex-col gap-1.5 shrink-0"
+        className="p-3   bg-card flex flex-col gap-1.5 shrink-0"
       >
         <div className="flex items-center gap-2">
           <input
@@ -344,7 +346,7 @@ function CoachAIModalContent({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
-            className="flex-1 h-10 px-3.5 rounded-xl bg-muted/60 border border-border focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none text-xs text-foreground placeholder:text-muted-foreground transition"
+            className="flex-1 h-10 px-3.5 rounded-xl bg-muted/60   focus: focus: focus: focus: text-xs text-foreground placeholder:text-muted-foreground transition"
           />
           <button
             type="submit"

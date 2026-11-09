@@ -247,9 +247,9 @@ export default function AdminMessagesPage() {
           {/* Pane 1: client conversations */}
           <aside
             aria-label="Client conversations"
-            className="flex min-h-0 flex-col border-divider md:col-span-4 md:border-r"
+            className="flex min-h-0 flex-col  md:col-span-4 md:"
           >
-            <div className="border-b border-divider p-4">
+            <div className="  p-4">
               <div className="relative">
                 <label htmlFor="admin-contact-search" className="sr-only">
                   Search clients
@@ -287,18 +287,18 @@ export default function AdminMessagesPage() {
                       key={partner.id}
                       onClick={() => void openThread(partner)}
                       aria-current={isSelected ? 'true' : undefined}
-                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
+                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl  p-3 text-left transition-colors ${
                         isSelected
-                          ? 'border-accent-border bg-accent-soft'
-                          : 'border-transparent hover:bg-muted'
+                          ? ' bg-accent-soft'
+                          : ' hover:bg-muted'
                       }`}
                     >
                       <span
                         aria-hidden="true"
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border text-xs font-bold uppercase ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full  text-xs font-bold uppercase ${
                           isSelected
-                            ? 'border-accent-border bg-accent text-accent-foreground'
-                            : 'border-border bg-muted text-muted-foreground'
+                            ? ' bg-accent text-accent-foreground'
+                            : ' bg-muted text-muted-foreground'
                         }`}
                       >
                         {partner.photo_url ? (
@@ -337,15 +337,15 @@ export default function AdminMessagesPage() {
           {/* Pane 2: the thread */}
           <section
             aria-label="Conversation"
-            className="flex min-h-0 flex-col border-t border-divider md:col-span-8 md:border-t-0"
+            className="flex min-h-0 flex-col   md:col-span-8 md:"
           >
             {active ? (
               <>
-                <div className="flex items-center justify-between gap-3 border-b border-divider p-4">
+                <div className="flex items-center justify-between gap-3   p-4">
                   <div className="flex min-w-0 items-center gap-3">
                     <span
                       aria-hidden="true"
-                      className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold uppercase text-muted-foreground"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold uppercase text-muted-foreground"
                     >
                       {active.firstname?.[0]}
                     </span>
@@ -360,7 +360,7 @@ export default function AdminMessagesPage() {
                   </div>
                   <Link
                     href={`/userprofile/${active.id}`}
-                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-border px-3.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-full   px-3.5 text-xs font-semibold text-muted-foreground transition-colors hover: hover:text-foreground"
                   >
                     View Profile
                   </Link>
@@ -395,7 +395,7 @@ export default function AdminMessagesPage() {
                           <div
                             className={`max-w-[75%] space-y-1 rounded-2xl p-3.5 text-xs leading-relaxed ${
                               isMine
-                                ? 'rounded-bl-md border border-border bg-card text-foreground'
+                                ? 'rounded-bl-md   bg-card text-foreground'
                                 : 'rounded-br-md bg-accent font-medium text-accent-foreground shadow-[var(--shadow-sm)]'
                             }`}
                           >
@@ -418,7 +418,7 @@ export default function AdminMessagesPage() {
                   <div ref={threadEndRef} />
                 </div>
 
-                <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-divider p-3">
+                <form onSubmit={handleSend} className="flex items-center gap-2   p-3">
                   <label htmlFor="admin-message-composer" className="sr-only">
                     Type your message
                   </label>

@@ -210,7 +210,7 @@ export function RescheduleDialog({
       }
     >
       <ModalSection className="space-y-4 text-xs">
-        <ModalCard className="border-info/30 bg-info-soft text-info">
+        <ModalCard className=" bg-info-soft text-info">
           <div className="flex items-start gap-2 text-[11px] leading-relaxed">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
             <p>
@@ -224,7 +224,7 @@ export function RescheduleDialog({
         </ModalCard>
 
         {detail.agreement && (
-          <ModalCard className="border-warning/30 bg-warning-soft text-warning">
+          <ModalCard className=" bg-warning-soft text-warning">
             <p className="text-[11px] font-medium leading-relaxed">
               This booking already has a session agreement. A new time changes the booking,
               not the agreement&apos;s stored date and time. Ask your coach whether a new
@@ -312,7 +312,7 @@ export function RescheduleDialog({
         </div>
 
         {errors.time && (
-          <ModalCard className="border-warning/30 bg-warning-soft text-warning">
+          <ModalCard className=" bg-warning-soft text-warning">
             <p className="text-[11px] font-medium leading-relaxed">
               {errors.time}
             </p>
@@ -320,7 +320,7 @@ export function RescheduleDialog({
         )}
 
         {conflicts.length > 0 && (
-          <ModalCard className="border-warning/30 bg-warning-soft text-warning">
+          <ModalCard className=" bg-warning-soft text-warning">
             <p className="flex items-center gap-1.5 font-semibold">
               <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
               Your schedule on {formatBookingDate(date)}
@@ -356,7 +356,7 @@ export function RescheduleDialog({
           </p>
         )}
         {errorMessage ? (
-          <ModalCard className="border-danger/30 bg-danger-soft text-danger">
+          <ModalCard className=" bg-danger-soft text-danger">
             <p className="text-[11px] font-medium leading-relaxed">
               {errorMessage}
             </p>

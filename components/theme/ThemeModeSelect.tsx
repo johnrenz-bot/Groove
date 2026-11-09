@@ -28,7 +28,7 @@ export function ThemeModeSelect() {
 
   return (
     <div
-      className="inline-flex items-center rounded-full border border-accent-border bg-card p-1 shadow-sm"
+      className="inline-flex items-center rounded-full   bg-card p-1 shadow-sm"
       role="group"
       aria-label="Appearance"
     >
@@ -41,7 +41,7 @@ export function ThemeModeSelect() {
             onClick={() => setThemeMode(value)}
             aria-pressed={active}
             className={cn(
-              'flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
               active
                 ? 'bg-accent text-accent-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'

@@ -89,6 +89,12 @@ export function ProfileHero({
   const [error, setError] = useState<string | null>(null);
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [listSide, setListSide] = useState<'followers' | 'following' | null>(null);
+  const [photoFailed, setPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setPhotoFailed(false), 0);
+    return () => window.clearTimeout(timer);
+  }, [photoUrl]);
 
   const fullName = `${firstname ?? ''} ${lastname ?? ''}`.trim() || 'Groove member';
   const initials = `${firstname?.[0] ?? ''}${lastname?.[0] ?? ''}`.toUpperCase() || 'G';
@@ -178,10 +184,15 @@ export function ProfileHero({
       <div className="relative px-5 pb-5 pt-6 sm:px-7 sm:pb-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
           <div className="relative shrink-0">
-            <div className="h-24 w-24 overflow-hidden rounded-2xl border-2 border-accent-border bg-muted shadow-[var(--shadow-sm)] sm:h-28 sm:w-28">
-              {photoUrl ? (
+            <div className="h-24 w-24 overflow-hidden rounded-2xl   bg-muted shadow-[var(--shadow-sm)] sm:h-28 sm:w-28">
+              {photoUrl && !photoFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoUrl} alt={fullName} className="h-full w-full object-cover" />
+                <img
+                  src={photoUrl}
+                  alt={fullName}
+                  className="h-full w-full object-cover"
+                  onError={() => setPhotoFailed(true)}
+                />
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-accent-text">
                   {initials}
@@ -191,7 +202,7 @@ export function ProfileHero({
             {isCoach && (
               <span
                 aria-hidden="true"
-                className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card"
+                className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground  "
               >
                 <BadgeCheck className="h-4 w-4" />
               </span>
@@ -209,7 +220,7 @@ export function ProfileHero({
               <span
                 title="Philippines"
                 aria-label="Philippines"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-full   bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
               >
                 <PhilippineFlag />
                 <span>Philippines</span>
@@ -240,7 +251,7 @@ export function ProfileHero({
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-4 border-t border-divider pt-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mt-6 flex flex-col gap-4   pt-5 lg:flex-row lg:items-center lg:justify-between">
           <dl className="flex items-center gap-5 sm:gap-7">
             <Stat
               label="Followers"
@@ -270,7 +281,7 @@ export function ProfileHero({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={publicHref}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-muted"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg   bg-surface px-3 text-xs font-semibold text-foreground transition hover: hover:bg-muted"
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
               Preview Profile
@@ -286,7 +297,7 @@ export function ProfileHero({
                 aria-pressed={isFollowing}
                 className={`inline-flex h-9 min-w-[108px] items-center justify-center gap-1.5 rounded-lg px-3.5 text-xs font-bold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 ${
                   isFollowing
-                    ? 'border border-accent-border bg-accent-soft text-accent-text hover:bg-accent/20'
+                    ? '  bg-accent-soft text-accent-text hover:bg-accent/20'
                     : 'bg-accent text-accent-foreground hover:bg-accent-hover'
                 }`}
               >

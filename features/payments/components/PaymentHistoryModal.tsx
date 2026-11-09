@@ -164,7 +164,7 @@ export function PaymentHistoryModal({
         </div>
 
         {/* Summary Stat Tiles */}
-        <div className="grid grid-cols-2 gap-3 border-b border-divider bg-muted/20 p-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3   bg-muted/20 p-4 sm:grid-cols-4">
           <div className={cn(MODAL_CARD_CLASS, 'p-3')}>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <TrendingUp className="h-3 w-3 text-success" /> Total Received
@@ -203,7 +203,7 @@ export function PaymentHistoryModal({
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="flex flex-col gap-3 border-b border-divider p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3   p-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Status Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 g-scroll">
             {STATUS_FILTERS.map((f) => (
@@ -252,7 +252,7 @@ export function PaymentHistoryModal({
               />
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+            <div className="flex flex-col items-center justify-center rounded-2xl    py-16 text-center text-muted-foreground">
               <Inbox className="h-10 w-10 opacity-40 mb-2" />
               <p className="text-sm font-bold text-foreground">No transactions found</p>
               <p className="mt-1 text-xs text-muted-foreground max-w-xs">

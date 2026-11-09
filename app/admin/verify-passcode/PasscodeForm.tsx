@@ -80,7 +80,7 @@ export function PasscodeForm() {
               value={digit}
               onChange={(e) => setDigit(index, e.target.value)}
               onKeyDown={(e) => onKeyDown(index, e)}
-              className="h-14 w-12 rounded-xl border border-border bg-muted text-center text-xl font-bold text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              className="h-14 w-12 rounded-xl   bg-muted text-center text-xl font-bold text-foreground focus: focus: "
             />
           ))}
         </div>
@@ -89,7 +89,7 @@ export function PasscodeForm() {
       {result?.error && (
         <p
           role="alert"
-          className="rounded-xl border border-danger/30 bg-danger-soft p-3 text-center text-xs text-danger"
+          className="rounded-xl   bg-danger-soft p-3 text-center text-xs text-danger"
         >
           {result.error}
         </p>
@@ -102,7 +102,7 @@ export function PasscodeForm() {
 
 export function PasscodeHeaderIcon() {
   return (
-    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-accent-border bg-accent-soft text-accent-text">
+    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full   bg-accent-soft text-accent-text">
       <ShieldCheck className="h-8 w-8" aria-hidden="true" />
     </div>
   );

@@ -84,7 +84,7 @@ export function MaskedText({
               : 'Reveal personal information'
         }
         title={revealed ? 'Hide' : 'Reveal'}
-        className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+        className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
       >
         {revealed ? (
           <EyeOff className="h-3.5 w-3.5" aria-hidden="true" />
@@ -174,7 +174,7 @@ export function MaskedInput({
           className={cn(
             'g-input pr-11',
             !revealed && 'font-mono tracking-tight text-foreground/90',
-            error && 'border-danger',
+            error && '',
             className
           )}
           {...props}

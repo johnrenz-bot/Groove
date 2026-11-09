@@ -405,10 +405,10 @@ export default function AdminInquiriesPage() {
                       disabled={busyId === String(selected.id)}
                       onClick={() => patchTicket(selected, { status })}
                       className={cn(
-                        'cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold capitalize transition-colors disabled:opacity-50',
+                        'cursor-pointer rounded-full  px-3 py-1.5 text-xs font-semibold capitalize transition-colors disabled:opacity-50',
                         selected.status === status
-                          ? 'border-accent-border bg-accent-soft text-accent-text'
-                          : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                          ? ' bg-accent-soft text-accent-text'
+                          : ' bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
                       {status}
@@ -428,10 +428,10 @@ export default function AdminInquiriesPage() {
                       disabled={busyId === String(selected.id)}
                       onClick={() => patchTicket(selected, { priority })}
                       className={cn(
-                        'cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold capitalize transition-colors disabled:opacity-50',
+                        'cursor-pointer rounded-full  px-3 py-1.5 text-xs font-semibold capitalize transition-colors disabled:opacity-50',
                         selected.priority === priority
-                          ? 'border-accent-border bg-accent-soft text-accent-text'
-                          : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                          ? ' bg-accent-soft text-accent-text'
+                          : ' bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
                       {priority}
@@ -442,7 +442,7 @@ export default function AdminInquiriesPage() {
             </section>
 
             {/* Sender */}
-            <section className="rounded-2xl border border-border bg-muted p-4">
+            <section className="rounded-2xl   bg-muted p-4">
               <h4 className="mb-3 text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
                 Sender
               </h4>
@@ -466,7 +466,7 @@ export default function AdminInquiriesPage() {
               <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
                 Message
               </h4>
-              <p className="whitespace-pre-line rounded-2xl border border-border bg-muted px-4 py-3 text-sm leading-relaxed text-foreground">
+              <p className="whitespace-pre-line rounded-2xl   bg-muted px-4 py-3 text-sm leading-relaxed text-foreground">
                 {selected.message}
               </p>
             </section>
@@ -477,7 +477,7 @@ export default function AdminInquiriesPage() {
                 <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
                   Attachment
                 </h4>
-                <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-muted px-4 py-3">
+                <div className="flex items-center justify-between gap-4 rounded-2xl   bg-muted px-4 py-3">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <Paperclip className="h-4 w-4 shrink-0 text-accent-text" />
                     <div className="min-w-0">
@@ -496,7 +496,7 @@ export default function AdminInquiriesPage() {
                     href={selected.attachment_path}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full   bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
                   >
                     <Download className="h-3.5 w-3.5" />
                     Open
@@ -507,7 +507,7 @@ export default function AdminInquiriesPage() {
 
             {/* Spam warning */}
             {selected.priority === 'critical' && (
-              <div className="flex items-start gap-2.5 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger">
+              <div className="flex items-start gap-2.5 rounded-2xl   bg-danger-soft px-4 py-3 text-xs text-danger">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
                   Marked critical. Delete the ticket if it is spam rather than a genuine inquiry.

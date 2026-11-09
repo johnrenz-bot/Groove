@@ -1,121 +1,131 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { Check, ArrowRight } from 'lucide-react';
-import { Reveal } from '@/components/shared/Reveal';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Search, MessageSquare, FileCheck2, Sparkles } from 'lucide-react';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 
-/**
- * "How it works" — four steps in a horizontal timeline on desktop,
- * vertical stack on mobile. A connector line runs between steps.
- * Each step is a numbered card with title, description, and highlights.
- */
-const steps = [
+const STEPS = [
   {
-    number: 1,
-    title: 'Create your profile',
+    number: '01',
+    title: 'Find a Coach',
     description:
-      'Sign up as a performer or a coach. Add your disciplines, rates, availability, and portfolio in a few minutes.',
-    highlights: ['Instant setup', 'Secure & private', 'Multi-discipline support'],
-    accent: 'rgba(201,162,74,0.9)',
+      'Browse verified coach profiles by discipline, review transparent rates, specialties, and real-time studio availability.',
+    icon: Search,
   },
   {
-    number: 2,
-    title: 'Find a coach or studio',
+    number: '02',
+    title: 'Message to Agree',
     description:
-      'Search verified coaches by discipline, compare rates and reviews, then request a session that fits your schedule.',
-    highlights: ['Smart filters', 'Verified reviews', 'Real-time availability'],
-    accent: 'rgba(174,49,58,0.8)',
+      'Discuss routine goals, song choices, and rehearsal schedules directly in chat before confirming. Nothing is charged yet.',
+    icon: MessageSquare,
   },
   {
-    number: 3,
-    title: 'Book and sign contract',
+    number: '03',
+    title: 'Book & Sign Contract',
     description:
-      'Confirm the agreement with a digital signature, coordinate in the studio, and grow your craft with the community.',
-    highlights: ['Digital signature', 'Auto-generated PDF', 'Audit trail'],
-    accent: 'rgba(37,99,235,0.8)',
+      'Lock in the date. The digital session agreement, schedule, and fee are bound together with official e-signatures.',
+    icon: FileCheck2,
   },
   {
-    number: 4,
-    title: 'Rehearse and perform',
+    number: '04',
+    title: 'Rehearse & Grow',
     description:
-      'Track progress, share performances on the Showcase, and build your reputation in the performing arts community.',
-    highlights: ['Progress dashboard', 'Community Showcase', 'Coach feedback'],
-    accent: 'rgba(201,162,74,0.9)',
+      'Meet at verified studios or online. Track your performance milestones and easily rebook your ongoing sessions.',
+    icon: Sparkles,
   },
 ];
 
 export function HowItWorks() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <section id="how" className="ld-section" aria-labelledby="how-heading">
-      <div className="ld-wrap">
-        {/* Section header */}
-        <Reveal className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
-          <p className="ld-eyebrow">How it works</p>
-          <h2 id="how-heading" className="ld-h2">
-            From discovery to performance in four steps
-          </h2>
-          <p className="ld-p">
-            Groove makes it simple to find the right coach, book a session, and sign your
-            agreement — all in one place.
-          </p>
-        </Reveal>
+    <section id="how-it-works" className="relative mx-auto max-w-[1240px] px-6 py-24 sm:px-8 lg:px-10 lg:py-32 scroll-mt-24">
+      {/* Section Header */}
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <SectionHeading
+          eyebrow="How It Works"
+          title="From discovery to performance in four clear steps."
+          description="A calm, structured process designed to eliminate confusion, lost messages, and unrecorded session terms."
+          align="left"
+        />
+      </motion.div>
 
-        {/* Steps — horizontal timeline on lg, stacked on mobile */}
-        <div className="mt-12 ld-how-grid" role="list">
-          {steps.map((step, idx) => (
-            <Reveal key={step.number} variant="up" delay={idx * 80} className="h-full">
-              <article
-                className="ld-how-card h-full group"
-                role="listitem"
-                style={{ '--step-accent': step.accent } as React.CSSProperties}
-              >
-                {/* Connector line (not on last step) */}
-                {idx < steps.length - 1 && (
-                  <div className="ld-how-connector" aria-hidden="true" />
-                )}
-
-                {/* Step number badge */}
-                <div className="ld-how-num" aria-hidden="true">
-                  {step.number}
-                </div>
-
-                {/* Content */}
-                <h3 className="ld-h3 mt-4">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--muted-foreground)] flex-1">
-                  {step.description}
-                </p>
-
-                {/* Highlights */}
-                <ul className="mt-4 flex flex-col gap-1.5 pt-3 border-t border-[var(--border)]">
-                  {step.highlights.map((highlight) => (
-                    <li
-                      key={highlight}
-                      className="inline-flex items-start gap-2 text-[13px] text-[var(--muted-foreground)]"
-                    >
-                      <Check
-                        className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--success)]"
-                        aria-hidden="true"
-                      />
-                      {highlight}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            </Reveal>
-          ))}
+      {/* Steps Container with Animated Connecting Line */}
+      <div className="relative mt-16">
+        {/* Animated Connecting Line (Desktop) */}
+        <div
+          aria-hidden="true"
+          className="absolute left-[12%] right-[12%] top-9 hidden h-[2px] -translate-y-1/2 overflow-hidden md:block"
+        >
+          {/* Base line */}
+          <div className="h-full w-full bg-white/10" />
+          {/* Glowing Animated Pulse */}
+          <motion.div
+            initial={prefersReducedMotion ? false : { x: '-100%' }}
+            animate={
+              prefersReducedMotion
+                ? undefined
+                : {
+                    x: ['-100%', '100%'],
+                  }
+            }
+            transition={{
+              duration: 3.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            className="absolute inset-0 h-full w-1/2 bg-gradient-to-r from-transparent via-[#E8B84B] to-transparent shadow-[0_0_15px_rgba(232,184,75,0.8)]"
+          />
         </div>
 
-        {/* CTA */}
-        <div className="mt-12 flex flex-col items-center gap-4">
-          <p className="ld-small text-center">Ready to start your journey?</p>
-          <Link href="/register/client" className="ld-btn group">
-            <span>Get started free</span>
-            <ArrowRight
-              className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
-          </Link>
+        {/* Step Cards Grid */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((step, idx) => {
+            const Icon = step.icon;
+            return (
+              <motion.div
+                key={step.number}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                whileHover={
+                  prefersReducedMotion
+                    ? undefined
+                    : {
+                        y: -6,
+                        borderColor: 'rgba(232, 184, 75, 0.45)',
+                        boxShadow: '0 16px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(232, 184, 75, 0.1)',
+                      }
+                }
+                className="group relative flex flex-col items-start rounded-[24px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200"
+              >
+                {/* Step Number Badge */}
+                <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#E8B84B] to-[#e5af40] text-black shadow-[0_0_20px_rgba(232,184,75,0.35)]">
+                  <span className="text-base font-extrabold tracking-tight">{step.number}</span>
+                </div>
+
+                {/* Icon & Title */}
+                <div className="mt-6 flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-[#E8B84B]" />
+                  <h3 className="text-lg font-bold text-white tracking-wide group-hover:text-[#E8B84B] transition-colors">
+                    {step.title}
+                  </h3>
+                </div>
+
+                {/* Description */}
+                <p className="mt-3 text-xs leading-relaxed text-white/65">
+                  {step.description}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

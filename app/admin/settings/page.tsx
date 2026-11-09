@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
               {settingRows.map((row) => (
                 <li
                   key={row.key}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted px-4 py-3"
+                  className="flex items-center justify-between gap-4 rounded-xl   bg-muted px-4 py-3"
                 >
                   <code className="truncate font-mono text-xs text-muted-foreground">{row.key}</code>
                   <span className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
@@ -138,7 +138,7 @@ export default function AdminSettingsPage() {
             </ul>
           )}
 
-          <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-accent-border bg-accent-soft px-4 py-3 text-xs text-accent-text">
+          <div className="mt-5 flex items-start gap-2.5 rounded-2xl   bg-accent-soft px-4 py-3 text-xs text-accent-text">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
             <p className="leading-relaxed">
               Appearance settings are managed on the{' '}
@@ -161,7 +161,7 @@ export default function AdminSettingsPage() {
             {broadcastError && (
               <div
                 role="alert"
-                className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
+                className="rounded-xl   bg-danger-soft px-4 py-3 text-xs text-danger"
               >
                 {broadcastError}
               </div>
@@ -240,7 +240,7 @@ export default function AdminSettingsPage() {
             }
           />
         </div>
-        <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-warning/30 bg-warning-soft px-4 py-3 text-xs text-warning">
+        <div className="mt-4 flex items-start gap-2.5 rounded-2xl   bg-warning-soft px-4 py-3 text-xs text-warning">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="leading-relaxed">
             Because admin access is tied to a single email address, that address is a
@@ -280,7 +280,7 @@ export default function AdminSettingsPage() {
             {activity.data.map((entry) => (
               <li
                 key={entry.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-muted px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl   bg-muted px-4 py-3"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-foreground">
@@ -306,7 +306,7 @@ export default function AdminSettingsPage() {
 
 function PolicyCard({ title, body }: { title: string; body: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-muted p-4">
+    <div className="rounded-2xl   bg-muted p-4">
       <p className="text-sm font-bold text-foreground">{title}</p>
       <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{body}</p>
     </div>

@@ -1,82 +1,49 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { cn } from '@/components/shared/cn';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FEATURED_CREWS, type DanceCrew } from '../data/crews';
 import { SectionHeader } from './SectionHeader';
 import { CrewChips } from './CrewChips';
 import { CrewDossierCard } from './CrewDossierCard';
 
+function findCrewFromUrl(): DanceCrew | null {
+  if (typeof window === 'undefined') return null;
+  const slug = new URLSearchParams(window.location.search).get('crew');
+  if (!slug) return null;
+  return FEATURED_CREWS.find((crew) => crew.slug === slug) ?? null;
+}
+
 export function FeaturedCrewsRoster() {
   const [selectedCrew, setSelectedCrew] = useState<DanceCrew>(FEATURED_CREWS[0]);
-  const [regionFilter, setRegionFilter] = useState<'all' | 'ph' | 'intl'>('all');
 
-  // Sync with URL params
+  // Read the deep link once on mount, then follow browser back/forward so a
+  // shared ?crew= URL and the visible dossier can never disagree.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const crewParam = params.get('crew');
-    const regionParam = params.get('region') as 'all' | 'ph' | 'intl' | null;
+    const syncFromUrl = () => {
+      const crew = findCrewFromUrl();
+      if (crew) setSelectedCrew(crew);
+    };
 
-    if (regionParam && ['all', 'ph', 'intl'].includes(regionParam)) {
-      setRegionFilter(regionParam);
-    }
-
-    if (crewParam) {
-      const crew = FEATURED_CREWS.find((c) => c.slug === crewParam);
-      if (crew) {
-        setSelectedCrew(crew);
-      }
-    }
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
   }, []);
 
-  // Update URL when selection changes
+  // Only the roster's own parameter is touched. Update-feed filters such as
+  // ?region, ?category and ?org belong to the page and must survive a crew
+  // selection.
   const handleSelectCrew = useCallback((crew: DanceCrew) => {
     setSelectedCrew(crew);
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      params.set('crew', crew.slug);
-      const newQuery = params.toString();
-      const newUrl = newQuery
-        ? `${window.location.pathname}?${newQuery}${window.location.hash}`
-        : `${window.location.pathname}${window.location.hash}`;
-      window.history.replaceState(null, '', newUrl);
-    }
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    params.set('crew', crew.slug);
+    const newQuery = params.toString();
+    const newUrl = newQuery
+      ? `${window.location.pathname}?${newQuery}${window.location.hash}`
+      : `${window.location.pathname}${window.location.hash}`;
+    window.history.replaceState(null, '', newUrl);
   }, []);
-
-  const handleRegionFilterChange = useCallback(
-    (filter: 'all' | 'ph' | 'intl') => {
-      setRegionFilter(filter);
-      const nextCrews =
-        filter === 'all'
-          ? FEATURED_CREWS
-          : filter === 'ph'
-          ? FEATURED_CREWS.filter((c) => c.country === 'Philippines')
-          : FEATURED_CREWS.filter((c) => c.country !== 'Philippines');
-
-      let nextSelected = selectedCrew;
-      if (nextCrews.length > 0 && !nextCrews.some((c) => c.id === selectedCrew.id)) {
-        nextSelected = nextCrews[0];
-        setSelectedCrew(nextCrews[0]);
-      }
-
-      if (typeof window !== 'undefined') {
-        const params = new URLSearchParams(window.location.search);
-        if (filter !== 'all') {
-          params.set('region', filter);
-        } else {
-          params.delete('region');
-        }
-        params.set('crew', nextSelected.slug);
-        const newQuery = params.toString();
-        const newUrl = newQuery
-          ? `${window.location.pathname}?${newQuery}${window.location.hash}`
-          : `${window.location.pathname}${window.location.hash}`;
-        window.history.replaceState(null, '', newUrl);
-      }
-    },
-    [selectedCrew]
-  );
 
   return (
     <section
@@ -84,27 +51,26 @@ export function FeaturedCrewsRoster() {
       aria-labelledby="featured-crews-title"
       className="scroll-mt-24 bg-[var(--crew-bg-page)]"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <SectionHeader
           eyebrow="Verified crew dossiers & match records"
           title={
             <span id="featured-crews-title">
-              Featured <span className="font-normal italic text-[var(--crew-text-muted)]">Crews & Athletes</span>
+              Featured{' '}
+              <span className="font-normal italic text-[var(--crew-text-muted)]">
+                Crews &amp; Athletes
+              </span>
             </span>
           }
-          description="World Champion franchise teams and Philippine battle contenders. Only verified competition results and official media."
+          description="World Champion franchise teams and Philippine battle contenders. Only verified competition results and officially published team media."
         />
 
-        {/* Crew Selector Chips with Region Filter */}
         <CrewChips
           crews={FEATURED_CREWS}
           selectedCrew={selectedCrew}
           onSelectCrew={handleSelectCrew}
-          regionFilter={regionFilter}
-          onRegionFilterChange={handleRegionFilterChange}
         />
 
-        {/* Active Crew Dossier Card */}
         <div className="mt-8" role="region" aria-label={`${selectedCrew.name} dossier`}>
           <CrewDossierCard crew={selectedCrew} />
         </div>

@@ -115,7 +115,7 @@ export function BadgeModal({
       <div className="-mt-1 mb-4 flex items-center justify-between gap-3">
         <div>
           {isUnlocked && (
-            <span className="inline-flex items-center rounded-full border border-success/20 bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
+            <span className="inline-flex items-center rounded-full   bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
               Badge Earned
             </span>
           )}
@@ -123,7 +123,7 @@ export function BadgeModal({
       </div>
 
       {/* ── Hero ── */}
-      <div className="flex flex-col items-center gap-2 pb-5 border-b border-divider">
+      <div className="flex flex-col items-center gap-2 pb-5  ">
         {/* Glow + image container */}
         <div className="relative mx-auto h-36 w-36 shrink-0">
           {/* Radial glow behind image */}
@@ -140,7 +140,7 @@ export function BadgeModal({
               aria-hidden="true"
             />
           )}
-          {/* Badge image — fill within inset-2 so glow ring is visible */}
+          {/* Badge image — fill within inset-2 so glow  is visible */}
           <div className="absolute inset-2">
             <Image
               src={badgeImageUrl}
@@ -183,7 +183,7 @@ export function BadgeModal({
             {tasks.map((task, idx) => (
               <li
                 key={idx}
-                className="flex items-start gap-3 border-b border-divider py-2 last:border-0"
+                className="flex items-start gap-3   py-2 last:"
               >
                 {/* Status icon */}
                 {task.completed ? (

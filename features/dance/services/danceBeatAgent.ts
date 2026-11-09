@@ -28,9 +28,10 @@ export async function runDanceBeatAgent(): Promise<AgentRunResult> {
     if (apiKey) {
       candidateUpdates = await discoverUpdatesWithClaude(apiKey);
     } else {
-      console.warn(
-        '[DanceBeat Agent] ANTHROPIC_API_KEY is not configured in environment. Using verified discovery feed engine.'
-      );
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('ANTHROPIC_API_KEY is not configured; refusing to generate synthetic updates in production.');
+      }
+      console.warn('API key missing; using verified discovery engine (non-production only).');
       candidateUpdates = await discoverUpdatesWithVerifiedEngine();
     }
 

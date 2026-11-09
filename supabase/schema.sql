@@ -446,50 +446,62 @@ CREATE POLICY "Admins can update settings" ON public.system_settings FOR ALL USI
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_role public.user_role := COALESCE((new.raw_user_meta_data->>'role')::public.user_role, 'client');
+    v_role public.user_role;
     v_custom_id VARCHAR(10) := new.raw_user_meta_data->>'custom_id';
     v_firstname VARCHAR(100) := COALESCE(new.raw_user_meta_data->>'firstname', 'User');
     v_middlename VARCHAR(100) := new.raw_user_meta_data->>'middlename';
     v_lastname VARCHAR(100) := COALESCE(new.raw_user_meta_data->>'lastname', '');
-    v_username VARCHAR(60) := COALESCE(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1));
+    v_username VARCHAR(60);
     v_contact VARCHAR(30) := new.raw_user_meta_data->>'contact';
+    v_base_username VARCHAR(60);
 BEGIN
+    -- Public signup metadata is untrusted. It may request 'coach'; it must never
+    -- grant 'admin'. Administrator accounts are provisioned through a trusted
+    -- server-side process (seed/migration or service-role route), not signup.
+    v_role := CASE
+        WHEN new.raw_user_meta_data->>'role' = 'coach' THEN 'coach'::public.user_role
+        ELSE 'client'::public.user_role
+    END;
+
+    -- Preserve an explicitly requested username when available; otherwise use the
+    -- email prefix. Truncate to 51 characters so the collision suffix (up to 9
+    -- characters: "_" + 8 hex) can never exceed the 60-character limit of
+    -- public.profiles.username.
+    v_base_username := substr(
+        COALESCE(
+            NULLIF(btrim(new.raw_user_meta_data->>'username'), ''),
+            split_part(new.email, '@', 1),
+            'user'
+        ),
+        1, 51
+    );
+    v_username := v_base_username;
+
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE username = v_username) THEN
+        v_username := v_base_username || '_' || substr(replace(new.id::text, '-', ''), 1, 8);
+    END IF;
+
+    WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = v_username) LOOP
+        v_username := substr(v_base_username, 1, 51) || '_' || substr(md5(random()::text), 1, 8);
+    END LOOP;
+
     INSERT INTO public.profiles (
-        id,
-        custom_id,
-        role,
-        firstname,
-        middlename,
-        lastname,
-        username,
-        email,
-        contact,
-        status,
-        terms_accepted,
-        email_verified,
-        account_verified
+        id, custom_id, role, firstname, middlename, lastname, username, email,
+        contact, status, terms_accepted, email_verified, account_verified
     ) VALUES (
-        new.id,
-        v_custom_id,
-        v_role,
-        v_firstname,
-        v_middlename,
-        v_lastname,
-        v_username,
-        new.email,
-        v_contact,
-        'offline',
-        TRUE,
-        new.email_confirmed_at IS NOT NULL,
-        v_role = 'admin' -- Auto-verify admin
+        new.id, v_custom_id, v_role, v_firstname, v_middlename, v_lastname,
+        v_username, new.email, v_contact, 'offline', TRUE,
+        new.email_confirmed_at IS NOT NULL, FALSE
     );
 
     IF v_role = 'coach' THEN
         INSERT INTO public.coach_profiles (id, talents)
-        VALUES (new.id, COALESCE(new.raw_user_meta_data->>'talents', 'Dance'));
+        VALUES (new.id, COALESCE(new.raw_user_meta_data->>'talents', 'Dance'))
+        ON CONFLICT (id) DO NOTHING;
     ELSIF v_role = 'client' THEN
         INSERT INTO public.client_profiles (id, talent)
-        VALUES (new.id, COALESCE(new.raw_user_meta_data->>'talent', 'N/A'));
+        VALUES (new.id, COALESCE(new.raw_user_meta_data->>'talent', 'N/A'))
+        ON CONFLICT (id) DO NOTHING;
     END IF;
 
     RETURN new;

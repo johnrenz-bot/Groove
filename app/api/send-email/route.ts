@@ -32,10 +32,10 @@ const WELCOME_HTML = (name: string) => `
     Your passion. Your people. Your groove. Welcome to GroovePH!
   </div>
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#08090b;padding:32px 12px;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" ="0" style="background-color:#08090b;padding:32px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#111216;border:1px solid #292a30;border-radius:18px;overflow:hidden;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" ="0" style="width:100%;max-width:600px;background-color:#111216;:1px solid #292a30;:18px;overflow:hidden;">
 
           <tr>
             <td align="center" style="padding:28px 24px 20px;">
@@ -50,7 +50,7 @@ const WELCOME_HTML = (name: string) => `
                 src="${BANNER_URL}"
                 alt="Welcome to GroovePH"
                 width="600"
-                style="display:block;width:100%;max-width:600px;height:auto;border:0;"
+                style="display:block;width:100%;max-width:600px;height:auto;:0;"
               />
             </td>
           </tr>
@@ -73,13 +73,13 @@ const WELCOME_HTML = (name: string) => `
                 Whether you're learning something new or growing your skills, there's a place for you here. Bring your passion, meet your people, and find your groove!
               </p>
 
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 28px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" ="0" style="margin:0 auto 28px;">
                 <tr>
-                  <td align="center" bgcolor="#f6c94b" style="border-radius:8px;">
+                  <td align="center" bgcolor="#f6c94b" style=":8px;">
                     <a
                       href="${SITE_URL}"
                       target="_blank"
-                      style="display:inline-block;padding:15px 28px;color:#17130a;font-size:15px;font-weight:bold;text-decoration:none;border-radius:8px;"
+                      style="display:inline-block;padding:15px 28px;color:#17130a;font-size:15px;font-weight:bold;text-decoration:none;:8px;"
                     >
                       Explore GroovePH &#8594;
                     </a>
@@ -105,7 +105,7 @@ const WELCOME_HTML = (name: string) => `
           </tr>
 
           <tr>
-            <td align="center" style="padding:22px 24px;background-color:#0b0c0f;border-top:1px solid #292a30;">
+            <td align="center" style="padding:22px 24px;background-color:#0b0c0f;:1px solid #292a30;">
               <p style="margin:0 0 8px;color:#f6c94b;font-size:12px;font-weight:bold;letter-spacing:1.5px;">
                 GROOVEPH · PERFORMING ARTS PHILIPPINES
               </p>

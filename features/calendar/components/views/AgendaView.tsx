@@ -108,7 +108,7 @@ function Section({
                 type="button"
                 onClick={() => onSelectDate(date)}
                 className={cn(
-                  'mb-2 flex w-full cursor-pointer items-baseline gap-2 rounded-md text-left transition hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                  'mb-2 flex w-full cursor-pointer items-baseline gap-2 rounded-md text-left transition hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                   isToday ? 'text-accent-text' : 'text-foreground'
                 )}
               >

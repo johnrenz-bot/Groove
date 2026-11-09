@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Responsive check</title></head>
+<body style="margin:0;background:#111">
+  <div id="host" style="display:flex;gap:0;overflow:hidden;position:absolute;left:0;top:0"></div>
+  <script>
+    const widths = { m390: 390, m820: 820, d1280: 1280 };
+    const host = document.getElementById('host');
+    for (const [id, w] of Object.entries(widths)) {
+      const f = document.createElement('iframe');
+      f.id = id;
+      f.src = '/community/performing-arts/dance?crew=legit-status';
+      f.style.cssText = 'width:' + w + 'px;height:900px;border:0;flex:none;background:#fff;';
+      host.appendChild(f);
+    }
+    window.__framesReady = () => {
+      const frames = Array.from(document.querySelectorAll('iframe'));
+      return frames.length === 3 && frames.every(f => f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.images.length > 0);
+    };
+  </script>
+</body>
+</html>

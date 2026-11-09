@@ -85,9 +85,9 @@ export function PaymentTransactionCard({
 
   return (
     <>
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-border-strong">
+      <div className="rounded-2xl   bg-card p-4 shadow-sm transition hover:">
         {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2   pb-3">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-text">
               <CreditCard className="h-4 w-4" />
@@ -162,7 +162,7 @@ export function PaymentTransactionCard({
         </div>
 
         {/* Bottom Actions */}
-        <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-divider pt-3">
+        <div className="mt-3 flex flex-wrap items-center justify-end gap-2   pt-3">
           {transaction.payee_qr_url && (
             <Button
               type="button"

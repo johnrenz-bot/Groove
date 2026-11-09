@@ -805,7 +805,7 @@ export function StudioLocatorMap({
           role="status"
           aria-live="polite"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-[var(--shadow-sm)]">
+          <span className="inline-flex items-center gap-2 rounded-full   bg-card/95 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-[var(--shadow-sm)]">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
             Loading Google Map…
           </span>
@@ -816,7 +816,7 @@ export function StudioLocatorMap({
         <div className="absolute inset-0 z-[350] flex items-center justify-center bg-muted/70 px-4">
           <div
             role="alert"
-            className="flex max-w-sm flex-col items-center gap-2 rounded-2xl border border-border bg-card/95 px-5 py-4 text-center text-xs text-muted-foreground shadow-[var(--shadow-lg)] backdrop-blur-sm"
+            className="flex max-w-sm flex-col items-center gap-2 rounded-2xl   bg-card/95 px-5 py-4 text-center text-xs text-muted-foreground shadow-[var(--shadow-lg)] backdrop-blur-sm"
           >
             <MapPin className="h-5 w-5 text-danger" aria-hidden="true" />
             <p className="font-semibold text-foreground">Google Map unavailable</p>
@@ -824,7 +824,7 @@ export function StudioLocatorMap({
             <button
               type="button"
               onClick={() => setAttempt((value) => value + 1)}
-              className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground transition hover:border-brand-sunburst/50 hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-sunburst/50"
+              className="mt-1 inline-flex items-center gap-1.5 rounded-full   bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground transition hover: hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
             >
               <RefreshCw className="h-3 w-3" aria-hidden="true" />
               Try again

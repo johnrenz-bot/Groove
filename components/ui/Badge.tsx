@@ -21,9 +21,10 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 /**
- * Pill status badge. Colors come from status tokens so badges stay legible in
- * both themes; the mapping of variant -> semantic role lives here and nowhere
- * else in the app.
+ * Status badge. Colors come from status tokens so badges stay legible in both
+ * themes; the mapping of variant -> semantic role lives here and nowhere else
+ * in the app. The 6px radius is the badge step of the shape scale — badges are
+ * chips, not controls, so they do not use the 8px button radius.
  *
  * Borders are `-/40` rather than `-/30`: in dark mode a `-soft` tint DEEPENS the
  * card (see the note beside `--accent-soft` in globals.css), so the outline is
@@ -35,15 +36,15 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
  * label text, not with a second shade.
  */
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  pending: 'bg-warning-soft text-warning border-warning/40',
-  scheduled: 'bg-info-soft text-info border-info/40',
-  approved: 'bg-success-soft text-success border-success/40',
-  confirmed: 'bg-success-soft text-success border-success/40',
-  completed: 'bg-muted text-muted-foreground border-border',
-  cancelled: 'bg-danger-soft text-danger border-danger/40',
-  suspended: 'bg-danger-soft text-danger border-danger/40',
-  neutral: 'bg-muted text-muted-foreground border-border',
-  accent: 'bg-accent-soft text-accent-text border-accent-border font-semibold',
+  pending: 'bg-warning-soft text-warning ',
+  scheduled: 'bg-info-soft text-info ',
+  approved: 'bg-success-soft text-success ',
+  confirmed: 'bg-success-soft text-success ',
+  completed: 'bg-muted text-muted-foreground ',
+  cancelled: 'bg-danger-soft text-danger ',
+  suspended: 'bg-danger-soft text-danger ',
+  neutral: 'bg-muted text-muted-foreground ',
+  accent: 'bg-accent-soft text-accent-text  font-semibold',
 };
 
 const DOT_STYLES: Record<BadgeVariant, string> = {
@@ -68,7 +69,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold',
+        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-[6px] px-2.5 py-0.5 text-[11px] font-semibold',
         VARIANT_STYLES[variant],
         className
       )}

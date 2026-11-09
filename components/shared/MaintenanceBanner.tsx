@@ -31,7 +31,7 @@ export function MaintenanceBanner() {
   if (!notice || dismissed) return null;
 
   return (
-    <div className="flex w-full items-center justify-between gap-4 border-b border-warning/30 bg-warning-soft px-4 py-2.5 text-xs sm:px-8">
+    <div className="flex w-full items-center justify-between gap-4   bg-warning-soft px-4 py-2.5 text-xs sm:px-8">
       <div className="flex min-w-0 items-center gap-2">
         <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
         <span className="truncate">

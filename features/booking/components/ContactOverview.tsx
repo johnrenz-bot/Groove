@@ -358,7 +358,7 @@ export function ContactOverview({
           {!loading && error && (
             <p
               role="alert"
-              className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-xs text-danger"
+              className="rounded-xl   bg-danger-soft px-4 py-3 text-xs text-danger"
             >
               {error}
             </p>
@@ -369,7 +369,7 @@ export function ContactOverview({
               {/* ── Identity ── */}
               <div className="flex items-center gap-3.5">
                 <span className="relative shrink-0">
-                  <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-lg font-bold text-accent-text">
+                  <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full   bg-muted text-lg font-bold text-accent-text">
                     {partner.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -383,11 +383,11 @@ export function ContactOverview({
                   </span>
                   {/* Presence dot is driven by the realtime store, the same
                       value the thread header uses, so the two cannot disagree. */}
+                  {/* Presence dot rides the avatar's bottom-right corner, inside
+                      the circle with a contrasting ring (shared .g-presence-badge). */}
                   <span
                     aria-hidden="true"
-                    className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-card ${
-                      isOnline ? 'bg-success' : 'bg-muted-foreground/50'
-                    }`}
+                    className={`g-presence-badge ${isOnline ? 'bg-success' : 'bg-muted-foreground/50'}`}
                   />
                 </span>
 
@@ -408,10 +408,10 @@ export function ContactOverview({
                       {partner.role === 'coach' ? 'Coach' : 'Client'}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                      className={`inline-flex items-center gap-1 rounded-full  px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
                         isOnline
-                          ? 'border-success/30 bg-success-soft text-success'
-                          : 'border-border bg-muted text-muted-foreground'
+                          ? ' bg-success-soft text-success'
+                          : ' bg-muted text-muted-foreground'
                       }`}
                       title={presenceMeta.hint}
                     >
@@ -428,7 +428,7 @@ export function ContactOverview({
 
               {/* ── Location + bio ── */}
               {(location || partner.bio) && (
-                <div className="space-y-2 rounded-2xl border border-border bg-muted/30 p-3.5">
+                <div className="space-y-2 rounded-2xl   bg-muted/30 p-3.5">
                   {location && (
                     <p className="flex items-start gap-2 text-xs text-muted-foreground">
                       <MapPin
@@ -510,7 +510,7 @@ export function ContactOverview({
                     </div>
 
                     {derived.next && (
-                      <div className="space-y-1.5 rounded-xl border border-border bg-muted/30 p-3">
+                      <div className="space-y-1.5 rounded-xl   bg-muted/30 p-3">
                         <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-accent-text">
                           <Clock className="h-3 w-3" aria-hidden="true" />
                           Next session
@@ -530,7 +530,7 @@ export function ContactOverview({
                     )}
                   </>
                 ) : (
-                  <p className="rounded-xl border border-dashed border-border px-3.5 py-4 text-center text-[11px] text-muted-foreground">
+                  <p className="rounded-xl    px-3.5 py-4 text-center text-[11px] text-muted-foreground">
                     No sessions together yet.
                   </p>
                 )}
@@ -538,7 +538,7 @@ export function ContactOverview({
 
               {/* ── Latest agreement ── */}
               {data?.latestAgreement && latestStatus && (
-                <div className="space-y-2 rounded-2xl border border-border bg-muted/30 p-3.5">
+                <div className="space-y-2 rounded-2xl   bg-muted/30 p-3.5">
                   <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-accent-text">
                     <FileSignature className="h-3 w-3" aria-hidden="true" />
                     Latest agreement
@@ -566,7 +566,7 @@ export function ContactOverview({
                   </p>
                   <Link
                     href={`/contracts/${data.latestAgreement.id}`}
-                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-border px-3 text-[11px] font-bold text-muted-foreground transition hover:border-border-strong hover:text-foreground"
+                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl   px-3 text-[11px] font-bold text-muted-foreground transition hover: hover:text-foreground"
                   >
                     View Full Agreement
                   </Link>
@@ -587,7 +587,7 @@ export function ContactOverview({
           </Link>
           <Link
             href={isCoachViewing ? '/coach/appointments' : '/client/appointments'}
-            className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-bold text-muted-foreground transition hover:border-border-strong hover:text-foreground"
+            className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl   text-xs font-bold text-muted-foreground transition hover: hover:text-foreground"
           >
             <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
             View Bookings
@@ -658,7 +658,7 @@ function DetailRow({
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-border bg-muted/30 px-2 py-2.5 text-center">
+    <div className="rounded-xl   bg-muted/30 px-2 py-2.5 text-center">
       <p className="text-base font-bold tabular-nums text-foreground">{value}</p>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}

@@ -156,15 +156,15 @@ export function MusicHubPanel({
   if (!open) return null;
 
   const transportBtn =
-    'inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-foreground transition hover:border-border-strong hover:bg-muted';
+    'inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg   bg-card text-foreground transition hover:-strong hover:bg-muted';
 
   return (
     <div
       id="showcase-music-hub-panel"
-      className="mt-2 overflow-hidden rounded-[14px] border border-border bg-card shadow-[var(--shadow-sm)]"
+      className="mt-2 overflow-hidden rounded-[14px]   bg-card shadow-[var(--shadow-sm)]"
     >
       {/* Transport — the controls that do not fit the bar on a phone. */}
-      <div className="flex items-center gap-2 border-b border-divider px-3 py-2 sm:px-4">
+      <div className="flex items-center gap-2   px-3 py-2 sm:px-4">
         <button
           type="button"
           onClick={music.prev}
@@ -233,7 +233,7 @@ export function MusicHubPanel({
           onClick={() => setExpandedHub((v) => !v)}
           aria-expanded={expandedHub}
           aria-controls="showcase-playlist-manager"
-          className="ml-auto inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] font-semibold text-foreground transition hover:bg-muted"
+          className="ml-auto inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg   bg-card px-3 text-[11px] font-semibold text-foreground transition hover:bg-muted"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Playlists</span>
@@ -248,7 +248,7 @@ export function MusicHubPanel({
       <div
         role="tablist"
         aria-label="Music genres"
-        className="g-scroll flex gap-1.5 overflow-x-auto border-b border-divider px-3 py-2 sm:px-4"
+        className="g-scroll flex gap-1.5 overflow-x-auto   px-3 py-2 sm:px-4"
       >
         {MUSIC_GENRES.map((g) => {
           const active = g.id === genreId;
@@ -260,10 +260,10 @@ export function MusicHubPanel({
               aria-selected={active}
               onClick={() => handleGenreChange(g.id)}
               className={cn(
-                'shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] font-semibold transition',
+                'shrink-0 cursor-pointer whitespace-nowrap rounded-full  px-3 py-1.5 text-[11px] font-semibold transition',
                 active
-                  ? 'border-accent-border bg-accent-soft text-accent-text'
-                  : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? ' bg-accent-soft text-accent-text'
+                  : ' bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               {g.label}
@@ -288,7 +288,7 @@ export function MusicHubPanel({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search YouTube or paste a track URL…"
-            className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none"
+            className="w-full rounded-lg   bg-card py-2 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground "
           />
         </div>
         <button
@@ -306,7 +306,7 @@ export function MusicHubPanel({
       </form>
 
       {notice && (
-        <p className="mx-3 mt-2 rounded-lg border border-accent-border/40 bg-accent-soft px-2.5 py-1.5 text-[11px] text-accent-text sm:mx-4">
+        <p className="mx-3 mt-2 rounded-lg   bg-accent-soft px-2.5 py-1.5 text-[11px] text-accent-text sm:mx-4">
           {notice}
         </p>
       )}
@@ -334,9 +334,9 @@ export function MusicHubPanel({
                 return (
                   <li
                     key={item.youtubeId}
-                    className="flex items-center gap-2.5 rounded-xl border border-border bg-card p-2"
+                    className="flex items-center gap-2.5 rounded-xl   bg-card p-2"
                   >
-                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg   bg-muted">
                       {item.thumbnail ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -361,7 +361,7 @@ export function MusicHubPanel({
                       className={cn(
                         'shrink-0 cursor-pointer rounded-lg px-2 py-1.5 text-[10px] font-bold transition',
                         isAdded
-                          ? 'border border-success/40 bg-success-soft text-success'
+                          ? '  bg-success-soft text-success'
                           : 'bg-accent text-accent-foreground hover:bg-accent-hover'
                       )}
                     >
@@ -376,7 +376,7 @@ export function MusicHubPanel({
 
       {/* The existing playlist manager, re-homed here rather than rebuilt. */}
       {expandedHub && (
-        <div id="showcase-playlist-manager" className="border-t border-divider p-3 sm:p-4">
+        <div id="showcase-playlist-manager" className="  p-3 sm:p-4">
           <CommunityShowcasePlaylists
             currentUser={currentUser}
             community={community}
@@ -387,11 +387,11 @@ export function MusicHubPanel({
         </div>
       )}
 
-      <div className="flex justify-end border-t border-divider px-3 py-2 sm:px-4">
+      <div className="flex justify-end   px-3 py-2 sm:px-4">
         <button
           type="button"
           onClick={onClose}
-          className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          className="cursor-pointer rounded-lg   px-3 py-1.5 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
           Close
         </button>

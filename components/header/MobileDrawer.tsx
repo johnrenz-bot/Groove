@@ -155,7 +155,7 @@ export function MobileDrawer({
           onPointerCancel={onPointerUp}
           data-dragging={dragX > 0 || undefined}
         >
-          <div className="hx-drawer-head-left">
+          <div className="hx-drawer-brand">
             <span className="hx-drawer-brand-mark" aria-hidden="true">
               <Image src="/image/Logo/GroovePH-Logo.png" alt="" width={32} height={32} />
             </span>

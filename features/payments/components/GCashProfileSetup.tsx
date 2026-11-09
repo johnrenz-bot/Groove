@@ -232,9 +232,9 @@ export function GCashProfileSetup({
   };
 
   return (
-    <section className="rounded-3xl border border-accent-border bg-card p-6 shadow-sm transition hover:border-accent">
+    <section className="rounded-3xl   bg-card p-6 shadow-sm transition hover:">
       {/* Section Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3   pb-4">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent-text">
             <Smartphone className="h-5 w-5" />
@@ -280,13 +280,13 @@ export function GCashProfileSetup({
 
       {/* Notifications / Alerts */}
       {successMsg && (
-        <div className="mt-4 flex items-center gap-2 rounded-2xl border border-success/30 bg-success-soft p-3 text-xs text-success animate-in fade-in">
+        <div className="mt-4 flex items-center gap-2 rounded-2xl   bg-success-soft p-3 text-xs text-success animate-in fade-in">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
       {errorMsg && (
-        <div className="mt-4 flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-soft p-3 text-xs text-danger animate-in fade-in">
+        <div className="mt-4 flex items-center gap-2 rounded-2xl   bg-danger-soft p-3 text-xs text-danger animate-in fade-in">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -346,11 +346,11 @@ export function GCashProfileSetup({
           </div>
 
           {/* QR Code Upload Section */}
-          <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 transition hover:bg-muted/30">
+          <div className="rounded-2xl    bg-muted/20 p-4 transition hover:bg-muted/30">
             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
               <div className="flex items-center gap-4">
                 {qrPreviewUrl ? (
-                  <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-sm">
+                  <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl   bg-white p-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={qrPreviewUrl}
@@ -359,7 +359,7 @@ export function GCashProfileSetup({
                     />
                   </div>
                 ) : (
-                  <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-muted/60 text-muted-foreground">
+                  <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-xl   bg-muted/60 text-muted-foreground">
                     <QrCode className="h-8 w-8 opacity-40" />
                     <span className="mt-1 text-[10px]">No QR Image</span>
                   </div>
@@ -433,7 +433,7 @@ export function GCashProfileSetup({
               type="checkbox"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="h-4 w-4 rounded border-border accent-[var(--accent)] focus:ring-accent"
+              className="h-4 w-4 rounded  accent-[var(--accent)] "
             />
             <label htmlFor="gcash-active" className="text-xs font-medium text-foreground cursor-pointer">
               Enable GCash as an active payment method for my profile
@@ -441,7 +441,7 @@ export function GCashProfileSetup({
           </div>
 
           {/* Form Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-divider pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3   pt-4">
             <div>
               {profile && (
                 <Button
@@ -478,7 +478,7 @@ export function GCashProfileSetup({
         <div className="mt-5 space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
             {/* Account Card */}
-            <div className="rounded-2xl border border-border bg-muted/30 p-4">
+            <div className="rounded-2xl   bg-muted/30 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 GCash Registered Name
               </p>
@@ -490,7 +490,7 @@ export function GCashProfileSetup({
             </div>
 
             {/* Mobile Number Card */}
-            <div className="rounded-2xl border border-border bg-muted/30 p-4">
+            <div className="rounded-2xl   bg-muted/30 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 GCash Mobile Number
               </p>
@@ -501,7 +501,7 @@ export function GCashProfileSetup({
             </div>
 
             {/* QR Code Preview Thumbnail */}
-            <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/30 p-4">
+            <div className="flex items-center justify-between rounded-2xl   bg-muted/30 p-4">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Smart QR Status
@@ -522,7 +522,7 @@ export function GCashProfileSetup({
               {profile.qr_code_url ? (
                 <div
                   onClick={() => setQrViewerOpen(true)}
-                  className="h-14 w-14 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-border bg-white p-1 shadow-sm transition hover:scale-105"
+                  className="h-14 w-14 shrink-0 cursor-pointer overflow-hidden rounded-xl   bg-white p-1 shadow-sm transition hover:scale-105"
                   title="Click to zoom QR code"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -533,7 +533,7 @@ export function GCashProfileSetup({
                   />
                 </div>
               ) : (
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl   bg-muted text-muted-foreground">
                   <QrCode className="h-6 w-6 opacity-40" />
                 </div>
               )}
@@ -541,7 +541,7 @@ export function GCashProfileSetup({
           </div>
 
           {profile.notes && (
-            <div className="rounded-2xl border border-border bg-muted/20 p-3.5 text-xs text-muted-foreground">
+            <div className="rounded-2xl   bg-muted/20 p-3.5 text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">Payment Instructions: </span>
               {profile.notes}
             </div>
@@ -549,7 +549,7 @@ export function GCashProfileSetup({
         </div>
       ) : (
         /* Empty State */
-        <div className="mt-5 rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center">
+        <div className="mt-5 rounded-2xl    bg-muted/20 p-8 text-center">
           <QrCode className="mx-auto h-12 w-12 text-muted-foreground/40" />
           <h4 className="mt-3 text-sm font-bold text-foreground">No GCash Account Configured</h4>
           <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">

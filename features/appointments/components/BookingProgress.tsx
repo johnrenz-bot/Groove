@@ -70,12 +70,12 @@ export function BookingProgress({
                 <span
                   aria-current={step.current ? 'step' : undefined}
                   className={cn(
-                    'inline-flex min-h-[26px] items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors',
+                    'inline-flex min-h-[26px] items-center gap-1.5 rounded-full  px-2.5 py-0.5 text-[11px] font-semibold transition-colors',
                     step.current
-                      ? 'border-accent-border bg-accent-soft text-accent-text'
+                      ? ' bg-accent-soft text-accent-text'
                       : step.reached
-                        ? 'border-success/40 bg-success-soft text-success'
-                        : 'border-border bg-muted/40 text-muted-foreground'
+                        ? ' bg-success-soft text-success'
+                        : ' bg-muted/40 text-muted-foreground'
                   )}
                 >
                   {step.reached ? (
@@ -90,7 +90,7 @@ export function BookingProgress({
                     aria-hidden="true"
                     className={cn(
                       'h-px w-4',
-                      steps[i + 1]?.reached ? 'bg-success/40' : 'bg-border'
+                      steps[i + 1]?.reached ? 'bg-success/40' : 'bg-'
                     )}
                   />
                 )}
@@ -109,7 +109,7 @@ export function BookingProgress({
 
       {/* ── History ── */}
       {history.length > 0 && (
-        <details className="group rounded-xl border border-border bg-muted/30 px-3.5 py-2.5">
+        <details className="group rounded-xl   bg-muted/30 px-3.5 py-2.5">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground">
             <History className="h-3.5 w-3.5" aria-hidden="true" />
             History ({history.length})

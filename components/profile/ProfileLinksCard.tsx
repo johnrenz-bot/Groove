@@ -129,10 +129,10 @@ export function ProfileLinksCard({
             href={normalizeUrl(links.website)}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 transition hover:border-accent-border hover:bg-muted/60 hover:shadow-xs"
+            className="group flex items-center justify-between gap-3 rounded-2xl   bg-card p-4 transition hover: hover:bg-muted/60 hover:shadow-xs"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/80 text-foreground group-hover:border-accent-border/50 group-hover:text-accent-text transition">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-muted/80 text-foreground group-hover: group-hover:text-accent-text transition">
                 <Globe className="h-4 w-4" />
               </div>
               <div className="min-w-0">
@@ -153,10 +153,10 @@ export function ProfileLinksCard({
             href={normalizeUrl(links.social_link)}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 transition hover:border-accent-border hover:bg-muted/60 hover:shadow-xs"
+            className="group flex items-center justify-between gap-3 rounded-2xl   bg-card p-4 transition hover: hover:bg-muted/60 hover:shadow-xs"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/80 text-foreground group-hover:border-accent-border/50 group-hover:text-accent-text transition">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-muted/80 text-foreground group-hover: group-hover:text-accent-text transition">
                 <Share2 className="h-4 w-4" />
               </div>
               <div className="min-w-0">
@@ -177,10 +177,10 @@ export function ProfileLinksCard({
             href={normalizeUrl(links.github)}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 transition hover:border-accent-border hover:bg-muted/60 hover:shadow-xs"
+            className="group flex items-center justify-between gap-3 rounded-2xl   bg-card p-4 transition hover: hover:bg-muted/60 hover:shadow-xs"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/80 text-foreground group-hover:border-accent-border/50 group-hover:text-accent-text transition">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-muted/80 text-foreground group-hover: group-hover:text-accent-text transition">
                 <GithubIcon className="h-4 w-4" />
               </div>
               <div className="min-w-0">

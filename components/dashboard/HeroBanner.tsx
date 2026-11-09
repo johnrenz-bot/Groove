@@ -4,7 +4,6 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Calendar } from 'lucide-react';
-import { InfoTip } from '@/components/ui/InfoTip';
 
 export interface HeroBannerProps {
   eyebrow?: string;
@@ -15,6 +14,14 @@ export interface HeroBannerProps {
   image: string;
 }
 
+/**
+ * The dashboard's feature banner.
+ *
+ * The photograph always carries a dark scrim — it sits on unpredictable imagery,
+ * not on a theme surface — so the copy stays white and legible in Light, Dark
+ * and every seasonal palette. The visible description replaces the old
+ * info-only treatment: the banner is the one place with room to explain itself.
+ */
 export function HeroBanner({
   eyebrow,
   title,
@@ -24,76 +31,56 @@ export function HeroBanner({
   image,
 }: HeroBannerProps) {
   return (
-    // `lg:h-[200px]` was a fixed px height, so at desktop the banner stayed a
-    // 200px band while everything below it compacted — leaving a visible seam in
-    // the page rhythm. `lg:h-[11rem]` is 154px at the 14px root and scales with
-    // the type below it. The `aspect-*` ratios above `lg` are unitless and are
-    // deliberately left alone: they describe the crop, not the density.
-    <section className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border shadow-[0_1px_2px_rgba(20,40,75,0.06),0_8px_24px_rgba(20,40,75,0.05)] sm:aspect-[2/1] lg:aspect-auto lg:h-[11rem]">
-      {/* Background image — fills the whole banner, no gaps.
-
-          `preload` because this banner is the Largest Contentful Paint element
-          on both dashboards: without it the image is lazy-loaded, and the
-          browser logs "Image … was detected as the Largest Contentful Paint
-          (LCP). Please add the `loading=\"eager\"` property if this image is
-          above the fold" on every dashboard load. It is above the fold — the
-          banner is the first section under the greeting on /client/home and
-          /coach/home — so it is preloaded rather than deferred. */}
-      <div className="absolute inset-0">
+    <section className="relative isolate w-full overflow-hidden rounded-2xl border border-border/70 shadow-[var(--shadow-md)]">
+      <div className="absolute inset-0" aria-hidden="true">
         <Image
           src={image}
           alt=""
           fill
           preload
-          sizes="100vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) calc(100vw - 64px), 1176px"
           className="object-cover object-center"
-          aria-hidden="true"
         />
+        {/* Horizontal scrim for the copy, plus a soft bottom weight so the
+            rounded edge never dissolves into a bright photograph. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/65 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
       </div>
 
-      {/* Dark navy gradient, strictly left-to-right so the top and bottom
-          edges never go black — text stays readable on the left */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0b1a33]/90 via-[#0b1a33]/50 to-transparent" />
-
-      {/* Philippine flag sun — gold rays on left edge */}
-      <div className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 lg:opacity-[0.15]">
-        <FlagSun size={200} />
+      {/* Philippine flag sun — gold rays, decorative and never over the copy. */}
+      <div className="pointer-events-none absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 lg:opacity-[0.14]">
+        <FlagSun size={210} />
+      </div>
+      <div className="pointer-events-none absolute -left-14 bottom-0 top-0 w-24 opacity-[0.14]">
+        <div className="h-full w-full rounded-r-full bg-[linear-gradient(180deg,#1e56c6_0%,#d63a3a_100%)] skew-x-[-6deg]" />
       </div>
 
-      {/* Blue/red swoosh — left edge */}
-      <div className="absolute -left-12 bottom-0 top-0 w-24 opacity-[0.12]">
-        <div className="h-full w-full bg-[linear-gradient(180deg,#1e56c6_0%,#d63a3a_100%)] skew-x-[-6deg] rounded-r-full" />
-      </div>
-
-      {/* Content — vertically centered, compact so it fits the capped height */}
-      <div className="relative z-10 flex h-full max-w-2xl flex-col justify-center px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-6">
+      <div className="relative z-10 flex min-h-[16rem] flex-col justify-center px-5 py-8 sm:min-h-[17rem] sm:px-8 sm:py-9 lg:min-h-[15rem] lg:px-10 lg:py-8">
         {eyebrow && (
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/90 sm:text-xs">
+          <span className="inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
             {eyebrow}
-          </p>
+          </span>
         )}
-        <div className="mt-2 flex items-center gap-2 sm:mt-3">
-          <h2 className="font-serif text-2xl font-bold leading-tight tracking-[-0.02em] text-white sm:text-3xl">
-            {title}
-          </h2>
-          <InfoTip
-            title={title}
-            short={description}
-            details={description}
-            className="border-white/30 bg-black/40 text-white/80 hover:border-white/60 hover:bg-black/65 hover:text-white"
-          />
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:mt-5 sm:gap-3">
+
+        <h2 className="mt-3 max-w-xl font-serif text-2xl font-bold leading-[1.12] tracking-[-0.02em] text-white sm:text-3xl lg:text-[2rem]">
+          {title}
+        </h2>
+
+        <p className="mt-2.5 max-w-lg text-xs leading-relaxed text-white/80 sm:text-sm">
+          {description}
+        </p>
+
+        <div className="mt-5 flex flex-wrap items-center gap-2.5 sm:mt-6 sm:gap-3">
           <Link
             href={primaryCta.href}
-            className="inline-flex h-9 items-center gap-2 rounded-full bg-accent px-5 text-xs font-semibold text-accent-foreground shadow-[0_2px_8px_rgba(20,40,75,0.2)] transition hover:bg-accent-hover sm:h-11 sm:px-6 sm:text-sm"
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-xs font-bold text-accent-foreground shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[var(--shadow-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black motion-reduce:transform-none sm:h-11 sm:px-6 sm:text-sm"
           >
             {primaryCta.label}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
           <Link
             href={secondaryCta.href}
-            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 sm:h-11 sm:px-6 sm:text-sm"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 text-xs font-semibold text-white backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black motion-reduce:transform-none sm:h-11 sm:px-6 sm:text-sm"
           >
             <Calendar className="h-4 w-4" aria-hidden="true" />
             {secondaryCta.label}

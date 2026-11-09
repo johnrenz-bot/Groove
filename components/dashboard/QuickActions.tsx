@@ -18,8 +18,8 @@ export function QuickActions({ actions }: { actions: QuickAction[] }) {
           href={a.href}
           className={
             a.variant === 'primary'
-              ? 'inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground shadow-[0_1px_3px_rgba(20,40,75,0.15)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_4px_12px_rgba(20,40,75,0.2)]'
-              : 'inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-[0_1px_2px_rgba(20,40,75,0.04)] transition hover:-translate-y-0.5 hover:border-accent-border hover:bg-muted'
+              ? 'inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none'
+              : 'inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-muted hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none'
           }
         >
           <span className="shrink-0" aria-hidden>{a.icon}</span>
