@@ -290,3 +290,4 @@ export const GrooveyArtistProfileView: React.FC = () => {
     </div>
   );
 };
+

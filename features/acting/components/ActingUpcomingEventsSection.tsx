@@ -238,3 +238,4 @@ export function ActingUpcomingEventsSection({
     </section>
   );
 }
+

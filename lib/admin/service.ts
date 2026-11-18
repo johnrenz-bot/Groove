@@ -637,8 +637,8 @@ export async function fetchOverview(): Promise<AdminOverview> {
       .limit(500),
   ]);
 
-  const talents = (talentResult.data ?? []).map((r) => r.talents || '').filter(Boolean);
-  const revenueEstimate = (agreementResult.data ?? []).reduce<number>((sum, row) => {
+  const talents = (talentResult.data ?? []).map((r: any) => r.talents || '').filter(Boolean);
+  const revenueEstimate = (agreementResult.data ?? []).reduce((sum: number, row: any) => {
     const value = Number.parseFloat(String(row.appointment_price ?? '').replace(/[^\d.]/g, ''));
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
@@ -663,7 +663,7 @@ export async function fetchOverview(): Promise<AdminOverview> {
     coachTalents: talents,
     coachVerification: { verified: coachVerified, unverified: coachUnverified },
     revenueEstimate,
-    recipients: (recipientResult.data ?? []).map((r) => ({
+    recipients: (recipientResult.data ?? []).map((r: any) => ({
       id: r.id,
       name: `${r.firstname ?? ''} ${r.lastname ?? ''}`.trim() || 'Unnamed',
       role: String(r.role ?? 'client'),
@@ -704,7 +704,7 @@ export async function fetchPlatformSettings(): Promise<PlatformSettings> {
   if (error) throw error;
 
   const map: Record<string, string> = {};
-  (data ?? []).forEach((row) => {
+  (data ?? []).forEach((row: any) => {
     map[row.key] = row.value ?? '';
   });
 

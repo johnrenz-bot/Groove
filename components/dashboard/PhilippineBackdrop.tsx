@@ -90,7 +90,7 @@ function PhilippineSunSVG({ size = 150 }: { size?: number }) {
             y1={c + Math.sin(a) * innerR}
             x2={c + Math.cos(a) * longRay}
             y2={c + Math.sin(a) * longRay}
-            stroke="#C4A05A"
+            stroke="#DDAA55"
             strokeWidth={rayW}
             strokeLinecap="round"
           />
@@ -106,18 +106,18 @@ function PhilippineSunSVG({ size = 150 }: { size?: number }) {
             y1={c + Math.sin(a) * innerR}
             x2={c + Math.cos(a) * shortRay}
             y2={c + Math.sin(a) * shortRay}
-            stroke="#C4A05A"
+            stroke="#DDAA55"
             strokeWidth={rayW * 0.6}
             strokeLinecap="round"
           />
         );
       })}
       {/* Center circle */}
-      <circle cx={c} cy={c} r={innerR} stroke="#C4A05A" strokeWidth={rayW * 0.7} fill="none" />
+      <circle cx={c} cy={c} r={innerR} stroke="#DDAA55" strokeWidth={rayW * 0.7} fill="none" />
       {/* Star in center */}
       <polygon
         points={starPoints(c, c, innerR * 0.5, innerR * 0.22, 5)}
-        fill="#C4A05A"
+        fill="#DDAA55"
       />
     </svg>
   );
@@ -136,3 +136,4 @@ function starPoints(cx: number, cy: number, outerR: number, innerR: number, poin
 }
 
 export default PhilippineBackdrop;
+

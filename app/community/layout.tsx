@@ -1,19 +1,23 @@
 import React from 'react';
-import { ClientLayout } from '@/components/client/ClientLayout';
+import { DashboardLayout } from '@/components/shared/DashboardLayout';
+import { resolveChromeRole } from '@/lib/auth/resolveChromeRole';
 
 /**
- * Community pages share the same shell as the client portal — the header with
- * the sliding pill, the Groovey floating assistant, and the music provider.
+ * Community pages share the dashboard shell with the visitor's own workspace
+ * — client sees the client sidebar, coach the coach sidebar, an admin the
+ * admin console, and a guest the signed-out chrome (Community + About in the
+ * rail, sign-in actions in the top bar).
  *
- * The pages under /community/* are PUBLIC (no auth required) but they inherit
- * the layout so that a signed-in visitor sees their portal header and a guest
- * sees the guest variant. The DashboardLayout in ClientLayout already handles
- * both cases via SessionProvider.
+ * The pages under /community/* are PUBLIC (no auth required); the shell only
+ * changes who the chrome belongs to, never the content. This keeps a member
+ * who clicks "Community" in their sidebar inside their own workspace.
  */
-export default function CommunityLayout({
+export default async function CommunityLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ClientLayout>{children}</ClientLayout>;
+  const role = await resolveChromeRole();
+  return <DashboardLayout role={role}>{children}</DashboardLayout>;
 }
+

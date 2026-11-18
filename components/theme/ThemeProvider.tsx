@@ -41,19 +41,20 @@ export function resolveMode(mode: ThemeMode): Theme {
 export type Accent = 'unity' | 'relief' | 'sunburst';
 
 /**
- * The admin-selectable interactive color. Only the brand's own three colors —
- * there is no sixth hue that is not part of GroovePH's identity.
+ * The admin-selectable interactive color. Only the brand's own orange-family
+ * hues — there is no sixth hue that is not part of GroovePH's identity.
  */
 export const ACCENTS: { value: Accent; label: string; description: string; swatch: string }[] = [
-  { value: 'unity', label: 'Unity Blue', description: 'The default brand accent', swatch: '#2F4E8C' },
-  { value: 'relief', label: 'Relief Red', description: 'Warm, urgent, unmistakable', swatch: '#AE313A' },
-  { value: 'sunburst', label: 'Sunburst Yellow', description: 'Bright, optimistic highlight', swatch: '#F4BE4D' },
+  { value: 'unity', label: 'Groove Orange', description: 'The default brand accent', swatch: '#F58A18' },
+  { value: 'relief', label: 'Groove Gold', description: 'Rich, warm, unmistakable', swatch: '#DDAA55' },
+  { value: 'sunburst', label: 'Soft Amber', description: 'Bright, optimistic highlight', swatch: '#FFC477' },
 ];
 
 export const DEFAULT_ACCENT: Accent = 'unity';
-/** Default to the new light editorial palette everywhere. */
-export const DEFAULT_MODE: ThemeMode = 'light';
-export const DEFAULT_THEME: Theme = 'light';
+/** Dark is the default palette — it matches the token defaults in globals.css,
+ *  so the server snapshot and the first paint agree. */
+export const DEFAULT_MODE: ThemeMode = 'dark';
+export const DEFAULT_THEME: Theme = 'dark';
 
 export const GLOBAL_THEME_KEY = 'groove-global-theme';
 const THEME_KEY = 'groove-theme';
@@ -274,7 +275,7 @@ export function setAccent(next: Accent) {
  * Which *palette* the app should paint with, given what is in storage.
  *
  * An explicit stored mode wins. With nothing stored the OS decides, and an
- * unrecognised or absent accent falls back to Unity Blue — so a database row
+ * unrecognised or absent accent falls back to Groove Orange — so a database row
  * left over from a previous accent scheme (`gold`, `ember`, …) degrades to the
  * brand default instead of leaving the app unstyled.
  */

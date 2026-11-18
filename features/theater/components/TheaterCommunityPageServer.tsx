@@ -5,3 +5,4 @@ export async function TheaterCommunityPageServer() {
   const orgs = await getTheaterOrgs();
   return <TheaterCommunityView initialOrgs={orgs} />;
 }
+

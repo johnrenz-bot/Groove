@@ -81,8 +81,8 @@ export function Disciplines() {
                   ? undefined
                   : {
                       y: -6,
-                      borderColor: 'rgba(232, 184, 75, 0.5)',
-                      boxShadow: '0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(232, 184, 75, 0.12)',
+                      borderColor: 'rgba(255,155,47, 0.5)',
+                      boxShadow: '0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255,155,47, 0.12)',
                     }
               }
               className="group relative flex flex-col justify-between rounded-[24px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200"
@@ -90,19 +90,19 @@ export function Disciplines() {
               <div>
                 {/* Header row */}
                 <div className="flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-[#E8B84B]/25 bg-[#E8B84B]/10 text-[#E8B84B] shadow-[0_0_15px_rgba(232,184,75,0.15)] group-hover:border-[#E8B84B]/60 transition-colors">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-[#FF9B2F]/25 bg-[#FF9B2F]/10 text-[#FF9B2F] shadow-[0_0_15px_rgba(255,155,47,0.15)] group-hover:border-[#FF9B2F]/60 transition-colors">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#E8B84B]/70">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#FF9B2F]/70">
                     Discipline 0{idx + 1}
                   </span>
                 </div>
 
                 {/* Title & Tagline */}
-                <h3 className="mt-5 text-xl font-bold text-white tracking-tight group-hover:text-[#E8B84B] transition-colors">
+                <h3 className="mt-5 text-xl font-bold text-white tracking-tight group-hover:text-[#FF9B2F] transition-colors">
                   {discipline.title}
                 </h3>
-                <p className="mt-1 text-xs font-medium uppercase tracking-wider text-[#E8B84B]/80">
+                <p className="mt-1 text-xs font-medium uppercase tracking-wider text-[#FF9B2F]/80">
                   {discipline.tagline}
                 </p>
 
@@ -118,7 +118,7 @@ export function Disciplines() {
                       key={genre}
                       className="inline-flex items-center gap-1 rounded-full border border-white/5 bg-white/5 px-2.5 py-0.5 text-[11px] font-medium text-white/70"
                     >
-                      <Check className="h-2.5 w-2.5 text-[#E8B84B]" />
+                      <Check className="h-2.5 w-2.5 text-[#FF9B2F]" />
                       {genre}
                     </span>
                   ))}
@@ -129,7 +129,7 @@ export function Disciplines() {
               <div className="mt-6 pt-4 border-t border-white/5">
                 <Link
                   href={discipline.href}
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-white/80 group-hover:text-[#E8B84B] transition-colors"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-white/80 group-hover:text-[#FF9B2F] transition-colors"
                 >
                   Explore community
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
@@ -144,3 +144,4 @@ export function Disciplines() {
 }
 
 export default Disciplines;
+

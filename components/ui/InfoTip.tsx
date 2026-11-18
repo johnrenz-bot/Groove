@@ -231,3 +231,4 @@ export function InfoTip({
 }
 
 export default InfoTip;
+

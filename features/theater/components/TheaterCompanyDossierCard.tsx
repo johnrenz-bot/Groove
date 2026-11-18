@@ -27,3 +27,4 @@ export function TheaterCompanyDossierCard({ company }: TheaterCompanyDossierCard
 }
 
 export default TheaterCompanyDossierCard;
+

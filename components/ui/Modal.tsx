@@ -81,7 +81,7 @@ export const MODAL_OVERLAY_CLASS =
 
 /** The dialog surface: rounded, hairline, subtle border, bounded height. */
 export const MODAL_PANEL_CLASS =
-  'g-modal-panel relative flex max-h-[90dvh] w-full max-w-[95vw] flex-col overflow-hidden rounded-[24px] border border-[rgba(245,196,81,0.16)] bg-card/95 text-foreground backdrop-blur-[20px]';
+  'g-modal-panel relative flex max-h-[90dvh] w-full max-w-[95vw] flex-col overflow-hidden rounded-[24px] border border-[rgba(221,170,85,0.16)] bg-card/95 text-foreground backdrop-blur-[20px]';
 
 /** Header band with the Welcome Modal's quiet diagonal accent wash. */
 export const MODAL_HEADER_CLASS =
@@ -530,3 +530,4 @@ export function Modal({
 }
 
 export default Modal;
+

@@ -1004,10 +1004,10 @@ export function StudioLocator({
         }}
         style={{ animationDelay: `${Math.min(index, 8) * 30}ms` }}
         className={cn(
-          'g-studio-card group relative overflow-hidden rounded-2xl  transition-[background-color,-color,box-shadow] duration-200',
+          'g-studio-card group relative overflow-hidden rounded-2xl border border-border transition-[background-color,-color,box-shadow] duration-200',
           selected
             ? ' bg-brand-sunburst-soft/20 shadow-[var(--shadow-sm)]'
-            : ' bg-background/45 hover: hover:bg-muted/30'
+            : ' border border-border bg-background/45 hover:border-border-strong hover:bg-muted/30'
         )}
       >
         {selected && (
@@ -1044,7 +1044,7 @@ export function StudioLocator({
                 </span>
                 {typeof studio.rating === 'number' && (
                   <span
-                    className="inline-flex shrink-0 items-center gap-1 rounded-full   bg-brand-sunburst-soft/60 px-2 py-0.5 text-[11px] font-bold g-gold-text"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-brand-sunburst-soft/60 px-2 py-0.5 text-[11px] font-bold g-gold-text"
                     title={
                       reviewCount > 0
                         ? `${studio.rating.toFixed(1)} from ${reviewCount.toLocaleString()} reviews`
@@ -1143,7 +1143,7 @@ export function StudioLocator({
                 href={studio.mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-8 items-center gap-1 rounded-full   bg-brand-sunburst-soft/50 px-2.5 text-[11px] font-semibold g-gold-text transition-colors hover:bg-brand-sunburst-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                className="inline-flex h-8 items-center gap-1 rounded-full border border-border bg-brand-sunburst-soft/50 px-2.5 text-[11px] font-semibold g-gold-text transition-colors hover:bg-brand-sunburst-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 Directions
                 <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -1182,7 +1182,7 @@ export function StudioLocator({
 
   return (
     <section id={id} className={cn('g-studio-locator isolate w-full', className)}>
-      <div className="relative h-[84svh] min-h-[560px] max-h-[900px] w-full overflow-hidden rounded-3xl   bg-card shadow-[var(--shadow-md)]">
+      <div className="relative h-[84svh] min-h-[560px] max-h-[900px] w-full overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-md)]">
         {/* Map surface ------------------------------------------------------ */}
         <div className="absolute inset-0 bg-muted/30">
           <StudioLocatorMap
@@ -1205,7 +1205,7 @@ export function StudioLocator({
           <button
             type="button"
             onClick={() => setRecenterToken((value) => value + 1)}
-            className="pointer-events-auto inline-flex h-10 items-center gap-1.5 rounded-full   bg-card/95 px-3.5 text-xs font-semibold text-foreground shadow-[var(--shadow-sm)] backdrop-blur transition-colors hover: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+            className="pointer-events-auto inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card/95 px-3.5 text-xs font-semibold text-foreground shadow-[var(--shadow-sm)] backdrop-blur transition-colors hover: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
             aria-label={
               scope === 'nationwide'
                 ? 'Fit the Philippines in view'
@@ -1223,7 +1223,7 @@ export function StudioLocator({
         </div>
 
         {picking && (
-          <div className="pointer-events-auto absolute left-1/2 top-24 z-[430] flex w-fit max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full   bg-card/95 px-3 py-1.5 text-xs font-semibold text-foreground shadow-[var(--shadow-md)] backdrop-blur lg:left-[calc(50%+164px)]">
+          <div className="pointer-events-auto absolute left-1/2 top-24 z-[430] flex w-fit max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-1.5 text-xs font-semibold text-foreground shadow-[var(--shadow-md)] backdrop-blur lg:left-[calc(50%+164px)]">
             <Navigation className="h-3.5 w-3.5 shrink-0 g-gold-text" aria-hidden="true" />
             <span>Tap the map to set the search centre</span>
             <button
@@ -1503,7 +1503,7 @@ export function StudioLocator({
                             placeholder="City, province, or address"
                             autoComplete="off"
                             aria-describedby={`${searchId}-location-help`}
-                            className="h-10 w-full rounded-xl   bg-background/70 pl-9 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                            className="h-10 w-full rounded-xl border border-border bg-background/70 pl-9 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                           />
                           <button
                             type="button"
@@ -1558,8 +1558,8 @@ export function StudioLocator({
 
                   {/* 3. Search centre */}
                   <section className="pb-4 border-b border-border/30">
-                    <div className="flex items-center gap-3 rounded-xl   bg-muted/25 px-3 py-2.5">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg   bg-brand-sunburst-soft g-gold-text">
+                    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/25 px-3 py-2.5">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-brand-sunburst-soft g-gold-text">
                         <MapPin className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -1624,10 +1624,10 @@ export function StudioLocator({
                               aria-pressed={active}
                               onClick={() => selectRadius(km)}
                               className={cn(
-                                'h-10 rounded-lg  text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
+                                'h-10 rounded-lg border border-border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                                 active
                                   ? ' bg-brand-sunburst text-brand-sunburst-fg'
-                                  : ' bg-background/60 text-foreground hover: hover:bg-muted'
+                                  : ' border border-border bg-background/60 text-foreground hover:border-border-strong hover:bg-muted'
                               )}
                             >
                               {km} km
@@ -1645,11 +1645,11 @@ export function StudioLocator({
                             setCustomError(null);
                           }}
                           className={cn(
-                            'h-10 rounded-lg  text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
+                            'h-10 rounded-lg border border-border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                             showCustom ||
                               !RADII.includes(radiusKm as (typeof RADII)[number])
                               ? ' bg-brand-sunburst text-brand-sunburst-fg'
-                              : ' bg-background/60 text-foreground hover: hover:bg-muted'
+                              : ' border border-border bg-background/60 text-foreground hover:border-border-strong hover:bg-muted'
                           )}
                         >
                           Custom
@@ -1679,7 +1679,7 @@ export function StudioLocator({
                               }
                             }}
                             placeholder="15"
-                            className="h-10 w-24 rounded-lg   bg-background/70 px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                            className="h-10 w-24 rounded-lg border border-border bg-background/70 px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                           />
                           <span className="text-xs text-muted-foreground">km</span>
                           <Button
@@ -1707,7 +1707,7 @@ export function StudioLocator({
                         >
                           Region page
                         </h3>
-                        <div className="mt-2 rounded-xl   bg-muted/25 p-3">
+                        <div className="mt-2 rounded-xl border border-border bg-muted/25 p-3">
                           <div className="flex items-center justify-between gap-2">
                             <div className="min-w-0">
                               <p className="text-xs font-semibold text-foreground">
@@ -1730,7 +1730,7 @@ export function StudioLocator({
                                 onClick={() => goToCoveragePage(coveragePage - 1)}
                                 disabled={loading || coveragePage <= 0}
                                 aria-label="Previous region page"
-                                className="grid h-9 w-9 place-items-center rounded-lg   bg-background/70 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                                className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-background/70 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                               >
                                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                               </button>
@@ -1739,7 +1739,7 @@ export function StudioLocator({
                                 onClick={() => goToCoveragePage(coveragePage + 1)}
                                 disabled={loading || coveragePage >= totalPages - 1}
                                 aria-label="Next region page"
-                                className="grid h-9 w-9 place-items-center rounded-lg   bg-background/70 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                                className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-background/70 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                               >
                                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
                               </button>
@@ -1779,7 +1779,7 @@ export function StudioLocator({
                             }}
                             placeholder="e.g. Kidlat Dance Studio"
                             autoComplete="off"
-                            className="h-10 w-full rounded-lg   bg-background/70 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                            className="h-10 w-full rounded-lg border border-border bg-background/70 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                           />
                         </div>
                         <Button
@@ -1803,7 +1803,7 @@ export function StudioLocator({
                       )}
 
                       {activeQuery && (
-                        <div className="flex items-center gap-2 rounded-lg   bg-brand-sunburst-soft/35 px-2.5 py-1.5">
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-brand-sunburst-soft/35 px-2.5 py-1.5">
                           <span
                             className="min-w-0 flex-1 truncate text-[11px] font-semibold text-foreground"
                             title={activeQuery}
@@ -1896,7 +1896,7 @@ export function StudioLocator({
                   </section>
 
                   {/* Jump to a city */}
-                  <details className="group rounded-xl   bg-background/40">
+                  <details className="group rounded-xl border border-border bg-background/40">
                     <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-3 text-xs font-semibold text-foreground [&::-webkit-details-marker]:hidden">
                       <MapPin className="h-4 w-4 shrink-0 g-gold-text" aria-hidden="true" />
                       Jump to a city
@@ -1923,7 +1923,7 @@ export function StudioLocator({
                                 ) as HTMLDetailsElement | null;
                                 if (details) details.open = false;
                               }}
-                              className="inline-flex h-8 items-center rounded-full   bg-background/60 px-3 text-[11px] font-medium text-foreground transition-colors hover: hover:bg-brand-sunburst-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                              className="inline-flex h-8 items-center rounded-full border border-border bg-background/60 px-3 text-[11px] font-medium text-foreground transition-colors hover:border-accent-border hover:bg-brand-sunburst-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                               title={`${city.name}, ${city.region}`}
                             >
                               {city.name}
@@ -1948,7 +1948,7 @@ export function StudioLocator({
                                 ) as HTMLDetailsElement | null;
                                 if (details) details.open = false;
                               }}
-                              className="inline-flex h-8 items-center rounded-full   bg-background/60 px-3 text-[11px] font-medium text-foreground transition-colors hover: hover:bg-brand-sunburst-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                              className="inline-flex h-8 items-center rounded-full border border-border bg-background/60 px-3 text-[11px] font-medium text-foreground transition-colors hover:border-accent-border hover:bg-brand-sunburst-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
                               title={`${city.name}, ${city.region}`}
                             >
                               {city.name}
@@ -1960,7 +1960,7 @@ export function StudioLocator({
                   </details>
 
                   {/* Coverage & sources — moved off the primary view. */}
-                  <details className="group rounded-xl   bg-background/40">
+                  <details className="group rounded-xl border border-border bg-background/40">
                     <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-3 text-xs font-semibold text-foreground [&::-webkit-details-marker]:hidden">
                       <Globe2 className="h-4 w-4 shrink-0 g-gold-text" aria-hidden="true" />
                       Coverage &amp; sources
@@ -2081,7 +2081,7 @@ export function StudioLocator({
                       {Array.from({ length: 4 }).map((_, index) => (
                         <div
                           key={index}
-                          className="animate-pulse rounded-2xl   bg-background/40 p-3"
+                          className="animate-pulse rounded-2xl border border-border bg-background/40 p-3"
                         >
                           <div className="flex items-start gap-3">
                             <span className="h-7 w-7 shrink-0 rounded-full bg-muted" />
@@ -2100,7 +2100,7 @@ export function StudioLocator({
                   )}
 
                   {!loading && loadError && (
-                    <div className="rounded-2xl   bg-danger-soft/50 px-4 py-6 text-center">
+                    <div className="rounded-2xl border border-border bg-danger-soft/50 px-4 py-6 text-center">
                       <AlertCircle className="mx-auto h-5 w-5 text-danger" aria-hidden="true" />
                       <p className="mt-2 text-xs leading-relaxed text-danger">{loadError}</p>
                       <Button
@@ -2118,10 +2118,10 @@ export function StudioLocator({
                     <div
                       role="status"
                       className={cn(
-                        'mb-2 flex items-start gap-2 rounded-xl  px-3 py-2 text-[11px] leading-relaxed',
+                        'mb-2 flex items-start gap-2 rounded-xl border border-border px-3 py-2 text-[11px] leading-relaxed',
                         googleStatus === 'quota' || googleStatus === 'configuration'
                           ? ' bg-warning-soft text-warning'
-                          : ' bg-muted/45 text-muted-foreground'
+                          : ' border border-border bg-muted/45 text-muted-foreground'
                       )}
                     >
                       <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -2132,7 +2132,7 @@ export function StudioLocator({
                   )}
 
                   {!loading && !loadError && visibleStudios.length === 0 && (
-                    <div className="rounded-2xl   bg-background/40 px-4 py-6 text-center">
+                    <div className="rounded-2xl border border-border bg-background/40 px-4 py-6 text-center">
                       <MapPin
                         className="mx-auto h-6 w-6 text-muted-foreground"
                         aria-hidden="true"
@@ -2264,3 +2264,4 @@ export function StudioLocator({
 }
 
 export default StudioLocator;
+

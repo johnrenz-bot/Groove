@@ -113,14 +113,14 @@ export function NotificationDropdown({
     const supabase = createClient();
     const { data } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, user_id, title, message, cta_url, read_at, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(10);
 
     if (data) {
       setNotifications(data);
-      setUnreadCount(data.filter((n) => !n.read_at).length);
+      setUnreadCount(data.filter((n: any) => !n.read_at).length);
     }
   }, [userId]);
 
@@ -142,7 +142,7 @@ export function NotificationDropdown({
           table: 'notifications',
           filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
+        (payload: any) => {
           setNotifications((prev) => {
             const newNotif = payload.new as Notification;
             if (prev.some((n) => n.id === newNotif.id)) return prev;
@@ -381,7 +381,7 @@ export function NotificationDropdown({
                 <div className="flex flex-col items-center gap-2 px-4 py-9 text-center">
                   <span
                     aria-hidden="true"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl   bg-muted text-subtle-foreground"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-subtle-foreground"
                   >
                     <Inbox className="h-4 w-4" />
                   </span>
@@ -415,3 +415,4 @@ export function NotificationDropdown({
 }
 
 export default NotificationDropdown;
+

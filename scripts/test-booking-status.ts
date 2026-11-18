@@ -49,48 +49,64 @@ function check(name: string, actual: unknown, expected: unknown) {
   }
 }
 
-/* ── 1. The transition table, transcribed from guard_booking_transition() ──── */
+/* ────── 1. The transition table, transcribed from guard booking transition() ────── */
 
 const LEGAL: [string, string, boolean][] = [
-  // pending -> accepted | declined | cancelled
+  // pending -> accepted | declined | cancelled | expired
   ['pending', 'accepted', true],
   ['pending', 'declined', true],
   ['pending', 'cancelled', true],
   ['pending', 'confirmed', false],
   ['pending', 'completed', false],
   ['pending', 'agreement_required', false],
-  // accepted -> agreement_required | cancelled | declined
+  ['pending', 'expired', true],
+  ['pending', 'in_progress', false],
+  // accepted -> agreement_required | cancelled | declined | expired
   ['accepted', 'agreement_required', true],
   ['accepted', 'cancelled', true],
   ['accepted', 'declined', true],
   ['accepted', 'confirmed', false],
-  // agreement_required -> confirmed | cancelled
+  ['accepted', 'expired', true],
+  // agreement_required -> confirmed | cancelled | expired
   ['agreement_required', 'confirmed', true],
   ['agreement_required', 'cancelled', true],
   ['agreement_required', 'completed', false],
   ['agreement_required', 'declined', false],
-  // confirmed -> completed | cancelled
+  ['agreement_required', 'expired', true],
+  // confirmed -> in_progress | completed | cancelled | no_show
   ['confirmed', 'completed', true],
   ['confirmed', 'cancelled', true],
   ['confirmed', 'declined', false],
+  ['confirmed', 'in_progress', true],
+  ['confirmed', 'no_show', true],
+  // in_progress -> completed | no_show
+  ['in_progress', 'completed', true],
+  ['in_progress', 'no_show', true],
+  ['in_progress', 'cancelled', false],
+  ['in_progress', 'confirmed', false],
   // Terminal states accept nothing.
   ['completed', 'confirmed', false],
+  ['completed', 'in_progress', false],
   ['completed', 'cancelled', false],
   ['cancelled', 'pending', false],
+  ['cancelled', 'expired', false],
   ['declined', 'accepted', false],
+  ['expired', 'pending', false],
+  ['expired', 'confirmed', false],
+  ['no_show', 'completed', false],
 ];
 
 for (const [from, to, expected] of LEGAL) {
   check(`transition ${from} -> ${to} is ${expected}`, isLegalTransition(from, to), expected);
 }
 
-/* ── 2. No status may move to itself ──────────────────────────────────────── */
+/* ────── 2. No status may move to itself ────── */
 
 for (const s of BOOKING_STAGES) {
   check(`${s} -> ${s} is refused`, isLegalTransition(s, s), false);
 }
 
-/* ── 3. 'confirmed' is never offered to anybody ───────────────────────────── */
+/* ────── 3. 'confirmed' is never offered to anybody ────── */
 
 for (const status of BOOKING_STAGES) {
   for (const role of ['client', 'coach'] as const) {
@@ -103,7 +119,7 @@ for (const status of BOOKING_STAGES) {
   }
 }
 
-/* ── 4. Role split: the coach-only moves ─────────────────────────────────── */
+/* ────── 4. Role split: the coach-only moves ────── */
 
 /*
  * Cancel is deliberately NOT in COACH_ONLY: both parties may cancel from any
@@ -111,7 +127,7 @@ for (const status of BOOKING_STAGES) {
  * UPDATE policy), so asserting "never offered to a client" would assert the
  * opposite of the rule. The genuinely coach-only moves are the three below.
  */
-const COACH_ONLY: readonly BookingAction[] = ['accept', 'decline', 'complete'];
+const COACH_ONLY: readonly BookingAction[] = ['accept', 'decline', 'complete', 'start', 'no_show'];
 const CLIENT_MAY_CANCEL_FROM: readonly string[] = [
   'pending',
   'accepted',
@@ -141,7 +157,7 @@ for (const status of BOOKING_STAGES) {
   );
 }
 
-/* ── 5. Accept is gated on coach verification ─────────────────────────────── */
+/* ────── 5. Accept is gated on coach verification ────── */
 
 check(
   'unverified coach cannot accept a pending request',
@@ -154,7 +170,7 @@ check(
   null
 );
 
-/* ── 6. Suspension blocks every write ─────────────────────────────────────── */
+/* ────── 6. Suspension blocks every write ────── */
 
 for (const role of ['client', 'coach'] as const) {
   const actions = availableActions({ status: 'pending', role, suspended: true });
@@ -165,7 +181,7 @@ for (const role of ['client', 'coach'] as const) {
   );
 }
 
-/* ── 7. Terminal states offer nothing but the coach's own follow-ups ─────── */
+/* ────── 7. Terminal states offer nothing but the coach's own follow-ups ────── */
 
 check(
   'completed booking offers no actions',
@@ -180,22 +196,25 @@ check(
   0
 );
 
-/* ── 8. Unknown / missing status is inert, not a crash ───────────────────── */
+/* ────── 8. Unknown / missing status is inert, not a crash ────── */
 
 check('unknown status yields no actions', availableActions({ status: 'wat', role: 'coach' }).length, 0);
 check('null status yields no actions', availableActions({ status: null, role: 'coach' }).length, 0);
 check('statusMeta(null) is safe', statusMeta(null).label, 'Unknown');
 
-/* ── 9. Labels are human sentences, never raw enum values ────────────────── */
+/* ────── 9. Labels are human sentences, never raw enum values ────── */
 
 const EXPECTED_LABELS: Record<AppointmentStatus, string> = {
   pending: 'Awaiting coach',
   accepted: 'Accepted',
   agreement_required: 'Awaiting signatures',
   confirmed: 'Confirmed',
+  in_progress: 'In session',
   completed: 'Completed',
   declined: 'Declined',
   cancelled: 'Cancelled',
+  expired: 'Expired',
+  no_show: 'No-show',
 };
 for (const status of BOOKING_STAGES) {
   check(`label for ${status}`, statusMeta(status).label, EXPECTED_LABELS[status]);
@@ -206,30 +225,33 @@ for (const status of BOOKING_STAGES) {
   );
 }
 
-/* ── 10. Terminality ─────────────────────────────────────────────────────── */
+/* ────── 10. Terminality ────── */
 
-for (const s of ['completed', 'declined', 'cancelled'] as AppointmentStatus[]) {
+for (const s of ['completed', 'declined', 'cancelled', 'expired', 'no_show'] as AppointmentStatus[]) {
   check(`${s} is terminal`, statusMeta(s).isTerminal, true);
   check(`${s} is not actionable`, statusMeta(s).isActionable, false);
 }
-for (const s of ['pending', 'accepted', 'agreement_required', 'confirmed'] as AppointmentStatus[]) {
+for (const s of ['pending', 'accepted', 'agreement_required', 'confirmed', 'in_progress'] as AppointmentStatus[]) {
   check(`${s} is not terminal`, statusMeta(s).isTerminal, false);
 }
 
-/* ── 11. Progress ────────────────────────────────────────────────────────── */
+/* ────── 11. Progress ────── */
 
 check('stageIndex(pending)', stageIndex('pending'), 0);
 check('stageIndex(confirmed)', stageIndex('confirmed'), 3);
-check('stageIndex(completed)', stageIndex('completed'), 4);
+check('stageIndex(in_progress)', stageIndex('in_progress'), 4);
+check('stageIndex(completed)', stageIndex('completed'), 5);
+check('stageIndex(declined) is 0 (off-path reads from stamps)', stageIndex('declined'), 0);
 
 const full = buildTimeline('completed', {
   accepted: '2026-10-01T10:00:00Z',
   agreement_required: '2026-10-01T10:01:00Z',
   confirmed: '2026-10-01T10:05:00Z',
+  in_progress: '2026-10-05T08:30:00Z',
   completed: '2026-10-05T09:00:00Z',
 });
 check('completed timeline reaches every stage', full.every((s) => s.reached), true);
-check('completed timeline marks the last stage current', full[4].current, true);
+check('completed timeline marks the last stage current', full[5].current, true);
 check('no other stage is current', full.filter((s) => s.current).length, 1);
 
 const early = buildTimeline('pending', {});
@@ -266,7 +288,24 @@ check(
   1
 );
 
-/* ── Result ──────────────────────────────────────────────────────────────── */
+const noShow = buildTimeline('no_show', {
+  accepted: '2026-10-01T10:00:00Z',
+  agreement_required: '2026-10-01T10:01:00Z',
+  confirmed: '2026-10-01T10:05:00Z',
+  in_progress: '2026-10-01T13:00:00Z',
+});
+check(
+  'no-show reports in_progress as reached',
+  noShow.find((s) => s.status === 'in_progress')?.reached,
+  true
+);
+check(
+  'an off-path no-show has no current stage',
+  noShow.filter((s) => s.current).length,
+  0
+);
+
+/* ────── Result ────── */
 
 console.log(`\n${passes} passed, ${failures} failed`);
 if (failures > 0) process.exit(1);

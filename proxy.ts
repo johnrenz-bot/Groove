@@ -24,7 +24,9 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - fonts, image, media (public assets)
+     * - api (route handlers authenticate themselves; the page-oriented
+     *   session refresh in updateSession is pure overhead there)
      */
-    '/((?!_next/static|_next/image|favicon.ico|fonts|image|media|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|fonts|image|media|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

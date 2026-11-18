@@ -57,3 +57,4 @@ export function TheaterOrgLogoBar({ selectedOrg, onSelectOrg }: TheaterOrgLogoBa
     </section>
   );
 }
+

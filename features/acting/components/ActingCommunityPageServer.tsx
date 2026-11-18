@@ -5,3 +5,4 @@ export async function ActingCommunityPageServer() {
   const orgs = await getActingOrgs();
   return <ActingCommunityView initialOrgs={orgs} />;
 }
+

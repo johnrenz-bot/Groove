@@ -97,3 +97,4 @@ export function FeaturedVocalistsRoster() {
 }
 
 export default FeaturedVocalistsRoster;
+

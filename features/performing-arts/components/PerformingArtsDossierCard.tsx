@@ -295,7 +295,16 @@ export function PerformingArtsDossierCard({
           <ul className="mt-4 space-y-2">
             {entity.achievements.map((achievement, index) => (
               <li key={`${achievement.source_url}-${achievement.title}-${index}`}>
-                <TitleRow achievement={achievement} />
+                <TitleRow
+                  achievement={{
+                    title: achievement.title,
+                    year:
+                      typeof achievement.year === 'number'
+                        ? achievement.year
+                        : Number.parseInt(String(achievement.year ?? '').match(/\d{4}/)?.[0] ?? '0', 10) || null,
+                    sourceUrl: achievement.source_url,
+                  }}
+                />
               </li>
             ))}
           </ul>
@@ -405,3 +414,4 @@ export function PerformingArtsDossierCard({
 }
 
 export default PerformingArtsDossierCard;
+

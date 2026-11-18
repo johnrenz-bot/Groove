@@ -85,7 +85,7 @@ export function CoachAvailabilitySnapshot({
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-[20px]   bg-card',
+        'overflow-hidden rounded-[20px] border border-border bg-card',
         className
       )}
       aria-label="Coach availability snapshot"
@@ -97,7 +97,7 @@ export function CoachAvailabilitySnapshot({
             Read from your coach profile and the sessions already on your calendar.
           </p>
         </div>
-        <span className="rounded-full   bg-muted/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+        <span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
           Read-only
         </span>
       </div>
@@ -149,10 +149,10 @@ export function CoachAvailabilitySnapshot({
             <li
               key={day.value}
               className={cn(
-                'rounded-xl  px-2.5 py-2',
+                'rounded-xl border border-border px-2.5 py-2',
                 day.windows.length > 0
-                  ? ' bg-accent-soft/60'
-                  : ' bg-muted/30'
+                  ? ' border-accent-border bg-accent-soft/60'
+                  : ' border border-border bg-muted/30'
               )}
             >
               <p className="text-[11px] font-bold text-foreground">
@@ -181,3 +181,4 @@ export function CoachAvailabilitySnapshot({
 }
 
 export default CoachAvailabilitySnapshot;
+

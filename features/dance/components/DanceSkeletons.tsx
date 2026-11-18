@@ -37,3 +37,4 @@ export function DanceUpdatesSkeletonGrid({ count = 6 }: { count?: number }) {
     </div>
   );
 }
+

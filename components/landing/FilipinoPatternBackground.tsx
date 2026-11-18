@@ -12,7 +12,7 @@ interface FilipinoPatternBackgroundProps {
  * 1. Traditional *banig* geometric diagonal woven patterns
  * 2. Philippine-inspired 8-ray sunburst motifs and central solar nodes
  * 3. Architectural stage lines evoking theater proscenium geometry
- * Rendered at ultra-low opacity (#E8B84B gold & subtle dark-gray)
+ * Rendered at ultra-low opacity (#FF9B2F gold & subtle dark-gray)
  * to maintain pristine content legibility and dark aesthetic.
  */
 export function FilipinoPatternBackground({
@@ -41,7 +41,7 @@ export function FilipinoPatternBackground({
             patternUnits="userSpaceOnUse"
           >
             {/* 1. Banig Diagonal Weave (Gold & Dark Gray) */}
-            <g stroke="#E8B84B" strokeOpacity={isSubtle ? '0.02' : '0.035'} strokeWidth="0.75" fill="none">
+            <g stroke="#FF9B2F" strokeOpacity={isSubtle ? '0.02' : '0.035'} strokeWidth="0.75" fill="none">
               {/* Primary 45-degree diagonal lines */}
               <line x1="0" y1="0" x2="160" y2="160" />
               <line x1="40" y1="0" x2="160" y2="120" />
@@ -66,11 +66,11 @@ export function FilipinoPatternBackground({
             {/* 2. Philippine Sun Rays (Subtle 8-ray burst at center) */}
             <g transform="translate(80, 80)">
               {/* Central golden core */}
-              <circle cx="0" cy="0" r="3.5" fill="#E8B84B" fillOpacity={isSubtle ? '0.03' : '0.05'} />
-              <circle cx="0" cy="0" r="1.5" fill="#E8B84B" fillOpacity={isSubtle ? '0.05' : '0.08'} />
+              <circle cx="0" cy="0" r="3.5" fill="#FF9B2F" fillOpacity={isSubtle ? '0.03' : '0.05'} />
+              <circle cx="0" cy="0" r="1.5" fill="#FF9B2F" fillOpacity={isSubtle ? '0.05' : '0.08'} />
 
               {/* 8 Cardinal and Intercardinal Sun Rays */}
-              <g stroke="#E8B84B" strokeOpacity={isSubtle ? '0.025' : '0.04'} strokeWidth="0.75">
+              <g stroke="#FF9B2F" strokeOpacity={isSubtle ? '0.025' : '0.04'} strokeWidth="0.75">
                 <line x1="0" y1="-6" x2="0" y2="-22" />
                 <line x1="0" y1="6" x2="0" y2="22" />
                 <line x1="-6" y1="0" x2="-22" y2="0" />
@@ -84,11 +84,11 @@ export function FilipinoPatternBackground({
             </g>
 
             {/* Corner nodes for continuous seamless tiling */}
-            <g stroke="#E8B84B" strokeOpacity={isSubtle ? '0.02' : '0.035'} strokeWidth="0.6">
-              <circle cx="0" cy="0" r="2" fill="#E8B84B" fillOpacity="0.04" />
-              <circle cx="160" cy="0" r="2" fill="#E8B84B" fillOpacity="0.04" />
-              <circle cx="0" cy="160" r="2" fill="#E8B84B" fillOpacity="0.04" />
-              <circle cx="160" cy="160" r="2" fill="#E8B84B" fillOpacity="0.04" />
+            <g stroke="#FF9B2F" strokeOpacity={isSubtle ? '0.02' : '0.035'} strokeWidth="0.6">
+              <circle cx="0" cy="0" r="2" fill="#FF9B2F" fillOpacity="0.04" />
+              <circle cx="160" cy="0" r="2" fill="#FF9B2F" fillOpacity="0.04" />
+              <circle cx="0" cy="160" r="2" fill="#FF9B2F" fillOpacity="0.04" />
+              <circle cx="160" cy="160" r="2" fill="#FF9B2F" fillOpacity="0.04" />
             </g>
 
             {/* 3. Stage & Architectural Lines (Vertical rhythm) */}
@@ -97,7 +97,7 @@ export function FilipinoPatternBackground({
               y1="0"
               x2="80"
               y2="160"
-              stroke="#E8B84B"
+              stroke="#FF9B2F"
               strokeOpacity={isSubtle ? '0.015' : '0.025'}
               strokeWidth="0.5"
               strokeDasharray="2 6"
@@ -107,7 +107,7 @@ export function FilipinoPatternBackground({
               y1="80"
               x2="160"
               y2="80"
-              stroke="#E8B84B"
+              stroke="#FF9B2F"
               strokeOpacity={isSubtle ? '0.015' : '0.025'}
               strokeWidth="0.5"
               strokeDasharray="2 6"
@@ -125,11 +125,12 @@ export function FilipinoPatternBackground({
         <rect width="100%" height="100%" fill="url(#filipino-banig-pattern)" />
       </svg>
 
-      {/* Ambient gradient overlay to blend seamlessly into #0a0a0a */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-[#0a0a0a] opacity-80" />
+      {/* Ambient gradient overlay to blend seamlessly into #111111 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#111111] via-transparent to-[#111111] opacity-80" />
     </div>
   );
 }
 
 export default FilipinoPatternBackground;
+
 

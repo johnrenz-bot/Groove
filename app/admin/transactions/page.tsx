@@ -221,7 +221,7 @@ export default function AdminTransactionsPage() {
         <div className="flex justify-end gap-2">
           <Link
             href={`/contracts/${ag.id}`}
-            className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full   bg-card px-3.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+            className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
           >
             <PenLine className="h-3.5 w-3.5" />
             Inspect

@@ -153,7 +153,7 @@ export function UserDirectory({
         <div className="flex min-w-0 items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl   bg-accent-soft text-[11px] font-bold text-accent-text"
+            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-accent-soft text-[11px] font-bold text-accent-text"
           >
             {u.photo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -454,7 +454,7 @@ function SummaryTile({
               ? ' bg-danger-soft text-danger'
               : tone === 'success'
                 ? ' bg-success-soft text-success'
-                : ' bg-accent-soft text-accent-text')
+                : ' border-accent-border bg-accent-soft text-accent-text')
         }
       >
         {icon}

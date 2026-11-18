@@ -32,7 +32,7 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
           'relative overflow-hidden border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur)] shadow-[var(--glass-shadow)] transition-all duration-200',
           radiusClass,
           hover && 'hover:border-[var(--glass-border-hover)] hover:-translate-y-px',
-          glow && 'shadow-[0_0_40px_rgba(244,190,77,0.18)]',
+          glow && 'shadow-[0_0_44px_rgba(245,138,24,0.22)]',
           className
         )}
         {...props}
@@ -46,3 +46,4 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
 GlassCard.displayName = 'GlassCard';
 
 export default GlassCard;
+

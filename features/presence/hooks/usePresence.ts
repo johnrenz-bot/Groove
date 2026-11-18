@@ -134,7 +134,7 @@ export function PresenceRealtime({ userId }: { userId: string | null }) {
       .select('id, status')
       .eq('id', userId)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (cancelled || !data) return;
         snapshot = { ...snapshot, [data.id]: displayStatus(data.status) };
         emit();
@@ -147,7 +147,7 @@ export function PresenceRealtime({ userId }: { userId: string | null }) {
         // UPDATE only. An INSERT is a signup and carries no presence a page is
         // waiting on; a DELETE needs no presence update either.
         { event: 'UPDATE', schema: 'public', table: 'profiles' },
-        (payload) => {
+        (payload: any) => {
           const row = payload.new as { id?: string; status?: string } | null;
           if (!row?.id || cancelled) return;
           const next = displayStatus(row.status);

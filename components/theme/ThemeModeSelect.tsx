@@ -28,7 +28,7 @@ export function ThemeModeSelect() {
 
   return (
     <div
-      className="inline-flex items-center rounded-full   bg-card p-1 shadow-sm"
+      className="inline-flex items-center rounded-full border border-border bg-card p-1 shadow-sm"
       role="group"
       aria-label="Appearance"
     >
@@ -57,3 +57,4 @@ export function ThemeModeSelect() {
 }
 
 export default ThemeModeSelect;
+

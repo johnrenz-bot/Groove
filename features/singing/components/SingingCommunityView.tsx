@@ -32,7 +32,7 @@ import {
   Sparkles,
   ChevronRight as ChevronRightSmall,
 } from 'lucide-react';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 function Breadcrumb() {
   return (
@@ -462,3 +462,4 @@ export function SingingCommunityView({ initialOrgs = VERIFIED_SINGING_ORGS }: Si
     </div>
   );
 }
+

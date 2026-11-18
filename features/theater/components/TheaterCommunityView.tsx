@@ -32,7 +32,7 @@ import {
   Sparkles,
   ChevronRight as ChevronRightSmall,
 } from 'lucide-react';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 function Breadcrumb() {
   return (
@@ -457,3 +457,4 @@ export function TheaterCommunityView({ initialOrgs = VERIFIED_THEATER_ORGS }: Th
     </div>
   );
 }
+

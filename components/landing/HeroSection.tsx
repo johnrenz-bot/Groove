@@ -52,11 +52,11 @@ export function HeroSection() {
         />
         {/* Dark Left-to-Right and Bottom Gradient Overlay */}
         <div
-          className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/95 via-[#0a0a0a]/80 to-[#0a0a0a]/45"
+          className="absolute inset-0 bg-gradient-to-r from-[#111111]/95 via-[#111111]/80 to-[#111111]/45"
           aria-hidden="true"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/40"
+          className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-black/40"
           aria-hidden="true"
         />
       </div>
@@ -69,12 +69,12 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#E8B84B]/30 bg-black/60 px-3.5 py-1.5 text-xs text-white/80 backdrop-blur-xl shadow-[0_0_20px_rgba(232,184,75,0.12)]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#FF9B2F]/30 bg-black/60 px-3.5 py-1.5 text-xs text-white/80 backdrop-blur-xl shadow-[0_0_20px_rgba(255,155,47,0.12)]">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E8B84B]/60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#E8B84B]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF9B2F]/60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FF9B2F]" />
               </span>
-              Performing arts platform · Bulacan
+              Performing arts platform • Bulacan
             </span>
           </motion.div>
 
@@ -87,7 +87,7 @@ export function HeroSection() {
             style={{ fontSize: 'clamp(2.75rem, 6vw, 4.75rem)' }}
           >
             A performing arts home for{' '}
-            <span className="bg-gradient-to-r from-[#E8B84B] to-[#f4be4d] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#FF9B2F] to-[#DDAA55] bg-clip-text text-transparent">
               San Jose del Monte.
             </span>
           </motion.h1>
@@ -153,14 +153,14 @@ export function HeroSection() {
                       ? undefined
                       : {
                           scale: 1.03,
-                          boxShadow: '0 16px 40px rgba(232, 184, 75, 0.25)',
-                          borderColor: 'rgba(232, 184, 75, 0.7)',
+                          boxShadow: '0 16px 40px rgba(255,155,47, 0.25)',
+                          borderColor: 'rgba(255,155,47, 0.7)',
                         }
                   }
-                  className={`absolute ${card.position} cursor-default rounded-[24px] border border-[#E8B84B]/30 bg-black/55 p-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(232,184,75,0.12)] transition-colors duration-200`}
+                  className={`absolute ${card.position} cursor-default rounded-[24px] border border-[#FF9B2F]/30 bg-black/55 p-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(255,155,47,0.12)] transition-colors duration-200`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-[#E8B84B]/35 bg-[#E8B84B]/10 text-[#E8B84B] shadow-[0_0_15px_rgba(232,184,75,0.2)]">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-[#FF9B2F]/35 bg-[#FF9B2F]/10 text-[#FF9B2F] shadow-[0_0_15px_rgba(255,155,47,0.2)]">
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
@@ -179,4 +179,5 @@ export function HeroSection() {
 }
 
 export default HeroSection;
+
 

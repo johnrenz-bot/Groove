@@ -182,7 +182,7 @@ export default function AdminThemePage() {
     <div className="g-fade-up space-y-8 pb-12">
       {/* Floating Preview Alert Banner */}
       {previewTheme && (
-        <div className="sticky top-4 z-40 flex items-center justify-between gap-4 rounded-2xl   bg-accent-soft p-4 shadow-lg backdrop-blur-md">
+        <div className="sticky top-4 z-40 flex items-center justify-between gap-4 rounded-2xl border border-border bg-accent-soft p-4 shadow-lg backdrop-blur-md">
           <div className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
               <Eye className="h-5 w-5" />
@@ -260,29 +260,29 @@ export default function AdminThemePage() {
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* Color Swatch Preview Pill */}
-            <div className="flex items-center gap-1.5 rounded-xl   bg-card p-2 shadow-sm">
+            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-card p-2 shadow-sm">
               <span
-                className="h-6 w-6 rounded-lg   shadow-inner"
+                className="h-6 w-6 rounded-lg border border-border shadow-inner"
                 style={{ backgroundColor: activeThemeMeta.swatches.bg }}
                 title="Background"
               />
               <span
-                className="h-6 w-6 rounded-lg   shadow-inner"
+                className="h-6 w-6 rounded-lg border border-border shadow-inner"
                 style={{ backgroundColor: activeThemeMeta.swatches.surface }}
                 title="Surface / Card"
               />
               <span
-                className="h-6 w-6 rounded-lg   shadow-inner"
+                className="h-6 w-6 rounded-lg border border-border shadow-inner"
                 style={{ backgroundColor: activeThemeMeta.swatches.border }}
                 title=""
               />
               <span
-                className="h-6 w-6 rounded-lg   shadow-inner"
+                className="h-6 w-6 rounded-lg border border-border shadow-inner"
                 style={{ backgroundColor: activeThemeMeta.swatches.accent }}
                 title="Accent"
               />
               <span
-                className="h-6 w-6 rounded-lg   shadow-inner"
+                className="h-6 w-6 rounded-lg border border-border shadow-inner"
                 style={{ backgroundColor: activeThemeMeta.swatches.text }}
                 title="Text"
               />
@@ -373,10 +373,10 @@ export default function AdminThemePage() {
                   disabled={saving === 'theme_accent'}
                   aria-pressed={selected}
                   className={cn(
-                    'group flex cursor-pointer items-center gap-3 rounded-2xl  p-3 text-left transition-all disabled:opacity-60',
+                    'group flex cursor-pointer items-center gap-3 rounded-2xl border border-border p-3 text-left transition-all disabled:opacity-60',
                     selected
-                      ? ' bg-accent-soft shadow-sm'
-                      : ' bg-card hover:bg-muted'
+                      ? ' border-accent-border bg-accent-soft shadow-sm'
+                      : ' border border-border bg-card hover:bg-muted'
                   )}
                 >
                   <span
@@ -406,7 +406,7 @@ export default function AdminThemePage() {
           />
           <div
             className={cn(
-              'rounded-2xl  p-5 transition-colors',
+              'rounded-2xl border border-border p-5 transition-colors',
               isLocked ? ' bg-warning-soft' : ' bg-muted'
             )}
           >
@@ -448,7 +448,7 @@ export default function AdminThemePage() {
         />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2 rounded-2xl   bg-card p-4">
+          <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Buttons & CTAs
             </p>
@@ -463,7 +463,7 @@ export default function AdminThemePage() {
             </div>
           </div>
 
-          <div className="space-y-2 rounded-2xl   bg-card p-4">
+          <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Status Badges
             </p>
@@ -476,11 +476,11 @@ export default function AdminThemePage() {
             </div>
           </div>
 
-          <div className="space-y-2 rounded-2xl   bg-card p-4">
+          <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Cards & Surfaces
             </p>
-            <div className="rounded-xl   bg-muted p-3">
+            <div className="rounded-xl border border-border bg-muted p-3">
               <p className="text-xs font-bold text-foreground">Session Booking</p>
               <p className="text-[11px] text-muted-foreground">Contemporary Dance • 60 min</p>
               <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-accent-text">
@@ -490,11 +490,11 @@ export default function AdminThemePage() {
             </div>
           </div>
 
-          <div className="space-y-2 rounded-2xl   bg-card p-4">
+          <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Callout & Highlights
             </p>
-            <div className="rounded-xl   bg-accent-soft p-3">
+            <div className="rounded-xl border border-border bg-accent-soft p-3">
               <p className="text-xs font-bold text-accent-text">Groovey AI Tip</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
                 Keep your core engaged during the turn transition.
@@ -541,12 +541,12 @@ function ThemeCard({
   return (
     <div
       className={cn(
-        'group relative flex flex-col justify-between overflow-hidden rounded-2xl  p-5 transition-all',
+        'group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border p-5 transition-all',
         isActive
-          ? ' bg-accent-soft/30 shadow-md  '
+          ? ' border-accent-border bg-accent-soft/30 shadow-md  '
           : isPreviewing
             ? ' bg-info-soft/20 shadow-md  '
-            : ' bg-card hover: hover:shadow-sm'
+            : ' border border-border bg-card hover:border-border-strong hover:shadow-sm'
       )}
     >
       <div>
@@ -606,7 +606,7 @@ function ThemeCard({
 
         {/* Visual Mockup Preview Box */}
         <div
-          className="mt-4 rounded-xl  p-3 shadow-inner"
+          className="mt-4 rounded-xl border border-border p-3 shadow-inner"
           style={{
             backgroundColor: theme.swatches.bg,
             borderColor: theme.swatches.border,
@@ -614,7 +614,7 @@ function ThemeCard({
         >
           {/* Mock mini card */}
           <div
-            className="rounded-lg  p-2.5 shadow-sm"
+            className="rounded-lg border border-border p-2.5 shadow-sm"
             style={{
               backgroundColor: theme.swatches.card,
               borderColor: theme.swatches.border,

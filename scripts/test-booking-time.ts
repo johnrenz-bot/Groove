@@ -25,6 +25,11 @@ import {
   sortBookings,
   summarizeBookings,
   timeToMinutes,
+  clientTabFor,
+  clientTabCounts,
+  coachTabCounts,
+  summarizeCoachSchedule,
+  manilaToday,
 } from '../features/appointments/services/bookingTime.ts';
 import {
   RESCHEDULE_PREFIX,
@@ -51,7 +56,7 @@ function checkTrue(name: string, actual: boolean) {
   check(name, actual, true);
 }
 
-/* ── 1. Parsing and formatting ───────────────────────────────────────────── */
+/* ────── 1. Parsing and formatting ────── */
 
 check('timeToMinutes 09:30', timeToMinutes('09:30'), 570);
 check('timeToMinutes tolerates seconds', timeToMinutes('18:05:00'), 1085);
@@ -67,7 +72,7 @@ check('parseDurationMinutes default', parseDurationMinutes(null), 60);
 check('formatDuration mixed', formatDuration(90), '1h 30m');
 check('formatDuration whole', formatDuration(120), '2 hours');
 
-/* ── 2. Countdowns ───────────────────────────────────────────────────────── */
+/* ────── 2. Countdowns ────── */
 
 const now = new Date(2026, 9, 24, 10, 0, 0).getTime();
 const countdown = (status: string, date: string, start: string) =>
@@ -99,7 +104,7 @@ check('a passed start tone', countdown('confirmed', '2026-10-24', '09:00')?.tone
 check('completed has no countdown', countdown('completed', '2026-10-25', '12:00'), null);
 check('cancelled has no countdown', countdown('cancelled', '2026-10-25', '12:00'), null);
 
-/* ── 3. Slot building: only proven conflicts are disabled ────────────────── */
+/* ────── 3. Slot building: only proven conflicts are disabled ────── */
 
 const slotDate = '2026-10-25';
 const busy = [
@@ -153,7 +158,7 @@ check('a conflicting slot is kind conflict', slotAt('10:00')?.kind, 'conflict');
 check('a notice-window slot is kind notice', noticeSlots.find((s) => s.start === '11:00')?.kind, 'notice');
 check('a passed slot is kind past', todaySlots.find((s) => s.start === '09:00')?.kind, 'past');
 
-/* ── 3b. Day states for the calendar ─────────────────────────────────────── */
+/* ────── 3b. Day states for the calendar ────── */
 
 const dayState = (
   date: string,
@@ -204,7 +209,7 @@ check(
   'unavailable'
 );
 
-/* ── 4. Own booked windows ───────────────────────────────────────────────── */
+/* ────── 4. Own booked windows ────── */
 
 const appointment = (
   id: number,
@@ -240,7 +245,7 @@ const clientWindows = clientBusyWindowsForDate(ownRows, '2026-10-25');
 check('the client form also blocks a pending request', clientWindows.length, 2);
 check('the pending window is labelled', clientWindows[1]?.label, '11:00 AM – 12:00 PM');
 
-/* ── 5. Ordering and summary ─────────────────────────────────────────────── */
+/* ────── 5. Ordering and summary ────── */
 
 const items = [
   appointment(10, 'completed', '2026-10-20', '09:00', '10:00', '2026-10-20T10:00:00Z'),
@@ -260,7 +265,7 @@ check('coach order puts the new request first', coachOrder[0], 12);
 
 const summary = summarizeBookings(items, 'client', now);
 check('summary total', summary.total, 5);
-check('summary active', summary.active, 3);
+check('summary active (confirmed/in-progress upcoming only)', summary.active, 1);
 check('summary completed', summary.completed, 1);
 check('summary needs action (signature + pending)', summary.needsAction, 2);
 check('summary next session', summary.next?.appointment.id, 13);
@@ -268,7 +273,49 @@ check('summary next session', summary.next?.appointment.id, 13);
 const coachSummary = summarizeBookings(items, 'coach', now);
 check('coach needs action (pending + agreement)', coachSummary.needsAction, 2);
 
-/* ── 6. Profile address composition ──────────────────────────────────────── */
+/* -- 5b. Tab model + coach schedule ------------------------------------------ */
+
+const tabbed = [
+  appointment(20, 'pending', '2026-10-27', '09:00', '10:00', '2026-10-23T10:00:00Z'),
+  appointment(21, 'agreement_required', '2026-10-26', '09:00', '10:00', '2026-10-23T10:00:00Z'),
+  appointment(22, 'confirmed', '2026-10-28', '09:00', '10:00', '2026-10-23T10:00:00Z'),
+  appointment(23, 'in_progress', '2026-10-24', '08:00', '09:00', '2026-10-24T08:00:00Z'),
+  appointment(24, 'completed', '2026-10-20', '09:00', '10:00', '2026-10-20T10:00:00Z'),
+  appointment(25, 'cancelled', '2026-10-21', '09:00', '10:00', '2026-10-21T10:00:00Z'),
+  appointment(26, 'expired', '2026-10-22', '09:00', '10:00', '2026-10-22T10:00:00Z'),
+];
+check('tabFor pending -> awaiting', clientTabFor(tabbed[0], now), 'awaiting');
+check('tabFor agreement_required -> awaiting', clientTabFor(tabbed[1], now), 'awaiting');
+check('tabFor confirmed future -> upcoming', clientTabFor(tabbed[2], now), 'upcoming');
+check('tabFor in_progress -> upcoming', clientTabFor(tabbed[3], now), 'upcoming');
+check('tabFor completed -> past', clientTabFor(tabbed[4], now), 'past');
+check('tabFor cancelled -> cancelled', clientTabFor(tabbed[5], now), 'cancelled');
+check('tabFor expired -> cancelled', clientTabFor(tabbed[6], now), 'cancelled');
+
+const cc = clientTabCounts(tabbed, now);
+check('clientTabCounts all', cc.all, 7);
+check('clientTabCounts awaiting', cc.awaiting, 2);
+check('clientTabCounts upcoming', cc.upcoming, 2);
+check('clientTabCounts past', cc.past, 1);
+check('clientTabCounts cancelled', cc.cancelled, 2);
+
+const cs = coachTabCounts(tabbed, now);
+check('coachTabCounts requests', cs.requests, 1);
+check('coachTabCounts today (in_progress dated today 2026-10-24)', cs.today, 1);
+check('coachTabCounts upcoming', cs.upcoming, 2);
+check('coachTabCounts past', cs.past, 1);
+check('coachTabCounts cancelled', cs.cancelled, 2);
+check('coachTabCounts all', cs.all, 7);
+
+const coachStats = summarizeCoachSchedule(tabbed, now);
+check('coach stats requests waiting', coachStats.requestsWaiting, 1);
+check('coach stats today', coachStats.todayCount, 1);
+check('coach stats completed', coachStats.completed, 1);
+
+check('manilaToday returns YYYY-MM-DD', /^\d{4}-\d{2}-\d{2}$/.test(manilaToday(now)), true);
+
+
+/* ────── 6. Profile address composition ────── */
 
 check(
   'address is built from real profile columns',
@@ -287,7 +334,7 @@ check(
   'Muzon, San Jose del Monte'
 );
 
-/* ── 7. Reschedule request codec ─────────────────────────────────────────── */
+/* ────── 7. Reschedule request codec ────── */
 
 const encoded = encodeRescheduleRequest(
   {
@@ -324,7 +371,7 @@ check(
   false
 );
 
-/* ── Result ──────────────────────────────────────────────────────────────── */
+/* ────── Result ────── */
 
 console.log(`\n${passes} passed, ${failures} failed`);
 if (failures > 0) process.exit(1);

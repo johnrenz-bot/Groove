@@ -31,3 +31,4 @@ export function AttributionFooter({ label, children, className }: AttributionFoo
 }
 
 export default AttributionFooter;
+

@@ -5,12 +5,13 @@ import Link from 'next/link';
 import {
   Ban,
   CalendarCheck,
-  CalendarClock,
   Check,
   CheckCircle2,
   MessageSquare,
+  Play,
   Star,
   Undo2,
+  UserX,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -28,17 +29,17 @@ export interface BookingActionsProps {
   canWrite: boolean;
   writeBlockedReason?: string | null;
   showReview?: boolean;
-  /** `details` keeps every action; `card` is the same set with tighter labels. */
+  /** `card` is the same set with tighter labels. */
   density?: 'card' | 'details';
   className?: string;
   onAccept: (detail: BookingDetail) => void;
   onDecline: (detail: BookingDetail) => void;
   onComplete: (detail: BookingDetail) => void;
-  onCancel: (detail: BookingDetail) => void;
-  onReschedule: (detail: BookingDetail) => void;
   onApproveReschedule: (detail: BookingDetail) => void;
   onDismissReschedule: (detail: BookingDetail) => void;
   onReview?: (detail: BookingDetail) => void;
+  onStart?: (detail: BookingDetail) => void;
+  onNoShow?: (detail: BookingDetail) => void;
 }
 
 /**
@@ -61,11 +62,11 @@ export function BookingActions({
   onAccept,
   onDecline,
   onComplete,
-  onCancel,
-  onReschedule,
   onApproveReschedule,
   onDismissReschedule,
   onReview,
+  onStart,
+  onNoShow,
 }: BookingActionsProps) {
   const appointment = detail.appointment;
   const counterpartyId = role === 'client' ? appointment.coach_id : appointment.client_id;
@@ -83,10 +84,11 @@ export function BookingActions({
     coachVerified: canWrite,
     suspended: !canWrite && !writeBlockedReason,
   })
-    // While a reschedule request is open, the next decision is approve or keep
-    // the original time. Showing Accept/Send agreement beside those controls
-    // invites a coach to move the booking forward with the request unresolved.
-    .filter((spec) => !requestPending || spec.action === 'cancel')
+    // Cancel lives in the card's overflow menu (with an inline reason
+    // confirm), never here. While a reschedule request is open, no status
+    // movement is offered at all — the decision is approve or keep the
+    // original time, rendered separately below.
+    .filter((spec) => !requestPending && spec.action !== 'cancel')
     .map((spec) => ({
       ...spec,
       blockedReason: canWrite
@@ -94,13 +96,12 @@ export function BookingActions({
         : writeBlockedReason ?? spec.blockedReason ?? null,
     }));
 
-  const canRequestReschedule =
-    role === 'client' && isActiveStatus(appointment.status) && !requestPending;
-
   const iconFor = (action: BookingAction) => {
     if (action === 'accept') return <Check className="h-3.5 w-3.5" />;
     if (action === 'decline') return <X className="h-3.5 w-3.5" />;
     if (action === 'complete') return <CheckCircle2 className="h-3.5 w-3.5" />;
+    if (action === 'start') return <Play className="h-3.5 w-3.5" />;
+    if (action === 'no_show') return <UserX className="h-3.5 w-3.5" />;
     return <Ban className="h-3.5 w-3.5" />;
   };
 
@@ -108,7 +109,9 @@ export function BookingActions({
     if (action === 'accept') onAccept(detail);
     else if (action === 'decline') onDecline(detail);
     else if (action === 'complete') onComplete(detail);
-    else onCancel(detail);
+    else if (action === 'start') onStart?.(detail);
+    else if (action === 'no_show') onNoShow?.(detail);
+    // 'cancel' is deliberately absent — the overflow menu owns it.
   };
 
   return (
@@ -120,14 +123,14 @@ export function BookingActions({
       )}
     >
       <Link
-        href={`/messages?user=${counterpartyId}`}
-        className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full   bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover: hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+        href={`${role === 'client' ? '/client/messages' : '/coach/messages'}?conversation=${counterpartyId}`}
+        className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
       >
         <MessageSquare className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
         {messageLabel}
       </Link>
 
-      {role === 'coach' && requestPending && (
+      {requestPending && (
         <>
           <Button
             type="button"
@@ -166,20 +169,6 @@ export function BookingActions({
         </Button>
       )}
 
-      {canRequestReschedule && (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          icon={<CalendarClock className="h-3.5 w-3.5" />}
-          disabled={busy || !canWrite}
-          title={canWrite ? undefined : writeBlockedReason ?? undefined}
-          onClick={() => onReschedule(detail)}
-        >
-          Reschedule
-        </Button>
-      )}
-
       {actions.map((spec) => (
         <Button
           key={spec.action}
@@ -192,7 +181,7 @@ export function BookingActions({
           onClick={() => run(spec.action)}
           className={
             spec.variant === 'danger'
-              ? ' text-danger hover: hover:bg-danger-soft hover:text-danger'
+              ? ' text-danger hover:border-border-strong hover:bg-danger-soft hover:text-danger'
               : undefined
           }
         >
@@ -204,3 +193,4 @@ export function BookingActions({
 }
 
 export default BookingActions;
+

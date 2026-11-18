@@ -43,7 +43,7 @@ export function TambayanPulseCard() {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl   bg-card shadow-sm backdrop-blur-md">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm backdrop-blur-md">
       {/* Top Banner with Tambayan Theme */}
       <div className="relative overflow-hidden bg-gradient-to-r from-accent/20 via-brand-sunburst/15 to-accent/10 px-4 py-3.5  ">
         <div className="flex items-center justify-between gap-2">
@@ -83,7 +83,7 @@ export function TambayanPulseCard() {
             {tags.map((tag) => (
               <span
                 key={tag.label}
-                className="inline-flex items-center gap-1 rounded-lg   bg-muted/30 px-2 py-1 text-[10px] font-semibold text-foreground hover: hover:bg-accent/10 transition cursor-default"
+                className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted/30 px-2 py-1 text-[10px] font-semibold text-foreground hover:border-accent-border hover:bg-accent/10 transition cursor-default"
               >
                 <span>{tag.label}</span>
                 <span className="text-muted-foreground/70 text-[9px] font-normal">
@@ -95,7 +95,7 @@ export function TambayanPulseCard() {
         </div>
 
         {/* Quick Tambayan Cheer */}
-        <div className="flex items-center justify-between gap-2 rounded-xl   bg-accent/10 p-2.5">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-accent/10 p-2.5">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-accent shrink-0" />
             <div className="text-[11px]">
@@ -125,3 +125,4 @@ export function TambayanPulseCard() {
 }
 
 export default TambayanPulseCard;
+

@@ -56,3 +56,13 @@ export function buildOrContains(columns: string[], term: string): string {
   const needle = ilikeContains(term);
   return columns.map((column) => `${column}.ilike.${needle}`).join(',');
 }
+
+/**
+ * Build the whole `or=(…)` argument for "any of these terms appears in this
+ * column" — e.g. league match tokens against `organization`. Terms come from
+ * code (the registry), never from the request body; they are quoted and LIKE-
+ * escaped exactly like user input for defense in depth.
+ */
+export function buildAnyContains(column: string, terms: string[]): string {
+  return terms.map((term) => `${column}.ilike.${ilikeContains(term)}`).join(',');
+}

@@ -185,7 +185,7 @@ export function PaymentRequestModal({
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className={cn(MODAL_BODY_CLASS, 'space-y-4')}>
           {errorMsg && (
-            <div className="flex items-center gap-2 rounded-2xl   bg-danger-soft p-3 text-xs text-danger">
+            <div className="flex items-center gap-2 rounded-2xl border border-border bg-danger-soft p-3 text-xs text-danger">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -245,7 +245,7 @@ export function PaymentRequestModal({
                 Payee GCash Receiving Details
               </span>
               {payeeProfile?.qr_code_url && (
-                <span className="rounded-full   bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent-text">
+                <span className="rounded-full border border-border bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent-text">
                   Smart QR Ready
                 </span>
               )}
@@ -326,3 +326,4 @@ export function PaymentRequestModal({
     </div>
   );
 }
+

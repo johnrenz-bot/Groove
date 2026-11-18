@@ -20,18 +20,16 @@
  */
 
 /**
- * The organisations this feed covers.
+ * The organizations this feed covers.
  *
- * `domains` is not decoration: it is passed straight through to Anthropic's
- * `web_search` / `web_fetch` `allowed_domains`, which is what keeps the agent
- * on official publishers instead of whatever a search engine decided to rank.
- * A domain that is wrong here does not produce a bad summary — it produces a
- * summary of an aggregator page, which is exactly the failure mode an editorial
- * feed cannot have.
+ * Mirrors the verified League registry (features/dance/data/leagues.ts) — the
+ * editorial source of truth. `domains` is passed straight through to
+ * Anthropic's `web_search` / `web_fetch` `allowed_domains`, which is what
+ * keeps the agent on official publishers instead of whatever a search
+ * engine decided to rank. Every domain below was re-verified on 2026-11-16.
  *
- * Logos are NOT bundled. See README "Replacing the organisation logos": these
- * marks belong to their owners, and the UI renders a styled wordmark instead so
- * the feature ships without redistributing anyone's trademark.
+ * Logos are NOT bundled. The UI renders the local vendored marks in
+ * public/logos/Dance-Leagues (see danceOrgsService / DanceCommunityView).
  */
 export const ORGANIZATIONS = [
   {
@@ -51,14 +49,14 @@ export const ORGANIZATIONS = [
   {
     id: 'world-of-dance',
     label: 'World of Dance',
-    fullName: 'World of Dance',
+    fullName: 'World of Dance Events',
     site: 'https://www.worldofdance.com',
     domains: ['worldofdance.com'],
   },
   {
     id: 'hhi',
     label: 'HHI',
-    fullName: 'Hip-Hop International',
+    fullName: 'Hip Hop International',
     site: 'https://www.hiphopinternational.com',
     domains: ['hiphopinternational.com'],
   },
@@ -66,7 +64,7 @@ export const ORGANIZATIONS = [
     id: 'red-bull-dance-your-style',
     label: 'Red Bull Dance Your Style',
     fullName: 'Red Bull Dance Your Style',
-    site: 'https://www.redbull.com/danceyourstyle',
+    site: 'https://www.redbull.com/int-en/events/red-bull-dance-your-style-world-final-2026-zurich',
     domains: ['redbull.com'],
   },
   {
@@ -79,16 +77,44 @@ export const ORGANIZATIONS = [
   {
     id: 'udo',
     label: 'UDO',
-    fullName: 'Universal Dance Organization',
-    site: 'https://www.udodanceworld.com',
-    domains: ['udodanceworld.com', 'udostreet.com'],
+    fullName: 'United Dance Organisation',
+    site: 'https://www.udostreetdance.com',
+    domains: ['udostreetdance.com'],
   },
   {
-    id: 'philippines',
-    label: 'Philippines',
-    fullName: 'Philippine dance community',
-    site: 'https://www.facebook.com',
-    domains: [],
+    id: 'wdsf',
+    label: 'WDSF',
+    fullName: 'World DanceSport Federation',
+    site: 'https://www.worlddancesport.org',
+    domains: ['worlddancesport.org'],
+  },
+  {
+    id: 'summer-dance-forever',
+    label: 'Summer Dance Forever',
+    fullName: 'Summer Dance Forever',
+    site: 'https://www.summerdanceforever.com',
+    domains: ['summerdanceforever.com'],
+  },
+  {
+    id: 'hhi-philippines',
+    label: 'HHI Philippines',
+    fullName: 'Hip Hop International Philippines',
+    site: 'https://hhiphilippines.com',
+    domains: ['hhiphilippines.com'],
+  },
+  {
+    id: 'red-bull-dance-your-style-philippines',
+    label: 'Red Bull DYS Philippines',
+    fullName: 'Red Bull Dance Your Style Philippines',
+    site: 'https://www.redbull.com/ph-en/events/dance-your-style-philippines',
+    domains: ['redbull.com'],
+  },
+  {
+    id: 'philippine-dancesport',
+    label: 'PDSFI',
+    fullName: 'Philippine DanceSport Federation, Inc.',
+    site: 'https://philippinedancesport.com',
+    domains: ['philippinedancesport.com'],
   },
 ] as const;
 

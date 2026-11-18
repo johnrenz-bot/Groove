@@ -14,6 +14,8 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { getFeaturedLocations, hasSecondaryFeaturedLocation } from '@/lib/config/featuredLocations';
+import { SJDM_LOCATION } from './sjdms';
+export { SJDM_LOCATION } from './sjdms';
 import { VALIDATION_MESSAGES } from '@/lib/profileFields';
 
 /** Where the service address is located. Optional for old saved payloads. */
@@ -85,78 +87,6 @@ interface AddressSelectorProps {
 // Kept byte-for-byte compatible with the original form: the synthetic
 // `<city_code>-<slug>` barangay code, the two ZIP choices, and the address
 // summary shape are unchanged for existing SJDM registrations.
-export const SJDM_LOCATION = {
-  country: 'Philippines',
-  region_code: '030000000',
-  region_name: 'Region III (Central Luzon)',
-  province_code: '031400000',
-  province_name: 'Bulacan',
-  city_code: '031420000',
-  city_name: 'San Jose del Monte',
-  postal_codes: ['3023', '3024'],
-  barangays: [
-    'Assumption',
-    'Bagong Buhay I',
-    'Bagong Buhay II',
-    'Bagong Buhay III',
-    'Citrus',
-    'Ciudad Real',
-    'Dulong Bayan',
-    'Fatima I',
-    'Fatima II',
-    'Fatima III',
-    'Fatima IV',
-    'Fatima V',
-    'Francisco Homes - Guijo',
-    'Francisco Homes - Mulawin',
-    'Francisco Homes - Narra',
-    'Francisco Homes - Yakal',
-    'Gaya-Gaya',
-    'Graceville',
-    'Gumaoc Central',
-    'Gumaoc East',
-    'Gumaoc West',
-    'Kaybanban',
-    'Kaypian',
-    'Maharlika',
-    'Minuyan I',
-    'Minuyan II',
-    'Minuyan III',
-    'Minuyan IV',
-    'Minuyan V',
-    'Minuyan Proper',
-    'Muzon East',
-    'Muzon Proper',
-    'Muzon South',
-    'Muzon West',
-    'Paradise III',
-    'Poblacion',
-    'Poblacion I',
-    'San Isidro',
-    'San Manuel',
-    'San Martin I',
-    'San Martin II',
-    'San Martin III',
-    'San Martin IV',
-    'San Pedro',
-    'San Rafael I',
-    'San Rafael II',
-    'San Rafael III',
-    'San Rafael IV',
-    'San Rafael V',
-    'San Roque',
-    'Santa Cruz I',
-    'Santa Cruz II',
-    'Santa Cruz III',
-    'Santa Cruz IV',
-    'Santa Cruz V',
-    'Santo Cristo',
-    'Santo Niño I',
-    'Santo Niño II',
-    'Sapang Palay Proper',
-    'Tungkong Mangga',
-  ],
-};
 
 /** `profiles.street` is VARCHAR(160) and holds the street line + ", " + subdivision. */
 const MAX_STREET_LENGTH = 110;
@@ -689,7 +619,7 @@ export function AddressSelector({
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
                 San Jose del Monte, Bulacan
-                <span className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
                   <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                   Existing
                 </span>
@@ -718,7 +648,7 @@ export function AddressSelector({
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
                 Other Locations in the Philippines
-                <span className="inline-flex items-center rounded-full   bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-text">
+                <span className="inline-flex items-center rounded-full border border-border bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-text">
                   New
                 </span>
               </span>
@@ -736,7 +666,7 @@ export function AddressSelector({
           {/* Service Area Restriction Banner */}
           <div className="reg-summary flex flex-col justify-between gap-2 text-xs sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg   bg-success-soft text-success shadow-sm">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-success-soft text-success shadow-sm">
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
               </div>
               <div>
@@ -745,7 +675,7 @@ export function AddressSelector({
                   {getFeaturedLocations().map((location, index) => (
                     <span
                       key={location.cityName}
-                      className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success"
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success"
                     >
                       {index > 0 && <span className="text-muted-foreground">+</span>}
                       <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
@@ -977,7 +907,7 @@ export function AddressSelector({
 
           {phState.status === 'loading' || phState.status === 'idle' ? (
             <div
-              className="flex items-center gap-3 rounded-xl   bg-muted/40 p-3.5 text-xs text-muted-foreground"
+              className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3.5 text-xs text-muted-foreground"
               role="status"
               aria-live="polite"
             >
@@ -985,7 +915,7 @@ export function AddressSelector({
               Loading Philippine locations…
             </div>
           ) : phState.status === 'error' ? (
-            <div className="rounded-xl   bg-danger/5 p-3.5 text-xs" role="alert">
+            <div className="rounded-xl border border-border bg-danger/5 p-3.5 text-xs" role="alert">
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
                 <div>
@@ -1006,7 +936,7 @@ export function AddressSelector({
           ) : null}
 
           {unsupportedSavedSelection && (
-            <div className="rounded-xl   bg-warning/5 p-3.5 text-xs" role="status">
+            <div className="rounded-xl border border-border bg-warning/5 p-3.5 text-xs" role="status">
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
                 <p className="text-muted-foreground">
@@ -1402,3 +1332,4 @@ export function AddressSelector({
 }
 
 export default AddressSelector;
+

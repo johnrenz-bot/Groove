@@ -27,3 +27,4 @@ export function VocalistDossierCard({ ensemble }: VocalistDossierCardProps) {
 }
 
 export default VocalistDossierCard;
+

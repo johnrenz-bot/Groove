@@ -16,6 +16,7 @@ import {
   ServerHealth,
 } from '../services/api';
 import { createClient } from '@/lib/supabase/client';
+import { useSession } from '@/components/header/SessionProvider';
 
 const DEFAULT_PROFILE: ArtistProfile = {
   name: 'Performer',
@@ -101,6 +102,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isHydrated, setIsHydrated] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  // The dashboards mount their own Groovey provider inside the root
+  // <SessionProvider>, so the signed-in identity is already resolved once for
+  // the whole app. Reusing it avoids a duplicate getUser + profiles round
+  // trip on every portal mount.
+  const { status: sessionStatus, profile: sessionProfile } = useSession();
 
   const refreshHealth = useCallback(async (fresh = false) => {
     try {
@@ -119,52 +125,44 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Health check on mount and periodic refresh
   useEffect(() => {
     let active = true;
-    checkServerHealth(false).then((h) => {
-      if (active) {
-        setServerHealth(h);
-        setHasApiKey(h.hasKey);
-      }
-    });
-    const interval = setInterval(() => {
+    const poll = () => {
+      // Skip background polls in hidden tabs: every poll can wake the provider
+      // connectivity check server-side, and a dashboard left open gains nothing
+      // from probing while nobody is looking at it.
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       checkServerHealth(false).then((h) => {
         if (active) {
           setServerHealth(h);
           setHasApiKey(h.hasKey);
         }
       });
-    }, 45000);
+    };
+    poll();
+    const interval = setInterval(poll, 45000);
     return () => {
       active = false;
       clearInterval(interval);
     };
   }, []);
 
-  // Fetch real authenticated user profile from Supabase
+  // Resolve the signed-in identity from the shared session, then load the
+  // discipline detail rows (which the session does not carry). Gated on the
+  // session settling so guests on public pages never fetch at all.
   useEffect(() => {
+    if (sessionStatus === 'loading') return;
     let active = true;
 
     async function loadUserData() {
       try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!active) return;
-
-        const userId = user?.id || 'guest';
+        const authed = sessionStatus === 'authenticated' ? sessionProfile : null;
+        const userId = authed?.id || 'guest';
         setCurrentUserId(userId);
 
         let initialProfile: ArtistProfile = { ...DEFAULT_PROFILE, userId };
 
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id, firstname, middlename, lastname, suffix, photo_url, role, bio')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (profile && active) {
+        if (authed) {
+          const supabase = createClient();
+          const profile = authed;
             const fullName = [profile.firstname, profile.lastname, profile.suffix]
               .filter(Boolean)
               .join(' ')
@@ -191,7 +189,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const { data: clientSpec } = await supabase
                 .from('client_profiles')
                 .select('talent')
-                .eq('id', user.id)
+                .eq('id', profile.id)
                 .maybeSingle();
 
               if (clientSpec) {
@@ -207,7 +205,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const { data: coachSpec } = await supabase
                 .from('coach_profiles')
                 .select('talents, genres')
-                .eq('id', user.id)
+                .eq('id', profile.id)
                 .maybeSingle();
 
               if (coachSpec?.talents) {
@@ -230,8 +228,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             initialProfile = {
-              userId: user.id,
-              name: fullName || user.email?.split('@')[0] || 'Performer',
+              userId: profile.id,
+              name: fullName || profile.email?.split('@')[0] || 'Performer',
               avatarUrl: profile.photo_url || null,
               roleTitle:
                 profile.role === 'coach'
@@ -250,8 +248,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             };
 
             setSelectedDiscipline(discipline);
-          }
         }
+
+        if (!active) return;
 
         // Merge any user-specific preferences stored in localStorage
         const profileKey = `grooveyy_artist_profile_${userId}`;
@@ -331,7 +330,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       active = false;
     };
-  }, []);
+    // The session profile object identity changes on refresh; re-running on
+    // identity change keeps the Groovey artist profile in step after edits.
+  }, [sessionStatus, sessionProfile]);
 
   // Save conversations to user-scoped localStorage
   useEffect(() => {
@@ -678,3 +679,4 @@ export const useChat = () => {
 export const useOptionalChat = () => {
   return useContext(ChatContext);
 };
+

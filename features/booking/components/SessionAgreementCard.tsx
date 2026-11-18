@@ -246,13 +246,13 @@ export function SessionAgreementCard({
       <>
         <section
           aria-label={`Session agreement ${ref}`}
-          className="mx-auto my-2.5 w-full max-w-2xl overflow-hidden rounded-2xl   bg-card shadow-sm"
+          className="mx-auto my-2.5 w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         >
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <span
                 aria-hidden="true"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg   bg-muted/50 text-muted-foreground"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground"
               >
                 <FileSignature className="h-4 w-4" />
               </span>
@@ -332,13 +332,13 @@ export function SessionAgreementCard({
     <>
       <section
         aria-label={`Session agreement summary ${ref}`}
-        className="mx-auto my-4 w-full max-w-2xl overflow-hidden rounded-2xl   bg-card shadow-sm transition hover:"
+        className="mx-auto my-4 w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:"
       >
         <div className="flex flex-wrap items-center justify-between gap-3   bg-muted/30 px-5 py-3.5">
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-accent-soft text-accent-text"
             >
               <FileSignature className="h-4 w-4" />
             </span>
@@ -437,7 +437,7 @@ export function SessionAgreementCard({
                 Review &amp; Sign
               </button>
             ) : mySigned ? (
-              <span className="flex min-h-[44px] items-center gap-1.5 rounded-lg   bg-card px-2.5 py-1 text-[11px] font-semibold text-success">
+              <span className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-success">
                 <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 Signed by you
               </span>
@@ -528,7 +528,7 @@ function Tile({
   accent?: boolean;
 }) {
   return (
-    <div className="min-w-0 rounded-xl   bg-muted/40 p-2.5">
+    <div className="min-w-0 rounded-xl border border-border bg-muted/40 p-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
@@ -542,3 +542,4 @@ function Tile({
 }
 
 export default SessionAgreementCard;
+

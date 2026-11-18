@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
-import type { CrewAchievement } from '../data/crews';
+import type { CrewAchievement } from '@/lib/dance/contracts';
 
 interface TitleTileProps {
   achievement: CrewAchievement;
@@ -41,7 +41,7 @@ export function TitleTile({ achievement, index, isTopThree }: TitleTileProps) {
         </h4>
 
         <a
-          href={achievement.source_url}
+          href={achievement.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--crew-text-muted)] hover:text-[var(--crew-accent-gold)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]"

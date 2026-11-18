@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import type { CalendarEntry } from '../../lib/entries';
 import {
   endOfMonth,

@@ -102,7 +102,7 @@ export function RoleCard({
         }}
         aria-hidden={hidden || undefined}
         className={cn(
-          'group/role relative flex h-full min-h-[220px] flex-col justify-end overflow-hidden rounded-2xl  bg-card transition-[,box-shadow] duration-300 motion-reduce:transition-none sm:min-h-[420px]',
+          'group/role relative flex h-full min-h-[220px] flex-col justify-end overflow-hidden rounded-2xl border border-border bg-card transition-[,box-shadow] duration-300 motion-reduce:transition-none sm:min-h-[420px]',
           'focus-within: focus-within: focus-within: focus-within:',
           glow
             ? ' shadow-[0_0_0_1px_rgba(244,190,77,0.24),0_26px_80px_-30px_rgba(244,190,77,0.5)]'
@@ -168,7 +168,7 @@ export function RoleCard({
         </Link>
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-end gap-3 p-5 sm:justify-start sm:p-6">
-          <span className="inline-flex items-center rounded-full   bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text backdrop-blur-md">
+          <span className="inline-flex items-center rounded-full border border-border bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-accent-text backdrop-blur-md">
             {role.chip}
           </span>
         </div>
@@ -238,3 +238,4 @@ export function RoleCard({
 }
 
 export default RoleCard;
+

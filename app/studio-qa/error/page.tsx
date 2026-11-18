@@ -4,3 +4,4 @@ import QaFrame from '../qa-frame';
 export default function Page() {
   return <QaFrame mock="error" />;
 }
+

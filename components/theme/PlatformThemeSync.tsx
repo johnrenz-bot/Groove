@@ -31,11 +31,17 @@ export function PlatformThemeSync() {
     const apply = async () => {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase.from('system_settings').select('key, value');
+        // Only the four keys this component reads. The table is an admin-tunable
+        // settings bag; selecting every row (and shipping it to every browser on
+        // every load) scales with admin activity, not with what is needed here.
+        const { data, error } = await supabase
+          .from('system_settings')
+          .select('key, value')
+          .in('key', ['theme_accent', 'theme_locked', 'platform_theme', 'theme']);
         if (error || !data || cancelled) return;
 
         const settings: Record<string, string> = {};
-        data.forEach((row) => {
+        data.forEach((row: any) => {
           settings[row.key] = row.value ?? '';
         });
 

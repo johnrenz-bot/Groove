@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   RegistrationFormFields,
   RegistrationSuccess,
-  RegistrationStepHeader,
   PersonalData,
   ContactAccountData,
 } from '@/components/auth/RegistrationFormFields';
-import { RegistrationProgress } from '@/components/auth/RegistrationProgress';
 import {
   AddressData,
   composeStreetLine,
@@ -23,15 +22,27 @@ import {
 } from '@/lib/profileFields';
 import { AuthLayout } from '@/components/shared/AuthLayout';
 import { GoogleRegisterButton } from '@/components/shared/GoogleRegisterButton';
-import { Sparkles, AlertCircle, UploadCloud, FileText, X, CheckCircle, Shield } from 'lucide-react';
+import { ArrowRight, CheckCircle, Shield, User } from 'lucide-react';
 import { FormError } from '@/components/ui/FormError';
-import { Button } from '@/components/ui/Button';
+import { AuthButton, Divider } from '@/components/auth/ui/AuthUI';
+import {
+  ProgressSegments,
+  StepHeader,
+  StepTransition,
+  WizardFooter,
+  WizardRail,
+} from '@/components/auth/ui/AuthWizard';
+import { FileUpload } from '@/components/auth/ui/FileUpload';
+import {
+  ConfirmLeaveModal,
+  SuccessModal,
+  TermsModal,
+} from '@/components/auth/ui/Modal';
 import { cn } from '@/components/shared/cn';
 import { getFeaturedLocationsDisplay, getFeaturedLocationsAddressSummary } from '@/lib/config/featuredLocations';
 import {
   DOCUMENT_EXTENSIONS,
   MAX_UPLOAD_BYTES,
-  formatFileSize,
   validateUploadFile,
 } from '@/lib/uploadValidation';
 
@@ -43,17 +54,20 @@ import {
 // uncommenting the original code, which is preserved in the project history.
 
 export default function ClientRegistrationPage() {
+  const router = useRouter();
   const [talent, setTalent] = useState('Dance');
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [direction, setDirection] = useState(1);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [step1Data, setStep1Data] = useState<{
     personal: PersonalData;
     contact: ContactAccountData;
     address: AddressData;
   } | null>(null);
   const [idFile, setIdFile] = useState<File | null>(null);
-  const [idPreview, setIdPreview] = useState<string | null>(null);
   const [idFileError, setIdFileError] = useState<string | null>(null);
-  const idInputRef = useRef<HTMLInputElement>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitStage, setSubmitStage] = useState<string | null>(null);
@@ -79,17 +93,26 @@ export default function ClientRegistrationPage() {
   // policies are TO authenticated; the upload ran after signUp() returned a
   // session. Reinstate these five hooks exactly as they were to restore.
 
-  // Blob URL cleanup for the ID preview.
-  useEffect(() => {
-    return () => {
-      if (idPreview) URL.revokeObjectURL(idPreview);
-    };
-  }, [idPreview]);
+  /** Direction-aware step navigation. Keeps the transition honest both ways. */
+  const goTo = (next: 1 | 2 | 3, dir: number) => {
+    setDirection(dir);
+    setStep(next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-  const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  /** Wired to the "Back to login" affordances — confirms before discarding. */
+  const handleBackToLogin = () => {
+    if (loading) return;
+    if (step > 1) {
+      setLeaveOpen(true);
+      return;
+    }
+    router.push('/login');
+  };
 
+  /** File selection + validation. Returns the localized error so the upload
+   * component can paint its own error state; null accepts the file. */
+  const selectIdFile = (file: File): string | null => {
     const fileError = validateUploadFile(file, {
       allowedExtensions: DOCUMENT_EXTENSIONS,
       maxBytes: MAX_UPLOAD_BYTES,
@@ -99,25 +122,18 @@ export default function ClientRegistrationPage() {
     if (fileError) {
       setIdFileError(fileError);
       setIdFile(null);
-      setIdPreview(null);
-      if (e.target) e.target.value = '';
-      return;
+      return fileError;
     }
 
     setIdFileError(null);
     setIdFile(file);
     setError(null);
-    if (file.type.startsWith('image/')) {
-      setIdPreview(URL.createObjectURL(file));
-    } else {
-      setIdPreview(null);
-    }
+    return null;
   };
 
   const removeIdFile = () => {
     setIdFile(null);
     setIdFileError(null);
-    setIdPreview(null);
   };
 
   const handleStep1Validated = (data: {
@@ -126,8 +142,7 @@ export default function ClientRegistrationPage() {
     address: AddressData;
   }) => {
     setStep1Data(data);
-    setStep(2);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    goTo(2, 1);
   };
 
   const handleStep2Proceed = () => {
@@ -136,19 +151,18 @@ export default function ClientRegistrationPage() {
       return;
     }
     setIdFileError(null);
-    setStep(3);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    goTo(3, 1);
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (loading) return;
     if (!step1Data) {
-      setStep(1);
+      goTo(1, -1);
       return;
     }
     if (!idFile) {
-      setStep(2);
+      goTo(2, -1);
       return;
     }
     if (!termsAccepted) {
@@ -520,7 +534,7 @@ export default function ClientRegistrationPage() {
     }
   };
 
-  if (registeredSuccess && successData) {
+  if (registeredSuccess && successData && successData.verificationRequired) {
     return (
       <RegistrationSuccess
         firstname={successData.firstname}
@@ -554,332 +568,328 @@ export default function ClientRegistrationPage() {
   }
 
   const CLIENT_STEPS = [
-    { id: 1, label: 'Basic info', detail: 'Personal & account' },
-    { id: 2, label: 'Verify ID', detail: 'ID upload' },
-    { id: 3, label: 'Review', detail: 'Terms & submit' },
-  ] as const;
+    { id: 1, label: 'Account', detail: 'Personal & account', disabled: false },
+    { id: 2, label: 'Profile', detail: 'ID upload', disabled: !step1Data },
+    { id: 3, label: 'Complete', detail: 'Terms & submit', disabled: !step1Data || !idFile },
+  ];
+
+  const termsMissing = Boolean(error && /terms/i.test(error));
+  const showSuccessModal = registeredSuccess && !!successData && !successData.verificationRequired;
 
   return (
     <AuthLayout
-      wide
+      wizard
       registration
-      eyebrow={
-        <span className="au-eyebrow">
-          <Sparkles className="h-3 w-3" aria-hidden="true" />
-          Client / Performer Registration
-        </span>
-      }
       title="Join Groove System"
       subtext="Create your performer account to connect with verified coaches and book rehearsal sessions in San Jose del Monte and other locations in the Philippines."
       imagePanelTitle="Your stage awaits."
       imagePanelDescription="Join performing artists across the Philippines. Connect with verified coaches, book studios, and sign digital contracts — all in one place."
       imagePanelImage="/image/login/LoginPage.jpeg"
       footer={
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
-          <Link
-            href="/login"
-            className="font-semibold text-accent-text underline-offset-4 transition-colors hover:underline"
-          >
-            Sign in
-          </Link>
-        </p>
+        <div className="av-footer-copy">
+          <p>
+            Already have an account?{' '}
+            <Link href="/login" className="av-link">
+              Sign in
+            </Link>
+          </p>
+        </div>
       }
     >
-      <RegistrationProgress
-        className="mb-5"
-        label="Performer registration"
-        status={`Step ${step} of ${CLIENT_STEPS.length}`}
-        percent={(step / CLIENT_STEPS.length) * 100}
-        activeId={step}
-        onSelect={(id) => {
-          if (loading) return;
-          // Only allow jumping to completed steps.
-          if (id < step) setStep(id as 1 | 2 | 3);
-        }}
-        ariaLabel="Performer registration steps"
-        items={CLIENT_STEPS.map((s) => ({
-          id: s.id,
-          label: s.label,
-          detail: s.detail,
-          disabled:
-            (s.id === 2 && !step1Data) ||
-            (s.id === 3 && (!step1Data || !idFile)),
-        }))}
-      />
+      <div className="rw">
+        <WizardRail
+          steps={CLIENT_STEPS}
+          current={step}
+          ariaLabel="Performer registration steps"
+          helper="Your progress is kept in this tab. Uploaded files stay attached as you move between steps."
+          onSelect={(id) => {
+            if (loading) return;
+            if (id < step) goTo(id as 1 | 2 | 3, -1);
+          }}
+        />
 
-      {error && <FormError message={error} className="mb-5" />}
+        <div className="rw-main">
+          {error && <FormError message={error} />}
 
-      {/* Fast Track with Google */}
-      {step === 1 && (
-        <>
-          <div className="reg-oauth-card mb-4">
-            <div className="mb-2.5 flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className="reg-oauth-icon" aria-hidden="true">⚡</span>
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Fast-track with Google</h3>
-                  <p className="text-[11px] text-muted-foreground">Optional shortcut</p>
+          <ProgressSegments
+            steps={CLIENT_STEPS}
+            current={step}
+            label="Performer registration progress"
+          />
+
+          <StepTransition stepKey={step} direction={direction}>
+            {/* ─── STEP 1: Account ─── */}
+            {step === 1 && (
+              <div className="rw-step-content">
+                <StepHeader
+                  icon={User}
+                  title="Create your account"
+                  description="Your legal details, service location and login credentials. Everything is saved when you move to the next step."
+                />
+
+                <div className="rw-oauth">
+                  <GoogleRegisterButton
+                    role="client"
+                    label="Continue with Google"
+                    badge="Coming soon"
+                    className="av-google"
+                  />
+                  <p className="av-oauth-note">
+                    Google sign-up is coming soon. Use the form below to create your performer
+                    account and upload the ID required for verification.
+                  </p>
                 </div>
+
+                <Divider label="OR" variant="dotted" />
+
+                <div data-client-step="1">
+                  <RegistrationFormFields
+                    role="client"
+                    loading={false}
+                    externalError={null}
+                    showSubmitButton={false}
+                    onValidatedData={handleStep1Validated}
+                    initialPersonal={step1Data?.personal}
+                    initialContact={step1Data?.contact}
+                    initialAddress={step1Data?.address}
+                    extraFields={
+                      <div className="reg-field">
+                        <label className="g-label" htmlFor="reg-talent">
+                          Primary Performing Interest <span className="text-accent-text" aria-hidden="true">*</span>
+                        </label>
+                        <select
+                          id="reg-talent"
+                          value={talent}
+                          onChange={(e) => setTalent(e.target.value)}
+                          required
+                          aria-describedby="reg-talent-hint"
+                          className="g-input"
+                        >
+                          {CLIENT_TALENT_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        <p id="reg-talent-hint" className="g-field-hint">
+                          Used to show you relevant coaches and sessions first.
+                        </p>
+                      </div>
+                    }
+                    documentSection={<></>}
+                  />
+                </div>
+
+                <WizardFooter onBack={handleBackToLogin} backLabel="Back to login">
+                  <AuthButton
+                    type="button"
+                    trailingIcon={<ArrowRight className="h-4 w-4" />}
+                    onClick={() => {
+                      const container = document.querySelector('[data-client-step="1"]');
+                      const form = container?.querySelector('form');
+                      if (form) {
+                        form.requestSubmit();
+                      } else {
+                        setError(
+                          'Something went wrong loading this step. Please refresh and try again.'
+                        );
+                      }
+                    }}
+                  >
+                    Continue
+                  </AuthButton>
+                </WizardFooter>
               </div>
-              <span className="reg-soft-badge">Coming soon</span>
-            </div>
-            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-              Google sign-up is not available yet. Use the full registration form below to create
-              your performer account and upload the ID required for verification.
-            </p>
-            <GoogleRegisterButton role="client" label="Continue with Google as Performer" />
-          </div>
+            )}
 
-          <div className="reg-divider my-4">
-            <span>or complete full registration with ID document</span>
-          </div>
-        </>
-      )}
+            {/* ─── STEP 2: Profile (ID upload) ─── */}
+            {step === 2 && (
+              <div className="rw-step-content">
+                <StepHeader
+                  icon={Shield}
+                  title="Verify your identity"
+                  description="Upload a government-issued or student ID to verify your artist status. It is stored privately and never shown on your profile."
+                />
 
-      {/* ─── STEP 1: Basic Information ─── */}
-      {step === 1 && (
-        <div data-client-step="1" className="space-y-6">
-          <RegistrationFormFields
-            role="client"
-            loading={false}
-            externalError={null}
-            showSubmitButton={false}
-            onValidatedData={handleStep1Validated}
-            initialPersonal={step1Data?.personal}
-            initialContact={step1Data?.contact}
-            initialAddress={step1Data?.address}
-            extraFields={
-              <div className="reg-field">
-                <label className="g-label" htmlFor="reg-talent">
-                  Primary Performing Interest <span className="text-accent-text" aria-hidden="true">*</span>
-                </label>
-                <select
-                  id="reg-talent"
-                  value={talent}
-                  onChange={(e) => setTalent(e.target.value)}
+                <FileUpload
+                  id="client-valid-id"
+                  label="Government or student ID"
+                  hint="Passport, UMID, Driver's License, Postal ID, or Student ID"
+                  accept={DOCUMENT_EXTENSIONS.map((extension) => `.${extension}`).join(',')}
+                  file={idFile}
+                  onSelect={selectIdFile}
+                  onRemove={removeIdFile}
+                  error={idFileError}
                   required
-                  aria-describedby="reg-talent-hint"
-                  className="g-input"
-                >
-                  {CLIENT_TALENT_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <p id="reg-talent-hint" className="g-field-hint">
-                  Used to show you relevant coaches and sessions first.
-                </p>
+                  icon={Shield}
+                  uploading={loading && /upload/i.test(submitStage ?? '')}
+                  progress={null}
+                />
+
+                <WizardFooter onBack={() => goTo(1, -1)}>
+                  <AuthButton
+                    type="button"
+                    trailingIcon={<ArrowRight className="h-4 w-4" />}
+                    onClick={handleStep2Proceed}
+                  >
+                    Continue
+                  </AuthButton>
+                </WizardFooter>
               </div>
-            }
-            documentSection={<></>}
-          />
-          <Button
-            type="button"
-            size="lg"
-            className="h-12 w-full font-bold"
-            trailingIcon={<Sparkles className="h-4 w-4" />}
-            onClick={() => {
-              const container = document.querySelector('[data-client-step="1"]');
-              const f = container?.querySelector('form');
-              if (f) f.requestSubmit();
-              else setError('Something went wrong loading this step. Please refresh and try again.');
-            }}
-          >
-            Next: upload ID
-          </Button>
-        </div>
-      )}
-
-      {/* ─── STEP 2: Identity Verification ─── */}
-      {step === 2 && (
-        <div data-client-step="2" className="space-y-6 animate-in fade-in duration-200">
-          <RegistrationStepHeader
-            step={2}
-            total={3}
-            icon={Shield}
-            title="Verify your identity"
-            description="Upload a government-issued or student ID to verify your artist status."
-          />
-
-          <div
-            className={cn(
-              'reg-upload-card',
-              idFile && 'reg-upload-card--filled',
-              idFileError && 'reg-upload-card--error'
             )}
-          >
-            <input
-              ref={idInputRef}
-              type="file"
-              accept={DOCUMENT_EXTENSIONS.map((extension) => `.${extension}`).join(',')}
-              onChange={handleIdChange}
-              aria-label="Upload identity document"
-              className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-            />
-            {idFile ? (
-              <div className="flex flex-col items-center gap-4">
-                {idPreview ? (
-                  <div className="relative overflow-hidden rounded-xl border border-border bg-muted/60 p-1.5 shadow-sm">
-                    <img
-                      src={idPreview}
-                      alt="Preview of the uploaded ID document"
-                      className="max-h-44 rounded-lg object-contain"
+
+            {/* ─── STEP 3: Complete ─── */}
+            {step === 3 && (
+              <form
+                id="client-review-form"
+                onSubmit={handleSubmit}
+                noValidate
+                className="rw-step-content"
+              >
+                <StepHeader
+                  icon={CheckCircle}
+                  title="Review & submit"
+                  description="Confirm the agreement below, then create your account."
+                />
+
+                <div className="rw-block">
+                  <div className="rw-block-head">
+                    <h3 className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">1</span>
+                      Your summary
+                    </h3>
+                    <span className="rw-block-note">Edit any step before submitting</span>
+                  </div>
+
+                  <dl className="rw-review">
+                    <div className="rw-review-row">
+                      <dt>Name</dt>
+                      <dd>
+                        {step1Data
+                          ? `${step1Data.personal.firstname.trim()} ${step1Data.personal.lastname.trim()}`
+                          : '—'}
+                      </dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Username</dt>
+                      <dd>{step1Data?.contact.username.trim().toLowerCase() || '—'}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Email</dt>
+                      <dd>{step1Data?.contact.email.trim() || '—'}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Primary interest</dt>
+                      <dd>{talent}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>ID document</dt>
+                      <dd>{idFile ? idFile.name : <span className="rw-review-empty">Missing</span>}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div className="rw-block">
+                  <div className="rw-block-head">
+                    <h3 className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">2</span>
+                      Agreement
+                    </h3>
+                    <span className="rw-block-note">Required</span>
+                  </div>
+
+                  <div className={cn('rw-terms-row', termsMissing && 'is-error')}>
+                    <input
+                      type="checkbox"
+                      id="clientTerms"
+                      checked={termsAccepted}
+                      onChange={(e) => {
+                        setTermsAccepted(e.target.checked);
+                        if (e.target.checked && termsMissing) setError(null);
+                      }}
+                      required
+                      aria-describedby={termsMissing ? 'client-terms-error' : undefined}
+                      className="g-checkbox"
                     />
+                    <label htmlFor="clientTerms">
+                      I have read and agree to the{' '}
+                      <Link href="/terms" target="_blank">
+                        Terms &amp; Conditions
+                      </Link>{' '}
+                      and the{' '}
+                      <Link href="/privacy" target="_blank">
+                        Privacy Policy
+                      </Link>{' '}
+                      for Groove System.
+                    </label>
                   </div>
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text shadow-sm">
-                    <FileText className="h-7 w-7" aria-hidden="true" />
+                  {termsMissing ? (
+                    <p id="client-terms-error" className="g-field-error" role="alert">
+                      {error}
+                    </p>
+                  ) : null}
+                  <div className="rw-terms-read">
+                    <button type="button" className="rw-terms-inline" onClick={() => setTermsOpen(true)}>
+                      Read Terms &amp; Conditions
+                    </button>
+                    <span aria-hidden="true">·</span>
+                    <button type="button" className="rw-terms-inline" onClick={() => setPrivacyOpen(true)}>
+                      Read Privacy Policy
+                    </button>
                   </div>
+                </div>
+
+                <WizardFooter onBack={() => goTo(2, -1)} backDisabled={loading}>
+                  <AuthButton
+                    type="submit"
+                    form="client-review-form"
+                    loading={loading}
+                    trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
+                  >
+                    {loading ? submitStage || 'Creating account…' : 'Complete client registration'}
+                  </AuthButton>
+                </WizardFooter>
+
+                {loading && (
+                  <p className="text-center text-xs text-[var(--av-muted)]" role="status" aria-live="polite">
+                    Keep this tab open while we finish setting up your account.
+                  </p>
                 )}
-                <div className="max-w-full text-center">
-                  <p className="mx-auto max-w-xs truncate text-sm font-semibold text-foreground">
-                    {idFile.name}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {formatFileSize(idFile.size)} · Ready for verification
-                  </p>
-                </div>
-                <div className="relative z-20 flex flex-wrap items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      idInputRef.current?.click();
-                    }}
-                    className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition hover:border-accent-border hover:bg-accent-soft hover:text-accent-text"
-                  >
-                    <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                    Replace
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeIdFile();
-                    }}
-                    className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
-                  >
-                    <X className="h-3.5 w-3.5" aria-hidden="true" />
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-4 py-2 text-center text-muted-foreground">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text shadow-sm transition-transform group-hover:scale-105">
-                  <UploadCloud className="h-7 w-7" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Click to upload your ID document</p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                    Passport, UMID, Driver&apos;s License, Postal ID, or Student ID
-                  </p>
-                </div>
-                <div className="reg-upload-badges">
-                  <span>PDF</span>
-                  <span>JPG</span>
-                  <span>PNG</span>
-                  <span>Max 5 MB</span>
-                </div>
-              </div>
+              </form>
             )}
-          </div>
-          {idFileError && (
-            <p className="g-field-error" role="alert">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <span>{idFileError}</span>
-            </p>
-          )}
-
-          <div className="reg-actions">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="h-12 w-full sm:w-1/3"
-              onClick={() => setStep(1)}
-            >
-              Back
-            </Button>
-            <Button
-              type="button"
-              size="lg"
-              className="h-12 w-full sm:flex-1"
-              trailingIcon={<Sparkles className="h-4 w-4" />}
-              onClick={handleStep2Proceed}
-            >
-              Next: review &amp; submit
-            </Button>
-          </div>
+          </StepTransition>
         </div>
-      )}
+      </div>
 
-      {/* ─── STEP 3: Review & Submit ─── */}
-      {step === 3 && (
-        <form onSubmit={handleSubmit} noValidate className="space-y-6 animate-in fade-in duration-200">
-          <RegistrationStepHeader
-            step={3}
-            total={3}
-            icon={CheckCircle}
-            title="Review & submit"
-            description="Confirm the agreement below, then create your account."
-          />
+      {showSuccessModal && successData ? (
+        <SuccessModal
+          open
+          onClose={() => router.push('/login')}
+          onCta={() => router.push('/login')}
+          title="Registration submitted"
+          description={`You can now sign in to discover verified coaches, book live rehearsal sessions, and explore performing arts in ${successData.locationDisplay}.`}
+          details={[
+            { label: 'Username', value: successData.username },
+            { label: 'Email', value: successData.email },
+            { label: 'Primary interest', value: successData.talent },
+            { label: 'Location', value: successData.location },
+          ]}
+        />
+      ) : null}
 
-          <div className="reg-terms-card">
-            <input
-              type="checkbox"
-              id="clientTerms"
-              checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
-              required
-              className="g-checkbox mt-0.5"
-            />
-            <label
-              htmlFor="clientTerms"
-              className="cursor-pointer select-none text-sm leading-relaxed text-muted-foreground"
-            >
-              I have read and agree to the{' '}
-              <Link href="/terms" target="_blank" className="font-semibold text-accent-text hover:underline underline-offset-2">
-                Terms &amp; Conditions
-              </Link>{' '}
-              and the{' '}
-              <Link href="/privacy" target="_blank" className="font-semibold text-accent-text hover:underline underline-offset-2">
-                Privacy Policy
-              </Link>{' '}
-              for Groove System.
-            </label>
-          </div>
-
-          <div className="reg-actions">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="h-12 w-full sm:w-1/3"
-              disabled={loading}
-              onClick={() => setStep(2)}
-            >
-              Back
-            </Button>
-            <Button
-              type="submit"
-              size="lg"
-              loading={loading}
-              className="h-12 w-full font-bold sm:flex-1"
-              trailingIcon={!loading ? <Sparkles className="h-4 w-4" /> : undefined}
-            >
-              {loading ? submitStage || 'Creating account…' : 'Complete Client Registration'}
-            </Button>
-          </div>
-          {loading && (
-            <p className="text-center text-xs text-muted-foreground" role="status" aria-live="polite">
-              Keep this tab open while we finish setting up your account.
-            </p>
-          )}
-        </form>
-      )}
+      <ConfirmLeaveModal
+        open={leaveOpen}
+        onClose={() => setLeaveOpen(false)}
+        onLeave={() => router.push('/login')}
+      />
+      <TermsModal
+        open={termsOpen}
+        onClose={() => setTermsOpen(false)}
+        onAccept={() => setTermsAccepted(true)}
+        kind="terms"
+      />
+      <TermsModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} kind="privacy" />
     </AuthLayout>
   );
 }
+

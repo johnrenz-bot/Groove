@@ -32,3 +32,4 @@ export function QuickActions({ actions }: { actions: QuickAction[] }) {
 }
 
 export default QuickActions;
+

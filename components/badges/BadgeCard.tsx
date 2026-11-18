@@ -113,7 +113,7 @@ export function BadgeCard({ badge, onClick, comingSoon = false }: BadgeCardProps
         {/* Status row */}
         {isUnlocked ? (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-full   bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
+            <span className="inline-flex items-center rounded-full border border-border bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
               Earned
             </span>
             {earnedDate && (
@@ -142,3 +142,4 @@ export function BadgeCard({ badge, onClick, comingSoon = false }: BadgeCardProps
 }
 
 export default BadgeCard;
+

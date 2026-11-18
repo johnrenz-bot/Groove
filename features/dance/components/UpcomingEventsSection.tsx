@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useMemo } from 'react';
 import { MapPin, ExternalLink, Ticket, CalendarX2 } from 'lucide-react';
@@ -262,3 +262,4 @@ export function UpcomingEventsSection({
     </section>
   );
 }
+

@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { statusBarClass } from '../../lib/entries';
 import type { CalendarEntry } from '../../lib/entries';
 import {
@@ -91,7 +91,7 @@ export function DayView({ anchor, entries }: { anchor: Date; entries: CalendarEn
                 <div
                   key={entry.id}
                   className={cn(
-                    'absolute inset-x-2 top-2 rounded-xl   p-3',
+                    'absolute inset-x-2 top-2 rounded-xl border border-border p-3',
                     statusBarClass(entry.status)
                   )}
                 >
@@ -130,7 +130,7 @@ function DayBlock({
   return (
     <div
       className={cn(
-        'absolute inset-x-2 z-10 overflow-hidden rounded-xl   p-2.5',
+        'absolute inset-x-2 z-10 overflow-hidden rounded-xl border border-border p-2.5',
         statusBarClass(entry.status)
       )}
       style={{ top, height }}

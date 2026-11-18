@@ -75,6 +75,8 @@ export function useUserSearch() {
   // Aborts the in-flight fetch when a newer query supersedes it, so a cancelled
   // request never occupies the socket or writes state after unmount.
   const abortRef = useRef<AbortController | null>(null);
+  // Bump to re-issue the current query (e.g. the caller's Retry button).
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -149,7 +151,7 @@ export function useUserSearch() {
     }, DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [query]);
+  }, [query, refreshNonce]);
 
   // Abort anything still in flight when the header unmounts.
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -163,6 +165,11 @@ export function useUserSearch() {
     setResults([]);
     setStatus('idle');
     setError(null);
+  }, []);
+
+  /** Re-issue the current query. The debounce effect re-runs on the nonce. */
+  const refresh = useCallback(() => {
+    setRefreshNonce((n) => n + 1);
   }, []);
 
   /* The "too short to search" case is DERIVED, not stored.
@@ -181,6 +188,7 @@ export function useUserSearch() {
     status: isSearchable ? status : 'idle',
     error: isSearchable ? error : null,
     reset,
+    refresh,
     /** True once the field has enough characters to be worth a request. */
     isSearchable,
   };

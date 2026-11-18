@@ -57,3 +57,4 @@ export function SingingOrgLogoBar({ selectedOrg, onSelectOrg }: SingingOrgLogoBa
     </section>
   );
 }
+

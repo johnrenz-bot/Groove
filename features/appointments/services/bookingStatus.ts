@@ -11,16 +11,20 @@
  *   `scripts/test-booking-status.ts`.
  *
  * THE TRANSITION TABLE BELOW IS NOT A GUESS
- *   It is copied from the CASE expression in guard_booking_transition():
+ *   It is copied from the CASE expression in guard_booking_transition() (v2,
+ *   supabase/migrations/37_booking_lifecycle_cron.sql):
  *
- *       pending             -> accepted | declined | cancelled
- *       accepted            -> agreement_required | cancelled | declined
- *       agreement_required  -> confirmed | cancelled
- *       confirmed           -> completed | cancelled
- *       declined | cancelled | completed -> (terminal, nothing)
+ *       pending             -> accepted | declined | cancelled | expired
+ *       accepted            -> agreement_required | cancelled | declined | expired
+ *       agreement_required  -> confirmed | cancelled | expired
+ *       confirmed           -> in_progress | completed | cancelled | no_show
+ *       in_progress         -> completed | no_show
+ *       declined | cancelled | completed | expired | no_show -> (terminal)
  *
  *   and `confirmed` additionally requires two signatures, which the client can
  *   never satisfy directly. So the UI does not offer "Confirm" to anybody.
+ *   'expired' is stamped only by the expiry sweeper (cron) or on read by the
+ *   app via expire_past_bookings() — never by either party directly.
  *
  * WHO MAY DO WHAT
  *   This is the RLS in 02_booking_schema.sql section 8, not a UI preference:
@@ -40,15 +44,18 @@
  *   its own columns.
  */
 
-/** `public.appointment_status` — the seven labels in the enum. */
+/** `public.appointment_status` — the ten labels in the enum. */
 export type AppointmentStatus =
   | 'pending'
   | 'accepted'
   | 'agreement_required'
   | 'confirmed'
+  | 'in_progress'
   | 'completed'
   | 'declined'
-  | 'cancelled';
+  | 'cancelled'
+  | 'expired'
+  | 'no_show';
 
 /** Which side of the booking the signed-in user is on. */
 export type BookingRole = 'client' | 'coach';
@@ -98,6 +105,13 @@ const STATUS_META: Record<AppointmentStatus, StatusMeta> = {
     isTerminal: false,
     isActionable: true,
   },
+  in_progress: {
+    label: 'In session',
+    description: 'This session is underway. The coach marks it completed when it ends.',
+    badge: 'info',
+    isTerminal: false,
+    isActionable: true,
+  },
   completed: {
     label: 'Completed',
     description: 'This session has taken place.',
@@ -116,6 +130,21 @@ const STATUS_META: Record<AppointmentStatus, StatusMeta> = {
     label: 'Cancelled',
     description: 'This booking was cancelled.',
     badge: 'neutral',
+    isTerminal: true,
+    isActionable: false,
+  },
+  expired: {
+    label: 'Expired',
+    description:
+      'The scheduled time passed without a response. Pick a new time to rebook with this coach.',
+    badge: 'danger',
+    isTerminal: true,
+    isActionable: false,
+  },
+  no_show: {
+    label: 'No-show',
+    description: 'The session was marked as a no-show.',
+    badge: 'danger',
     isTerminal: true,
     isActionable: false,
   },
@@ -145,25 +174,29 @@ export function statusMeta(status: string | null | undefined): StatusMeta {
 
 /**
  * The status pipeline, in order. Used to draw progress and to tell the reader how
- * far along a booking is.
+ * far along a booking is. 'in_progress' means the session has started and the
+ * coach has not marked it complete yet.
  */
 export const BOOKING_STAGES: AppointmentStatus[] = [
   'pending',
   'accepted',
   'agreement_required',
   'confirmed',
+  'in_progress',
   'completed',
 ];
 
 /**
  * How far along the happy path a booking is, as a 0-based index into
- * BOOKING_STAGES. Terminal-off-path states (declined / cancelled) return the
- * index of the last stage they reached, so a cancelled booking still shows how
- * far it got rather than collapsing to the start.
+ * BOOKING_STAGES. Terminal-off-path states (declined / cancelled / expired /
+ * no_show) report 0 here; how far they actually got is derived from the
+ * lifecycle timestamps by `buildTimeline`, never from this number.
  */
 export function stageIndex(status: string | null | undefined): number {
   if (!status) return 0;
-  if (status === 'declined' || status === 'cancelled') return 0;
+  if (status === 'declined' || status === 'cancelled' || status === 'expired' || status === 'no_show') {
+    return 0;
+  }
   const idx = BOOKING_STAGES.indexOf(status as AppointmentStatus);
   return idx === -1 ? 0 : idx;
 }
@@ -172,7 +205,7 @@ export function stageIndex(status: string | null | undefined): number {
 /* Actions                                                                     */
 /* -------------------------------------------------------------------------- */
 
-export type BookingAction = 'cancel' | 'accept' | 'decline' | 'complete';
+export type BookingAction = 'cancel' | 'accept' | 'decline' | 'complete' | 'start' | 'no_show';
 
 export interface ActionSpec {
   action: BookingAction;
@@ -261,8 +294,34 @@ export function availableActions(args: {
       });
     }
 
-    // confirmed -> completed | cancelled
+    // confirmed -> in_progress (coach starts the session), completed, cancelled,
+    // no_show
     if (status === 'confirmed') {
+      out.push({
+        action: 'start',
+        label: 'Start session',
+        target: 'in_progress',
+        variant: 'primary',
+        blockedReason: suspendNote,
+      });
+      out.push({
+        action: 'complete',
+        label: 'Mark completed',
+        target: 'completed',
+        variant: 'outline',
+        blockedReason: suspendNote,
+      });
+      out.push({
+        action: 'no_show',
+        label: 'Mark no-show',
+        target: 'no_show',
+        variant: 'outline',
+        blockedReason: suspendNote,
+      });
+    }
+
+    // in_progress -> completed | no_show
+    if (status === 'in_progress') {
       out.push({
         action: 'complete',
         label: 'Mark completed',
@@ -270,12 +329,20 @@ export function availableActions(args: {
         variant: 'primary',
         blockedReason: suspendNote,
       });
+      out.push({
+        action: 'no_show',
+        label: 'Mark no-show',
+        target: 'no_show',
+        variant: 'outline',
+        blockedReason: suspendNote,
+      });
     }
   }
 
-  // Cancel: a client may cancel from any non-terminal stage; a coach may cancel
-  // from pending / accepted / agreement_required / confirmed too, which the
-  // participant UPDATE policy allows and the guard accepts.
+  // Cancel: a client may cancel from any non-terminal stage (the guard and RLS
+  // both allow it); a coach may cancel from pending / accepted /
+  // agreement_required / confirmed. In progress is no longer cancellable — the
+  // session is underway, and the only honest exits are completed or no_show.
   const cancellable = ['pending', 'accepted', 'agreement_required', 'confirmed'];
   if (cancellable.includes(status)) {
     out.push({
@@ -299,14 +366,16 @@ export function availableActions(args: {
 export function isLegalTransition(from: string, to: string): boolean {
   switch (from) {
     case 'pending':
-      return ['accepted', 'declined', 'cancelled'].includes(to);
+      return ['accepted', 'declined', 'cancelled', 'expired'].includes(to);
     case 'accepted':
-      return ['agreement_required', 'cancelled', 'declined'].includes(to);
+      return ['agreement_required', 'cancelled', 'declined', 'expired'].includes(to);
     case 'agreement_required':
-      return ['confirmed', 'cancelled'].includes(to);
+      return ['confirmed', 'cancelled', 'expired'].includes(to);
     case 'confirmed':
-      return ['completed', 'cancelled'].includes(to);
-    // declined / cancelled / completed are terminal.
+      return ['in_progress', 'completed', 'cancelled', 'no_show'].includes(to);
+    case 'in_progress':
+      return ['completed', 'no_show'].includes(to);
+    // declined / cancelled / completed / expired / no_show are terminal.
     default:
       return false;
   }
@@ -356,7 +425,11 @@ export function buildTimeline(
   status: string | null | undefined,
   stamps: Partial<Record<AppointmentStatus, string | null>>
 ): TimelineStep[] {
-  const offPath = status === 'declined' || status === 'cancelled';
+  const offPath =
+    status === 'declined' ||
+    status === 'cancelled' ||
+    status === 'expired' ||
+    status === 'no_show';
 
   let reached = stageIndex(status);
 

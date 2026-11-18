@@ -7,9 +7,8 @@ import {
   CheckCircle2,
   ArrowLeft,
   Shield,
-  Loader2,
 } from 'lucide-react';
-import { AppHeader } from '@/components/header/AppHeader';
+import { StandaloneChrome } from '@/components/layout/StandaloneChrome';
 import SignaturePadModal from '@/components/shared/SignaturePadModal';
 import { Agreement, Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
@@ -187,9 +186,13 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="g-spin h-8 w-8 text-accent" aria-hidden="true" />
-        <span className="sr-only">Loading contract</span>
+      <div className="min-h-screen bg-background px-4 pt-10 sm:px-8" role="status" aria-busy="true" aria-label="Loading agreement">
+        <div className="mx-auto w-full max-w-3xl space-y-6">
+          <div className="g-skeleton h-8 w-48" />
+          <div className="g-skeleton h-4 w-64" />
+          <div className="g-skeleton h-[420px] w-full rounded-2xl" />
+          <div className="g-skeleton h-10 w-40" />
+        </div>
       </div>
     );
   }
@@ -214,11 +217,10 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
   const isCoach = currentUser?.id === agreement.coach_id;
 
   return (
+    <StandaloneChrome>
     <div className="min-h-screen bg-background pb-16 text-foreground">
-      <AppHeader />
-
       {/* ── Document. A ~70ch measure keeps the clauses readable. ── */}
-      <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-4 pt-8 md:px-8 md:pt-10">
+      <div className="mx-auto max-w-3xl px-4 pt-8 md:px-8 md:pt-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => router.back()}
@@ -234,7 +236,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
         {successMsg && (
           <div
             role="status"
-            className="mb-6 flex items-center gap-2 rounded-xl   bg-success-soft px-3.5 py-3 text-xs text-success"
+            className="mb-6 flex items-center gap-2 rounded-xl border border-border bg-success-soft px-3.5 py-3 text-xs text-success"
           >
             <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{successMsg}</span>
@@ -259,7 +261,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
 
           {/* Parties Involved */}
           <section className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2">
-            <div className="space-y-1 rounded-2xl   bg-muted/40 p-4">
+            <div className="space-y-1 rounded-2xl border border-border bg-muted/40 p-4">
               <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
                 Client / Student
               </span>
@@ -269,7 +271,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
               <p className="text-muted-foreground">{agreement.client?.email}</p>
             </div>
 
-            <div className="space-y-1 rounded-2xl   bg-muted/40 p-4">
+            <div className="space-y-1 rounded-2xl border border-border bg-muted/40 p-4">
               <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
                 Coach / Instructor
               </span>
@@ -287,25 +289,25 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
               Agreed Session Terms &amp; Pricing
             </h2>
             <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
-              <div className="flex items-center justify-between gap-3 rounded-xl   bg-muted/40 px-3 py-3">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-3">
                 <span className="text-muted-foreground">Service Rate:</span>
                 <span className="font-bold text-success">
                   ₱{agreement.appointment_price || '500'}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3 rounded-xl   bg-muted/40 px-3 py-3">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-3">
                 <span className="text-muted-foreground">Session Duration:</span>
                 <span className="font-bold text-foreground">
                   {agreement.session_duration || '1 Hour'}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3 rounded-xl   bg-muted/40 px-3 py-3">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-3">
                 <span className="text-muted-foreground">Payment Method:</span>
                 <span className="font-bold capitalize text-foreground">
                   {agreement.payment_method || 'Cash on site'}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3 rounded-xl   bg-muted/40 px-3 py-3">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-3">
                 <span className="text-muted-foreground">Notice Requirement:</span>
                 <span className="font-bold text-foreground">
                   {agreement.notice_hours || 24} hours
@@ -315,7 +317,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
           </section>
 
           {/* Legal clauses */}
-          <section className="space-y-2 rounded-2xl   bg-muted/40 p-5 text-xs leading-relaxed text-muted-foreground">
+          <section className="space-y-2 rounded-2xl border border-border bg-muted/40 p-5 text-xs leading-relaxed text-muted-foreground">
             <h3 className="font-bold text-foreground">
               Standard Code of Conduct &amp; Rehearsal Guidelines
             </h3>
@@ -333,10 +335,10 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
           {/* Signatures Area */}
           <section className="grid grid-cols-1 gap-6   pt-6 sm:grid-cols-2">
             {/* Client Signature */}
-            <div className="space-y-3 rounded-2xl   p-5 text-center">
+            <div className="space-y-3 rounded-2xl border border-border p-5 text-center">
               <span className="text-xs font-semibold text-muted-foreground">Client Signature</span>
               {signatureUrls.client ? (
-                <div className="flex h-24 items-center justify-center rounded-xl   bg-card p-2">
+                <div className="flex h-24 items-center justify-center rounded-xl border border-border bg-card p-2">
                   <img
                     src={signatureUrls.client}
                     alt="Client Signature"
@@ -344,7 +346,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
                   />
                 </div>
               ) : (
-                <div className="flex h-24 items-center justify-center rounded-xl    text-xs text-subtle-foreground">
+                <div className="flex h-24 items-center justify-center rounded-xl border border-border text-xs text-subtle-foreground">
                   Awaiting Client Signature
                 </div>
               )}
@@ -363,10 +365,10 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
             </div>
 
             {/* Coach Signature */}
-            <div className="space-y-3 rounded-2xl   p-5 text-center">
+            <div className="space-y-3 rounded-2xl border border-border p-5 text-center">
               <span className="text-xs font-semibold text-muted-foreground">Coach Signature</span>
               {signatureUrls.coach ? (
-                <div className="flex h-24 items-center justify-center rounded-xl   bg-card p-2">
+                <div className="flex h-24 items-center justify-center rounded-xl border border-border bg-card p-2">
                   <img
                     src={signatureUrls.coach}
                     alt="Coach Signature"
@@ -374,7 +376,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
                   />
                 </div>
               ) : (
-                <div className="flex h-24 items-center justify-center rounded-xl    text-xs text-subtle-foreground">
+                <div className="flex h-24 items-center justify-center rounded-xl border border-border text-xs text-subtle-foreground">
                   Awaiting Coach Signature
                 </div>
               )}
@@ -393,7 +395,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
             </div>
           </section>
         </article>
-      </main>
+      </div>
 
       {/* Signature Pad Modal */}
       {sigPadOpen && (
@@ -405,5 +407,7 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
         />
       )}
     </div>
+    </StandaloneChrome>
   );
 }
+

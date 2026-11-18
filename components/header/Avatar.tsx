@@ -53,3 +53,5 @@ function AvatarImage({ user, size }: { user: Profile; size: number }) {
     </span>
   );
 }
+
+export default Avatar;

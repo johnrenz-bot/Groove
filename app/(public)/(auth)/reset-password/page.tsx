@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { AuthLayout } from '@/components/shared/AuthLayout';
-import { FormError, FormSuccess } from '@/components/ui/FormError';
+import { FormError } from '@/components/ui/FormError';
 import { PasswordInput } from '@/components/ui/FormField';
-import { Button } from '@/components/ui/Button';
+import { AuthButton, SuccessTile } from '@/components/auth/ui/AuthUI';
+import { ArrowLeft } from 'lucide-react';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -67,11 +68,9 @@ export default function ResetPasswordPage() {
   };
 
   const backToSignIn = (
-    <Link
-      href="/login"
-      className="text-xs font-medium text-accent-text hover:underline underline-offset-4"
-    >
-      Back to Sign In
+    <Link href="/login" className="av-back">
+      <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>Back to login</span>
     </Link>
   );
 
@@ -80,17 +79,19 @@ export default function ResetPasswordPage() {
       <AuthLayout
         title="Password updated"
         subtext="Your new password is active."
-        footer={backToSignIn}
+        backLink={backToSignIn}
       >
-        <div className="space-y-5 text-center">
-          <FormSuccess>
-            Your password has been updated successfully. You can now sign in with your new
-            credentials.
-          </FormSuccess>
-          <Link href="/login" className="block w-full">
-            <Button size="lg" pill={false} className="h-12 w-full">
-              Continue to Sign In
-            </Button>
+        <div className="av-state">
+          <SuccessTile />
+          <div className="av-state-copy">
+            <h2 className="av-state-title">You&apos;re all set</h2>
+            <p className="av-state-text">
+              Your password has been updated successfully. Sign in with your new credentials to
+              continue.
+            </p>
+          </div>
+          <Link href="/login" className="av-btn av-btn--primary av-btn--block">
+            <span className="av-btn-label">Continue to sign in</span>
           </Link>
         </div>
       </AuthLayout>
@@ -101,18 +102,15 @@ export default function ResetPasswordPage() {
     <AuthLayout
       title="Set a new password"
       subtext="Choose a secure password you haven't used before."
-      footer={backToSignIn}
+      backLink={backToSignIn}
     >
       {hasSession === false && (
-        <FormError
-          className="mb-5"
-          message="This reset link is invalid or has expired. Request a new link to continue."
-        />
+        <FormError message="This reset link is invalid or has expired. Request a new link to continue." />
       )}
 
-      <FormError message={error} className="mb-5" />
+      <FormError message={error} />
 
-      <form onSubmit={handleResetPassword} noValidate className="space-y-5">
+      <form onSubmit={handleResetPassword} noValidate className="av-form-fields">
         <PasswordInput
           label="New Password"
           name="password"
@@ -143,9 +141,9 @@ export default function ResetPasswordPage() {
           hint="Both passwords must match."
         />
 
-        <Button type="submit" size="lg" pill={false} className="h-12 w-full" loading={loading}>
-          {loading ? 'Updating password…' : 'Save New Password'}
-        </Button>
+        <AuthButton type="submit" loading={loading} className="av-btn--block">
+          {loading ? 'Updating password…' : 'Save new password'}
+        </AuthButton>
       </form>
     </AuthLayout>
   );

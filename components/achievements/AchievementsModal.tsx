@@ -231,10 +231,10 @@ export function AchievementsModal({
               <article
                 key={index}
                 className={cn(
-                  'relative group flex flex-col rounded-xl  p-4 transition-all duration-200 cursor-pointer',
+                  'relative group flex flex-col rounded-xl border border-border p-4 transition-all duration-200 cursor-pointer',
                   task.completed
                     ? ' bg-success-soft'
-                    : ' bg-card hover: hover:bg-accent-soft/30'
+                    : ' border border-border bg-card hover:border-accent-border hover:bg-accent-soft/30'
                 )}
                 onClick={() => task.actionUrl && onTaskClick?.(task.actionUrl)}
                 role="button"
@@ -254,12 +254,12 @@ export function AchievementsModal({
                   <div className="relative flex shrink-0 flex-col items-center">
                     <div
                       className={cn(
-                        'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full  transition-colors',
+                        'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border transition-colors',
                         task.completed
-                          ? ' bg-success text-success-foreground'
+                          ? ' border-success/30 bg-success text-success-foreground'
                           : task.progress > 0
-                          ? ' bg-warning/10 text-warning'
-                          : ' bg-card text-muted-foreground'
+                          ? ' border-warning/30 bg-warning/10 text-warning'
+                          : ' border border-border bg-card text-muted-foreground'
                       )}
                     >
                       {task.completed ? (
@@ -442,3 +442,4 @@ export function AchievementsModal({
 }
 
 export default AchievementsModal;
+

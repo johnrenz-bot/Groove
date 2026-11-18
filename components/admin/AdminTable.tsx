@@ -3,7 +3,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ArrowUpDown, type LucideIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Panel, PanelHeader } from '@/components/ui/Panel';
 import { cn } from '@/components/shared/cn';
 
@@ -286,7 +286,7 @@ export function AdminTabs<T extends string>({
   return (
     <div
       role="tablist"
-      className={cn('flex flex-wrap items-center gap-1.5 rounded-full   bg-card p-1', className)}
+      className={cn('flex flex-wrap items-center gap-1.5 rounded-full border border-border bg-card p-1', className)}
     >
       {tabs.map((tab) => {
         const active = tab.value === value;
@@ -362,7 +362,7 @@ export function Pagination({
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           aria-label="Previous page"
-          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full   bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -374,7 +374,7 @@ export function Pagination({
           onClick={() => onPageChange(page + 1)}
           disabled={page >= pageCount}
           aria-label="Next page"
-          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full   bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronRight className="h-4 w-4" />
         </button>

@@ -59,23 +59,23 @@ export function CoachDashboardBackground() {
       {/* Banig diamond accents — top area */}
       <div className="absolute left-[15%] top-[8%] opacity-[0.06]">
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-          <path d="M24 2L46 24L24 46L2 24Z" stroke="#C9A84C" strokeWidth="1" fill="none" />
-          <path d="M24 8L40 24L24 40L8 24Z" stroke="#C9A84C" strokeWidth="0.5" fill="none" />
+          <path d="M24 2L46 24L24 46L2 24Z" stroke="#DDAA55" strokeWidth="1" fill="none" />
+          <path d="M24 8L40 24L24 40L8 24Z" stroke="#DDAA55" strokeWidth="0.5" fill="none" />
         </svg>
       </div>
 
       <div className="absolute right-[30%] top-[16%] opacity-[0.05]">
         <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
-          <path d="M24 2L46 24L24 46L2 24Z" stroke="#C9A84C" strokeWidth="1" fill="none" />
-          <path d="M24 8L40 24L24 40L8 24Z" stroke="#C9A84C" strokeWidth="0.5" fill="none" />
+          <path d="M24 2L46 24L24 46L2 24Z" stroke="#DDAA55" strokeWidth="1" fill="none" />
+          <path d="M24 8L40 24L24 40L8 24Z" stroke="#DDAA55" strokeWidth="0.5" fill="none" />
         </svg>
       </div>
 
       {/* Banig diamond accents — bottom area */}
       <div className="absolute bottom-[12%] left-[8%] opacity-[0.05]">
         <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
-          <path d="M24 2L46 24L24 46L2 24Z" stroke="#C9A84C" strokeWidth="1" fill="none" />
-          <path d="M24 8L40 24L24 40L8 24Z" stroke="#C9A84C" strokeWidth="0.5" fill="none" />
+          <path d="M24 2L46 24L24 46L2 24Z" stroke="#DDAA55" strokeWidth="1" fill="none" />
+          <path d="M24 8L40 24L24 40L8 24Z" stroke="#DDAA55" strokeWidth="0.5" fill="none" />
         </svg>
       </div>
     </div>
@@ -115,7 +115,7 @@ function PhilippineSunLarge({ size = 480 }: { size?: number }) {
             y1={y1}
             x2={x2}
             y2={y2}
-            stroke="#C9A84C"
+            stroke="#DDAA55"
             strokeWidth={rayWidth}
             strokeLinecap="round"
           />
@@ -135,7 +135,7 @@ function PhilippineSunLarge({ size = 480 }: { size?: number }) {
             y1={y1}
             x2={x2}
             y2={y2}
-            stroke="#C9A84C"
+            stroke="#DDAA55"
             strokeWidth={rayWidth * 0.6}
             strokeLinecap="round"
           />
@@ -146,7 +146,7 @@ function PhilippineSunLarge({ size = 480 }: { size?: number }) {
         cx={center}
         cy={center}
         r={innerRadius}
-        stroke="#C9A84C"
+        stroke="#DDAA55"
         strokeWidth={rayWidth * 0.8}
         fill="none"
       />
@@ -155,14 +155,15 @@ function PhilippineSunLarge({ size = 480 }: { size?: number }) {
         cx={center}
         cy={center}
         r={innerRadius * 0.6}
-        stroke="#C9A84C"
+        stroke="#DDAA55"
         strokeWidth={rayWidth * 0.5}
         fill="none"
       />
       {/* Center dot */}
-      <circle cx={center} cy={center} r={innerRadius * 0.25} fill="#C9A84C" />
+      <circle cx={center} cy={center} r={innerRadius * 0.25} fill="#DDAA55" />
     </svg>
   );
 }
 
 export default CoachDashboardBackground;
+

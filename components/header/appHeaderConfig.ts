@@ -8,7 +8,6 @@ import {
   FileCheck,
   HelpCircle,
   History,
-  Home,
   Info,
   LayoutDashboard,
   LifeBuoy,
@@ -228,6 +227,8 @@ function avatarItems(role: HeaderRole): HeaderAvatarItem[] {
       common('settings', 'Settings', '/coach/settings', 'Sign-in details and account safety', Settings2),
       common('preferences', 'Preferences', '/coach/settings#appearance', 'Appearance, language and sound', SlidersHorizontal),
       common('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
+      common('support', 'Contact support', '/support', 'Reach the GroovePH admin team', LifeBuoy),
+      common('about', 'About Groove', '/about', 'Our story, mission, how it works & contact', Info),
       { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' },
     ];
   }
@@ -249,6 +250,8 @@ function avatarItems(role: HeaderRole): HeaderAvatarItem[] {
       common('settings', 'Settings', '/client/settings', 'Sign-in details and account safety', Settings2),
       common('preferences', 'Preferences', '/client/settings#appearance', 'Appearance, language and sound', SlidersHorizontal),
       common('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
+      common('support', 'Contact support', '/support', 'Reach the GroovePH admin team', LifeBuoy),
+      common('about', 'About Groove', '/about', 'Our story, mission, how it works & contact', Info),
       { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' },
     ];
   }

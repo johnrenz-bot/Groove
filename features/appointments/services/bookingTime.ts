@@ -17,6 +17,9 @@
  */
 
 import type { Appointment } from '@/lib/types';
+// Relative import (not `@/lib/typography`) — the booking tests execute this
+// module directly with node --experimental-strip-types, which has no webpack alias.
+import { EN_DASH } from '../../../lib/typography.ts';
 
 /** Statuses that still describe a session that can happen. */
 export const ACTIVE_BOOKING_STATUSES = [
@@ -24,6 +27,7 @@ export const ACTIVE_BOOKING_STATUSES = [
   'accepted',
   'agreement_required',
   'confirmed',
+  'in_progress',
 ] as const;
 
 export function isActiveStatus(status: string | null | undefined): boolean {
@@ -31,7 +35,7 @@ export function isActiveStatus(status: string | null | undefined): boolean {
 }
 
 /** Statuses that occupy a time slot on the client's own calendar. */
-const OCCUPYING_STATUSES = ['accepted', 'agreement_required', 'confirmed'] as const;
+const OCCUPYING_STATUSES = ['accepted', 'agreement_required', 'confirmed', 'in_progress'] as const;
 
 export function isOccupyingStatus(status: string | null | undefined): boolean {
   return Boolean(status) && (OCCUPYING_STATUSES as readonly string[]).includes(status as string);
@@ -151,6 +155,9 @@ export function getBookingCountdown(
   nowMs: number
 ): BookingCountdown | null {
   if (!isActiveStatus(status)) return null;
+  if (status === 'in_progress') {
+    return { text: 'In session now', tone: 'urgent', startsAt: parseBookingStart(date, startTime) ?? new Date() };
+  }
   const startsAt = parseBookingStart(date, startTime);
   if (!startsAt) return null;
 
@@ -446,7 +453,7 @@ export function bookedWindowsForDate(
       return {
         start,
         end,
-        label: `${formatClock(appointment.start_time)} – ${formatClock(appointment.end_time)}`,
+        label: `${formatClock(appointment.start_time)} ${EN_DASH} ${formatClock(appointment.end_time)}`,
       };
     });
   return windows.filter((window): window is BookedWindow => window !== null);
@@ -480,7 +487,7 @@ export function clientBusyWindowsForDate(
       return {
         start,
         end,
-        label: `${formatClock(appointment.start_time)} – ${formatClock(appointment.end_time)}`,
+        label: `${formatClock(appointment.start_time)} ${EN_DASH} ${formatClock(appointment.end_time)}`,
       };
     });
   return [
@@ -588,21 +595,40 @@ export function summarizeBookings<T extends BookingLike>(
 
   for (const item of items) {
     const status = item.appointment.status;
-    if (isActiveStatus(status)) active++;
+    const start = parseBookingStart(item.appointment.date, item.appointment.start_time);
+    const startsInFuture = start ? start.getTime() > nowMs : false;
+
+    // "Active" means the session can still happen: the status is live AND the
+    // start time has not passed. A past pending/accepted/agreement_required is
+    // either awaiting the sweeper or a completed-never-confirmed relic — it is
+    // never counted as open or active again. In progress is always active.
+    if (status === 'in_progress') active++;
+    else if (status === 'confirmed' && startsInFuture) active++;
     if (status === 'completed') completed++;
 
+    const startMs = start?.getTime() ?? Infinity;
     if (role === 'coach') {
-      if (status === 'pending' || status === 'accepted' || status === 'agreement_required') {
+      if (
+        (status === 'pending' || status === 'accepted' || status === 'agreement_required') &&
+        startMs > nowMs
+      ) {
         needsAction++;
       }
-    } else if (status === 'agreement_required' || status === 'pending') {
+    } else if (
+      (status === 'agreement_required' || status === 'pending') &&
+      startMs > nowMs
+    ) {
       needsAction++;
     }
 
-    if (status !== 'accepted' && status !== 'agreement_required' && status !== 'confirmed') {
+    if (
+      status !== 'accepted' &&
+      status !== 'agreement_required' &&
+      status !== 'confirmed' &&
+      status !== 'in_progress'
+    ) {
       continue;
     }
-    const start = parseBookingStart(item.appointment.date, item.appointment.start_time);
     if (!start || start.getTime() <= nowMs) continue;
     if (start.getTime() < nextAt) {
       nextAt = start.getTime();
@@ -655,4 +681,170 @@ export function composeCoachLocation(coach: {
   if (city) return city;
   if (province) return province;
   return coach.address_summary?.trim() ?? '';
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tab model — shared by the client and coach appointments pages                */
+/* -------------------------------------------------------------------------- */
+
+export type BookingTab =
+  | 'all'
+  | 'upcoming'
+  | 'awaiting'
+  | 'past'
+  | 'cancelled'
+  | 'requests'
+  | 'today';
+
+/** 'YYYY-MM-DD' for the current Asia/Manila calendar day. */
+export function manilaToday(nowMs: number): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(nowMs));
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
+
+/** Monday..Sunday of the Manila week containing `nowMs`, as ISO dates. */
+export function manilaWeekBounds(nowMs: number): { start: string; end: string } {
+  const today = manilaToday(nowMs);
+  const [y, m, d] = today.split('-').map(Number);
+  const day = new Date(Date.UTC(y, m - 1, d));
+  const weekday = (day.getUTCDay() + 6) % 7; // Monday = 0
+  const monday = new Date(day);
+  monday.setUTCDate(day.getUTCDate() - weekday);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  const iso = (date: Date) => date.toISOString().slice(0, 10);
+  return { start: iso(monday), end: iso(sunday) };
+}
+
+export function isTerminalStatus(status: string | null | undefined): boolean {
+  return (
+    status === 'completed' ||
+    status === 'declined' ||
+    status === 'cancelled' ||
+    status === 'expired' ||
+    status === 'no_show'
+  );
+}
+
+/**
+ * Which tab a booking belongs to. Client model:
+ *   all / upcoming (accepted|confirmed|in_progress with a future or in-session
+ *   slot) / awaiting (pending|agreement_required with a future slot) /
+ *   past (completed|no_show, or a confirmed/past slot) /
+ *   cancelled (cancelled|declined|expired, or a still-"awaiting" row whose slot passed).
+ * Returns one key per booking.
+ */
+export function clientTabFor(
+  item: BookingLike,
+  nowMs: number
+): Exclude<BookingTab, 'all' | 'requests' | 'today'> {
+  const status = item.appointment.status;
+  const start = parseBookingStart(item.appointment.date, item.appointment.start_time);
+  const inFuture = start ? start.getTime() > nowMs : true;
+
+  if (status === 'completed' || status === 'no_show') return 'past';
+  if (status === 'cancelled' || status === 'declined' || status === 'expired') return 'cancelled';
+  if (status === 'in_progress') return 'upcoming';
+  if (status === 'confirmed') return inFuture ? 'upcoming' : 'past';
+  if (status === 'pending' || status === 'agreement_required') {
+    return inFuture ? 'awaiting' : 'cancelled';
+  }
+  if (status === 'accepted') {
+    return inFuture ? 'upcoming' : 'cancelled';
+  }
+  return 'past';
+}
+
+/** Counts per client tab in one pass. */
+export function clientTabCounts<T extends BookingLike>(
+  items: readonly T[],
+  nowMs: number
+): Record<'all' | 'upcoming' | 'awaiting' | 'past' | 'cancelled', number> {
+  const out = { all: items.length, upcoming: 0, awaiting: 0, past: 0, cancelled: 0 };
+  for (const item of items) out[clientTabFor(item, nowMs)]++;
+  return out;
+}
+
+/**
+ * Which tab a booking belongs to. Coach model:
+ *   requests (pending) / today (everything non-terminal scheduled for the
+ *   Manila today) / upcoming (future, non-terminal, not pending) /
+ *   past (completed|no_show, or confirmed/in_progress whose slot passed) /
+ *   cancelled (cancelled|declined|expired, or an overdue awaiting row).
+ */
+export function coachTabFor(
+  item: BookingLike,
+  nowMs: number
+): Exclude<BookingTab, 'all' | 'awaiting'> {
+  const status = item.appointment.status;
+  const today = manilaToday(nowMs);
+  const start = parseBookingStart(item.appointment.date, item.appointment.start_time);
+  const inFuture = start ? start.getTime() > nowMs : true;
+  const isToday = item.appointment.date === today;
+
+  if (status === 'completed' || status === 'no_show') return 'past';
+  if (status === 'cancelled' || status === 'declined' || status === 'expired') return 'cancelled';
+  if (isToday && !isTerminalStatus(status)) return 'today';
+  if (status === 'pending') return inFuture ? 'requests' : 'cancelled';
+  if (status === 'in_progress') return 'today';
+  if (status === 'confirmed' && !inFuture) return 'past';
+  return 'upcoming';
+}
+
+/** Counts per coach tab in one pass. */
+export function coachTabCounts<T extends BookingLike>(
+  items: readonly T[],
+  nowMs: number
+): Record<'all' | 'requests' | 'today' | 'upcoming' | 'past' | 'cancelled', number> {
+  const out = { all: items.length, requests: 0, today: 0, upcoming: 0, past: 0, cancelled: 0 };
+  for (const item of items) out[coachTabFor(item, nowMs)]++;
+  return out;
+}
+
+export interface CoachScheduleStats {
+  /** Pending requests with a future slot. */
+  requestsWaiting: number;
+  /** Non-terminal sessions dated for the Manila today. */
+  todayCount: number;
+  /** Confirmed or in-progress sessions this Manila week. */
+  thisWeek: number;
+  completed: number;
+}
+
+export function summarizeCoachSchedule<T extends BookingLike>(
+  items: readonly T[],
+  nowMs: number
+): CoachScheduleStats {
+  const today = manilaToday(nowMs);
+  const { start, end } = manilaWeekBounds(nowMs);
+  let requestsWaiting = 0;
+  let todayCount = 0;
+  let thisWeek = 0;
+  let completed = 0;
+
+  for (const item of items) {
+    const status = item.appointment.status;
+    const date = item.appointment.date;
+    const s = parseBookingStart(date, item.appointment.start_time);
+    const future = s ? s.getTime() > nowMs : true;
+
+    if (status === 'pending' && future) requestsWaiting++;
+    if (date === today && !isTerminalStatus(status)) todayCount++;
+    if (
+      date >= start &&
+      date <= end &&
+      (status === 'confirmed' || status === 'in_progress')
+    ) {
+      thisWeek++;
+    }
+    if (status === 'completed') completed++;
+  }
+
+  return { requestsWaiting, todayCount, thisWeek, completed };
 }

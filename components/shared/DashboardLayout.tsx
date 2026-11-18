@@ -1,31 +1,26 @@
 'use client';
 
 import React from 'react';
-import { AppHeader } from '@/components/header/AppHeader';
-import { AppShell } from '@/components/layout/AppShell';
+import { DashboardChrome } from '@/components/layout/DashboardChrome';
 import { type DashboardRole } from '@/components/header/roleMeta';
 
-import { LoadingScreen } from '@/components/shared/LoadingScreen';
 import { MaintenanceBanner } from '@/components/shared/MaintenanceBanner';
 
 import { ChatProvider, useOptionalChat, GrooveyFloatingAssistant } from '@/features/groovey';
-import { MusicPlayerProvider } from '@/features/music';
-
 /**
  * The dashboard shell.
  *
- * Every role — client, coach AND admin — renders the same `<AppHeader>`. It
- * used to be a fork: the member portals got one header and the admin console
- * got a second, 1,100-line one with its own design tokens. Two headers is what
- * produced the mismatched heights, the language toggle that existed on one
- * route and not another, and the nav that shifted sideways between pages. The
- * role now only chooses DATA — nav items and the wordmark's role line — and the
- * header itself is a single component.
+ * Every role — client, coach AND admin — renders the same <DashboardChrome>:
+ * a fixed carbon sidebar (brand, ⌘K search, grouped nav with an orange active
+ * indicator + collapse-to-icon rail) and a slim sticky top bar (breadcrumbs,
+ * palette trigger, notifications, account menu). The role only chooses DATA —
+ * nav items and the footer badge come from navConfig.ts / roleMeta.ts.
  *
- * There is no sidebar. The header is the navigation for every role, at every
- * width: inline links and dropdowns from `lg` up, and one drawer below it. The
- * content column is governed by AppShell's 1240px container, which mirrors the
- * header's own measure.
+ * Shared informational routes (/community/*, and the auth-aware pages) pass
+ * 'guest' to get the signed-out chrome instead of a member's sidebar.
+ *
+ * One shell, one geometry: anything that should feel like "the app" — spacing,
+ * surfaces, borders, type — is defined once, in globals.css (.dash-*).
  */
 export function DashboardLayout({
   children,
@@ -34,7 +29,8 @@ export function DashboardLayout({
   showMaintenanceBanner = false,
 }: {
   children: React.ReactNode;
-  role: DashboardRole;
+  /** 'guest' renders the signed-out chrome for public informational routes. */
+  role: DashboardRole | 'guest';
   /** Overrides the brand destination. Defaults to the role's own home. */
   homeHref?: string;
   showMaintenanceBanner?: boolean;
@@ -43,25 +39,19 @@ export function DashboardLayout({
 
   const content = (
     <div className="relative isolate min-h-screen bg-background font-sans text-foreground">
-      <LoadingScreen minDuration={500} />
-      <AppShell
-        header={
-          <>
-            <AppHeader homeHref={homeHref} />
-            {showMaintenanceBanner && <MaintenanceBanner />}
-          </>
-        }
-      >
+      <DashboardChrome role={role} homeHref={homeHref}>
+        {showMaintenanceBanner && <MaintenanceBanner />}
         {children}
-      </AppShell>
+      </DashboardChrome>
       <GrooveyFloatingAssistant role={role === 'client' ? 'client' : 'coach'} />
     </div>
   );
 
   const wrappedWithChat = existingChat ? content : <ChatProvider>{content}</ChatProvider>;
 
-  return <MusicPlayerProvider>{wrappedWithChat}</MusicPlayerProvider>;
+  return <>{wrappedWithChat}</>;
 }
 
 export type { DashboardRole };
 export default DashboardLayout;
+

@@ -14,7 +14,7 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-full   bg-card p-1 shadow-sm',
+        'inline-flex items-center rounded-full border border-border bg-card p-1 shadow-sm',
         className
       )}
       role="group"
@@ -45,3 +45,4 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
 }
 
 export default LanguageSwitcher;
+

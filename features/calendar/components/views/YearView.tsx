@@ -51,7 +51,7 @@ export function YearView({
         <section
           key={month.getFullYear() + '-' + index}
           aria-label={month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-          className="rounded-2xl   bg-card p-3"
+          className="rounded-2xl border border-border bg-card p-3"
         >
           <div className="mb-2 flex items-center justify-between gap-2">
             <button

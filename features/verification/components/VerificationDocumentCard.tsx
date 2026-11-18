@@ -134,7 +134,7 @@ export function VerificationDocumentCard({
   return (
     <figure
       className={cn(
-        'flex flex-col overflow-hidden rounded-2xl  bg-card transition-colors',
+        'flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-colors',
         state === 'missing' ? ' ' : ''
       )}
     >
@@ -207,7 +207,7 @@ export function VerificationDocumentCard({
                 onClick={() => onOpen?.(signed.url)}
                 aria-label={`View ${label} full size`}
                 title="View full size"
-                className="cursor-pointer rounded-full   bg-overlay/85 p-1.5 text-foreground backdrop-blur transition-colors hover:bg-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+                className="cursor-pointer rounded-full border border-border bg-overlay/85 p-1.5 text-foreground backdrop-blur transition-colors hover:bg-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
               >
                 <Maximize2 className="h-3.5 w-3.5" />
               </button>
@@ -218,7 +218,7 @@ export function VerificationDocumentCard({
               rel="noreferrer"
               aria-label={`Open ${label} in a new tab`}
               title="Open in a new tab"
-              className="cursor-pointer rounded-full   bg-overlay/85 p-1.5 text-foreground backdrop-blur transition-colors hover:bg-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+              className="cursor-pointer rounded-full border border-border bg-overlay/85 p-1.5 text-foreground backdrop-blur transition-colors hover:bg-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
             >
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
@@ -238,20 +238,20 @@ export function VerificationDocumentCard({
 function PresenceChip({ state }: { state: DocumentState }) {
   if (state === 'missing') {
     return (
-      <span className="shrink-0 rounded-full   bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+      <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
         Missing
       </span>
     );
   }
   if (state === 'error') {
     return (
-      <span className="shrink-0 rounded-full   bg-danger-soft px-2 py-0.5 text-[10px] font-semibold text-danger">
+      <span className="shrink-0 rounded-full border border-border bg-danger-soft px-2 py-0.5 text-[10px] font-semibold text-danger">
         Unreadable
       </span>
     );
   }
   return (
-    <span className="shrink-0 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
+    <span className="shrink-0 rounded-full border border-border bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">
       Submitted
     </span>
   );

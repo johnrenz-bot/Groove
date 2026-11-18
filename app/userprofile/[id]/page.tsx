@@ -217,7 +217,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
          * as "no reviews yet".
          */
         const avgRating = reviews?.length
-          ? reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length
+          ? reviews.reduce((acc: number, curr: any) => acc + curr.rating, 0) / reviews.length
           : null;
 
         setTargetUser({

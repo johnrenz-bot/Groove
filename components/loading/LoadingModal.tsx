@@ -103,7 +103,7 @@ export function LoadingModal({
             exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 8 }}
             transition={{ duration: reduce ? 0 : 0.28, ease: EASE }}
             className={cn(
-              'g-loading-modal relative w-full max-w-[420px] cursor-default overflow-hidden rounded-[24px] border border-[rgba(245,196,81,0.18)] bg-card/95 text-foreground backdrop-blur-[20px]',
+              'g-loading-modal relative w-full max-w-[420px] cursor-default overflow-hidden rounded-[24px] border border-[rgba(221,170,85,0.18)] bg-card/95 text-foreground backdrop-blur-[20px]',
               className
             )}
           >
@@ -113,7 +113,7 @@ export function LoadingModal({
               className="pointer-events-none absolute inset-x-8 top-0 h-px"
               style={{
                 background:
-                  'linear-gradient(90deg, transparent, rgba(245,196,81,0.7), transparent)',
+                  'linear-gradient(90deg, transparent, rgba(221,170,85,0.7), transparent)',
               }}
             />
             {/* ambient wash */}
@@ -122,7 +122,7 @@ export function LoadingModal({
               className="pointer-events-none absolute -top-24 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full"
               style={{
                 background:
-                  'radial-gradient(ellipse, rgba(245,196,81,0.10) 0%, transparent 65%)',
+                  'radial-gradient(ellipse, rgba(221,170,85,0.10) 0%, transparent 65%)',
                 filter: 'blur(30px)',
               }}
             />
@@ -132,9 +132,9 @@ export function LoadingModal({
                 <div
                   aria-hidden="true"
                   className="g-orbit-slow absolute -inset-2.5 rounded-full motion-reduce:animate-none"
-                  style={{ border: '1px dashed rgba(245,196,81,0.3)' }}
+                  style={{ border: '1px dashed rgba(221,170,85,0.3)' }}
                 />
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[rgba(245,196,81,0.22)] bg-muted">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[rgba(221,170,85,0.22)] bg-muted">
                   <GrooveSpinner variant="orbit" size="xl" label="Loading" />
                 </div>
               </div>
@@ -169,8 +169,8 @@ export function LoadingModal({
                       style={{
                         width: `${fill}%`,
                         background:
-                          'linear-gradient(90deg, #C9A24C, #F5C451 60%, #FFD36B)',
-                        boxShadow: '0 0 14px rgba(245,196,81,0.5)',
+                          'linear-gradient(90deg, #C9A24C, #DDAA55 60%, #FFC477)',
+                        boxShadow: '0 0 14px rgba(221,170,85,0.5)',
                         transition: 'width 280ms cubic-bezier(0.16,1,0.3,1)',
                       }}
                     />
@@ -180,13 +180,13 @@ export function LoadingModal({
                       className="g-progress-sheen absolute inset-y-0 w-1/2 rounded-full motion-reduce:animate-none"
                       style={{
                         background:
-                          'linear-gradient(90deg, transparent, rgba(245,196,81,0.55), transparent)',
+                          'linear-gradient(90deg, transparent, rgba(221,170,85,0.55), transparent)',
                       }}
                     />
                   )}
                 </div>
                 {fill !== null ? (
-                  <p className="mt-2 text-[11px] font-medium tabular-nums tracking-[0.08em] text-[#F5C451]">
+                  <p className="mt-2 text-[11px] font-medium tabular-nums tracking-[0.08em] text-[#DDAA55]">
                     {fill}%
                   </p>
                 ) : null}
@@ -196,7 +196,7 @@ export function LoadingModal({
                 <button
                   type="button"
                   onClick={onDismiss}
-                  className="mt-5 rounded-full border border-border px-4 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:-translate-y-px hover:border-[rgba(245,196,81,0.45)] hover:text-accent-text hover:shadow-[0_6px_18px_-8px_rgba(245,196,81,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none"
+                  className="mt-5 rounded-full border border-border px-4 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:-translate-y-px hover:border-[rgba(221,170,85,0.45)] hover:text-accent-text hover:shadow-[0_6px_18px_-8px_rgba(221,170,85,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none"
                 >
                   Dismiss
                 </button>
@@ -211,3 +211,4 @@ export function LoadingModal({
 }
 
 export default LoadingModal;
+

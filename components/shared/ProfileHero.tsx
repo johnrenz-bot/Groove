@@ -106,7 +106,7 @@ export function ProfileHero({
     let cancelled = false;
     void createClient()
       .auth.getUser()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (!cancelled) setViewerId(data?.user?.id ?? null);
       });
     return () => {
@@ -184,7 +184,7 @@ export function ProfileHero({
       <div className="relative px-5 pb-5 pt-6 sm:px-7 sm:pb-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
           <div className="relative shrink-0">
-            <div className="h-24 w-24 overflow-hidden rounded-2xl   bg-muted shadow-[var(--shadow-sm)] sm:h-28 sm:w-28">
+            <div className="h-24 w-24 overflow-hidden rounded-2xl border border-border bg-muted shadow-[var(--shadow-sm)] sm:h-28 sm:w-28">
               {photoUrl && !photoFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -220,7 +220,7 @@ export function ProfileHero({
               <span
                 title="Philippines"
                 aria-label="Philippines"
-                className="inline-flex items-center gap-1.5 rounded-full   bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-xs"
               >
                 <PhilippineFlag />
                 <span>Philippines</span>
@@ -281,7 +281,7 @@ export function ProfileHero({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={publicHref}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg   bg-surface px-3 text-xs font-semibold text-foreground transition hover: hover:bg-muted"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
               Preview Profile
@@ -297,7 +297,7 @@ export function ProfileHero({
                 aria-pressed={isFollowing}
                 className={`inline-flex h-9 min-w-[108px] items-center justify-center gap-1.5 rounded-lg px-3.5 text-xs font-bold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 ${
                   isFollowing
-                    ? '  bg-accent-soft text-accent-text hover:bg-accent/20'
+                    ? '  border-accent-border bg-accent-soft text-accent-text hover:bg-accent/20'
                     : 'bg-accent text-accent-foreground hover:bg-accent-hover'
                 }`}
               >
@@ -377,3 +377,4 @@ function Stat({
 }
 
 export default ProfileHero;
+

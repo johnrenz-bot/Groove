@@ -211,7 +211,7 @@ function NotificationCard({
       role="status"
       aria-live="polite"
       className={cn(
-        'pointer-events-auto flex w-full max-w-[27rem] items-start gap-3 rounded-2xl  px-3.5 py-3',
+        'pointer-events-auto flex w-full max-w-[27rem] items-start gap-3 rounded-2xl border border-border px-3.5 py-3',
         'bg-[#111110]/95 text-[#f7f0e1] shadow-[0_18px_50px_-18px_rgba(0,0,0,0.92)]',
         'backdrop-blur-md supports-[backdrop-filter]:bg-[#111110]/88',
         isDanger ? '' : '(--brand-sunburst-)]'
@@ -221,7 +221,7 @@ function NotificationCard({
         className={cn(
           'mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full ',
           isDanger
-            ? ' bg-danger/15 text-danger'
+            ? ' border-danger/30 bg-danger/15 text-danger'
             : '(--brand-sunburst-)] bg-[rgba(244,190,77,0.14)] text-[var(--brand-sunburst)]'
         )}
         aria-hidden="true"
@@ -256,7 +256,7 @@ function NotificationCard({
               item.action?.onClick();
               onDismiss(item.id);
             }}
-            className="inline-flex h-8 cursor-pointer items-center rounded-full  (244,190,77,0.4)] bg-[rgba(244,190,77,0.1)] px-2.5 text-[11px] font-semibold text-[#f4be4d] transition-colors hover:bg-[rgba(244,190,77,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--brand-sunburst)]"
+            className="inline-flex h-8 cursor-pointer items-center rounded-full  (244,190,77,0.4)] bg-[rgba(244,190,77,0.1)] px-2.5 text-[11px] font-semibold text-[#DDAA55] transition-colors hover:bg-[rgba(244,190,77,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--brand-sunburst)]"
           >
             {item.action.label}
           </button>
@@ -280,3 +280,4 @@ export function useSuccessNotifications() {
 }
 
 export default SuccessNotificationProvider;
+

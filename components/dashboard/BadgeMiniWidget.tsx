@@ -65,3 +65,4 @@ export function BadgeMiniWidget({ userId, role }: BadgeMiniWidgetProps) {
 }
 
 export default BadgeMiniWidget;
+

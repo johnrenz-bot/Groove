@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatCard } from '@/components/shared/StatCard';
+import { MetricStatCard } from '@/components/dashboard/MetricStatCard';
 
 export interface StatRowItem {
   value: React.ReactNode;
@@ -28,7 +28,7 @@ export function StatRow({ stats, loading = false }: StatRowProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
       {stats.map((s, i) => (
-        <StatCard
+        <MetricStatCard
           key={i}
           value={s.value}
           label={s.label}
@@ -42,3 +42,4 @@ export function StatRow({ stats, loading = false }: StatRowProps) {
 }
 
 export default StatRow;
+

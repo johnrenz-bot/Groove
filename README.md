@@ -94,6 +94,10 @@ The platform serves three distinct audiences behind a single Next.js application
 - Bilingual English / Tagalog dictionary layer.
 - Welcome email dispatch on successful registration (best-effort; never blocks registration).
 
+### Music playback
+- Persistent, docked music player available across the authenticated portals. Playback uses embedded YouTube players (official uploads) and, where available, CC-licensed/royalty-free direct audio streams.
+- No audio is downloaded, ripped, proxied or re-hosted by GroovePH. YouTube embeds comply with the terms of service; the hidden-player approach used for background audio is a known grey area — if the app is launched publicly, prefer either a visible embedded player or switching wholly to licensed/royalty-free audio with full attribution in the player.
+
 ---
 
 ## Tech Stack

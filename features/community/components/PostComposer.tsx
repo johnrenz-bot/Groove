@@ -194,11 +194,11 @@ export function PostComposer({
   return (
     <form
       onSubmit={handleCreatePost}
-      className="rounded-2xl   bg-card p-3.5 shadow-[var(--shadow-sm)] transition-all hover: sm:p-4"
+      className="rounded-2xl border border-border bg-card p-3.5 shadow-[var(--shadow-sm)] transition-all hover: sm:p-4"
     >
       {/* Row 1: Avatar and Text Input on the SAME row */}
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold text-foreground shadow-2xs">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold text-foreground shadow-2xs">
           {currentUser.photo_url ? (
             <img
               src={currentUser.photo_url}
@@ -224,7 +224,7 @@ export function PostComposer({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
-              'w-full resize-none rounded-xl  bg-muted/30 px-3.5 py-2.5 text-xs sm:text-[13px] leading-relaxed text-foreground placeholder:text-muted-foreground transition-all duration-200',
+              'w-full resize-none rounded-xl border border-border bg-muted/30 px-3.5 py-2.5 text-xs sm:text-[13px] leading-relaxed text-foreground placeholder:text-muted-foreground transition-all duration-200',
               'focus:bg-card focus: focus: focus: focus:',
               isFocused || caption ? ' shadow-inner' : ''
             )}
@@ -234,7 +234,7 @@ export function PostComposer({
 
       {/* Media Preview (if media selected) */}
       {mediaPreview && mediaFile && (
-        <div className="relative mt-3 overflow-hidden rounded-xl   bg-black/40">
+        <div className="relative mt-3 overflow-hidden rounded-xl border border-border bg-black/40">
           {mediaFile.type.startsWith('video') ? (
             <video
               src={mediaPreview}
@@ -276,7 +276,7 @@ export function PostComposer({
       <div className="mt-3 flex items-center justify-between gap-2   pt-2.5">
         <div className="flex flex-wrap items-center gap-2">
           {/* Add Media Button */}
-          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg   bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover: hover:bg-muted active:scale-[0.98]">
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-border-strong hover:bg-muted active:scale-[0.98]">
             <ImageIcon className="h-4 w-4 text-accent-text" aria-hidden="true" />
             <span>{t('showcase.addMedia', 'Add Media')}</span>
             <input
@@ -292,10 +292,10 @@ export function PostComposer({
           {community && (
             <span
               className={cn(
-                'inline-flex min-w-0 items-center gap-1.5 rounded-lg  px-2.5 py-1.5 text-[11px] font-medium transition-colors',
+                'inline-flex min-w-0 items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium transition-colors',
                 browsingTalentLabel && browsingTalentLabel !== community
                   ? ' bg-warning-soft text-warning'
-                  : ' bg-muted/60 text-muted-foreground'
+                  : ' border border-border bg-muted/60 text-muted-foreground'
               )}
             >
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
@@ -323,12 +323,12 @@ export function PostComposer({
           ) : (
             <Send className="h-3.5 w-3.5" aria-hidden="true" />
           )}
-          <span>{uploading ? t('common.uploading', 'Uploading�') : submitting ? t('common.posting', 'Posting�') : t('showcase.sharePost', 'Share Post')}</span>
+          <span>{uploading ? t('common.uploading', 'Uploading…') : submitting ? t('common.posting', 'Posting…') : t('showcase.sharePost', 'Share Post')}</span>
         </button>
       </div>
 
       {error && (
-        <div role="alert" className="mt-2.5 rounded-lg   bg-danger-soft px-3 py-2 text-xs text-danger">
+        <div role="alert" className="mt-2.5 rounded-lg border border-border bg-danger-soft px-3 py-2 text-xs text-danger">
           {error}
         </div>
       )}
@@ -337,3 +337,4 @@ export function PostComposer({
 }
 
 export default PostComposer;
+

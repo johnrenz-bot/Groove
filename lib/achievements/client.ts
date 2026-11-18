@@ -31,11 +31,11 @@ export async function getUserAchievementsWithProgress(
 
   if (uaError) throw new Error(`Failed to fetch user achievements: ${uaError.message}`);
 
-  const progressMap = new Map(
-    (userAchievements || []).map(ua => [ua.achievement_id, ua])
+  const progressMap = new Map<string, any>(
+    (userAchievements || []).map((ua: any): [string, any] => [ua.achievement_id, ua])
   );
 
-  const tasks: AchievementWithProgress[] = (achievements || []).map(ach => {
+  const tasks: AchievementWithProgress[] = (achievements || []).map((ach: any) => {
     const ua = progressMap.get(ach.id);
     return {
       ...ach,

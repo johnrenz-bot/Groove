@@ -1,10 +1,11 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createPerformingArtsServerClient } from '../../../lib/supabase/serviceClient.ts';
 import type { DanceUpdateInput } from '../../../lib/dance/schema.ts';
 import { DEFAULT_LIMIT, MAX_LIMIT, UPCOMING_CATEGORIES } from '../../../lib/dance/constants.ts';
 import { resolveVerifiedItemImage } from '../../../lib/dance/imageVerification.ts';
 // Relative (no @/ alias): this service is also imported by scripts run through
 // `node --experimental-strip-types`, which cannot resolve the webpack alias.
-import { buildOrContains } from '../../../lib/postgrest.ts';
+import { buildOrContains, buildAnyContains } from '../../../lib/postgrest.ts';
+import { getLeagueById, leagueForOrganization } from '../data/leagues.ts';
 import { isImageUsedGlobally } from '../../../lib/dance/globalImageDedup.ts';
 import { VERIFIED_DANCE_UPDATES } from '../data/danceUpdates.ts';
 
@@ -46,18 +47,7 @@ export interface DanceUpdateRecord extends DanceUpdateInput {
  * falling back to anon key.
  */
 export function getDanceServerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    'placeholder-anon-key';
-
-  return createSupabaseClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
+  return createPerformingArtsServerClient();
 }
 
 /**
@@ -84,6 +74,7 @@ export async function getPublishedDanceUpdates(params: {
   region?: string;
   category?: string;
   org?: string;
+  league?: string;
   q?: string;
   page?: number;
   limit?: number;
@@ -111,6 +102,14 @@ export async function getPublishedDanceUpdates(params: {
 
     if (params.org && params.org !== 'all') {
       query = query.ilike('organization', `%${params.org}%`);
+    }
+
+    // League attribution: only the registry's match tokens are interpolated,
+    // never caller-controlled text. A dispatch that cannot be attributed stays
+    // visible under "All leagues" and under no league filter.
+    const league = params.league && params.league !== 'all' ? getLeagueById(params.league) : null;
+    if (league) {
+      query = query.or(buildAnyContains('organization', league.matchTokens));
     }
 
     if (params.q && params.q.trim()) {
@@ -152,6 +151,7 @@ function filterFallbackUpdates(
     region?: string;
     category?: string;
     org?: string;
+    league?: string;
     q?: string;
   },
   page: number,
@@ -175,6 +175,10 @@ function filterFallbackUpdates(
         u.organization.toLowerCase().includes(org) ||
         (org === 'idl' && u.organization.toLowerCase() === 'idl')
     );
+  }
+
+  if (params.league && params.league !== 'all') {
+    filtered = filtered.filter((u) => leagueForOrganization(u.organization)?.id === params.league);
   }
 
   if (params.q && params.q.trim()) {
@@ -279,15 +283,16 @@ function selectUpcoming(updates: DanceUpdateRecord[], now: Date, timeZone: strin
  * keeps the full record of what happened.
  */
 export async function getUpcomingDanceEvents(
-  opts: { now?: Date; timeZone?: string } = {}
+  opts: { now?: Date; timeZone?: string; league?: string } = {}
 ) {
   const now = opts.now ?? new Date();
   const timeZone = opts.timeZone ?? 'Asia/Manila';
+  const league = opts.league && opts.league !== 'all' ? getLeagueById(opts.league) : null;
 
   try {
     const supabase = getDanceServerClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('dance_updates')
       .select('*')
       .eq('status', 'published')
@@ -295,15 +300,31 @@ export async function getUpcomingDanceEvents(
       .not('event_date', 'is', null)
       .gte('event_date', now.toISOString())
       .order('event_date', { ascending: true })
-      .limit(10);
+      .limit(league ? 50 : 10);
 
-    if (error || !data || data.length === 0) {
-      return { events: selectUpcoming(FALLBACK_UPDATES, now, timeZone) };
+    if (league) {
+      query = query.or(buildAnyContains('organization', league.matchTokens));
     }
 
-    return { events: data as DanceUpdateRecord[] };
+    const { data, error } = await query;
+
+    if (error || !data || data.length === 0) {
+      const fallback = selectUpcoming(FALLBACK_UPDATES, now, timeZone);
+      return {
+        events: league
+          ? fallback.filter((e) => leagueForOrganization(e.organization)?.id === league.id)
+          : fallback,
+      };
+    }
+
+    return { events: (data as DanceUpdateRecord[]).slice(0, 10) };
   } catch {
-    return { events: selectUpcoming(FALLBACK_UPDATES, now, timeZone) };
+    const fallback = selectUpcoming(FALLBACK_UPDATES, now, timeZone);
+    return {
+      events: league
+        ? fallback.filter((e) => leagueForOrganization(e.organization)?.id === league.id)
+        : fallback,
+    };
   }
 }
 

@@ -6,7 +6,7 @@ export type { LoadingScreenProps } from './LoadingScreen';
 export { LoadingModal } from './LoadingModal';
 export type { LoadingModalProps } from './LoadingModal';
 export { LoadingState, RouteSkeleton } from './LoadingState';
-export { RouteLoadingIndicator } from './RouteTransition';
+export { TopProgressBar } from './TopProgressBar';
 export {
   GROOVE_LOADING_MESSAGES,
   GROOVE_LOADING_SUBTITLES,

@@ -7,15 +7,24 @@ export type UserStatus = 'active' | 'pending' | 'suspended' | 'offline' | 'onlin
  * the database moves a booking through them, and guard_booking_transition()
  * refuses to skip a step. 'confirmed' is reachable ONLY through the
  * both-signed trigger on the agreement — never by writing it directly.
+ *
+ * 'expired', 'in_progress' and 'no_show' are real enum labels as of
+ * 36_booking_lifecycle_enum.sql; the UI shows them whenever the database holds
+ * them. A booking whose start time has passed without a response is
+ * auto-expired by the database (37_booking_lifecycle_cron.sql) or marked on
+ * read by the app and persisted via expire_past_bookings().
  */
 export type AppointmentStatus =
   | 'pending'
   | 'accepted'
   | 'agreement_required'
   | 'confirmed'
+  | 'in_progress'
+  | 'completed'
   | 'declined'
   | 'cancelled'
-  | 'completed';
+  | 'expired'
+  | 'no_show';
 export type PaymentMode = 'cash' | 'online';
 
 export interface Profile {
@@ -141,6 +150,10 @@ export interface Appointment {
   declined_at?: string | null;
   cancelled_at?: string | null;
   completed_at?: string | null;
+  /** Lifecycle stamps added by 37_booking_lifecycle_cron.sql. */
+  in_progress_at?: string | null;
+  no_show_at?: string | null;
+  expired_at?: string | null;
   /**
    * A reschedule REQUEST, not a rescheduled status. The enum has no
    * `rescheduled` label, so the client records the desired time in these

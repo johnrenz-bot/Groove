@@ -44,3 +44,4 @@ export function ReportIssueLink({ itemTitle, itemId, kind = 'Listing', pagePath,
 }
 
 export default ReportIssueLink;
+

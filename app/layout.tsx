@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './fonts.css';
 import './globals.css';
 import '../src/styles/theme.css';
+import { MusicPlayerProvider } from '@/features/music';
+import { PlayerGate } from '@/components/player/PlayerGate';
 import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 import { SessionProvider } from '@/components/header/SessionProvider';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -9,11 +11,11 @@ import { PagePatterns } from '@/components/layout/PagePatterns';
 import { PlatformThemeSync } from '@/components/theme/PlatformThemeSync';
 import { RouteThemeEnforcer } from '@/components/theme/RouteThemeEnforcer';
 import { AppLoadingSplash } from '@/components/shared/AppLoadingSplash';
-import { PresenceBridge } from '@/components/shared/PresenceBridge';
+import { PresenceBridge } from '@/features/presence/components/PresenceBridge';
 import { ClickSoundBridge } from '@/features/sound/components/ClickSoundBridge';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 import { PageTransition } from '@/components/layout/PageTransition';
-import { RouteLoadingIndicator } from '@/components/loading/RouteTransition';
+import { TopProgressBar } from '@/components/loading/TopProgressBar';
 import { BackToTopButton } from '@/components/shared/BackToTopButton';
 import { CustomCursor } from '@/components/shared/CustomCursor';
 import { SuccessNotificationProvider } from '@/components/notifications/SuccessNotificationProvider';
@@ -215,7 +217,7 @@ export default function RootLayout({
                 <PlatformThemeSync />
                 <RouteThemeEnforcer />
                 <AppLoadingSplash />
-                <RouteLoadingIndicator />
+                <TopProgressBar />
                 {/* One presence subscription for the whole app, so /messages, coach
                     cards and the header all read the same live value. */}
                 <PresenceBridge />
@@ -234,7 +236,12 @@ export default function RootLayout({
                 <SmoothScrollProvider>
                   <PagePatterns />
                   <PageTransition>
-                    <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+                    <div className="relative z-10 flex min-h-screen flex-col">
+                      <MusicPlayerProvider>
+                        <PlayerGate />
+                        {children}
+                      </MusicPlayerProvider>
+                    </div>
                   </PageTransition>
                   <BackToTopButton />
                   <CustomCursor />

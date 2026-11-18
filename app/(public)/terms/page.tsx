@@ -273,10 +273,10 @@ export default function TermsAndConditionsPage() {
         <section id="contact" className="scroll-mt-24">
           <SectionHeading title="Contact" icon={<Mail className="h-4 w-4" />} />
           <Prose>
-            <div className="flex items-center gap-4 rounded-2xl   bg-card/60 p-5">
+            <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-5">
               <span
                 aria-hidden="true"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl   bg-muted text-accent-text"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-accent-text"
               >
                 <Mail className="h-4 w-4" />
               </span>
@@ -308,7 +308,7 @@ function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode 
     <div className="mb-4 flex items-center gap-3.5">
       <span
         aria-hidden="true"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-accent-soft text-accent-text"
       >
         {icon}
       </span>
@@ -340,7 +340,7 @@ function Callout({
   } as const;
 
   return (
-    <div className={`flex gap-3 rounded-xl  p-4 text-sm leading-relaxed ${tones[tone]}`}>
+    <div className={`flex gap-3 rounded-xl border border-border p-4 text-sm leading-relaxed ${tones[tone]}`}>
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
       <div className="text-foreground">{children}</div>
     </div>

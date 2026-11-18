@@ -9,6 +9,8 @@ export interface GradientButtonProps extends React.ButtonHTMLAttributes<HTMLButt
   trailingIcon?: React.ReactNode;
 }
 
+/** Groove Orange gradient — the one gradient in the product. Accent is
+ *  token-driven, so it tracks the global theme (dark carbon / cream light). */
 export const GradientButton = React.forwardRef<HTMLButtonElement, GradientButtonProps>(
   ({ loading, icon, trailingIcon, children, className = '', disabled, ...props }, ref) => {
     return (
@@ -16,10 +18,10 @@ export const GradientButton = React.forwardRef<HTMLButtonElement, GradientButton
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'group inline-flex items-center justify-center gap-2 rounded-[12px] px-5 py-3 text-sm font-semibold text-black',
-          'bg-gradient-to-r from-[#f4be4d] to-[#e5af40] shadow-[0_0_30px_rgba(244,190,77,0.35)]',
-          'transition-all duration-200 hover:from-[#e5af40] hover:to-[#d9a43a] hover:shadow-[0_0_40px_rgba(244,190,77,0.45)] hover:-translate-y-px',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f4be4d] focus-visible:ring-offset-2 focus-visible:ring-offset-black',
+          'group inline-flex items-center justify-center gap-2 rounded-[12px] border border-accent-border px-5 py-3 text-sm font-bold text-accent-foreground',
+          'bg-gradient-to-r from-[var(--accent-hover)] to-[var(--accent)] shadow-[var(--shadow-accent)]',
+          'transition-all duration-200 hover:from-[var(--accent-hover)] hover:to-[var(--accent-hover)] hover:shadow-[var(--shadow-accent)] hover:-translate-y-px',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           'disabled:pointer-events-none disabled:opacity-50 active:translate-y-0',
           className
         )}
@@ -42,3 +44,4 @@ export const GradientButton = React.forwardRef<HTMLButtonElement, GradientButton
 GradientButton.displayName = 'GradientButton';
 
 export default GradientButton;
+

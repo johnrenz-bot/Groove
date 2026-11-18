@@ -169,8 +169,8 @@ export async function fetchFollowList(
   const ids = [
     ...new Set(
       (edges ?? [])
-        .map((r) => (r as Record<string, unknown>)[peopleCol])
-        .filter((v): v is string => typeof v === 'string' && v.length > 0)
+        .map((r: any) => (r as Record<string, unknown>)[peopleCol])
+        .filter((v: any): v is string => typeof v === 'string' && v.length > 0)
     ),
   ];
   if (ids.length === 0) return { people: [], missingTable: false, hasMore: false };
@@ -210,8 +210,8 @@ export async function fetchFollowingState(
   if (error) return new Set();
   return new Set(
     (data ?? [])
-      .map((r) => r.following_id)
-      .filter((v): v is string => typeof v === 'string' && v.length > 0)
+      .map((r: any) => r.following_id)
+      .filter((v: any): v is string => typeof v === 'string' && v.length > 0)
   );
 }
 

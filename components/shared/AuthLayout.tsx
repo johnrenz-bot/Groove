@@ -13,10 +13,11 @@ import { AnimatedLogo } from '@/components/header/AnimatedLogo';
  * THE AUTH SHELL — one component behind /login, /register/*,
  * /forgot-password and /reset-password.
  *
- * Enhanced with AmbientBackground for cinematic depth.
- * Split layout on desktop: form panel + cinematic image panel.
- * Glass form card with animated focus rings.
- * Respects theme (light/dark) via CSS tokens.
+ * Layout is unchanged in spirit: the existing textured dark backdrop, the
+ * right-side illustration panel on split routes, and the GroovePH lockup in
+ * the top-left. The form column is now a single flat card (16px radius,
+ * hairline border, 24px padding) with the logo tile, title and subtitle at
+ * its top, matching the reference design language.
  */
 export function AuthLayout({
   children,
@@ -29,13 +30,9 @@ export function AuthLayout({
   footer,
   wide = false,
   split = false,
-  /**
-   * Registration-only presentation. It opts the shared card into the wider,
-   * quieter registration surface, skips the brand bar, and renders the
-   * "Back to login" button at the top of the form column instead.
-   */
   registration = false,
-  // Role-specific image panel content for registration pages
+  wizard = false,
+  backLink,
   imagePanelTitle,
   imagePanelDescription,
   imagePanelImage,
@@ -55,6 +52,10 @@ export function AuthLayout({
   split?: boolean;
   /** Use the registration-sized form surface. */
   registration?: boolean;
+  /** Wide wizard surface. The children own the card header and progress. */
+  wizard?: boolean;
+  /** Optional quiet link rendered above the card header (e.g. "Back to login"). */
+  backLink?: React.ReactNode;
   /** Optional: title for the image panel (split mode) */
   imagePanelTitle?: string;
   /** Optional: description for the image panel (split mode) */
@@ -62,46 +63,56 @@ export function AuthLayout({
   /** Optional: custom image for the image panel (split mode) */
   imagePanelImage?: string;
 }) {
+  const logoNode = logo ?? (
+    <Image
+      src="/image/Logo/GroovePH-Logo.png"
+      alt=""
+      width={34}
+      height={34}
+      priority
+      className="av-brand-mark"
+    />
+  );
+
   const stack = (
     <div
       className={cn(
         'au-stack',
+        'av-stack',
         split
-          ? 'au-stack--split'
-          : registration
-            ? 'au-stack--registration'
-            : wide
-              ? 'au-stack--wide'
-              : 'au-stack--narrow'
+          ? 'av-stack--split'
+          : wizard
+            ? 'av-stack--wizard'
+            : registration
+              ? 'av-stack--registration'
+              : wide
+                ? 'av-stack--wide'
+                : 'av-stack--narrow'
       )}
     >
-      {/* Registration routes: the one way back, pinned to the top of the
-          form column so it is always the first thing seen. */}
-      {registration && (
-        <Link
-          href="/login"
-          className="group inline-flex items-center gap-2 self-start rounded-[8px] bg-card/70 px-3.5 py-2 text-[13px] font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft
-            className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none"
-            aria-hidden="true"
-          />
+      {/* Wizard pages own their "Back to login" action in the footer — rendering
+          a second quiet link above the card would duplicate it. */}
+      {backLink ?? (registration && !wizard ? (
+        <Link href="/login" className="av-back">
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Back to login</span>
         </Link>
-      )}
+      ) : null)}
 
-      <header className={cn('flex flex-col gap-3', registration && 'au-registration-header')}>
-        {logo && <div className="flex justify-center">{logo}</div>}
-        {eyebrow}
-        <h1 className="au-title">{title}</h1>
-        {subtext && <p className="au-lead">{subtext}</p>}
-      </header>
+      <section className={cn('av-card', wizard && 'av-card--wizard')}>
+        {wizard ? null : (
+          <header className="av-head">
+            {eyebrow ? <div className="av-eyebrow">{eyebrow}</div> : null}
+            <span className="av-icon-tile">{logoNode}</span>
+            <h1 className="av-title">{title}</h1>
+            {subtext ? <p className="av-subtitle">{subtext}</p> : null}
+          </header>
+        )}
 
-      <section className={cn('au-card', registration && 'au-card--registration')}>
-        {children}
+        <div className={cn('av-card-body', wizard && 'av-card-body--wizard')}>{children}</div>
       </section>
 
-      {footer}
+      {footer ? <footer className="av-footer">{footer}</footer> : null}
 
       {/* In split mode the quote lives on the photo panel instead. */}
       {quote && !split && (
@@ -116,11 +127,7 @@ export function AuthLayout({
   );
 
   const brandBar = (
-    /* Brand bar. The same mascot mark + GroovePH wordmark lockup on every auth
-       route, so login and password recovery carry the complete brand rather
-       than a different subset of it. Registration routes skip it entirely
-       (see the `!registration` guards at both render sites). */
-    <div className="au-topbar">
+    <div className="au-topbar" data-cursor="native">
       <AnimatedLogo
         href="/"
         variant="lockup"
@@ -130,15 +137,9 @@ export function AuthLayout({
 
       {/* Split mode (login) carries no "Back to home" — the visitor is
           already at the front door. The bare brand remains. */}
-      {!split && (
-        <Link
-          href="/"
-          className="group inline-flex items-center gap-2 rounded-[8px] bg-card/70 px-3.5 py-2 text-[13px] font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft
-            className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none"
-            aria-hidden="true"
-          />
+      {!split && !registration && (
+        <Link href="/" className="av-topbar-link">
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Back to home</span>
         </Link>
       )}
@@ -149,37 +150,41 @@ export function AuthLayout({
   if (split) {
     const panelImage = imagePanelImage || image || '/image/login/LoginPage.jpeg';
     const panelTitle = imagePanelTitle || 'Move to your own rhythm.';
-    const panelDescription = imagePanelDescription || 'Discover verified coaches, book rehearsal studios, and grow your craft in Bulacan\'s premier performing arts hub.';
+    const panelDescription =
+      imagePanelDescription ||
+      "Discover verified coaches, book rehearsal studios, and grow your craft in Bulacan's premier performing arts hub.";
 
     return (
       <div className={cn('au-shell au-shell--split', registration && 'au-shell--registration')}>
-        {/* Ambient background - auth variant (calmer, no particles) */}
         <AmbientBackground variant="auth" className="au-ambient" />
         <PixelBackground intensity="medium" className="opacity-60" />
 
-        {/* Registration routes render no brand bar — the form thinks alone. */}
-        {!registration && brandBar}
+        {brandBar}
 
         <main className="au-split">
           <div className={cn('au-split-form', registration && 'au-split-form--registration')}>
             {stack}
           </div>
 
-          {/* Editorial image panel (right side, ~26%) */}
-          <aside className="au-split-visual" aria-hidden="true">
-            <div className="au-split-visual-inner">
-              <p className="au-split-eyebrow">GroovePH · Performing Arts</p>
-              <h2 className="au-split-title">{panelTitle}</h2>
-              <p className="au-split-desc">{panelDescription}</p>
-              <div className="au-split-image-wrap">
+          {/* Editorial image panel (right side). Decorative only. */}
+          <aside className="au-split-visual" aria-hidden="true" data-cursor="native">
+            <div className="au-split-visual-inner" data-cursor="native">
+              <div className="au-split-image-wrap" data-cursor="native">
                 <Image
                   src={panelImage}
                   alt=""
                   fill
                   priority
-                  sizes="(min-width: 1024px) 26vw, 0px"
+                  sizes="(min-width: 1024px) 42vw, 0px"
                   className="au-split-image"
+                  data-cursor="native"
                 />
+              </div>
+              <div className="au-split-scrim" />
+              <div className="au-split-copy">
+                <p className="au-split-eyebrow">GroovePH · Performing Arts</p>
+                <h2 className="au-split-title">{panelTitle}</h2>
+                <p className="au-split-desc">{panelDescription}</p>
               </div>
             </div>
           </aside>
@@ -191,22 +196,19 @@ export function AuthLayout({
   // Non-split mode: centered column with ambient background
   return (
     <div className={cn('au-shell', registration && 'au-shell--registration')}>
-      {/* Ambient background - auth variant */}
       <AmbientBackground variant="auth" className="au-ambient" />
       <PixelBackground intensity="medium" className="opacity-60" />
 
-      {/* Registration routes render no brand bar — the form thinks alone. */}
-      {!registration && brandBar}
+      {brandBar}
 
       <main
         className={cn(
-          'relative z-10 flex w-full flex-1 flex-col items-center px-5 sm:px-6',
+          'relative z-10 flex w-full flex-1 flex-col items-center px-[16px] sm:px-6',
           // A long form must not be vertically centred — centring pushes its
           // first fields below the fold on a short viewport.
-          wide || registration
-            ? 'justify-start pb-12 pt-6 sm:pt-9'
-            : 'justify-center pb-16 pt-4 sm:pt-8',
-          registration && 'au-registration-main'
+          wide || registration || wizard ? 'justify-start pb-12 pt-4 sm:pt-8' : 'justify-center pb-16 pt-2 sm:pt-6',
+          registration && 'au-registration-main',
+          wizard && 'au-wizard-main'
         )}
       >
         {stack}
@@ -216,3 +218,4 @@ export function AuthLayout({
 }
 
 export default AuthLayout;
+

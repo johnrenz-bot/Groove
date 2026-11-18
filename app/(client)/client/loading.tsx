@@ -1,14 +1,15 @@
 import { RouteSkeleton } from '@/components/loading/LoadingState';
 
 /**
- * Native App Router loading boundary for the client portal.
- * Streams a geometry-true skeleton instantly on navigation instead
- * of leaving the previous page frozen or flashing blank.
+ * Client portal loading boundary — streamed instantly on slow navigation.
+ * The sidebar and header are mounted by the layout and stay fully
+ * interactive; only the page content area shows skeletons.
  */
 export default function Loading() {
   return (
-    <div className="mx-auto w-full max-w-[1240px]" aria-label="Loading">
-      <RouteSkeleton variant="dashboard" />
+    <div className="mx-auto w-full max-w-[1240px]">
+      <RouteSkeleton variant="widgets" />
     </div>
   );
 }
+

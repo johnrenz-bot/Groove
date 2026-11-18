@@ -34,9 +34,33 @@ import {
   type LatLng,
 } from '@/lib/geo';
 import { isDuplicatePlace } from '@/lib/studios/dedupe';
+import {
+  GooglePlacesMethod,
+  GooglePlacesDiscoveryMethod,
+  MethodState,
+  initialState,
+  methodStates,
+  METHOD_LABELS,
+  methodLabel,
+  publicMethod,
+  setGooglePlacesQuotaCooldown,
+  isGooglePlacesQuotaExhausted,
+  isGooglePlacesQuotaExhaustedFor,
+  getGooglePlacesQuotaState,
+  getGooglePlacesQuotaStateFor,
+  resetGooglePlacesQuotaCooldown,
+  isConfigurationBlockedFor,
+  markQuotaExhaustedFor,
+  markConfigurationBlockedFor,
+  isQuotaExhaustionError,
+  DAY_MS,
+  DEFAULT_QUOTA_COOLDOWN_MS,
+  CONFIGURATION_COOLDOWN_MS,
+  quotaCooldownMs,
+} from './googlePlacesQuota';
 
 /** Which Places API (New) method produced a result. */
-export type GooglePlacesDiscoveryMethod = 'text' | 'nearby' | 'autocomplete';
+// GooglePlacesDiscoveryMethod is re-exported below.
 
 export interface GooglePlaceResult {
   /** Namespaced key so Google results can never collide with GroovePH ids. */
@@ -122,17 +146,8 @@ const REQUEST_TIMEOUT_MS = 10_000;
  * request body (query, page token, centre, radius), so a new search is never
  * served another search's results.
  */
-const NEARBY_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-const CITY_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-const TRANSIENT_FAILURE_CACHE_TTL_MS = 60 * 1000;
 const MAX_RESULTS_PER_PAGE = 20;
-const MAX_CACHE_ENTRIES = 250;
-const DAY_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_QUOTA_COOLDOWN_MS = 10 * 60 * 1000;
-const CONFIGURATION_COOLDOWN_MS = 5 * 60 * 1000;
-
-/** Cooldown duration used when the reset time is unknown (default 10 minutes). */
-let quotaCooldownMs = DEFAULT_QUOTA_COOLDOWN_MS;
+/** Constants imported from ./googlePlacesQuota. */
 
 /**
  * Each Places API (New) method has its own quota metric:
@@ -140,144 +155,6 @@ let quotaCooldownMs = DEFAULT_QUOTA_COOLDOWN_MS;
  * and `PlaceDetailsRequest`. A per-day SearchText block must not disable
  * Nearby Search or Autocomplete, which may still have quota available.
  */
-export type GooglePlacesMethod = 'text' | 'nearby' | 'autocomplete' | 'details';
-
-interface MethodState {
-  quotaUntil: number;
-  quotaRetryAt: string | null;
-  quotaDaily: boolean;
-  quotaLogged: boolean;
-  configurationUntil: number;
-  configurationMessage: string | null;
-  configurationLogged: boolean;
-}
-
-function initialState(): MethodState {
-  return {
-    quotaUntil: 0,
-    quotaRetryAt: null,
-    quotaDaily: false,
-    quotaLogged: false,
-    configurationUntil: 0,
-    configurationMessage: null,
-    configurationLogged: false,
-  };
-}
-
-const methodStates: Record<GooglePlacesMethod, MethodState> = {
-  text: initialState(),
-  nearby: initialState(),
-  autocomplete: initialState(),
-  details: initialState(),
-};
-
-const METHOD_LABELS: Record<GooglePlacesMethod, string> = {
-  text: 'Google Places Text Search',
-  nearby: 'Google Places Nearby Search',
-  autocomplete: 'Google Places Autocomplete',
-  details: 'Google Places Place Details',
-};
-
-function methodLabel(method: GooglePlacesMethod): string {
-  return METHOD_LABELS[method];
-}
-
-/** Details are part of the autocomplete flow; the public outcome names that flow. */
-function publicMethod(method: GooglePlacesMethod): GooglePlacesDiscoveryMethod {
-  return method === 'details' ? 'autocomplete' : method;
-}
-
-export function setGooglePlacesQuotaCooldown(ms: number): void {
-  quotaCooldownMs = Math.max(0, ms);
-}
-
-/** Backwards-compatible: the locator's keyword search is Text Search. */
-export function isGooglePlacesQuotaExhausted(): boolean {
-  return isGooglePlacesQuotaExhaustedFor('text');
-}
-
-export function isGooglePlacesQuotaExhaustedFor(method: GooglePlacesMethod): boolean {
-  return Date.now() < methodStates[method].quotaUntil;
-}
-
-/** Backwards-compatible: the locator's keyword search is Text Search. */
-export function getGooglePlacesQuotaState(): {
-  exhausted: boolean;
-  retryAt: string | null;
-  daily: boolean;
-} {
-  return getGooglePlacesQuotaStateFor('text');
-}
-
-export function getGooglePlacesQuotaStateFor(method: GooglePlacesMethod): {
-  exhausted: boolean;
-  retryAt: string | null;
-  daily: boolean;
-} {
-  const state = methodStates[method];
-  const exhausted = Date.now() < state.quotaUntil;
-  return {
-    exhausted,
-    retryAt: exhausted ? state.quotaRetryAt : null,
-    daily: exhausted ? state.quotaDaily : false,
-  };
-}
-
-export function resetGooglePlacesQuotaCooldown(): void {
-  for (const method of Object.keys(methodStates) as GooglePlacesMethod[]) {
-    methodStates[method] = initialState();
-  }
-}
-
-function isConfigurationBlockedFor(method: GooglePlacesMethod): boolean {
-  return Date.now() < methodStates[method].configurationUntil;
-}
-
-function markQuotaExhaustedFor(
-  method: GooglePlacesMethod,
-  retryAtMs: number,
-  daily: boolean,
-  cooldownMs: number = DEFAULT_QUOTA_COOLDOWN_MS
-): void {
-  const state = methodStates[method];
-  const wasExhausted = Date.now() < state.quotaUntil;
-  const until = Math.max(
-    Date.now() + 1_000,
-    Math.min(retryAtMs || Date.now() + cooldownMs, Date.now() + DAY_MS)
-  );
-
-  // Do not shorten a block that is already longer.
-  if (until > state.quotaUntil) {
-    state.quotaUntil = until;
-    state.quotaRetryAt = new Date(until).toISOString();
-    state.quotaDaily = daily;
-  }
-
-  if (!wasExhausted || !state.quotaLogged) {
-    state.quotaLogged = true;
-    console.warn(
-      `[google-places] ${methodLabel(method)} quota exhausted (${
-        daily ? 'daily' : 'rate limit'
-      }); pausing that method until ${state.quotaRetryAt}.`
-    );
-  }
-}
-
-function markConfigurationBlockedFor(method: GooglePlacesMethod, message: string): void {
-  const state = methodStates[method];
-  state.configurationUntil = Date.now() + CONFIGURATION_COOLDOWN_MS;
-  state.configurationMessage = message;
-  if (!state.configurationLogged) {
-    state.configurationLogged = true;
-    console.warn(`[google-places] ${methodLabel(method)} configuration problem: ${message}`);
-  }
-}
-
-export function isQuotaExhaustionError(error: unknown): boolean {
-  if (!error) return false;
-  const msg = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-  return /RESOURCE_EXHAUSTED|OVER_QUERY_LIMIT|quota|429|rate[\s_-]?limit/i.test(msg);
-}
 
 function apiKey(): string {
   return (
@@ -292,28 +169,16 @@ export function isGooglePlacesConfigured(): boolean {
   return Boolean(apiKey());
 }
 
-interface CacheEntry {
-  timestamp: number;
-  ttl: number;
-  outcome: GooglePlacesOutcome;
-}
-
-const cache = new Map<string, CacheEntry>();
-const inFlight = new Map<string, Promise<GooglePlacesOutcome>>();
-
-export function clearGooglePlacesCache(): void {
-  cache.clear();
-  inFlight.clear();
-}
-
-function rememberOutcome(key: string, outcome: GooglePlacesOutcome, ttl: number): void {
-  cache.set(key, { timestamp: Date.now(), ttl, outcome });
-  if (cache.size <= MAX_CACHE_ENTRIES) return;
-
-  // Map iteration is insertion ordered, so the first key is the oldest entry.
-  const oldest = cache.keys().next().value;
-  if (typeof oldest === 'string') cache.delete(oldest);
-}
+import {
+  NEARBY_CACHE_TTL_MS,
+  CITY_CACHE_TTL_MS,
+  TRANSIENT_FAILURE_CACHE_TTL_MS,
+  MAX_CACHE_ENTRIES,
+  cache,
+  inFlight,
+  clearGooglePlacesCache,
+  rememberOutcome,
+} from './googlePlacesCache';
 
 function nextUtcMidnight(now: number = Date.now()): number {
   const date = new Date(now);
@@ -1931,3 +1796,41 @@ export async function searchGooglePlacesByText(options: {
     signal: options.signal,
   });
 }
+
+// Re-export quota helpers for backward compatibility.
+export type {
+  GooglePlacesMethod,
+  MethodState,
+  GooglePlacesDiscoveryMethod,
+} from './googlePlacesQuota';
+export {
+  initialState,
+  methodStates,
+  METHOD_LABELS,
+  methodLabel,
+  publicMethod,
+  setGooglePlacesQuotaCooldown,
+  isGooglePlacesQuotaExhausted,
+  isGooglePlacesQuotaExhaustedFor,
+  getGooglePlacesQuotaState,
+  getGooglePlacesQuotaStateFor,
+  resetGooglePlacesQuotaCooldown,
+  isConfigurationBlockedFor,
+  markQuotaExhaustedFor,
+  markConfigurationBlockedFor,
+  isQuotaExhaustionError,
+  DAY_MS,
+  DEFAULT_QUOTA_COOLDOWN_MS,
+  CONFIGURATION_COOLDOWN_MS,
+  quotaCooldownMs,
+} from './googlePlacesQuota';
+export {
+  NEARBY_CACHE_TTL_MS,
+  CITY_CACHE_TTL_MS,
+  TRANSIENT_FAILURE_CACHE_TTL_MS,
+  MAX_CACHE_ENTRIES,
+  cache,
+  inFlight,
+  clearGooglePlacesCache,
+  rememberOutcome,
+} from './googlePlacesCache';

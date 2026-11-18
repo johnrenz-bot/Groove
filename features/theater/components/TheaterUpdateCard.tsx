@@ -360,3 +360,4 @@ export function TheaterUpdateCard({ update, language }: TheaterUpdateCardProps) 
 }
 
 export default TheaterUpdateCard;
+

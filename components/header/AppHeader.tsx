@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogIn, Search, UserPlus } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 
 import { createClient } from '@/lib/supabase/client';
 import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
@@ -11,7 +11,7 @@ import { AnimatedLogo } from '@/components/header/AnimatedLogo';
 import { NavDropdown } from '@/components/header/NavDropdown';
 import { UserMenu } from '@/components/header/UserMenu';
 import { MobileDrawer } from '@/components/header/MobileDrawer';
-import { CommandPalette } from '@/components/header/CommandPalette';
+import { HeaderSearch } from '@/components/search/HeaderSearch';
 import { useSlidingIndicator } from '@/components/header/useSlidingIndicator';
 import { useHeaderScroll } from '@/components/header/useHeaderScroll';
 import { useSession } from '@/components/header/SessionProvider';
@@ -72,7 +72,7 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
   const progressRef = useRef<HTMLSpanElement | null>(null);
 
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
-  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { scrolled } = useHeaderScroll(progressRef, pathname);
@@ -85,17 +85,11 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
   const closeMenus = useCallback(() => setOpenMenu(null), []);
   const openMenuId = useCallback((id: Exclude<MenuId, null>) => setOpenMenu(id), []);
 
-  const openPalette = useCallback(() => {
-    setDrawerOpen(false);
-    setOpenMenu(null);
-    setPaletteOpen(true);
-  }, [setDrawerOpen, setOpenMenu, setPaletteOpen]);
-
   const openDrawer = useCallback(() => {
-    setPaletteOpen(false);
+    setSearchOpen(false);
     setOpenMenu(null);
     setDrawerOpen(true);
-  }, [setPaletteOpen, setOpenMenu, setDrawerOpen]);
+  }, [setDrawerOpen]);
 
   // Outside-click is measured against the whole bar, so a click on a nav trigger
   // is never mistaken for a click outside the account menu.
@@ -120,32 +114,10 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
   const [seenPath, setSeenPath] = useState(pathname);
   if (seenPath !== pathname) {
     setSeenPath(pathname);
-    setPaletteOpen(false);
+    setSearchOpen(false);
     setDrawerOpen(false);
     setOpenMenu(null);
   }
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      // Next keeps recently visited layouts in the document with their parent
-      // hidden. A cached header must not answer ⌘K and open a second palette.
-      if (!barRef.current || barRef.current.offsetParent === null) return;
-
-      const isPaletteKey =
-        (event.key === 'k' || event.key === 'K') && (event.metaKey || event.ctrlKey);
-      const isSlash = event.key === '/' && !event.metaKey && !event.ctrlKey && !event.altKey;
-      if (!isPaletteKey && !isSlash) return;
-
-      const target = event.target as HTMLElement | null;
-      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-      if (target?.isContentEditable) return;
-
-      event.preventDefault();
-      openPalette();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [openPalette]);
 
   const handleLogout = useCallback(async () => {
     const supabase = createClient();
@@ -238,10 +210,12 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
             ) : user ? (
               <>
                 <HeaderSearch
-                  onClick={openPalette}
-                  open={paletteOpen}
-                  label={tr('header.searchLabel', 'Search pages and people')}
-                  text={tr('header.search', 'Search')}
+                  config={config}
+                  role={role}
+                  variant="header"
+                  open={searchOpen}
+                  suspended={openMenu !== null || drawerOpen}
+                  onOpenChange={setSearchOpen}
                 />
 
                 <NotificationDropdown
@@ -306,71 +280,7 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
         pathname={pathname}
         onLogout={handleLogout}
       />
-      <CommandPalette
-        open={paletteOpen}
-        role={role}
-        config={config}
-        onClose={() => setPaletteOpen(false)}
-      />
     </>
-  );
-}
-
-function subscribePlatform() {
-  return () => {};
-}
-
-function isApplePlatform() {
-  if (typeof navigator === 'undefined') return false;
-  return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
-}
-
-function isApplePlatformOnServer() {
-  return false;
-}
-
-/**
- * Platform-aware shortcut hint.
- *
- * The handler accepts both Ctrl+K and ⌘K, so showing the Mac glyph on Windows
- * was not a broken shortcut — it was a label that did not match the keyboard in
- * front of the user. `useSyncExternalStore` with a server snapshot keeps the
- * first paint 'Ctrl K' (the SSR value) and swaps after hydration without a
- * mismatch warning.
- */
-function useIsApplePlatform() {
-  return useSyncExternalStore(subscribePlatform, isApplePlatform, isApplePlatformOnServer);
-}
-
-function HeaderSearch({
-  onClick,
-  open,
-  label,
-  text,
-}: {
-  onClick: () => void;
-  open: boolean;
-  label: string;
-  text: string;
-}) {
-  const apple = useIsApplePlatform();
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="hx-search-btn"
-      aria-label={label}
-      title={label}
-      aria-haspopup="dialog"
-      aria-expanded={open}
-      aria-keyshortcuts={apple ? 'Meta+K' : 'Control+K'}
-    >
-      <Search className="h-[18px] w-[18px]" aria-hidden="true" />
-      <span className="hx-search-text">{text}</span>
-      <kbd className="hx-search-kbd" aria-hidden="true">
-        {apple ? '⌘K' : 'Ctrl K'}
-      </kbd>
-    </button>
   );
 }
 
@@ -385,3 +295,4 @@ function HeaderSkeleton() {
 }
 
 export default AppHeader;
+

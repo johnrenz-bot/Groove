@@ -31,3 +31,4 @@ export function SupportCallout({ onSubmitTicket }: SupportCalloutProps) {
 }
 
 export default SupportCallout;
+

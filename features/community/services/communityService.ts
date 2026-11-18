@@ -1,9 +1,19 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { CommunityPost } from '@/lib/types';
 
+/**
+ * Feed for a community circle.
+ *
+ * Three straight reads, batched — not the old shape, which fanned out two
+ * count queries and a maybeSingle per post (3N + 1 round trips) and queried
+ * tables that do not exist (`post_reactions`, `post_comments`) so every count
+ * silently came back zero. Everything is keyed off the real tables
+ * (`post_reacts`, `comments`) in at most three queries.
+ */
 export async function getCommunityFeed(
   supabase: SupabaseClient,
-  currentUserId?: string
+  currentUserId?: string,
+  limit = 30
 ): Promise<CommunityPost[]> {
   const { data: posts, error } = await supabase
     .from('community_posts')
@@ -12,41 +22,48 @@ export async function getCommunityFeed(
       author:author_id(*)
     `)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(limit);
 
-  if (error || !posts) return [];
+  if (error || !posts || posts.length === 0) return [];
 
-  // Fetch reactions and comments count for each post
-  const postsWithMeta = await Promise.all(
-    posts.map(async (post) => {
-      const [{ count: reactsCount }, { count: commentsCount }, { data: userReact }] =
-        await Promise.all([
-          supabase
-            .from('post_reactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('post_id', post.id),
-          supabase
-            .from('post_comments')
-            .select('*', { count: 'exact', head: true })
-            .eq('post_id', post.id),
-          currentUserId
-            ? supabase
-                .from('post_reactions')
-                .select('*')
-                .eq('post_id', post.id)
-                .eq('user_id', currentUserId)
-                .maybeSingle()
-            : Promise.resolve({ data: null }),
-        ]);
+  const postIds = posts.map((post) => post.id as number);
 
-      return {
-        ...post,
-        reacts_count: reactsCount || 0,
-        comments_count: commentsCount || 0,
-        user_has_reacted: !!userReact,
-      } as CommunityPost;
-    })
+  const [reactsRes, commentsRes, mineRes] = await Promise.all([
+    supabase.from('post_reacts').select('post_id').in('post_id', postIds),
+    supabase.from('comments').select('post_id').in('post_id', postIds),
+    currentUserId
+      ? supabase
+          .from('post_reacts')
+          .select('post_id')
+          .eq('user_id', currentUserId)
+          .in('post_id', postIds)
+      : Promise.resolve({ data: [] as Array<{ post_id: number }> }),
+  ]);
+
+  const reactsCount = new Map<number, number>();
+  for (const row of reactsRes.data ?? []) {
+    const id = (row as { post_id: number }).post_id;
+    reactsCount.set(id, (reactsCount.get(id) ?? 0) + 1);
+  }
+
+  const commentsCount = new Map<number, number>();
+  for (const row of commentsRes.data ?? []) {
+    const id = (row as { post_id: number }).post_id;
+    commentsCount.set(id, (commentsCount.get(id) ?? 0) + 1);
+  }
+
+  const mine = new Set<number>(
+    (mineRes.data ?? []).map((row) => (row as { post_id: number }).post_id)
   );
 
-  return postsWithMeta;
+  return posts.map(
+    (post) =>
+      ({
+        ...post,
+        reacts_count: reactsCount.get(post.id) ?? 0,
+        comments_count: commentsCount.get(post.id) ?? 0,
+        user_has_reacted: mine.has(post.id),
+      }) as CommunityPost
+  );
 }

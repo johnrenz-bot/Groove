@@ -180,7 +180,7 @@ export default function PrivacyPolicyPage() {
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-9 w-9 items-center justify-center rounded-full   bg-accent-soft text-accent-text"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-accent-soft text-accent-text"
                   >
                     <Icon className="h-4 w-4" />
                   </span>
@@ -250,11 +250,11 @@ export default function PrivacyPolicyPage() {
               {RIGHTS.map(({ icon: Icon, title, body }) => (
                 <div
                   key={title}
-                  className="flex items-start gap-4 rounded-2xl   bg-card/60 p-5"
+                  className="flex items-start gap-4 rounded-2xl border border-border bg-card/60 p-5"
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full   bg-accent-soft text-accent-text"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-accent-soft text-accent-text"
                   >
                     <Icon className="h-4 w-4" />
                   </span>
@@ -305,10 +305,10 @@ export default function PrivacyPolicyPage() {
         <section id="contact" className="scroll-mt-24">
           <SectionHeading title="Contact Us" icon={<Mail className="h-4 w-4" />} />
           <Prose>
-            <div className="flex items-center gap-4 rounded-2xl   bg-card/60 p-5">
+            <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-5">
               <span
                 aria-hidden="true"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl   bg-muted text-accent-text"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-accent-text"
               >
                 <Mail className="h-4 w-4" />
               </span>
@@ -342,7 +342,7 @@ function SectionHeading({ title, icon }: { title: string; icon: React.ReactNode 
     <div className="mb-4 flex items-center gap-3.5">
       <span
         aria-hidden="true"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-accent-soft text-accent-text"
       >
         {icon}
       </span>

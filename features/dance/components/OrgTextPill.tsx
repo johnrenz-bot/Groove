@@ -13,3 +13,4 @@ export function OrgTextPill({ name }: { name: string }) {
     </span>
   );
 }
+

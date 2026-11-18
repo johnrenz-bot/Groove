@@ -9,3 +9,4 @@ export async function SingingCommunityPageServer() {
   const orgs = await getSingingOrgs();
   return <SingingCommunityView initialOrgs={orgs} />;
 }
+

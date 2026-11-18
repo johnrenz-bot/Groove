@@ -13,6 +13,8 @@ interface GoogleRegisterButtonProps {
   /** Custom label, e.g. "Register as Client in seconds". */
   label?: string;
   className?: string;
+  /** Optional status tag rendered beside the label instead of inside it. */
+  badge?: string;
 }
 
 /** Google's brand mark. Inlined so no external image request is made. */
@@ -47,7 +49,7 @@ function GoogleMark({ className = 'h-5 w-5 shrink-0' }: { className?: string }) 
  * than thrown, because a failed OAuth start leaves the user still on the form
  * with their input intact and nothing else to react to.
  */
-export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegisterButtonProps) {
+export function GoogleRegisterButton({ role, label, className = '', badge }: GoogleRegisterButtonProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,10 +87,10 @@ export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegi
             : buttonText
         }
         title={!GOOGLE_OAUTH_ENABLED ? 'Google sign-up is coming soon' : undefined}
-        className={`group relative flex h-11 w-full items-center justify-center gap-3 rounded-lg  px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-[#F4BE4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--background)] ${
+        className={`group relative flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-border px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-[#DDAA55] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--background)] ${
           !GOOGLE_OAUTH_ENABLED
             ? 'cursor-not-allowed  bg-muted text-subtle-foreground opacity-75 select-none'
-            : 'cursor-pointer  bg-card text-foreground hover: hover:bg-muted active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
+            : 'cursor-pointer  bg-card text-foreground hover:border-border-strong hover:bg-muted active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
         } ${className}`}
       >
         {busy ? (
@@ -99,17 +101,22 @@ export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegi
         <span className="tracking-tight transition-colors group-hover:text-foreground">
           {busy
             ? 'Connecting to Google…'
-            : !GOOGLE_OAUTH_ENABLED
+            : !GOOGLE_OAUTH_ENABLED && !badge
             ? `${buttonText} (Coming Soon)`
             : buttonText}
         </span>
+        {!GOOGLE_OAUTH_ENABLED && badge ? (
+          <span className="g-soon-tag" aria-hidden="true">
+            {badge}
+          </span>
+        ) : null}
       </button>
 
       {error ? (
         <div
           role="alert"
           aria-live="polite"
-          className="mt-2.5 rounded-lg   bg-danger/10 px-3 py-2 text-center text-xs font-medium text-danger"
+          className="mt-2.5 rounded-lg border border-border bg-danger/10 px-3 py-2 text-center text-xs font-medium text-danger"
         >
           {error}
         </div>
@@ -119,3 +126,4 @@ export function GoogleRegisterButton({ role, label, className = '' }: GoogleRegi
 }
 
 export default GoogleRegisterButton;
+

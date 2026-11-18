@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import React from 'react';
+import { RouteSkeleton } from '@/components/loading/LoadingState';
 import { PerformingArtsHistoryPage } from '@/features/performing-arts/components/PerformingArtsHistoryPage';
 
 export const metadata: Metadata = {
@@ -27,8 +28,9 @@ export const metadata: Metadata = {
 
 export default function PerformingArtsHistoryRoute() {
   return (
-    <React.Suspense fallback={null}>
+    <React.Suspense fallback={<RouteSkeleton variant="hero" />}>
       <PerformingArtsHistoryPage />
     </React.Suspense>
   );
 }
+

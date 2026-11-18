@@ -85,7 +85,7 @@ export function PaymentTransactionCard({
 
   return (
     <>
-      <div className="rounded-2xl   bg-card p-4 shadow-sm transition hover:">
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:">
         {/* Top Header */}
         <div className="flex flex-wrap items-center justify-between gap-2   pb-3">
           <div className="flex items-center gap-2">
@@ -246,3 +246,4 @@ export function PaymentTransactionCard({
     </>
   );
 }
+

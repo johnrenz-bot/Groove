@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { PUBLIC_PROFILE_COLUMNS } from '@/lib/publicProfile';
-import { buildOrContains, escapeLikePattern } from '@/lib/postgrest';
+import { buildOrContains } from '@/lib/postgrest';
 import { maskUsername } from '@/lib/masking';
 
 /**
@@ -48,13 +48,7 @@ interface FollowEdgeRow {
   following_id: string;
 }
 
-/**
- * Kept for the `.ilike()` filters that are not part of an `or()` expression.
- * The `or()` branch uses `buildOrContains` below, which also quotes the value.
- */
-function escapeLike(value: string): string {
-  return escapeLikePattern(value);
-}
+
 
 async function tallyFollowers(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -91,6 +85,46 @@ function toDirectoryUser(row: ProfileRow, counts: Map<string, number>, viewerId?
     created_at: row.created_at,
     followerCount: counts.get(row.id) ?? 0,
   };
+}
+
+/**
+ * Short-lived in-memory cache for the "followers" sort.
+ *
+ * Building that page needs the whole filtered directory (≤1000 rows) plus a
+ * tally over the follow edges — the most expensive read this route performs,
+ * and the DEFAULT sort. The aggregation does not vary per viewer, so the
+ * pre-mask ranked list (rows + counts, never emails) is memoised for 60s.
+ * `toDirectoryUser` still applies username masking per request with the
+ * caller's viewerId, so nothing viewer-specific is cached. Bounded to 32
+ * distinct filter keys; entries expire 60s after they were computed.
+ */
+interface PreparedRow {
+  row: ProfileRow;
+  followerCount: number;
+}
+const followersCache = new Map<string, { at: number; rows: PreparedRow[] }>();
+const FOLLOWERS_CACHE_TTL_MS = 60_000;
+const FOLLOWERS_CACHE_MAX = 32;
+
+function followersCacheGet(key: string): PreparedRow[] | null {
+  const hit = followersCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > FOLLOWERS_CACHE_TTL_MS) {
+    followersCache.delete(key);
+    return null;
+  }
+  // Refresh recency so the cap behaves as a simple LRU.
+  followersCache.delete(key);
+  followersCache.set(key, hit);
+  return hit.rows;
+}
+
+function followersCacheSet(key: string, rows: PreparedRow[]): void {
+  if (followersCache.size >= FOLLOWERS_CACHE_MAX) {
+    const oldest = followersCache.keys().next().value;
+    if (oldest !== undefined) followersCache.delete(oldest);
+  }
+  followersCache.set(key, { at: Date.now(), rows });
 }
 
 export async function GET(request: NextRequest) {
@@ -142,7 +176,8 @@ export async function GET(request: NextRequest) {
     if (topOnly) {
       const { data: all, error } = await base.order('created_at', { ascending: false }).limit(100);
       if (error) {
-        return NextResponse.json({ users: [], error: error.message }, { status: 500 });
+        console.error('[users] Supabase error:', error.message);
+        return NextResponse.json({ users: [], error: 'Failed to load users.' }, { status: 500 });
       }
       const rows = (all ?? []) as unknown as ProfileRow[];
       const counts = await tallyFollowers(
@@ -159,18 +194,32 @@ export async function GET(request: NextRequest) {
     // ── "Most followers" sort needs the counts globally before a page can be
     //    cut, so all matching ids are collected first. ──
     if (sort === 'followers') {
-      const { data: all, error } = await base.limit(1000);
-      if (error) {
-        return NextResponse.json({ users: [], error: error.message }, { status: 500 });
+      const cacheKey = `followers|${q}|${role}|${verified}`;
+      const cached = followersCacheGet(cacheKey);
+      let prepared: PreparedRow[];
+      if (cached) {
+        prepared = cached;
+      } else {
+        const { data: all, error } = await base.limit(1000);
+        if (error) {
+          console.error('[users] Supabase error:', error.message);
+          return NextResponse.json({ users: [], error: 'Failed to load users.' }, { status: 500 });
+        }
+        const rows = (all ?? []) as unknown as ProfileRow[];
+        const counts = await tallyFollowers(
+          supabase,
+          rows.map((u) => u.id)
+        );
+        prepared = rows
+          .map((row) => ({ row, followerCount: counts.get(row.id) ?? 0 }))
+          .sort((a, b) => b.followerCount - a.followerCount || a.row.firstname.localeCompare(b.row.firstname));
+        followersCacheSet(cacheKey, prepared);
       }
-      const rows = (all ?? []) as unknown as ProfileRow[];
-      const counts = await tallyFollowers(
-        supabase,
-        rows.map((u) => u.id)
-      );
-      const ranked = rows
-        .map((u) => toDirectoryUser(u, counts, viewerId))
-        .sort((a, b) => b.followerCount - a.followerCount || a.firstname.localeCompare(b.firstname));
+
+      const ranked = prepared.map(({ row, followerCount }) => ({
+        ...toDirectoryUser(row, new Map([[row.id, followerCount]]), viewerId),
+        followerCount,
+      }));
 
       const start = (requestedPage - 1) * pageSize;
       const pageRows = ranked.slice(start, start + pageSize);
@@ -193,7 +242,8 @@ export async function GET(request: NextRequest) {
     const start = (requestedPage - 1) * pageSize;
     const { data, count, error } = await ordered.range(start, start + pageSize - 1);
     if (error) {
-      return NextResponse.json({ users: [], error: error.message }, { status: 500 });
+      console.error('[users] Supabase error:', error.message);
+      return NextResponse.json({ users: [], error: 'Failed to load users.' }, { status: 500 });
     }
 
     const rows = (data ?? []) as unknown as ProfileRow[];
@@ -212,6 +262,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unexpected error';
-    return NextResponse.json({ users: [], error: message }, { status: 500 });
+    console.error('[users] Unexpected error:', message);
+    return NextResponse.json({ users: [], error: 'Failed to load users.' }, { status: 500 });
   }
 }

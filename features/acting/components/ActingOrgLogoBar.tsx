@@ -57,3 +57,4 @@ export function ActingOrgLogoBar({ selectedOrg, onSelectOrg }: ActingOrgLogoBarP
     </section>
   );
 }
+

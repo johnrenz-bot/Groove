@@ -110,7 +110,7 @@ function SignatureRow({
 }) {
   const signed = Boolean(signedAt);
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl   bg-muted/40 px-3 py-2.5">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5">
       <div className="flex min-w-0 items-center gap-2">
         <span
           aria-hidden="true"
@@ -168,7 +168,7 @@ export function AgreementTermsForm({
     <section
       aria-label={`Terms of session agreement ${ref}`}
       className={cn(
-        'w-full overflow-hidden rounded-2xl   bg-card shadow-sm',
+        'w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm',
         className
       )}
     >
@@ -176,7 +176,7 @@ export function AgreementTermsForm({
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             aria-hidden="true"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg   bg-accent-soft text-accent-text"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-accent-soft text-accent-text"
           >
             <ShieldCheck className="h-4 w-4" />
           </span>
@@ -274,3 +274,4 @@ export function AgreementTermsForm({
 }
 
 export default AgreementTermsForm;
+

@@ -1,14 +1,9 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createPerformingArtsServerClient } from '../supabase/serviceClient.ts';
 
 const TABLES = ['dance_updates', 'singing_updates', 'acting_updates', 'theater_updates'];
 
 function getClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    'placeholder-anon-key';
-  return createSupabaseClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createPerformingArtsServerClient();
 }
 
 /**

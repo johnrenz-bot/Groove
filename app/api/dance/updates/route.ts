@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updatesQuerySchema } from '@/lib/dance/schema';
+import { isKnownLeagueId } from '@/features/dance/data/leagues';
 import { getPublishedDanceUpdates } from '@/features/dance/services/danceService';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest) {
       region: searchParams.get('region') || undefined,
       category: searchParams.get('category') || undefined,
       org: searchParams.get('org') || undefined,
+      league: searchParams.get('league') || undefined,
       q: searchParams.get('q') || undefined,
       page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
       limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : undefined,
@@ -29,12 +31,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { region, category, org, q, page, limit } = parseResult.data;
+    const { region, category, org, league, q, page, limit } = parseResult.data;
+
+    if (league && league !== 'all' && !isKnownLeagueId(league)) {
+      return NextResponse.json(
+        { error: 'Unknown league id', details: { league: ['Not in the league registry'] } },
+        { status: 400 }
+      );
+    }
 
     const result = await getPublishedDanceUpdates({
       region,
       category,
       org,
+      league,
       q,
       page,
       limit,

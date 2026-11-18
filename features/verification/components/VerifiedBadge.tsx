@@ -45,7 +45,7 @@ export function VerifiedBadge({
   return (
     <span
       className={cn(
-        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full   bg-success-soft font-semibold uppercase tracking-[0.08em] text-success',
+        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-success-soft font-semibold uppercase tracking-[0.08em] text-success',
         s.wrap,
         className
       )}

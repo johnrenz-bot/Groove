@@ -28,6 +28,8 @@ export interface RescheduleRequest {
   durationMinutes: number | null;
   reason: string | null;
   requestedAt: string | null;
+  /** Who proposed the time — 'client' requests, 'coach' proposes. Absent in legacy notes. */
+  proposedBy?: 'client' | 'coach' | null;
 }
 
 export interface RescheduleDraft {
@@ -40,7 +42,8 @@ export interface RescheduleDraft {
 
 export function encodeRescheduleRequest(
   draft: RescheduleDraft,
-  requestedAt: string
+  requestedAt: string,
+  proposedBy: 'client' | 'coach' = 'client'
 ): string {
   return (
     RESCHEDULE_PREFIX +
@@ -51,6 +54,7 @@ export function encodeRescheduleRequest(
       duration: draft.durationMinutes ?? null,
       reason: draft.reason.trim() || null,
       requested_at: requestedAt,
+      proposed_by: proposedBy,
     })
   );
 }
@@ -84,6 +88,8 @@ export function parseRescheduleRequest(
       const reason = typeof parsed.reason === 'string' ? parsed.reason : null;
       const stamp =
         typeof parsed.requested_at === 'string' ? parsed.requested_at : requestedAt ?? null;
+      const proposedBy =
+        parsed.proposed_by === 'coach' ? 'coach' : parsed.proposed_by === 'client' ? 'client' : null;
 
       if (!date && !start && !reason) return null;
       return {
@@ -93,6 +99,7 @@ export function parseRescheduleRequest(
         durationMinutes: duration,
         reason,
         requestedAt: stamp,
+        proposedBy,
       };
     } catch {
       // Fall through to the legacy plain-text path.

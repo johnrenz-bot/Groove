@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -6,14 +6,25 @@ import { Award, ExternalLink, MapPin, Users } from 'lucide-react';
 import { ReportIssueLink } from './ReportIssueLink';
 import { cn } from '@/components/shared/cn';
 import { StatTile } from './StatTile';
+import { SafeImage } from './SafeImage';
 import { TitleTile } from './TitleTile';
 import { TitleRow } from './TitleRow';
 import { VideoCard } from './VideoCard';
 import { RecapRow } from './RecapRow';
-import type { DanceCrew, CrewAchievement } from '../data/crews';
+import type { Crew, CrewAchievement } from '@/lib/dance/contracts';
+import { COMPLETENESS_THRESHOLD } from '@/lib/dance/contracts';
 
 interface CrewDossierCardProps {
-  crew: DanceCrew;
+  crew: Crew;
+}
+
+/** Domain label for a credit line, e.g. "Source: brotherhoodcrew.com". */
+function sourceDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return 'source';
+  }
 }
 
 function getInitials(name: string): string {
@@ -57,15 +68,18 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  const foundedMissing = isTBD(crew.founded);
-  const founderMissing = isTBD(crew.founder);
-  const rosterMissing = isTBD(crew.rosterStatus);
+  const foundedMissing = isTBD(crew.foundedYear);
+  const leadershipText = crew.leaders.length > 0 ? crew.leaders.join(' & ') : null;
+  const founderMissing = leadershipText === null || isTBD(leadershipText);
+  const rosterMissing = isTBD(crew.rosterSize);
   const cityMissing = isTBD(crew.city);
   const countryMissing = isTBD(crew.country);
   const divisionMissing = isTBD(crew.division);
 
-  const hasImage = Boolean(crew.image.url);
-  const hasVideo = Boolean(crew.officialVideoUrl);
+  const hasImage = Boolean(crew.heroImageUrl);
+  const primaryVideo = crew.videos[0] ?? null;
+  const hasVideo = Boolean(primaryVideo);
+  const lowCompleteness = crew.completenessScore < COMPLETENESS_THRESHOLD && crew.status !== 'approved';
   const sortedAchievements = sortAchievements(crew.achievements);
   const topThree = sortedAchievements.slice(0, 3);
   const moreTitles = sortedAchievements.slice(3);
@@ -106,19 +120,43 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
         {/* ---------------------------------------------------------------- Photo */}
         <div className="relative min-h-[340px] overflow-hidden bg-[var(--crew-bg-row)] sm:min-h-[420px] lg:min-h-[560px]">
           {hasImage ? (
-            <Image
-              src={crew.image.url!}
-              alt={crew.image.alt}
-              fill
-              className={cn(
-                'object-cover object-center transition-transform duration-[1200ms] ease-out',
-                reducedMotion ? 'transition-none' : 'group-hover:scale-[1.025]'
-              )}
-              sizes="(max-width: 1024px) 100vw, 46vw"
-              preload={false}
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-            />
+            crew.heroImageSourceUrl ? (
+              <a
+                href={crew.heroImageSourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open the original source for the ${crew.name} photo (new tab)`}
+                className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--crew-accent-gold)]"
+              >
+                <Image
+                  src={crew.heroImageUrl!}
+                  alt={`${crew.name} — official team media`}
+                  fill
+                  className={cn(
+                    'object-cover object-center transition-transform duration-[1200ms] ease-out',
+                    reducedMotion ? 'transition-none' : 'group-hover:scale-[1.025]'
+                  )}
+                  sizes="(max-width: 1024px) 100vw, 46vw"
+                  preload={false}
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+                />
+              </a>
+            ) : (
+              <Image
+                src={crew.heroImageUrl!}
+                alt={`${crew.name} — official team media`}
+                fill
+                className={cn(
+                  'object-cover object-center transition-transform duration-[1200ms] ease-out',
+                  reducedMotion ? 'transition-none' : 'group-hover:scale-[1.025]'
+                )}
+                sizes="(max-width: 1024px) 100vw, 46vw"
+                preload={false}
+                placeholder="blur"
+                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+              />
+            )
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[var(--crew-bg-hover)] via-[var(--crew-bg-tile)] to-[var(--crew-bg-page)] p-8 text-center">
               <span
@@ -146,6 +184,11 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                   {crew.division}
                 </span>
               )}
+              {lowCompleteness && (
+                <span className="inline-flex items-center rounded-full border border-amber-400/40 bg-amber-400/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300 backdrop-blur-sm">
+                  Needs info
+                </span>
+              )}
               {!cityMissing && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/45 px-3 py-1 text-[11px] font-medium text-white/85 backdrop-blur-sm">
                   <MapPin className="h-3 w-3" aria-hidden="true" />
@@ -157,11 +200,15 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
             </div>
 
             {crew.logo?.verified && crew.logo.url && (
-              <img
+              <SafeImage
                 src={crew.logo.url}
                 alt={`${crew.name} logo`}
+                width={92}
+                height={48}
+                fill={false}
+                sizes="92px"
                 className="h-10 w-auto max-w-[92px] object-contain drop-shadow-lg sm:h-12"
-                aria-hidden="true"
+                fallback={null}
               />
             )}
           </div>
@@ -175,17 +222,17 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
               {crew.name}
             </h3>
 
-            {hasImage && (crew.image.credit || crew.image.source_url) && (
+          {hasImage && (crew.imageCredit || crew.heroImageSourceUrl) && (
               <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-white/15 pt-3 text-[10px] text-white/55">
-                {crew.image.credit && <span>Photo: {crew.image.credit}</span>}
-                {crew.image.source_url && (
+                {crew.imageCredit && <span>Photo: {crew.imageCredit}</span>}
+                {crew.heroImageSourceUrl && (
                   <a
-                    href={crew.image.source_url}
+                    href={crew.heroImageSourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 font-semibold text-[var(--crew-accent-gold)] transition-colors hover:text-[var(--crew-accent-gold-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   >
-                    Source
+                    {`Source: ${sourceDomain(crew.heroImageSourceUrl)}`}
                     <ExternalLink className="h-2.5 w-2.5" aria-hidden="true" />
                   </a>
                 )}
@@ -210,21 +257,21 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             <StatTile
               label="Founded"
-              value={foundedMissing ? 'Not yet verified' : String(crew.founded)}
+              value={foundedMissing ? 'Not yet verified' : String(crew.foundedYear)}
               isMissing={foundedMissing}
               onSuggestUpdate={() => handleSuggestUpdate('Founded')}
               crewName={crew.name}
             />
             <StatTile
               label="Leadership"
-              value={founderMissing ? 'Not yet verified' : crew.founder}
+              value={founderMissing ? 'Not yet verified' : leadershipText!}
               isMissing={founderMissing}
               onSuggestUpdate={() => handleSuggestUpdate('Leadership')}
               crewName={crew.name}
             />
             <StatTile
               label="Roster"
-              value={rosterMissing ? 'Not yet verified' : crew.rosterStatus}
+              value={rosterMissing ? 'Not yet verified' : crew.rosterSize!}
               isMissing={rosterMissing}
               onSuggestUpdate={() => handleSuggestUpdate('Roster')}
               crewName={crew.name}
@@ -239,31 +286,46 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                 Key members
               </p>
               <ul className="mt-3 flex flex-wrap gap-2">
-                {crew.keyMembers.slice(0, 6).map((member) => (
-                  <li key={member.name}>
-                    <a
-                      href={member.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex flex-col rounded-xl border crew-bd bg-[var(--crew-bg-row)] px-3 py-1.5 transition-colors hover:crew-bd-hover hover:bg-[var(--crew-bg-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-card)]"
-                    >
+                {crew.keyMembers.slice(0, 6).map((member) => {
+                  const inner = (
+                    <>
                       <span className="text-[11px] font-semibold text-[var(--crew-text-primary)]">
                         {member.name}
                       </span>
-                      <span className="text-[9px] font-medium uppercase tracking-wider text-[var(--crew-text-muted)]">
-                        {member.role}
-                      </span>
-                    </a>
-                  </li>
-                ))}
+                      {member.role && (
+                        <span className="text-[9px] font-medium uppercase tracking-wider text-[var(--crew-text-muted)]">
+                          {member.role}
+                        </span>
+                      )}
+                    </>
+                  );
+                  return (
+                    <li key={member.name}>
+                      {member.sourceUrl ? (
+                        <a
+                          href={member.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex flex-col rounded-xl border crew-bd bg-[var(--crew-bg-row)] px-3 py-1.5 transition-colors hover:crew-bd-hover hover:bg-[var(--crew-bg-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-card)]"
+                        >
+                          {inner}
+                        </a>
+                      ) : (
+                        <span className="inline-flex flex-col rounded-xl border crew-bd bg-[var(--crew-bg-row)] px-3 py-1.5">
+                          {inner}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
 
-          {hasVideo && (
+          {hasVideo && primaryVideo && (
             <VideoCard
-              videoUrl={crew.officialVideoUrl!}
-              title={`${crew.name} official performance`}
+              videoUrl={primaryVideo.url}
+              title={primaryVideo.title ?? `${crew.name} official performance`}
               crewName={crew.name}
             />
           )}
@@ -284,7 +346,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {topThree.map((achievement, index) => (
                   <TitleTile
-                    key={`${achievement.source_url}-${index}`}
+                    key={`${achievement.sourceUrl}-${index}`}
                     achievement={achievement}
                     index={index}
                     isTopThree
@@ -324,7 +386,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
                   {(showAllTitles ? moreTitles : moreTitles.slice(0, 6)).map(
                     (achievement, index) => (
                       <TitleRow
-                        key={`${achievement.source_url}-${index}`}
+                        key={`${achievement.sourceUrl}-${index}`}
                         achievement={achievement}
                       />
                     )
@@ -416,7 +478,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
               className="text-[11px] font-medium text-[var(--crew-text-muted)] hover:text-[var(--crew-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-card)]"
             />
             <a
-              href={crew.source_url}
+              href={crew.sourceUrls[0]}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-md text-[11px] font-semibold text-[var(--crew-accent-gold)] transition-colors hover:text-[var(--crew-chip-hover-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-card)]"
@@ -433,3 +495,4 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
 }
 
 export default CrewDossierCard;
+

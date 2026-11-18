@@ -32,7 +32,7 @@ import {
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/components/shared/cn';
 import {
   ARTICLES,

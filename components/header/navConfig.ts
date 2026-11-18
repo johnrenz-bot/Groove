@@ -3,12 +3,12 @@ import {
   BookOpen,
   Bot,
   CalendarDays,
+  Compass,
   Drama,
   FileCheck,
   HelpCircle,
   History,
   Home,
-  Info,
   LayoutDashboard,
   LifeBuoy,
   MapPin,
@@ -16,6 +16,8 @@ import {
   Mic,
   Settings2,
   Sparkles,
+  Award,
+  Disc3,
   Theater,
   Users,
 } from 'lucide-react';
@@ -126,7 +128,7 @@ export const NAV: NavSection[] = [
       },
       {
         id: 'find-coaches',
-        icon: Sparkles,
+        icon: Compass,
         label: 'Find Coaches',
         href: '/client/talent#directory',
         description: 'Browse & book a verified coach',
@@ -135,7 +137,7 @@ export const NAV: NavSection[] = [
       },
       {
         id: 'showcase',
-        icon: Sparkles,
+        icon: Award,
         label: 'Showcase',
         href: '/client/talent#showcase',
         hrefByRole: { coach: '/coach/talents' },
@@ -155,24 +157,18 @@ export const NAV: NavSection[] = [
       },
       {
         id: 'bookings',
-        icon: CalendarDays,
-        label: 'Bookings',
-        labelByRole: { client: 'Appointments' },
-        href: '/client/appointments',
-        hrefByRole: { coach: '/coach/appointments' },
-        description: 'My bookings & session requests',
-        descriptionByRole: { coach: 'Manage incoming booking requests' },
-        roles: ['client', 'coach'],
-        keywords: ['sessions', 'schedule', 'requests', 'appointments'],
-      },
-      {
-        id: 'messages',
         icon: MessageSquare,
-        label: 'Messages',
-        href: '/messages',
-        description: 'Direct messaging',
+        label: 'Messages & Bookings',
+        href: '/client/messages',
+        hrefByRole: { coach: '/coach/messages' },
+        description: 'One thread per case — inbox, bookings, agreement',
+        descriptionByRole: { coach: 'One thread per case — students, requests and agreement' },
         roles: ['client', 'coach'],
-        keywords: ['chat', 'dm', 'inbox', 'conversation'],
+        keywords: [
+          'chat', 'dm', 'inbox', 'conversation', 'messages',
+          'sessions', 'schedule', 'requests', 'appointments',
+          'bookings', 'booking', 'cases', 'calendar',
+        ],
       },
       {
         id: 'calendar',
@@ -207,7 +203,7 @@ export const NAV: NavSection[] = [
     items: [
       {
         id: 'pa-dance',
-        icon: Sparkles,
+        icon: Disc3,
         label: 'Dance',
         href: '/community/performing-arts/dance',
         description: 'Hip-hop, contemporary & traditional choreography',
@@ -268,15 +264,8 @@ export const NAV: NavSection[] = [
       },
     ],
   },
-  {
-    id: 'about',
-    label: 'About Groove',
-    icon: Info,
-    href: '/about',
-    description: 'Our story, mission, how it works & contact',
-    roles: ['client', 'coach', 'admin', 'guest'],
-    hideOnLanding: true,
-  },
+  /* About Groove moved into the account popover (profile menu → About Groove)
+     to reduce sidebar clutter. The section entry was removed entirely. */
 
   /* ── Admin ──────────────────────────────────────────────────────────────
      The console was the one menu that was NOT in this file: it lived in

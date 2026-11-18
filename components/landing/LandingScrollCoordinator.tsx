@@ -21,3 +21,4 @@ export function LandingScrollCoordinator({ children }: { children: React.ReactNo
 }
 
 export default LandingScrollCoordinator;
+

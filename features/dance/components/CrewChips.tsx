@@ -2,12 +2,12 @@
 
 import React, { useCallback } from 'react';
 import { FeaturedRosterSelector } from '@/features/performing-arts/components/FeaturedRosterSelector';
-import type { DanceCrew } from '../data/crews';
+import type { Crew } from '@/lib/dance/contracts';
 
 interface CrewChipsProps {
-  crews: DanceCrew[];
-  selectedCrew: DanceCrew;
-  onSelectCrew: (crew: DanceCrew) => void;
+  crews: Crew[];
+  selectedCrew: Crew;
+  onSelectCrew: (crew: Crew) => void;
 }
 
 /**
@@ -31,9 +31,12 @@ export function CrewChips({ crews, selectedCrew, onSelectCrew }: CrewChipsProps)
         name: crew.name,
         country: crew.country,
         flag: crew.flag,
-        division: crew.division,
-        image: crew.image,
-        logo: crew.logo,
+        division: crew.division ?? '',
+        image:
+          crew.heroImageUrl != null
+            ? { url: crew.heroImageUrl, alt: `${crew.name} — official team photo` }
+            : null,
+        logo: crew.logo ? { url: crew.logo.url, verified: crew.logo.verified } : null,
       }))}
       selectedId={selectedCrew.id}
       onSelect={handleSelect}
@@ -45,3 +48,4 @@ export function CrewChips({ crews, selectedCrew, onSelectCrew }: CrewChipsProps)
 }
 
 export default CrewChips;
+

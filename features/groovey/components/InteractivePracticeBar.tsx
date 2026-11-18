@@ -174,3 +174,4 @@ export const InteractivePracticeBar: React.FC<Props> = ({
     </div>
   );
 };
+

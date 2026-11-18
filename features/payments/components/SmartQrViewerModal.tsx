@@ -132,7 +132,7 @@ export function SmartQrViewerModal({
             </span>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="rounded   bg-accent-soft px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent-text">
+                <span className="rounded border border-border bg-accent-soft px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent-text">
                   GCash
                 </span>
                 <h2 id="smart-qr-title" className="truncate text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
@@ -160,7 +160,7 @@ export function SmartQrViewerModal({
         {/* Content body */}
         <div className={cn(MODAL_BODY_CLASS, 'flex flex-col')}>
           {/* Zoom & Action Toolbar */}
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl   bg-muted/40 px-4 py-2 text-xs">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-2 text-xs">
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -206,7 +206,7 @@ export function SmartQrViewerModal({
           </div>
 
           {/* QR Code Container with interactive pan/zoom */}
-          <div className="relative flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-2xl   bg-zinc-950 p-4">
+          <div className="relative flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-2xl border border-border bg-zinc-950 p-4">
             {qrUrl ? (
               <div
                 className="transition-transform duration-150 ease-out"
@@ -232,7 +232,7 @@ export function SmartQrViewerModal({
           </div>
 
           {/* Account Details Card */}
-          <div className="mt-5 space-y-3 rounded-2xl   bg-muted/30 p-4">
+          <div className="mt-5 space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -290,7 +290,7 @@ export function SmartQrViewerModal({
           </div>
 
           {/* Security & Instructions Notice */}
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl   bg-accent-soft/40 p-3 text-xs text-muted-foreground">
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-border bg-accent-soft/40 p-3 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 shrink-0 text-accent-text" />
             <div className="space-y-1">
               <p className="font-semibold text-foreground">How to Pay:</p>
@@ -314,3 +314,4 @@ export function SmartQrViewerModal({
     </div>
   );
 }
+

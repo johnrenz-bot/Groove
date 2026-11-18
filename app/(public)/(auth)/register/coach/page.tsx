@@ -1,19 +1,17 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   RegistrationFormFields,
   RegistrationSuccess,
-  RegistrationSectionHeading,
-  RegistrationStepHeader,
   PersonalData,
   ContactAccountData,
   inputClasses,
   selectClasses,
   labelClasses,
 } from '@/components/auth/RegistrationFormFields';
-import { RegistrationProgress } from '@/components/auth/RegistrationProgress';
 import {
   AddressData,
   composeStreetLine,
@@ -26,33 +24,47 @@ import {
 } from '@/lib/config/skillsConfig';
 import {
   ArrowRight,
-  Award,
   Sparkles,
-  DollarSign,
   ShieldCheck,
   FileCheck,
   Camera,
-  X,
   Music,
   Mic,
   Clapperboard,
   Drama,
   Check,
-  Layers,
-  AlertCircle,
   User,
+  Layers,
+  ClipboardCheck,
+  Wallet,
+  Smartphone,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 import { AuthLayout } from '@/components/shared/AuthLayout';
 import { GoogleRegisterButton } from '@/components/shared/GoogleRegisterButton';
 import { FormError } from '@/components/ui/FormError';
-import { Button } from '@/components/ui/Button';
+import { AuthButton, Divider } from '@/components/auth/ui/AuthUI';
+import {
+  ProgressSegments,
+  StepHeader,
+  StepTransition,
+  WizardFooter,
+  WizardRail,
+} from '@/components/auth/ui/AuthWizard';
+import { FileUpload } from '@/components/auth/ui/FileUpload';
+import { ChipSelect, OptionRow } from '@/components/auth/ui/RegistrationOptions';
+import {
+  ConfirmLeaveModal,
+  SuccessModal,
+  TermsModal,
+} from '@/components/auth/ui/Modal';
 import { cn } from '@/components/shared/cn';
 import { createClient } from '@/lib/supabase/client';
 import {
   DOCUMENT_EXTENSIONS,
   IMAGE_EXTENSIONS,
   MAX_UPLOAD_BYTES,
-  formatFileSize,
   validateUploadFile,
 } from '@/lib/uploadValidation';
 import { getFeaturedLocationsDisplay, getFeaturedLocationsAddressSummary } from '@/lib/config/featuredLocations';
@@ -71,199 +83,22 @@ const SKILL_ICONS: Record<string, React.ElementType> = {
   Theater: Drama,
 };
 
-/* ─── File Upload Card ─── */
-function FileUploadCard({
-  id,
-  label,
-  accept,
-  file,
-  onFileChange,
-  onRemove,
-  icon: Icon,
-  hint,
-  required = true,
-  disabled = false,
-  error,
-}: {
-  id: string;
-  label: string;
-  accept: string;
-  file: File | null;
-  onFileChange: (f: File | null) => void;
-  onRemove: () => void;
-  icon: React.ElementType;
-  hint: string;
-  required?: boolean;
-  disabled?: boolean;
-  error?: string;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [focused, setFocused] = useState(false);
-  const [dragging, setDragging] = useState(false);
-
-  const allowedExtensions = /pdf/i.test(accept) ? DOCUMENT_EXTENSIONS : IMAGE_EXTENSIONS;
-  const shownError = error || localError;
-
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
-
-  const handleFile = (nextFile: File | null) => {
-    if (!nextFile) return;
-
-    const validation = validateUploadFile(nextFile, {
-      allowedExtensions,
-      maxBytes: MAX_UPLOAD_BYTES,
-      noun: label.toLowerCase(),
-    });
-
-    if (validation) {
-      setLocalError(validation);
-      if (inputRef.current) inputRef.current.value = '';
-      return;
-    }
-
-    setLocalError(null);
-    onFileChange(nextFile);
-    setPreview(nextFile.type.startsWith('image/') ? URL.createObjectURL(nextFile) : null);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFile(e.target.files?.[0] ?? null);
-  };
-
-  const remove = () => {
-    setLocalError(null);
-    setPreview(null);
-    onRemove();
-    if (inputRef.current) inputRef.current.value = '';
-  };
-
-  return (
-    <div className="space-y-3">
-      <div
-        onDragOver={(e) => {
-          if (disabled) return;
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          if (disabled) return;
-          e.preventDefault();
-          setDragging(false);
-          handleFile(e.dataTransfer.files?.[0] ?? null);
-        }}
-        className={cn(
-          'reg-upload-card group',
-          file && 'reg-upload-card--filled',
-          dragging && 'reg-upload-card--dragging',
-          focused && 'reg-upload-card--dragging',
-          shownError && 'reg-upload-card--error',
-          disabled && 'cursor-not-allowed opacity-60'
-        )}
-      >
-        <input
-          ref={inputRef}
-          id={id}
-          type="file"
-          accept={accept}
-          onChange={handleChange}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          disabled={disabled}
-          aria-label={`Upload ${label}`}
-          aria-invalid={shownError ? 'true' : undefined}
-          aria-describedby={shownError ? `${id}-error` : undefined}
-          className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-        />
-        <div className="flex flex-col items-center gap-4">
-          {file ? (
-            <>
-              {preview ? (
-                <div className="relative overflow-hidden rounded-xl border border-border bg-muted/60 p-1.5">
-                  {/* Blob preview only; next/image cannot optimise object URLs. */}
-                  <img
-                    src={preview}
-                    alt={`Preview of ${label}`}
-                    className="max-h-28 rounded-lg object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-success/30 bg-success-soft text-success">
-                  <FileCheck className="h-6 w-6" aria-hidden="true" />
-                </div>
-              )}
-              <div className="max-w-full text-center">
-                <span className="block truncate text-sm font-semibold text-foreground" title={file.name}>
-                  {file.name}
-                </span>
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  {formatFileSize(file.size)} · Attached
-                </span>
-              </div>
-              <div className="relative z-20 flex flex-wrap items-center justify-center gap-2">
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    inputRef.current?.click();
-                  }}
-                  className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-accent-border hover:bg-accent-soft hover:text-accent-text disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <FileCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                  Replace
-                </button>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    remove();
-                  }}
-                  className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-danger/40 hover:bg-danger-soft hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  Remove
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text transition-transform group-hover:scale-105">
-                <Icon className="h-6 w-6" aria-hidden="true" />
-              </div>
-              <div>
-                <span className="block text-sm font-semibold text-foreground">{label}</span>
-                <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{hint}</span>
-              </div>
-              <div className="reg-upload-badges">
-                <span>Click or drop</span>
-                <span>{required ? 'Required' : 'Optional'}</span>
-                <span>Max 5 MB</span>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-      {shownError && (
-        <p id={`${id}-error`} className="g-field-error" role="alert">
-          <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span>{shownError}</span>
-        </p>
-      )}
-    </div>
-  );
-}
+/* Short blurbs for the discipline rows, keeping the step scannable. */
+const SKILL_DESCRIPTIONS: Record<string, string> = {
+  Dance: 'Hip-hop, contemporary, street & more',
+  Singing: 'Vocal coaching & song training',
+  Acting: 'On-camera work, film & stage',
+  Theater: 'Stage performance & musical theatre',
+};
 
 /* ─── Main Component ─── */
 export default function CoachRegistrationPage() {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const router = useRouter();
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [direction, setDirection] = useState(1);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitStage, setSubmitStage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -344,6 +179,102 @@ export default function CoachRegistrationPage() {
      The Next button must submit THAT form, not the first form on the page. */
   const step1FormRef = useRef<HTMLDivElement>(null);
 
+  /** Direction-aware step navigation. */
+  const goTo = (next: 1 | 2 | 3 | 4, dir: number) => {
+    setDirection(dir);
+    setStep(next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /** "Back to login" — confirms before discarding a partially-filled form. */
+  const handleBackToLogin = () => {
+    if (loading) return;
+    if (step > 1) {
+      setLeaveOpen(true);
+      return;
+    }
+    router.push('/login');
+  };
+
+  /** Shared rate/payment validation, used by the Profile step and re-checked
+   *  on submit. */
+  const getRateErrors = (): Step3Errors => {
+    const next: Step3Errors = {};
+    if (!step3Data.service_fee || Number.parseFloat(step3Data.service_fee) <= 0) {
+      next.service_fee = 'Set a standard rate greater than zero.';
+    }
+    if (step3Data.payment === 'online' && !step3Data.payment_handle.trim()) {
+      next.payment_handle =
+        'Enter the GCash or Maya number clients should pay.';
+    }
+    return next;
+  };
+
+  /** Shared document validation, used by the Credentials step and re-checked
+   *  on submit. */
+  const getDocumentErrors = (): Step3Errors => {
+    const next: Step3Errors = {};
+    if (!validIdFile) {
+      next.validIdFile = 'Upload a valid government ID for coach verification.';
+    }
+    if (!idSelfieFile) {
+      next.idSelfieFile =
+        'Upload a selfie holding your ID for identity verification.';
+    }
+    return next;
+  };
+
+  /** Validation helpers wired into <FileUpload onSelect>. Returning the message
+   * lets the upload component render its own error + shake state. */
+  const selectValidIdFile = (file: File): string | null => {
+    const message = validateUploadFile(file, {
+      allowedExtensions: DOCUMENT_EXTENSIONS,
+      maxBytes: MAX_UPLOAD_BYTES,
+      noun: 'government ID',
+    });
+    if (message) {
+      setValidIdFile(null);
+      setStep3Errors((prev) => ({ ...prev, validIdFile: message }));
+      return message;
+    }
+    setValidIdFile(file);
+    setStep3Errors((prev) => ({ ...prev, validIdFile: undefined }));
+    setError(null);
+    return null;
+  };
+
+  const selectIdSelfieFile = (file: File): string | null => {
+    const message = validateUploadFile(file, {
+      allowedExtensions: IMAGE_EXTENSIONS,
+      maxBytes: MAX_UPLOAD_BYTES,
+      noun: 'ID selfie',
+    });
+    if (message) {
+      setIdSelfieFile(null);
+      setStep3Errors((prev) => ({ ...prev, idSelfieFile: message }));
+      return message;
+    }
+    setIdSelfieFile(file);
+    setStep3Errors((prev) => ({ ...prev, idSelfieFile: undefined }));
+    setError(null);
+    return null;
+  };
+
+  const selectPortfolioFile = (file: File): string | null => {
+    const message = validateUploadFile(file, {
+      allowedExtensions: DOCUMENT_EXTENSIONS,
+      maxBytes: MAX_UPLOAD_BYTES,
+      noun: 'portfolio / resume',
+    });
+    if (message) {
+      setPortfolioFile(null);
+      return message;
+    }
+    setPortfolioFile(file);
+    setError(null);
+    return null;
+  };
+
   /* Select Skill Category (Single-select radio behavior) */
   const handleSelectSkill = (skill: string) => {
     setError(null);
@@ -422,24 +353,26 @@ export default function CoachRegistrationPage() {
     contact: ContactAccountData;
     address: AddressData;
   }) => {
+    setError(null);
+    setStep1Data(data);
+    goTo(2, 1);
+  };
+
+  /* Handler to proceed from Step 2 (Profile) to Step 3 (Credentials) */
+  const handleStep2Proceed = () => {
     if (!bio.trim() || bio.trim().length < 10) {
       const message =
         'Please provide a brief bio (minimum 10 characters) about your coaching experience.';
       setBioError(message);
       setError(null);
-      document.getElementById('coach-bio')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      document.getElementById('coach-bio')?.focus({ preventScroll: true });
+      window.requestAnimationFrame(() => {
+        document.getElementById('coach-bio')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('coach-bio')?.focus({ preventScroll: true });
+      });
       return;
     }
     setBioError(null);
-    setError(null);
-    setStep1Data(data);
-    setStep(2);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
-  /* Handler to proceed from Step 2 to Step 3 */
-  const handleStep2Proceed = () => {
     const validation = validateSkillsSelection(
       selectedSkill,
       activePredefinedGenres,
@@ -450,9 +383,50 @@ export default function CoachRegistrationPage() {
       setError(validation.error);
       return;
     }
+
+    const rateErrors = getRateErrors();
+    if (Object.keys(rateErrors).length > 0) {
+      setStep3Errors((prev) => ({ ...prev, ...rateErrors }));
+      setError(
+        Object.keys(rateErrors).length === 1
+          ? 'Please fix the highlighted item below to continue.'
+          : `Please fix the ${Object.keys(rateErrors).length} highlighted items below to continue.`
+      );
+      const firstKey = rateErrors.service_fee ? 'coach-service-fee' : 'coach-payment-handle';
+      window.requestAnimationFrame(() => {
+        const target = document.getElementById(firstKey);
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target?.focus({ preventScroll: true });
+      });
+      return;
+    }
+
+    setStep3Errors((prev) => ({ ...prev, service_fee: undefined, payment_handle: undefined }));
     setError(null);
-    setStep(3);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    goTo(3, 1);
+  };
+
+  /* Handler to proceed from Step 3 (Credentials) to Step 4 (Review) */
+  const handleStep3Proceed = () => {
+    const docErrors = getDocumentErrors();
+    if (Object.keys(docErrors).length > 0) {
+      setStep3Errors((prev) => ({ ...prev, ...docErrors }));
+      setError(
+        Object.keys(docErrors).length === 1
+          ? 'Please fix the highlighted item below to continue.'
+          : `Please fix the ${Object.keys(docErrors).length} highlighted items below to continue.`
+      );
+      const firstKey = docErrors.validIdFile ? 'coach-valid-id' : 'coach-id-selfie';
+      window.requestAnimationFrame(() => {
+        const target = document.getElementById(firstKey);
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target?.focus?.({ preventScroll: true });
+      });
+      return;
+    }
+    setStep3Errors((prev) => ({ ...prev, validIdFile: undefined, idSelfieFile: undefined }));
+    setError(null);
+    goTo(4, 1);
   };
 
   /* Final Submit (Step 3) */
@@ -462,7 +436,7 @@ export default function CoachRegistrationPage() {
     setError(null);
     setStep3Errors({});
 
-    // Validate skills & genres
+    // Validate skills & genres (also re-checked here as a safety net).
     const skillsValidation = validateSkillsSelection(
       selectedSkill,
       activePredefinedGenres,
@@ -471,39 +445,33 @@ export default function CoachRegistrationPage() {
     );
     if (!skillsValidation.valid) {
       setError(skillsValidation.error);
-      setStep(2);
+      goTo(2, -1);
       return;
     }
 
-    // Step 3 field-level validation. Collect every problem so the user does not
-    // have to submit repeatedly to discover each missing document.
-    const nextStep3Errors: Step3Errors = {};
+    // Rate + payment + document validation. These rules are also enforced on
+    // the Profile and Credentials steps; this is the final safety net, so we
+    // route the coach back to wherever the fix belongs.
+    const nextStep3Errors: Step3Errors = { ...getRateErrors(), ...getDocumentErrors() };
 
-    if (!step3Data.service_fee || Number.parseFloat(step3Data.service_fee) <= 0) {
-      nextStep3Errors.service_fee = 'Set a standard rate greater than zero.';
-    }
-    if (step3Data.payment === 'online' && !step3Data.payment_handle.trim()) {
-      nextStep3Errors.payment_handle =
-        'Enter the GCash or Maya number clients should pay.';
-    }
     // GCASH-QR (temporarily disabled): the check that a QR upload came with a
     // matching mobile number (gcash_profiles.account_number is NOT NULL) was
     // removed. It was only reachable once a QR had been attached, which is no
     // longer possible. The separate "Online Payment requires a mobile number"
     // rule above is unchanged and still applies.
-    if (!validIdFile) {
-      nextStep3Errors.validIdFile = 'Upload a valid government ID for coach verification.';
-    }
-    if (!idSelfieFile) {
-      nextStep3Errors.idSelfieFile =
-        'Upload a selfie holding your ID for identity verification.';
-    }
     if (!step3Data.terms) {
       nextStep3Errors.terms = 'You must agree to the Coach Terms of Service.';
     }
 
     if (Object.keys(nextStep3Errors).length > 0) {
       setStep3Errors(nextStep3Errors);
+      const hasRate = Boolean(nextStep3Errors.service_fee || nextStep3Errors.payment_handle);
+      const hasDocument = Boolean(nextStep3Errors.validIdFile || nextStep3Errors.idSelfieFile);
+      if (hasRate) {
+        goTo(2, -1);
+      } else if (hasDocument) {
+        goTo(3, -1);
+      }
       const firstIdMap: Record<keyof Step3Errors, string> = {
         service_fee: 'coach-service-fee',
         payment_handle: 'coach-payment-handle',
@@ -511,22 +479,17 @@ export default function CoachRegistrationPage() {
         idSelfieFile: 'coach-id-selfie',
         terms: 'coachTerms',
       };
-      const firstKey = (
-        [
-          'service_fee',
-          'payment_handle',
-          'validIdFile',
-          'idSelfieFile',
-          'terms',
-        ] as (keyof Step3Errors)[]
-      ).find((key) => nextStep3Errors[key]);
+      const firstKey =
+        (['service_fee', 'payment_handle', 'validIdFile', 'idSelfieFile', 'terms'] as (
+          keyof Step3Errors
+        )[]).find((key) => nextStep3Errors[key]);
       if (firstKey) {
-        window.requestAnimationFrame(() => {
+        window.setTimeout(() => {
           document
             .getElementById(firstIdMap[firstKey])
             ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           document.getElementById(firstIdMap[firstKey])?.focus({ preventScroll: true });
-        });
+        }, 350);
       }
       setError(
         Object.keys(nextStep3Errors).length === 1
@@ -892,7 +855,7 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
   };
 
   /* ─── Success Screen ─── */
-  if (registeredSuccess && successData) {
+  if (registeredSuccess && successData && successData.verificationRequired) {
     return (
       <RegistrationSuccess
         firstname={successData.firstname}
@@ -931,718 +894,721 @@ const uploadCoachDoc = async (file: File, label: string): Promise<string> => {
     );
   }
 
+  const uploadingDocuments = loading && /upload/i.test(submitStage ?? '');
+
+  const genresForSkill = DEFAULT_SKILLS_AND_GENRES[selectedSkill] || [];
+  const SkillIcon = SKILL_ICONS[selectedSkill] || Sparkles;
+
+  const rateValid =
+    Boolean(step3Data.service_fee) &&
+    Number.parseFloat(step3Data.service_fee) > 0 &&
+    (step3Data.payment === 'cash' || step3Data.payment_handle.trim().length > 0);
+  const skillsValid = validateSkillsSelection(
+    selectedSkill,
+    activePredefinedGenres,
+    hasOther,
+    activeCustomGenresList
+  ).valid;
+  const docValid = Boolean(validIdFile && idSelfieFile);
+
+  const COACH_STEPS = [
+    { id: 1, label: 'Account', detail: 'Personal & address', disabled: false },
+    {
+      id: 2,
+      label: 'Profile',
+      detail: 'Bio, discipline & rates',
+      disabled: !step1Data,
+    },
+    {
+      id: 3,
+      label: 'Credentials',
+      detail: 'ID & documents',
+      disabled: !step1Data || !skillsValid || !rateValid,
+    },
+    {
+      id: 4,
+      label: 'Review',
+      detail: 'Terms & submit',
+      disabled: !step1Data || !skillsValid || !rateValid || !docValid,
+    },
+  ];
+
+  const showSuccessModal = registeredSuccess && successData !== null && !successData.verificationRequired;
+
   return (
-      <AuthLayout
-        wide
-        registration
-        eyebrow={
-          <span className="au-eyebrow">
-            <Award className="h-3 w-3" aria-hidden="true" />
-            Coach &amp; Choreographer Registration
-          </span>
-        }
-        title="Join as a Coach"
-        subtext="Verified performing arts mentors in San Jose del Monte and other locations in the Philippines."
-        // Image panel props for coach registration
-        imagePanelTitle="Mentor the next generation."
-        imagePanelDescription="Join verified coaches across the Philippines. Set your rates, teach your genres, and build your coaching practice with Groove System."
-        imagePanelImage="/image/login/LoginPage.jpeg"
-        footer={
-          <p className="text-center text-sm text-muted-foreground">
+    <AuthLayout
+      wizard
+      registration
+      title="Join as a Coach"
+      subtext="Verified performing arts mentors in San Jose del Monte and other locations in the Philippines."
+      imagePanelTitle="Mentor the next generation."
+      imagePanelDescription="Join verified coaches across the Philippines. Set your rates, teach your genres, and build your coaching practice with Groove System."
+      imagePanelImage="/image/login/LoginPage.jpeg"
+      footer={
+        <div className="av-footer-copy">
+          <p>
             Already have an account?{' '}
-            <Link
-              href="/login"
-              className="font-semibold text-accent-text hover:underline underline-offset-4"
-            >
+            <Link href="/login" className="av-link">
               Sign in
             </Link>
           </p>
-        }
-      >
-        <RegistrationProgress
-          className="mb-5"
-          label="Coach application"
-          status={`Step ${step} of 3`}
-          percent={(step / 3) * 100}
-          activeId={step}
+        </div>
+      }
+    >
+      <div className="rw">
+        <WizardRail
+          steps={COACH_STEPS}
+          current={step}
           ariaLabel="Coach registration steps"
+          helper="Your progress is kept in this tab. Uploaded files stay attached as you move between steps."
           onSelect={(id) => {
             if (loading) return;
-            setStep(id as 1 | 2 | 3);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (id < step) goTo(id as 1 | 2 | 3 | 4, -1);
           }}
-          items={[
-            { id: 1, label: 'About you', detail: 'Personal & address' },
-            {
-              id: 2,
-              label: 'Skills',
-              detail: 'Discipline & genres',
-              disabled: loading || !step1Data,
-            },
-            {
-              id: 3,
-              label: 'Verification',
-              detail: 'Rates & documents',
-              disabled:
-                loading ||
-                !step1Data ||
-                !validateSkillsSelection(
-                  selectedSkill,
-                  activePredefinedGenres,
-                  hasOther,
-                  activeCustomGenresList
-                ).valid,
-            },
-          ]}
         />
 
-        <div className="space-y-6">
-          {error && <FormError message={error} className="mb-6" />}
+        <div className="rw-main">
+          {error && <FormError message={error} />}
 
-        {/* ─── STEP 1: Personal, Address & Bio ─── */}
-        {step === 1 && (
-          <div ref={step1FormRef} className="space-y-6">
-            <RegistrationStepHeader
-              step={1}
-              total={3}
-              icon={User}
-              title="Tell us about you"
-              description="Your legal details, service location and account credentials."
-            />
+          <ProgressSegments
+            steps={COACH_STEPS}
+            current={step}
+            label="Coach application progress"
+          />
 
-            {/* Fast-track with Google. Kept visible but labelled honestly while
-                the provider is disabled. */}
-            <div className="reg-oauth-card">
-              <div className="mb-2.5 flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="reg-oauth-icon" aria-hidden="true">⚡</span>
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">Fast-track with Google</h3>
-                    <p className="text-[11px] text-muted-foreground">Optional shortcut</p>
-                  </div>
-                </div>
-                <span className="reg-soft-badge">Coming soon</span>
-              </div>
-              <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-                Google sign-up is not available yet. Complete the three-step application below to
-                submit your coaching profile and verification documents.
-              </p>
-              <GoogleRegisterButton role="coach" label="Continue with Google as Coach" />
-            </div>
-
-            <div className="reg-divider">
-              <span>or complete the 3-step coach application</span>
-            </div>
-
-            <RegistrationFormFields
-              role="coach"
-              stepNumber={1}
-              loading={false}
-              externalError={error}
-              showSubmitButton={false}
-              initialPersonal={step1Data?.personal}
-              initialContact={step1Data?.contact}
-              initialAddress={step1Data?.address}
-              onValidatedData={handleStep1Validated}
-              bioField={
-                <div>
-                  <div className="mb-1.5 flex items-center justify-between gap-2">
-                    <label className={labelClasses} htmlFor="coach-bio">
-                      Bio / About Your Coaching <span className="text-accent-text">*</span>
-                    </label>
-                    <span className="text-[11px] text-muted-foreground">Min. 10 chars</span>
-                  </div>
-                  <textarea
-                    id="coach-bio"
-                    value={bio}
-                    onChange={(e) => {
-                      setBio(e.target.value);
-                      if (bioError) setBioError(null);
-                    }}
-                    placeholder="Introduce your coaching achievements, experience, specialties, and teaching style..."
-                    required
-                    rows={3}
-                    aria-invalid={bioError ? 'true' : undefined}
-                    aria-describedby={bioError ? 'coach-bio-error' : undefined}
-                    className="g-input min-h-[112px] resize-y"
-                  />
-                  {bioError ? (
-                    <p id="coach-bio-error" className="g-field-error" role="alert">
-                      <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                      <span>{bioError}</span>
-                    </p>
-                  ) : (
-                    <p className="g-field-hint">
-                      Tell clients what you teach, how you teach, and who you work with.
-                    </p>
-                  )}
-                </div>
-              }
-              documentSection={<></>}
-            />
-
-            <Button
-              type="button"
-              size="lg"
-              className="h-12 w-full font-bold"
-              trailingIcon={<ArrowRight className="h-4 w-4" />}
-              onClick={() => {
-                // RegistrationFormFields owns this step's <form> and calls
-                // onValidatedData on a valid submit. Scope the lookup to this
-                // step's container because the page renders multiple forms.
-                const form = step1FormRef.current?.querySelector('form');
-                if (form) {
-                  form.requestSubmit();
-                } else {
-                  setError(
-                    'Something went wrong loading this step. Please refresh and try again.'
-                  );
-                }
-              }}
-            >
-              Next: select skills &amp; genres
-            </Button>
-          </div>
-        )}
-
-        {/* ─── STEP 2: Skills & Genre Selection ─── */}
-        {step === 2 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <RegistrationStepHeader
-              step={2}
-              total={3}
-              icon={Layers}
-              title="Select your skill & genres"
-              description="Choose the discipline you teach, then select your specific genres."
-            />
-
-            {/* Skill Single-select Section */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <RegistrationSectionHeading
-                  id="coach-skill-heading"
-                  index={1}
-                  step={2}
-                  icon={Sparkles}
-                  title="Performing arts skill"
-                  description="Choose the one discipline you teach. You can refine genres in the next section."
-                  className="flex-1"
+          <StepTransition stepKey={step} direction={direction}>
+            {/* ─── STEP 1: Account ─── */}
+            {step === 1 && (
+              <div className="rw-step-content">
+                <StepHeader
+                  icon={User}
+                  title="Tell us about you"
+                  description="Your legal details, service location and account credentials. Everything is saved when you move to the next step."
                 />
-                <span className="g-pill-accent text-[11px] font-semibold">
-                  Selected: <strong className="text-foreground">{selectedSkill}</strong>
-                </span>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {availableSkills.map((skill) => {
-                  const isSelected = selectedSkill === skill;
-                  const Icon = SKILL_ICONS[skill] || Sparkles;
-                  const count = isSelected ? allActiveGenres.length : 0;
-
-                  return (
-                    <button
-                      type="button"
-                      key={skill}
-                      onClick={() => handleSelectSkill(skill)}
-                      aria-pressed={isSelected}
-                      className={`reg-choice-card reg-choice-card--center ${
-                        isSelected
-                          ? 'reg-choice-card--selected text-accent-text'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <div
-                        className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all ${
-                          isSelected ? 'bg-accent text-accent-foreground shadow-sm' : 'bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="text-sm font-bold">{skill}</span>
-                        {isSelected ? (
-                          <span className="text-xs font-medium text-foreground">
-                            {count} {count === 1 ? 'genre' : 'genres'}
-                          </span>
-                        ) : (
-                          <span className="text-xs font-medium text-subtle-foreground">Tap to select</span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Dynamic Genres Section for the single selected skill */}
-            <div className="space-y-5">
-              <RegistrationSectionHeading
-                id="coach-genres-heading"
-                index={2}
-                step={2}
-                icon={Music}
-                title={`Specific genres for ${selectedSkill}`}
-                description="Select every genre you teach. Add a custom genre if yours is not listed."
-              />
-
-              {(() => {
-                const genresForSkill = DEFAULT_SKILLS_AND_GENRES[selectedSkill] || [];
-                const SkillIcon = SKILL_ICONS[selectedSkill] || Sparkles;
-
-                return (
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-lg   bg-muted text-foreground">
-                          <SkillIcon className="h-4 w-4" />
-                        </div>
-                        <h3 className="text-sm font-bold text-foreground">{selectedSkill} Genres</h3>
-                      </div>
-                      <span className="g-pill text-xs font-semibold text-foreground">
-                        {allActiveGenres.length > 0
-                          ? `${allActiveGenres.length} selected`
-                          : 'Select at least 1'}
-                      </span>
-                    </div>
-
-                    {/* Chips for predefined genres */}
-                    <div className="flex flex-wrap gap-2.5">
-                      {genresForSkill.map((genre) => {
-                        const isSelected = activePredefinedGenres.includes(genre);
-                        return (
-                          <button
-                            type="button"
-                            key={genre}
-                            onClick={() => toggleGenre(genre)}
-                            aria-pressed={isSelected}
-                            className={`reg-chip ${isSelected ? 'reg-chip--selected' : ''}`}
-                          >
-                            {isSelected && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
-                            <span>{genre}</span>
-                          </button>
-                        );
-                      })}
-
-                      {/* "Other" chip */}
-                      <button
-                        type="button"
-                        onClick={toggleOther}
-                        aria-pressed={hasOther}
-                        className={`reg-chip ${hasOther ? 'reg-chip--selected' : ''}`}
-                      >
-                        {hasOther && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
-                        <span>Other</span>
-                      </button>
-                    </div>
-
-                    {/* Other / Custom Genre Input Fields */}
-                    {hasOther && (
-                      <div className="reg-summary animate-in space-y-4 fade-in duration-150">
-                        <label className="block text-sm font-semibold text-foreground">
-                          Specify your genre <span className="font-normal text-muted-foreground">(Custom)</span>
-                        </label>
-
-                        <div className="space-y-3">
-                          {activeCustomGenresList.map((customVal, idx) => (
-                            <div key={idx} className="flex items-center gap-2.5">
-                              <input
-                                type="text"
-                                value={customVal}
-                                aria-label={`Custom genre ${idx + 1}`}
-                                onChange={(e) => handleCustomGenreChange(idx, e.target.value)}
-                                placeholder="e.g. Krump, Waacking, Afro-Fusion..."
-                                className="g-input flex-1 text-sm"
-                              />
-                              {activeCustomGenresList.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveCustomGenre(idx)}
-                                  className="g-topbar-action cursor-pointer"
-                                  title="Remove custom genre"
-                                  aria-label={`Remove custom genre ${idx + 1}`}
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleAddAnotherCustomGenre}
-                          className="inline-flex cursor-pointer items-center gap-1 text-sm font-semibold text-accent-text transition-colors hover:underline hover:underline-offset-4"
-                        >
-                          <span>+ Add another custom genre</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Structured Selection Summary Box */}
-            <div className="reg-summary space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Selection summary
-                </span>
-                <span className="text-[11px] font-medium text-subtle-foreground">Auto-structured</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {allActiveGenres.length > 0 ? (
-                  <div className="g-pill text-xs text-foreground">
-                    <span className="font-bold text-foreground">{selectedSkill}:</span>
-                    <span className="text-muted-foreground">{allActiveGenres.join(', ')}</span>
-                  </div>
-                ) : (
-                  <span className="text-xs italic text-muted-foreground">
-                    No genres selected yet for {selectedSkill}.
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Step 2 Action Buttons */}
-            <div className="reg-actions">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="h-12 w-full sm:w-1/3"
-                onClick={() => setStep(1)}
-              >
-                Back
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                className="h-12 w-full font-bold sm:flex-1"
-                trailingIcon={<ArrowRight className="h-4 w-4" />}
-                onClick={handleStep2Proceed}
-              >
-                Next: service rates &amp; verification
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* ─── STEP 3: Rates, Payment & Verification ─── */}
-        {step === 3 && (
-          <form
-            onSubmit={handleFinalSubmit}
-            noValidate
-            className="flex animate-in flex-col gap-6 fade-in duration-200"
-          >
-            <RegistrationStepHeader
-              step={3}
-              total={3}
-              icon={ShieldCheck}
-              title="Rates & identity verification"
-              description="Set your standard coaching session rate and upload identity verification documents."
-            />
-
-            {/* Service fee & Duration */}
-            <div className="reg-section space-y-6">
-              <RegistrationSectionHeading
-                id="coach-rates-heading"
-                index={1}
-                step={3}
-                icon={DollarSign}
-                title="Service rates & payment"
-                description="Set the rate and payment method clients will see on your profile."
-              />
-
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-                <div className="reg-field">
-                  <label className={labelClasses} htmlFor="coach-service-fee">
-                    Standard rate (PHP) <span className="text-accent-text">*</span>
-                  </label>
-                  <div className="relative">
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground"
-                    >
-                      ₱
-                    </span>
-                    <input
-                      id="coach-service-fee"
-                      type="number"
-                      min="100"
-                      step="50"
-                      value={step3Data.service_fee}
-                      onChange={(e) => {
-                        setStep3Data({ ...step3Data, service_fee: e.target.value });
-                        if (step3Errors.service_fee) {
-                          setStep3Errors((prev) => ({ ...prev, service_fee: undefined }));
-                        }
-                      }}
-                      required
-                      placeholder="500"
-                      aria-invalid={step3Errors.service_fee ? 'true' : undefined}
-                      aria-describedby={step3Errors.service_fee ? 'coach-service-fee-error' : 'coach-service-fee-hint'}
-                      className={cn(inputClasses, 'g-input-has-icon')}
-                    />
-                  </div>
-                  {step3Errors.service_fee ? (
-                    <p id="coach-service-fee-error" className="g-field-error" role="alert">
-                      <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                      <span>{step3Errors.service_fee}</span>
-                    </p>
-                  ) : (
-                    <p id="coach-service-fee-hint" className="g-field-hint">
-                      Minimum ₱100 per session. Clients see this on your profile.
-                    </p>
-                  )}
-                </div>
-
-                <div className="reg-field">
-                  <label className={labelClasses} htmlFor="coach-duration">
-                    Session duration
-                  </label>
-                  <select
-                    id="coach-duration"
-                    value={step3Data.duration}
-                    onChange={(e) => setStep3Data({ ...step3Data, duration: e.target.value })}
-                    className={selectClasses}
-                  >
-                    <option value="1 hour">1 hour</option>
-                    <option value="1.5 hours">1.5 hours</option>
-                    <option value="2 hours">2 hours</option>
-                    <option value="3 hours">3 hours</option>
-                  </select>
-                  <p className="g-field-hint">
-                    How long one standard session runs.
+                <div className="rw-oauth">
+                  <GoogleRegisterButton
+                    role="coach"
+                    label="Continue with Google"
+                    badge="Coming soon"
+                    className="av-google"
+                  />
+                  <p className="av-oauth-note">
+                    Google sign-up is coming soon. Complete the four-step application below to
+                    submit your coaching profile and verification documents.
                   </p>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-                <div className="reg-field">
-                  <label className={labelClasses} htmlFor="coach-payment-mode">
-                    Accepted payment mode
-                  </label>
-                  <select
-                    id="coach-payment-mode"
-                    value={step3Data.payment}
-                    onChange={(e) => {
-                      setStep3Data({ ...step3Data, payment: e.target.value as 'cash' | 'online' });
-                      if (step3Errors.payment_handle) {
-                        setStep3Errors((prev) => ({ ...prev, payment_handle: undefined }));
+                <Divider label="OR" variant="dotted" />
+
+                <div ref={step1FormRef}>
+                  <RegistrationFormFields
+                    role="coach"
+                    stepNumber={1}
+                    loading={false}
+                    externalError={error}
+                    showSubmitButton={false}
+                    onValidatedData={handleStep1Validated}
+                    initialPersonal={step1Data?.personal}
+                    initialContact={step1Data?.contact}
+                    initialAddress={step1Data?.address}
+                    documentSection={<></>}
+                  />
+                </div>
+
+                <WizardFooter onBack={handleBackToLogin} backLabel="Back to login">
+                  <AuthButton
+                    type="button"
+                    trailingIcon={<ArrowRight className="h-4 w-4" />}
+                    onClick={() => {
+                      const form = step1FormRef.current?.querySelector('form');
+                      if (form) {
+                        form.requestSubmit();
+                      } else {
+                        setError(
+                          'Something went wrong loading this step. Please refresh and try again.'
+                        );
                       }
                     }}
-                    className={selectClasses}
                   >
-                    <option value="cash">Cash on Session</option>
-                    <option value="online">Online Payment (GCash / Maya)</option>
-                  </select>
-                  <p className="g-field-hint">
-                    Choose a mobile number if you accept online payments.
-                  </p>
-                </div>
+                    Continue
+                  </AuthButton>
+                </WizardFooter>
+              </div>
+            )}
 
-                {step3Data.payment === 'online' && (
-                  <div className="reg-field">
-                    <label className={labelClasses} htmlFor="coach-payment-handle">
-                      GCash / Maya mobile number <span className="text-accent-text">*</span>
+            {/* ─── STEP 2: Profile ─── */}
+            {step === 2 && (
+              <div className="rw-step-content">
+                <StepHeader
+                  icon={Layers}
+                  title="Specialization & rates"
+                  description="Tell clients what you teach, then set the rate and payment method for a standard session."
+                />
+
+                {/* Bio */}
+                <section className="rw-block" aria-labelledby="coach-bio-block">
+                  <div className="rw-block-head">
+                    <h3 id="coach-bio-block" className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">1</span>
+                      Bio
+                    </h3>
+                    <span className="rw-block-note">{bio.length} characters</span>
+                  </div>
+                  <div>
+                    <label className={labelClasses} htmlFor="coach-bio">
+                      Bio / About your coaching <span className="text-accent-text" aria-hidden="true">*</span>
                     </label>
-                    <input
-                      id="coach-payment-handle"
-                      type="text"
-                      value={step3Data.payment_handle}
+                    <textarea
+                      id="coach-bio"
+                      value={bio}
                       onChange={(e) => {
-                        setStep3Data({ ...step3Data, payment_handle: e.target.value });
+                        setBio(e.target.value);
+                        if (bioError) setBioError(null);
+                      }}
+                      placeholder="Introduce your coaching achievements, experience, specialties, and teaching style..."
+                      required
+                      rows={4}
+                      aria-invalid={bioError ? 'true' : undefined}
+                      aria-describedby={bioError ? 'coach-bio-error' : 'coach-bio-hint'}
+                      className="g-input"
+                    />
+                    {bioError ? (
+                      <p id="coach-bio-error" className="g-field-error" role="alert">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span>{bioError}</span>
+                      </p>
+                    ) : (
+                      <p id="coach-bio-hint" className="g-field-hint">
+                        Tell clients what you teach, how you teach, and who you work with.
+                      </p>
+                    )}
+                  </div>
+                </section>
+
+                {/* Skill (single select) */}
+                <section className="rw-block" aria-labelledby="coach-skill-block">
+                  <div className="rw-block-head">
+                    <h3 id="coach-skill-block" className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">2</span>
+                      Performing arts skill
+                    </h3>
+                    <span className="rw-block-note">
+                      {allActiveGenres.length > 0
+                        ? `${allActiveGenres.length} ${allActiveGenres.length === 1 ? 'genre' : 'genres'} selected`
+                        : 'Pick at least 1 genre'}
+                    </span>
+                  </div>
+                  <div className="rw-options" role="group" aria-label="Performing arts skill">
+                    {availableSkills.map((skill) => {
+                      const isSelected = selectedSkill === skill;
+                      const Icon = SKILL_ICONS[skill] || Sparkles;
+                      return (
+                        <OptionRow
+                          key={skill}
+                          icon={Icon}
+                          title={skill}
+                          description={SKILL_DESCRIPTIONS[skill] || 'Teaching specialty'}
+                          selected={isSelected}
+                          onSelect={() => handleSelectSkill(skill)}
+                          meta={isSelected ? 'Teaching now' : undefined}
+                        />
+                      );
+                    })}
+                  </div>
+                </section>
+
+                {/* Genres (multi select) */}
+                <section className="rw-block" aria-labelledby="coach-genres-block">
+                  <div className="rw-block-head">
+                    <h3 id="coach-genres-block" className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">3</span>
+                      Specific genres for {selectedSkill}
+                    </h3>
+                    <span className="rw-block-note">Select every genre you teach</span>
+                  </div>
+                  <ChipSelect
+                    options={genresForSkill}
+                    selected={activePredefinedGenres}
+                    onToggle={toggleGenre}
+                    ariaLabel={`${selectedSkill} genres`}
+                    extra={
+                      <button
+                        type="button"
+                        className={cn('rw-chip', hasOther && 'is-selected')}
+                        onClick={toggleOther}
+                        aria-pressed={hasOther}
+                      >
+                        {hasOther ? (
+                          <span className="rw-chip-check" aria-hidden="true">
+                            <Check className="h-3 w-3" strokeWidth={3} />
+                          </span>
+                        ) : null}
+                        <span>Other</span>
+                      </button>
+                    }
+                  />
+
+                  {hasOther && (
+                    <div className="space-y-3">
+                      <span className="block text-xs font-medium text-[var(--av-muted)]">
+                        Specify your genre <span className="font-normal">(Custom)</span>
+                      </span>
+                      <div className="space-y-2">
+                        {activeCustomGenresList.map((customVal, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={customVal}
+                              aria-label={`Custom genre ${idx + 1}`}
+                              onChange={(e) => handleCustomGenreChange(idx, e.target.value)}
+                              placeholder="e.g. Krump, Waacking, Afro-Fusion..."
+                              className="g-input flex-1 text-sm"
+                            />
+                            {activeCustomGenresList.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCustomGenre(idx)}
+                                className="g-topbar-action cursor-pointer"
+                                title="Remove custom genre"
+                                aria-label={`Remove custom genre ${idx + 1}`}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddAnotherCustomGenre}
+                        className="text-xs font-semibold text-[var(--av-accent)] underline-offset-4 hover:underline"
+                      >
+                        + Add another custom genre
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="rw-selection-summary">
+                    {allActiveGenres.length > 0 ? (
+                      <span className="rw-selection-pill">
+                        <strong>{selectedSkill}:</strong> {allActiveGenres.join(', ')}
+                      </span>
+                    ) : (
+                      <span className="text-xs italic text-[var(--av-subtle)]">
+                        No genres selected yet for {selectedSkill}.
+                      </span>
+                    )}
+                  </div>
+                </section>
+
+                {/* Rates & payment */}
+                <section className="rw-block" aria-labelledby="coach-rates-block">
+                  <div className="rw-block-head">
+                    <h3 id="coach-rates-block" className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">4</span>
+                      Session rate & payment
+                    </h3>
+                    <span className="rw-block-note">Shown on your profile</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                    <div className="reg-field">
+                      <label className={labelClasses} htmlFor="coach-service-fee">
+                        Standard rate (PHP) <span className="text-accent-text" aria-hidden="true">*</span>
+                      </label>
+                      <div className="relative">
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--av-muted)]"
+                        >
+                          ₱
+                        </span>
+                        <input
+                          id="coach-service-fee"
+                          type="number"
+                          min="100"
+                          step="50"
+                          value={step3Data.service_fee}
+                          onChange={(e) => {
+                            setStep3Data({ ...step3Data, service_fee: e.target.value });
+                            if (step3Errors.service_fee) {
+                              setStep3Errors((prev) => ({ ...prev, service_fee: undefined }));
+                            }
+                          }}
+                          required
+                          placeholder="500"
+                          aria-invalid={step3Errors.service_fee ? 'true' : undefined}
+                          aria-describedby={step3Errors.service_fee ? 'coach-service-fee-error' : 'coach-service-fee-hint'}
+                          className={cn(inputClasses, 'g-input-has-icon')}
+                        />
+                      </div>
+                      {step3Errors.service_fee ? (
+                        <p id="coach-service-fee-error" className="g-field-error" role="alert">
+                          <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>{step3Errors.service_fee}</span>
+                        </p>
+                      ) : (
+                        <p id="coach-service-fee-hint" className="g-field-hint">
+                          Minimum ₱100 per session. Clients see this on your profile.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="reg-field">
+                      <label className={labelClasses} htmlFor="coach-duration">
+                        Session duration
+                      </label>
+                      <select
+                        id="coach-duration"
+                        value={step3Data.duration}
+                        onChange={(e) => setStep3Data({ ...step3Data, duration: e.target.value })}
+                        className={selectClasses}
+                      >
+                        <option value="1 hour">1 hour</option>
+                        <option value="1.5 hours">1.5 hours</option>
+                        <option value="2 hours">2 hours</option>
+                        <option value="3 hours">3 hours</option>
+                      </select>
+                      <p className="g-field-hint">How long one standard session runs.</p>
+                    </div>
+                  </div>
+
+                  <div className="rw-options" role="group" aria-label="Accepted payment mode">
+                    <OptionRow
+                      icon={Wallet}
+                      title="Cash on session"
+                      description="Clients pay you in person after the session."
+                      selected={step3Data.payment === 'cash'}
+                      onSelect={() => {
+                        setStep3Data({ ...step3Data, payment: 'cash' });
                         if (step3Errors.payment_handle) {
                           setStep3Errors((prev) => ({ ...prev, payment_handle: undefined }));
                         }
                       }}
-                      placeholder="e.g. 09171234567"
-                      required
-                      aria-invalid={step3Errors.payment_handle ? 'true' : undefined}
-                      aria-describedby={
-                        step3Errors.payment_handle ? 'coach-payment-handle-error' : 'coach-payment-handle-hint'
-                      }
-                      className={inputClasses}
                     />
-                    {step3Errors.payment_handle ? (
-                      <p id="coach-payment-handle-error" className="g-field-error" role="alert">
-                        <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span>{step3Errors.payment_handle}</span>
-                      </p>
-                    ) : (
-                      <p id="coach-payment-handle-hint" className="g-field-hint">
-                        The number clients pay when booking online.
-                      </p>
-                    )}
+                    <OptionRow
+                      icon={Smartphone}
+                      title="Online (GCash / Maya)"
+                      description="Clients pay through your mobile number."
+                      selected={step3Data.payment === 'online'}
+                      onSelect={() => setStep3Data({ ...step3Data, payment: 'online' })}
+                    />
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Document Uploads */}
-            <div className="reg-section space-y-6">
-              <RegistrationSectionHeading
-                id="coach-documents-heading"
-                index={2}
-                step={3}
-                icon={ShieldCheck}
-                title="Verification documents"
-                description="Required for coach review. Files are uploaded only after the account is created."
-              />
-
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <div className="reg-upload-badges">
-                  <span>PDF</span>
-                  <span>JPG</span>
-                  <span>PNG</span>
-                  <span>Max 5 MB each</span>
-                </div>
-                <span className="ml-auto font-semibold text-foreground">
-                  {[validIdFile, idSelfieFile].filter(Boolean).length} of 2 required attached
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FileUploadCard
-                  id="coach-valid-id"
-                  label="Government ID"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  file={validIdFile}
-                  onFileChange={(nextFile) => {
-                    setValidIdFile(nextFile);
-                    if (nextFile && step3Errors.validIdFile) {
-                      setStep3Errors((prev) => ({ ...prev, validIdFile: undefined }));
-                    }
-                  }}
-                  onRemove={() => setValidIdFile(null)}
-                  icon={ShieldCheck}
-                  hint="Passport, UMID, Postal"
-                  required
-                  disabled={loading}
-                  error={step3Errors.validIdFile}
-                />
-                <FileUploadCard
-                  id="coach-id-selfie"
-                  label="Selfie Holding ID"
-                  accept=".jpg,.jpeg,.png"
-                  file={idSelfieFile}
-                  onFileChange={(nextFile) => {
-                    setIdSelfieFile(nextFile);
-                    if (nextFile && step3Errors.idSelfieFile) {
-                      setStep3Errors((prev) => ({ ...prev, idSelfieFile: undefined }));
-                    }
-                  }}
-                  onRemove={() => setIdSelfieFile(null)}
-                  icon={Camera}
-                  hint="JPG or PNG"
-                  required
-                  disabled={loading}
-                  error={step3Errors.idSelfieFile}
-                />
-                <div className="sm:col-span-2">
-                  <FileUploadCard
-                    id="coach-portfolio"
-                    label="Portfolio / Resume"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    file={portfolioFile}
-                    onFileChange={setPortfolioFile}
-                    onRemove={() => setPortfolioFile(null)}
-                    icon={FileCheck}
-                    hint="PDF, JPG or PNG"
-                    required={false}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* GCASH-QR (temporarily disabled): the optional GCash QR upload block is
-                hidden here. The "Online Payment (GCash / Maya)" method and the
-                GCash / Maya Mobile Number field above it are UNCHANGED — only
-                the QR image and notes fields were hidden. To restore, re-render
-                <GCashRegistrationSection audience="coach" … /> against the
-                state hooks near the top of this component. */}
-
-            {/* Terms */}
-            <div className="reg-section space-y-6">
-              <RegistrationSectionHeading
-                id="coach-terms-heading"
-                index={3}
-                step={3}
-                icon={FileCheck}
-                title="Agreement & submit"
-                description="Confirm the coaching terms before submitting for review."
-              />
-              <div className={cn('reg-terms-card', step3Errors.terms && 'reg-terms-card--error')}>
-                <input
-                  type="checkbox"
-                  id="coachTerms"
-                  checked={step3Data.terms}
-                  onChange={(e) => {
-                    setStep3Data({ ...step3Data, terms: e.target.checked });
-                    if (e.target.checked && step3Errors.terms) {
-                      setStep3Errors((prev) => ({ ...prev, terms: undefined }));
-                    }
-                  }}
-                  required
-                  aria-invalid={step3Errors.terms ? 'true' : undefined}
-                  aria-describedby={step3Errors.terms ? 'coachTerms-error' : undefined}
-                  className="g-checkbox"
-                />
-                <label
-                  htmlFor="coachTerms"
-                  className="cursor-pointer select-none text-sm leading-relaxed text-muted-foreground"
-                >
-                  I agree to the{' '}
-                  <Link
-                    href="/terms"
-                    target="_blank"
-                    className="font-semibold text-accent-text underline-offset-4 hover:underline"
-                  >
-                    Coach Terms of Service
-                  </Link>{' '}
-                  and code of professional conduct on Groove System.
-                </label>
-              </div>
-              {step3Errors.terms && (
-                <p id="coachTerms-error" className="g-field-error" role="alert">
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>{step3Errors.terms}</span>
-                </p>
-              )}
-            </div>
-
-            {/* Form Actions */}
-            <div className="reg-actions">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="h-12 w-full sm:w-1/3"
-                disabled={loading}
-                onClick={() => setStep(2)}
-              >
-                Back
-              </Button>
-              <Button
-                type="submit"
-                size="lg"
-                className="h-12 w-full font-bold sm:flex-1"
-                loading={loading}
-                trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
-              >
-                {loading ? submitStage || 'Submitting your application…' : 'Submit coach registration'}
-              </Button>
-              {loading && (
-                <p className="w-full text-center text-xs text-muted-foreground" role="status" aria-live="polite">
-                  Keep this tab open while we create your account and upload your documents.
-                </p>
-              )}
-            </div>
-          </form>
+                  {step3Data.payment === 'online' && (
+                    <div className="reg-field">
+                      <label className={labelClasses} htmlFor="coach-payment-handle">
+                        GCash / Maya mobile number <span className="text-accent-text" aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="coach-payment-handle"
+                        type="text"
+                        value={step3Data.payment_handle}
+                        onChange={(e) => {
+                          setStep3Data({ ...step3Data, payment_handle: e.target.value });
+                          if (step3Errors.payment_handle) {
+                            setStep3Errors((prev) => ({ ...prev, payment_handle: undefined }));
+                          }
+                        }}
+                        placeholder="e.g. 09171234567"
+                        required
+                        aria-invalid={step3Errors.payment_handle ? 'true' : undefined}
+                        aria-describedby={step3Errors.payment_handle ? 'coach-payment-handle-error' : 'coach-payment-handle-hint'}
+                        className={inputClasses}
+                      />
+                      {step3Errors.payment_handle ? (
+                        <p id="coach-payment-handle-error" className="g-field-error" role="alert">
+                          <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>{step3Errors.payment_handle}</span>
+                        </p>
+                      ) : (
+                        <p id="coach-payment-handle-hint" className="g-field-hint">
+                          The number clients pay when booking online.
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
-              </AuthLayout>
-            );
-          }
+                </section>
+
+                <WizardFooter onBack={() => goTo(1, -1)}>
+                  <AuthButton
+                    type="button"
+                    trailingIcon={<ArrowRight className="h-4 w-4" />}
+                    onClick={handleStep2Proceed}
+                  >
+                    Continue
+                  </AuthButton>
+                </WizardFooter>
+              </div>
+            )}
+
+            {/* ─── STEP 3: Credentials ─── */}
+            {step === 3 && (
+              <div className="rw-step-content">
+                <StepHeader
+                  icon={ShieldCheck}
+                  title="Verification documents"
+                  description="Required for coach review. Files are uploaded only after your account is created."
+                />
+
+                <section className="rw-block" aria-labelledby="coach-documents-block">
+                  <div className="rw-block-head">
+                    <h3 id="coach-documents-block" className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">1</span>
+                      Verification documents
+                    </h3>
+                    <span className="rw-block-note">
+                      {[validIdFile, idSelfieFile].filter(Boolean).length} of 2 attached
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FileUpload
+                      id="coach-valid-id"
+                      label="Government ID"
+                      hint="Passport, UMID, Driver's License, Postal ID"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      file={validIdFile}
+                      onSelect={selectValidIdFile}
+                      onRemove={() => setValidIdFile(null)}
+                      error={step3Errors.validIdFile}
+                      required
+                      icon={ShieldCheck}
+                      disabled={loading}
+                      uploading={uploadingDocuments}
+                      progress={null}
+                    />
+                    <FileUpload
+                      id="coach-id-selfie"
+                      label="Selfie holding your ID"
+                      hint="JPG or PNG only"
+                      accept=".jpg,.jpeg,.png"
+                      file={idSelfieFile}
+                      onSelect={selectIdSelfieFile}
+                      onRemove={() => setIdSelfieFile(null)}
+                      error={step3Errors.idSelfieFile}
+                      required
+                      icon={Camera}
+                      disabled={loading}
+                      uploading={uploadingDocuments}
+                      progress={null}
+                    />
+                    <div className="sm:col-span-2">
+                      <FileUpload
+                        id="coach-portfolio"
+                        label="Portfolio / Resume"
+                        hint="PDF, JPG or PNG · optional"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        file={portfolioFile}
+                        onSelect={selectPortfolioFile}
+                        onRemove={() => setPortfolioFile(null)}
+                        icon={FileCheck}
+                        disabled={loading}
+                        uploading={uploadingDocuments}
+                        progress={null}
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <WizardFooter onBack={() => goTo(2, -1)} backDisabled={loading}>
+                  <AuthButton
+                    type="button"
+                    trailingIcon={<ArrowRight className="h-4 w-4" />}
+                    onClick={handleStep3Proceed}
+                  >
+                    Continue
+                  </AuthButton>
+                </WizardFooter>
+              </div>
+            )}
+
+            {/* ─── STEP 4: Review & submit ─── */}
+            {step === 4 && (
+              <form
+                id="coach-review-form"
+                onSubmit={handleFinalSubmit}
+                noValidate
+                className="rw-step-content"
+              >
+                <StepHeader
+                  icon={ClipboardCheck}
+                  title="Review & submit"
+                  description="Confirm your details and agree to the coach terms before submitting your application."
+                />
+
+                <section className="rw-block" aria-labelledby="coach-summary-block">
+                  <div className="rw-block-head">
+                    <h3 id="coach-summary-block" className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">1</span>
+                      Your summary
+                    </h3>
+                    <span className="rw-block-note">Edit any step before submitting</span>
+                  </div>
+                  <dl className="rw-review">
+                    <div className="rw-review-row">
+                      <dt>Name</dt>
+                      <dd>
+                        {step1Data
+                          ? `${step1Data.personal.firstname.trim()} ${step1Data.personal.lastname.trim()}`
+                          : '—'}
+                      </dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Username</dt>
+                      <dd>{step1Data?.contact.username.trim().toLowerCase() || '—'}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Email</dt>
+                      <dd>{step1Data?.contact.email.trim() || '—'}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Skill</dt>
+                      <dd>{selectedSkill}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Genres</dt>
+                      <dd>
+                        {allActiveGenres.length > 0 ? (
+                          allActiveGenres.join(', ')
+                        ) : (
+                          <span className="rw-review-empty">None selected</span>
+                        )}
+                      </dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Session rate</dt>
+                      <dd>₱{step3Data.service_fee} · {step3Data.duration}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Payment</dt>
+                      <dd>
+                        {step3Data.payment === 'cash'
+                          ? 'Cash on session'
+                          : `GCash / Maya · ${step3Data.payment_handle.trim()}`}
+                      </dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Service area</dt>
+                      <dd>{step1Data?.address.address_summary || '—'}</dd>
+                    </div>
+                    <div className="rw-review-row">
+                      <dt>Documents</dt>
+                      <dd>
+                        {[validIdFile, idSelfieFile, portfolioFile].filter(Boolean).length} attached
+                        {!validIdFile || !idSelfieFile
+                          ? ' · ID documents missing'
+                          : ''}
+                      </dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section className="rw-block" aria-labelledby="coach-agreement-block">
+                  <div className="rw-block-head">
+                    <h3 id="coach-agreement-block" className="rw-block-title">
+                      <span className="rw-block-num" aria-hidden="true">2</span>
+                      Agreement
+                    </h3>
+                    <span className="rw-block-note">Required</span>
+                  </div>
+
+                  <div className={cn('rw-terms-row', step3Errors.terms && 'is-error')}>
+                    <input
+                      type="checkbox"
+                      id="coachTerms"
+                      checked={step3Data.terms}
+                      onChange={(e) => {
+                        setStep3Data({ ...step3Data, terms: e.target.checked });
+                        if (e.target.checked && step3Errors.terms) {
+                          setStep3Errors((prev) => ({ ...prev, terms: undefined }));
+                        }
+                      }}
+                      required
+                      aria-invalid={step3Errors.terms ? 'true' : undefined}
+                      aria-describedby={step3Errors.terms ? 'coachTerms-error' : undefined}
+                      className="g-checkbox"
+                    />
+                    <label htmlFor="coachTerms">
+                      I agree to the{' '}
+                      <Link href="/terms" target="_blank">
+                        Coach Terms of Service
+                      </Link>{' '}
+                      and code of professional conduct on Groove System.
+                    </label>
+                  </div>
+                  {step3Errors.terms && (
+                    <p id="coachTerms-error" className="g-field-error" role="alert">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      <span>{step3Errors.terms}</span>
+                    </p>
+                  )}
+                  <div className="rw-terms-read">
+                    <button type="button" className="rw-terms-inline" onClick={() => setTermsOpen(true)}>
+                      Read terms
+                    </button>
+                    <span aria-hidden="true">·</span>
+                    <button type="button" className="rw-terms-inline" onClick={() => setPrivacyOpen(true)}>
+                      Read privacy policy
+                    </button>
+                  </div>
+                </section>
+
+                <WizardFooter onBack={() => goTo(3, -1)} backDisabled={loading}>
+                  <AuthButton
+                    type="submit"
+                    form="coach-review-form"
+                    loading={loading}
+                    trailingIcon={!loading ? <ArrowRight className="h-4 w-4" /> : undefined}
+                  >
+                    {loading ? submitStage || 'Submitting your application…' : 'Submit coach registration'}
+                  </AuthButton>
+                </WizardFooter>
+
+                {loading && (
+                  <p className="text-center text-xs text-[var(--av-muted)]" role="status" aria-live="polite">
+                    Keep this tab open while we create your account and upload your documents.
+                  </p>
+                )}
+              </form>
+            )}
+          </StepTransition>
+        </div>
+      </div>
+
+      {showSuccessModal && successData ? (
+        <SuccessModal
+          open
+          onClose={() => router.push('/login')}
+          onCta={() => router.push('/login')}
+          title="Registration submitted"
+          description={`Your application is now under review. You can sign in to configure your schedule, manage bookings, and communicate with clients in ${successData.locationDisplay}.`}
+          details={[
+            { label: 'Username', value: successData.username },
+            { label: 'Email', value: successData.email },
+            { label: 'Specialties', value: successData.talents },
+            { label: 'Disciplines & genres', value: successData.genres },
+            { label: 'Verification status', value: 'Under review', highlight: true },
+          ]}
+        />
+      ) : null}
+
+      <ConfirmLeaveModal
+        open={leaveOpen}
+        onClose={() => setLeaveOpen(false)}
+        onLeave={() => router.push('/login')}
+      />
+      <TermsModal
+        open={termsOpen}
+        onClose={() => setTermsOpen(false)}
+        onAccept={() => {
+          setStep3Data({ ...step3Data, terms: true });
+        }}
+        kind="terms"
+      />
+      <TermsModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} kind="privacy" />
+    </AuthLayout>
+  );
+}
+

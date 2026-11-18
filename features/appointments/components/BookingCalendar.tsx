@@ -329,7 +329,7 @@ export function BookingCalendar({
               width: position.width,
             }}
             onKeyDown={handlePopoverKeyDown}
-            className="z-[120] rounded-2xl   bg-card p-3.5 text-foreground shadow-[var(--shadow-lg)]"
+            className="z-[120] rounded-2xl border border-border bg-card p-3.5 text-foreground shadow-[var(--shadow-lg)]"
           >
             <div className="mb-2 flex items-center justify-between gap-2">
               <button
@@ -462,3 +462,4 @@ export function BookingCalendar({
 }
 
 export default BookingCalendar;
+

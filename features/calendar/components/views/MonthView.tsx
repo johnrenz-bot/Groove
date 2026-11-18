@@ -147,7 +147,7 @@ function MonthChip({ entry }: { entry: CalendarEntry }) {
   return (
     <span
       className={cn(
-        'flex min-w-0 items-center gap-1 rounded-md  bg-muted/70 px-1.5 py-0.5 text-[10px] leading-tight',
+        'flex min-w-0 items-center gap-1 rounded-md border border-border bg-muted/70 px-1.5 py-0.5 text-[10px] leading-tight',
         entry.status === 'declined' || entry.status === 'cancelled'
           ? ' opacity-70'
           : ''

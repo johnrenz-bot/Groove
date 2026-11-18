@@ -137,7 +137,7 @@ export function AppointmentCalendar({
         id="calendar-view-panel"
         role="tabpanel"
         aria-label={`${title} calendar`}
-        className="overflow-hidden rounded-[20px]   bg-card shadow-[var(--shadow-sm)] lg:col-span-2"
+        className="overflow-hidden rounded-[20px] border border-border bg-card shadow-[var(--shadow-sm)] lg:col-span-2"
       >
         <CalendarToolbar
           title={title}
@@ -189,7 +189,7 @@ export function AppointmentCalendar({
       </div>
 
       {/* Selected day — the original calendar's detail column, retained. */}
-      <aside className="flex flex-col rounded-[20px]   bg-card shadow-[var(--shadow-sm)]">
+      <aside className="flex flex-col rounded-[20px] border border-border bg-card shadow-[var(--shadow-sm)]">
         <div className="p-5 sm:p-6">
           <h3 className="flex items-center gap-2   pb-4 text-base font-bold text-foreground">
             <CalendarGlyph />

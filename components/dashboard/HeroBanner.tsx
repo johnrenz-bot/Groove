@@ -119,3 +119,4 @@ function FlagSun({ size = 200 }: { size?: number }) {
 }
 
 export default HeroBanner;
+

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
 import { DanceCommunityPageServer } from '@/features/dance/components/DanceCommunityPageServer';
+import { RouteSkeleton } from '@/components/loading/LoadingState';
 
 export const metadata: Metadata = {
   title: 'Dance Community — Competitions, Events, Crews | GroovePH',
@@ -36,8 +37,9 @@ export const metadata: Metadata = {
 
 export default function DanceCommunityPage() {
   return (
-    <React.Suspense fallback={null}>
+    <React.Suspense fallback={<RouteSkeleton variant="hero" />}>
       <DanceCommunityPageServer />
     </React.Suspense>
   );
 }
+

@@ -85,3 +85,4 @@ export function QaFrame({ mock = 'normal' }: { mock?: MockMode }) {
 }
 
 export default QaFrame;
+

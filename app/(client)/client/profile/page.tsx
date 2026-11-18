@@ -1,16 +1,14 @@
 'use client';
 
 /**
- * Client / Performer Profile — view mode + edit, built from the shared Profile
- * form sections so it is an exact extension of client registration.
+ * Client / Performer Profile — view mode + edit, redesigned.
  *
- * Fields shown/editable here are precisely those `/register/client` collects:
- * personal (incl. birthdate), the SJDM address, mobile/email/username, and the
- * Primary Performing Interest (`client_profiles.talent`). No coach-only field
- * (bio is not collected at client registration, skill/genres, rates, payment
- * terms) appears here.
- *
- * Identity-document status is read-only: registration collects it once.
+ * Data flow is unchanged from the registration-derived editor:
+ * fields shown/editable here are precisely those `/register/client` collects.
+ * What changed is presentation: a premium hero (cover + overlapping avatar),
+ * real follower stats, an organized edit form with section navigation and an
+ * unsaved-changes guard, and shared components across all three profile
+ * surfaces.
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -21,26 +19,30 @@ import {
   Camera,
   Eye,
   EyeOff,
-  Loader2,
+  Image as ImageIcon,
   Pencil,
   Save,
-  Sparkles,
-  X,
-  Image as ImageIcon,
 } from 'lucide-react';
 import { maskUsername, maskEmail, maskPhone, maskAddress } from '@/lib/masking';
 import type { Profile, CommunityPost } from '@/lib/types';
-import { ProfileMediaGrid } from '@/features/community/components/SignedMedia';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ProfileGallery } from '@/components/profile/ProfileGallery';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/Button';
 import { FormError, FormSuccess } from '@/components/ui/FormError';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { PageHeader } from '@/components/shared/SectionHeader';
-import { ProfileHero } from '@/components/shared/ProfileHero';
+import { ProfileHero } from '@/components/profile/ProfileHero';
+import { ProfileShareButton } from '@/components/profile/ProfileShareButton';
+import { PhotoCropModal } from '@/components/profile/PhotoCropModal';
+import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
+import { ProfileTabsNav } from '@/components/profile/ProfileTabsNav';
+import { ProfileEditNav } from '@/components/profile/ProfileEditNav';
+import { CompletionTile } from '@/components/profile/bento/ProfileTiles';
+import { formatMemberSince } from '@/lib/profileDisplay';
+import { Button } from '@/components/ui/Button';
 import { ProfileSummary, VerificationStatus } from '@/components/profile/ProfileSummary';
 import { ProfileLinksCard, type ProfileLinks } from '@/components/profile/ProfileLinksCard';
 import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
-import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
+import { GrooveConfirmDialog } from '@/components/ui/GrooveConfirmDialog';
+
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
 import { GCashQrCard } from '@/features/payments/components/GCashQrField';
 import { verificationStatusOf } from '@/features/verification/services/verification';
@@ -49,6 +51,8 @@ import { ProfileProgressCard } from '@/components/achievements/ProfileProgressCa
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
 import { profileTaskRequirements } from '@/lib/achievements/requirements';
 import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
+import { coverPublicUrl, uploadCoverImage, removeCoverImage } from '@/lib/profileCover';
+import { fetchFollowCounts, type FollowCounts } from '@/lib/profileFollows';
 import {
   AddressSection,
   ClientTalentSection,
@@ -84,6 +88,14 @@ const EMPTY_ADDRESS: AddressData = {
 
 type Tab = 'about' | 'showcase' | 'payments';
 
+const EDIT_SECTIONS = [
+  { id: 'profile-edit-personal', label: 'Personal' },
+  { id: 'profile-edit-location', label: 'Location' },
+  { id: 'profile-edit-contact', label: 'Contact' },
+  { id: 'profile-edit-interest', label: 'Interest' },
+  { id: 'profile-edit-links', label: 'Links' },
+] as const;
+
 export default function ClientProfilePage() {
   const router = useRouter();
 
@@ -99,9 +111,17 @@ export default function ClientProfilePage() {
   const [revealSensitive, setRevealSensitive] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [removingCover, setRemovingCover] = useState(false);
+  const [cropKind, setCropKind] = useState<'avatar' | 'cover' | null>(null);
+  const [coverVersion, setCoverVersion] = useState(0);
   const [errors, setErrors] = useState<ProfileFieldErrors>({});
   const [failure, setFailure] = useState<string | null>(null);
+  const [completionDismissed, setCompletionDismissed] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [followCounts, setFollowCounts] = useState<FollowCounts | null>(null);
 
   /* Form state — field names match registration exactly. */
   const [personal, setPersonal] = useState<PersonalFormValues>({
@@ -134,6 +154,14 @@ export default function ClientProfilePage() {
   );
 
   const { notifySuccess } = useSuccessNotifications();
+
+  /** Dirty-tracking wrappers — anything handed to the form marks the form dirty. */
+  const markDirty = <T,>(setter: React.Dispatch<React.SetStateAction<T>>): React.Dispatch<React.SetStateAction<T>> => {
+    return (value) => {
+      setDirty(true);
+      setter(value);
+    };
+  };
 
   /**
    * The performer profile has three real requirements (photo, interest,
@@ -201,6 +229,7 @@ export default function ClientProfilePage() {
       address_summary: data.address_summary || '',
     });
     setTalent(cp?.talent || 'Dance');
+    setDirty(false);
   };
 
   /** Load profile, client_profiles row and showcase posts — original queries. */
@@ -265,24 +294,77 @@ export default function ClientProfilePage() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [router]);
 
   useEffect(() => {
     fetchProfileData();
   }, [fetchProfileData]);
 
-  /** Avatar upload — the existing bucket and code path, unchanged. */
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file || !profile) return;
+  // Follower stats for the hero. `null` until the read settles — the row shows
+  // an em dash rather than a made-up zero.
+  useEffect(() => {
+    if (!profile?.id) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void fetchFollowCounts(profile.id).then((counts) => {
+        if (cancelled || counts.missingTable) return;
+        setFollowCounts({ followers: counts.followers, following: counts.following });
+      });
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [profile?.id]);
+
+  // The cover is a deterministic public URL — memoized so the <img> does not
+  // reload on every state change.
+  const profileId = profile?.id ?? null;
+  const coverUrl = useMemo(
+    () => (profileId ? coverPublicUrl(profileId) : null),
+    [profileId]
+  );
+
+  // Unsaved-changes guard: closing or reloading the tab while the form is dirty
+  // asks for confirmation. In-app cancels are intercepted by `requestDiscard`.
+  useEffect(() => {
+    if (!editing || !dirty) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [editing, dirty]);
+
+  const leaveEditMode = useCallback(() => {
+    if (!profile) return;
+    setEditing(false);
+    setErrors({});
+    setFailure(null);
+    hydrateForm(profile, clientProfile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, clientProfile]);
+
+  /** Cancel button: guard against losing unsaved edits. */
+  const requestCancelEdit = useCallback(() => {
+    if (dirty) {
+      setDiscardOpen(true);
+      return;
+    }
+    leaveEditMode();
+  }, [dirty, leaveEditMode]);
+
+  /** Avatar upload — the existing bucket and code path, fed by a cropped JPEG. */
+  const handleAvatarSave = async (blob: Blob) => {
+    if (!profile) return;
+
+    setPhotoUploading(true);
+    setFailure(null);
+    setSuccess(null);
 
     try {
-      setPhotoUploading(true);
-      setFailure(null);
-      setSuccess(null);
-
       const supabase = createClient();
       const {
         data: { user },
@@ -291,19 +373,11 @@ export default function ClientProfilePage() {
 
       if (authError) throw new Error(`Authentication error: ${authError.message}`);
       if (!user) throw new Error('Your session has expired. Please log in again.');
-      if (!file.type.startsWith('image/')) throw new Error('Please select a valid image file.');
-      if (file.size > 5 * 1024 * 1024) throw new Error('Image must be smaller than 5 MB.');
 
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-      if (!allowedExtensions.includes(extension)) {
-        throw new Error('Only JPG, JPEG, PNG, and WebP images are allowed.');
-      }
+      const filename = `${user.id}/avatar_${Date.now()}.jpg`;
 
-      const filename = `${user.id}/avatar_${Date.now()}.${extension}`;
-
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filename, file, {
-        contentType: file.type,
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filename, blob, {
+        contentType: blob.type || 'image/jpeg',
         cacheControl: '3600',
         upsert: false,
       });
@@ -322,7 +396,7 @@ export default function ClientProfilePage() {
       if (updateError) throw new Error(updateError.message || 'Photo uploaded, but profile could not be updated.');
 
       setProfile({ ...profile, photo_url: newPhotoUrl });
-      setSuccess('Profile photo updated successfully!');
+      setSuccess('Profile photo updated successfully.');
 
       const nextRequirements = profileTaskRequirements('client', {
         profile: {
@@ -357,9 +431,48 @@ export default function ClientProfilePage() {
         // A badge refresh must not undo a successfully uploaded photo.
       }
     } catch (err) {
+      // Surface inside the modal so the member can retry without losing context.
       setFailure(err instanceof Error ? err.message : 'Failed to upload photo.');
+      throw err;
     } finally {
       setPhotoUploading(false);
+    }
+  };
+
+  /** Cover upload — deterministic object in the same public `avatars` bucket. */
+  const handleCoverSave = async (blob: Blob) => {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError) throw new Error(`Authentication error: ${authError.message}`);
+    if (!user) throw new Error('Your session has expired. Please log in again.');
+
+    setCoverUploading(true);
+    try {
+      await uploadCoverImage(user.id, blob);
+      setCoverVersion(Date.now());
+      setSuccess('Cover photo updated.');
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
+  const handleCoverRemove = async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Your session has expired. Please log in again.');
+
+    setRemovingCover(true);
+    try {
+      await removeCoverImage(user.id);
+      setCoverVersion(Date.now());
+      setSuccess('Cover photo removed.');
+    } finally {
+      setRemovingCover(false);
     }
   };
 
@@ -464,8 +577,9 @@ export default function ClientProfilePage() {
         // Non-blocking fallback
       }
 
-      setSuccess('Profile information saved successfully!');
+      setSuccess('Profile information saved successfully.');
       setEditing(false);
+      setDirty(false);
 
       // Update achievements after profile save
       try {
@@ -521,8 +635,8 @@ export default function ClientProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
+      <div className="pb-16 pt-2">
+        <ProfileSkeleton />
       </div>
     );
   }
@@ -545,130 +659,131 @@ export default function ClientProfilePage() {
     { label: 'Government or Student ID', uploaded: Boolean(clientProfile?.valid_id_path) },
   ];
 
-  const TABS: { id: Tab; label: string; count?: number }[] = [
+  const COMPLETION_ITEMS = [
+    { id: 'photo', label: 'Profile photo' },
+    { id: 'talent', label: 'Performing interest' },
+    { id: 'location', label: 'Location' },
+  ] as const;
+  const completionDone: string[] = [
+    ...(profile.photo_url ? ['photo'] : []),
+    ...(clientProfile?.talent ? ['talent'] : []),
+    ...(profile.city_name || profile.province_name ? ['location'] : []),
+  ];
+  const completionIncomplete =
+    completionDone.length < COMPLETION_ITEMS.length && !completionDismissed;
+
+  const publicHref = `/userprofile/${profile.id}`;
+  const fullName = `${profile.firstname ?? ''} ${profile.lastname ?? ''}`.trim() || 'Groove member';
+
+  const TABS = [
     { id: 'about', label: 'Overview & Details' },
-    { id: 'showcase', label: 'My Media Showcase', count: posts.length },
+    { id: 'showcase', label: 'Media Showcase', count: posts.length },
     { id: 'payments', label: 'Payments' },
+  ];
+
+  const heroStats = [
+    { label: 'Posts', value: posts.length },
+    { label: 'Followers', value: followCounts ? followCounts.followers : '—' },
+    { label: 'Following', value: followCounts ? followCounts.following : '—' },
   ];
 
   return (
     <div className="pb-16">
-      <PageHeader
-        eyebrow="Client / Performer"
-        title="Profile"
-        description="Everything here is collected during client registration. Update any of it at any time."
-        action={
-          editing ? null : (
-            <Button onClick={() => setEditing(true)} icon={<Pencil className="h-4 w-4" />}>
-              Edit Profile
-            </Button>
-          )
-        }
-      />
-
       {failure && (
-        <div className="mb-6">
+        <div className="mb-4">
           <FormError message={failure} onDismiss={() => setFailure(null)} />
         </div>
       )}
       {success && (
-        <div className="mb-6">
+        <div className="mb-4">
           <FormSuccess>{success}</FormSuccess>
         </div>
       )}
 
-      {/* Identity header. The visual language now lives in the shared
-          <ProfileHero> so the client and coach profiles cannot drift apart;
-          this page passes only its own data. The photo-upload control is passed
-          in as `actions` so editing the avatar stays a client-profile concern. */}
-      <div className="mb-6">
-        <ProfileHero
-          profileId={profile.id}
-          firstname={profile.firstname}
-          lastname={profile.lastname}
-          username={profile.username}
-          revealUsername={revealSensitive}
-          role="client"
-          photoUrl={profile.photo_url}
-          bio={profile.bio}
-          cityName={profile.city_name}
-          provinceName={profile.province_name}
-          publicHref={`/userprofile/${profile.id}`}
-          extraStat={{ label: 'Showcase posts', value: posts.length }}
-          actions={
-            <label
-              className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-bold text-accent-foreground transition hover:bg-accent-hover ${
-                photoUploading ? 'cursor-not-allowed opacity-60' : ''
-              }`}
+      {/* ── HERO — cover, avatar, identity, actions ─────────────── */}
+      <ProfileHero
+        role="client"
+        name={fullName}
+        username={revealSensitive ? profile.username : maskUsername(profile.username)}
+        rolePill={clientProfile?.talent || 'Performer'}
+        bio={profile.bio}
+        locationText={[profile.city_name, profile.province_name].filter(Boolean).join(', ') || null}
+        memberSince={formatMemberSince(profile.created_at)}
+        verified={profile.account_verified}
+        photoUrl={profile.photo_url}
+        coverUrl={coverUrl}
+        coverCacheBust={coverVersion}
+        stats={heroStats}
+        avatarAlt={`${fullName}'s profile photo`}
+        onChangePhoto={() => setCropKind('avatar')}
+        photoUploading={photoUploading}
+        onChangeCover={() => setCropKind('cover')}
+        coverUploading={coverUploading}
+        actions={
+          <>
+            <ProfileShareButton path={publicHref} title={`${fullName} on GroovePH`} />
+            {!editing && (
+              <a
+                href={publicHref}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-[13px] font-semibold text-foreground transition-colors hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+              >
+                <Eye className="h-4 w-4 text-accent-text" aria-hidden="true" />
+                Preview
+              </a>
+            )}
+            <Button
+              onClick={editing ? requestCancelEdit : () => setEditing(true)}
+              size="md"
+              className="h-10 rounded-xl text-[13px]"
+              icon={editing ? <ArrowLeft className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
             >
-              {photoUploading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-              ) : (
-                <Camera className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              {photoUploading ? 'Uploading…' : 'Change photo'}
-              <span className="sr-only">Change profile photo</span>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handlePhotoUpload}
-                disabled={photoUploading}
-                className="sr-only"
-              />
-            </label>
-          }
-        >
-          {/* Verification status and talent, preserved from the previous
-              identity card so the redesign does not quietly drop them. */}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <VerifiedBadge verified={profile.account_verified} size="sm" />
-            <span className="g-pill g-pill-accent">{clientProfile?.talent || 'Performer'}</span>
-          </div>
-        </ProfileHero>
-      </div>
+              {editing ? 'Back to preview' : 'Edit profile'}
+            </Button>
+          </>
+        }
+      />
 
-      {/* Achievements - Full width section below profile header */}
-      {profile && (
-        <div className="mb-6 space-y-4">
-          <ProfileProgressCard role="client" requirements={clientProfileRequirements} />
-          <BadgeCollection
-            tasks={clientAchievements}
-            badgeStatus={clientBadgeStatus}
-            userId={profile.id}
-            role="client"
-            loading={achievementsLoading}
-            onRefresh={handleRefreshAchievements}
+      {/* Completion checklist — owner only, hidden once complete */}
+      {completionIncomplete && (
+        <div className="mt-4" id="profile-completion-client">
+          <CompletionTile
+            items={COMPLETION_ITEMS.slice()}
+            completedIds={completionDone}
+            onItemClick={() => {
+              setEditing(true);
+              setDirty(false);
+            }}
+            onDismiss={() => setCompletionDismissed(true)}
           />
         </div>
       )}
 
+      {/* Achievements — full width below the hero */}
+      <div className="mt-6 space-y-4">
+        <ProfileProgressCard role="client" requirements={clientProfileRequirements} />
+        <BadgeCollection
+          tasks={clientAchievements}
+          badgeStatus={clientBadgeStatus}
+          userId={profile.id}
+          role="client"
+          loading={achievementsLoading}
+          onRefresh={handleRefreshAchievements}
+        />
+      </div>
+
       {/* Tabs */}
-      <div className="mb-6 flex flex-wrap items-center gap-1 border-b border-border">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
-              activeTab === tab.id
-                ? 'border-accent-text text-accent-text'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {tab.label}
-            {tab.count !== undefined && (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="mt-6">
+        <ProfileTabsNav
+          tabs={TABS}
+          activeTab={activeTab}
+          onChange={(id) => setActiveTab(id as Tab)}
+          ariaLabel="Profile sections"
+        />
       </div>
 
       {/* ── About: view mode ── */}
       {activeTab === 'about' && !editing && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-6">
             <ProfileSummary
               title="Personal Information"
@@ -677,7 +792,7 @@ export default function ClientProfilePage() {
                 <button
                   type="button"
                   onClick={() => setRevealSensitive((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
                   aria-label={revealSensitive ? 'Mask sensitive details' : 'Reveal sensitive details'}
                 >
                   {revealSensitive ? (
@@ -728,7 +843,7 @@ export default function ClientProfilePage() {
                 <button
                   type="button"
                   onClick={() => setRevealSensitive((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
                   aria-label={revealSensitive ? 'Mask address details' : 'Reveal address details'}
                 >
                   {revealSensitive ? (
@@ -757,12 +872,10 @@ export default function ClientProfilePage() {
               ]}
             />
 
-            {/* Public Links Card */}
             <ProfileLinksCard links={links} />
           </div>
 
           <div className="space-y-6">
-            {/* SaaS-style Sign-in Method Card */}
             <SignInMethodCard provider={authProvider} email={authEmail} />
 
             <VerificationStatus
@@ -789,18 +902,6 @@ export default function ClientProfilePage() {
               onResubmitted={fetchProfileData}
             />
 
-            {profile.bio && (
-              <section className="g-card p-6">
-                <h3 className="mb-3 flex items-center gap-2 text-base font-bold tracking-[-0.01em] text-foreground">
-                  <Sparkles className="h-4 w-4 text-accent-text" aria-hidden="true" />
-                  About Me
-                </h3>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                  {profile.bio}
-                </p>
-              </section>
-            )}
-
             <Link href="/client/settings" className="block">
               <Button variant="secondary" className="w-full">
                 Account Settings
@@ -812,66 +913,57 @@ export default function ClientProfilePage() {
 
       {/* ── About: edit mode ── */}
       {activeTab === 'about' && editing && (
-        <form id="profile-form" onSubmit={handleSave} noValidate className="space-y-7">
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-accent-border bg-accent-soft px-5 py-4">
-            <p className="text-sm font-semibold text-foreground">
-              Editing the same fields client registration collects.
+        <form id="profile-form" onSubmit={handleSave} noValidate className="space-y-5">
+          <ProfileEditNav sections={EDIT_SECTIONS.slice()} />
+
+          <section id="profile-edit-personal" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <PersonalSection values={personal} errors={errors} onChange={markDirty(setPersonal)} />
+          </section>
+
+          <section id="profile-edit-location" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <AddressSection address={address} onChange={markDirty(setAddress)} errors={errors} />
+          </section>
+
+          <section id="profile-edit-contact" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <ContactSection values={contact} errors={errors} onChange={markDirty(setContact)} />
+          </section>
+
+          <section id="profile-edit-interest" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <ClientTalentSection talent={talent} errors={errors} onChange={markDirty(setTalent)} />
+          </section>
+
+          <section id="profile-edit-links" className="scroll-mt-24">
+            <ProfileLinksCard links={links} editing={true} onChange={markDirty(setLinks)} />
+          </section>
+
+          {/* Sticky action bar — always within reach while editing. */}
+          <div className="sticky bottom-4 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border bg-[rgba(18,18,18,0.88)] px-4 py-3 backdrop-blur-md">
+            <p className="flex min-w-0 items-center gap-2 text-[11px] font-medium text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className={`h-2 w-2 flex-none rounded-full ${dirty ? 'bg-accent animate-pulse' : 'bg-success'}`}
+              />
+              <span className="truncate">{dirty ? 'Unsaved changes' : 'Everything is saved'}</span>
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setEditing(false);
-                setErrors({});
-                setFailure(null);
-                hydrateForm(profile, clientProfile);
-              }}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" aria-hidden="true" />
-              Cancel
-            </button>
-          </div>
-
-          <div className="g-card p-6">
-            <PersonalSection values={personal} errors={errors} onChange={setPersonal} />
-            <div className="mt-7">
-              <AddressSection address={address} onChange={setAddress} errors={errors} />
+            <div className="flex flex-none items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={requestCancelEdit}
+                icon={<ArrowLeft className="h-4 w-4" />}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" loading={saving} icon={<Save className="h-4 w-4" />}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
             </div>
-            <div className="mt-7">
-              <ContactSection values={contact} errors={errors} onChange={setContact} />
-            </div>
-            <div className="mt-7">
-              <ClientTalentSection talent={talent} errors={errors} onChange={setTalent} />
-            </div>
-            <div className="mt-7">
-              <ProfileLinksCard links={links} editing={true} onChange={setLinks} />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setEditing(false);
-                setErrors({});
-                hydrateForm(profile, clientProfile);
-              }}
-              icon={<ArrowLeft className="h-4 w-4" />}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" loading={saving} icon={<Save className="h-4 w-4" />}>
-              {saving ? 'Saving…' : 'Save Profile Changes'}
-            </Button>
           </div>
         </form>
       )}
 
-      {/* ── Payments tab: GCash QR ──
-          Its own tab because it is self-contained (it writes only the
-          gcash_profiles row) and must not be entangled with the "About" form's
-          single save button. */}
+      {/* ── Payments tab: GCash QR ── */}
       {activeTab === 'payments' && (
         <GCashQrCard
           userId={profile.id}
@@ -880,10 +972,10 @@ export default function ClientProfilePage() {
         />
       )}
 
-      {/* ── Showcase ── */}
+      {/* ── Showcase — owner gallery (filters, reorder, lightbox) ── */}
       {activeTab === 'showcase' && (
-        <div>
-          {posts.length === 0 ? (
+        <div className="space-y-4">
+          {posts.length === 0 && (
             <EmptyState
               icon={<ImageIcon className="h-5 w-5" />}
               title="No media posts yet"
@@ -891,25 +983,40 @@ export default function ClientProfilePage() {
               action="Go to Community Feed"
               actionHref="/client/talent"
             />
-          ) : (
-            /* Shared renderer: resolves the private-bucket path to a signed URL
-               and owns the loading / broken states. Rendering media_path
-               directly is what left every profile image broken. */
-            <ProfileMediaGrid
-              items={posts}
-              emptyState={
-                <EmptyState
-                  icon={<ImageIcon className="h-5 w-5" />}
-                  title="No media yet"
-                  description="Your posts have text but no media. Share one from the community feed."
-                  action="Go to Community Feed"
-                  actionHref="/client/talent"
-                />
-              }
-            />
           )}
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            {/* Same private-bucket resolver and owner re-order/lightbox as the
+                previous gallery tile — Media_path is never rendered raw. */}
+            <ProfileGallery
+              items={posts}
+              mode="owner"
+              userId={profile.id}
+            />
+          </div>
         </div>
       )}
+
+      {/* Photo / cover crop dialog */}
+      <PhotoCropModal
+        kind={cropKind ?? 'avatar'}
+        open={cropKind !== null}
+        onClose={() => setCropKind(null)}
+        onSave={cropKind === 'cover' ? handleCoverSave : handleAvatarSave}
+        onRemove={cropKind === 'cover' ? handleCoverRemove : undefined}
+        removing={removingCover}
+      />
+
+      {/* Discard-changes confirmation */}
+      <GrooveConfirmDialog
+        open={discardOpen}
+        onClose={() => setDiscardOpen(false)}
+        title="Discard your changes?"
+        description="Your edits haven't been saved yet. Leaving now means everything you typed will be lost."
+        confirmLabel="Discard changes"
+        cancelLabel="Keep editing"
+        tone="warning"
+        onConfirm={leaveEditMode}
+      />
     </div>
   );
 }

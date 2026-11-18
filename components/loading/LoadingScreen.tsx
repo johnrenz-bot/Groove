@@ -220,7 +220,7 @@ export function LoadingScreen({
         fullScreen
           ? {
               background:
-                'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245,196,81,0.08) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 12% 108%, rgba(174,49,58,0.06) 0%, transparent 55%), var(--background)',
+                'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(221,170,85,0.08) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 12% 108%, rgba(174,49,58,0.06) 0%, transparent 55%), var(--background)',
             }
           : { background: 'transparent' }
       }
@@ -231,7 +231,7 @@ export function LoadingScreen({
           className="g-aurora absolute -top-40 left-1/2 h-[520px] w-[720px] -translate-x-1/2 rounded-full motion-reduce:animate-none"
           style={{
             background:
-              'radial-gradient(ellipse, rgba(245,196,81,0.13) 0%, rgba(245,196,81,0.04) 45%, transparent 70%)',
+              'radial-gradient(ellipse, rgba(221,170,85,0.13) 0%, rgba(221,170,85,0.04) 45%, transparent 70%)',
             filter: 'blur(60px)',
           }}
         />
@@ -245,10 +245,10 @@ export function LoadingScreen({
         />
         {/* light trails — two hairlines that sweep across the stage */}
         <div className="absolute left-0 right-0 top-[18%] h-px overflow-hidden opacity-30">
-          <div className="g-trail h-full w-1/3 bg-gradient-to-r from-transparent via-[#F5C451]/60 to-transparent" />
+          <div className="g-trail h-full w-1/3 bg-gradient-to-r from-transparent via-[#DDAA55]/60 to-transparent" />
         </div>
         <div className="absolute bottom-[22%] left-0 right-0 h-px overflow-hidden opacity-20">
-          <div className="g-trail-reverse h-full w-1/3 bg-gradient-to-r from-transparent via-[#F5C451]/50 to-transparent" />
+          <div className="g-trail-reverse h-full w-1/3 bg-gradient-to-r from-transparent via-[#DDAA55]/50 to-transparent" />
         </div>
         {/* vignette — generous in dark, a soft cream depth in light */}
         <div className="g-loader-vignette absolute inset-0" />
@@ -258,7 +258,7 @@ export function LoadingScreen({
           className="absolute left-0 top-0 h-[520px] w-[520px] rounded-full opacity-0 transition-opacity duration-700 ease-out"
           style={{
             background:
-              'radial-gradient(circle, rgba(245,196,81,0.09) 0%, transparent 60%)',
+              'radial-gradient(circle, rgba(221,170,85,0.09) 0%, transparent 60%)',
             filter: 'blur(30px)',
             willChange: 'transform',
           }}
@@ -270,12 +270,12 @@ export function LoadingScreen({
       <div className="relative z-10 flex w-full max-w-[440px] flex-col items-center gap-5 px-6 text-center">
         {/* Eyebrow */}
         <div
-          className="g-loader-enter inline-flex items-center gap-2 rounded-full border border-[rgba(245,196,81,0.28)] bg-card/70 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#F5C451] backdrop-blur-md"
-          style={{ boxShadow: '0 0 24px rgba(245,196,81,0.12)', animationDelay: '0ms' }}
+          className="g-loader-enter inline-flex items-center gap-2 rounded-full border border-[rgba(221,170,85,0.28)] bg-card/70 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#DDAA55] backdrop-blur-md"
+          style={{ boxShadow: '0 0 24px rgba(221,170,85,0.12)', animationDelay: '0ms' }}
         >
           <span className="relative flex h-2 w-2" aria-hidden="true">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#F5C451]/60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#F5C451]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#DDAA55]/60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#DDAA55]" />
           </span>
           Performing Arts Platform
         </div>
@@ -286,7 +286,7 @@ export function LoadingScreen({
             aria-hidden="true"
             className="g-orbit-slow absolute -inset-3 rounded-full motion-reduce:animate-none"
             style={{
-              border: '1px dashed rgba(245,196,81,0.35)',
+              border: '1px dashed rgba(221,170,85,0.35)',
             }}
           />
           <div
@@ -294,14 +294,14 @@ export function LoadingScreen({
             className="g-orbit absolute -inset-3 rounded-full motion-reduce:animate-none"
             style={{
               background:
-                'conic-gradient(from 0deg, transparent 0deg, rgba(245,196,81,0.5) 60deg, transparent 120deg, transparent 360deg)',
+                'conic-gradient(from 0deg, transparent 0deg, rgba(221,170,85,0.5) 60deg, transparent 120deg, transparent 360deg)',
               mask: 'radial-gradient(farthest-side, transparent calc(100% - 1px), black calc(100% - 1px))',
               WebkitMask:
                 'radial-gradient(farthest-side, transparent calc(100% - 1px), black calc(100% - 1px))',
               animationDuration: '14s',
             }}
           />
-          <div className="relative h-28 w-28 overflow-hidden rounded-full border border-[rgba(245,196,81,0.3)] bg-card/80 shadow-[0_0_60px_rgba(245,196,81,0.18)] backdrop-blur-md transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none sm:h-32 sm:w-32">
+          <div className="relative h-28 w-28 overflow-hidden rounded-full border border-[rgba(221,170,85,0.3)] bg-card/80 shadow-[0_0_60px_rgba(221,170,85,0.18)] backdrop-blur-md transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none sm:h-32 sm:w-32">
             <Image
               src="/image/Logo/GroovePH-Logo.png"
               alt="GroovePH"
@@ -342,7 +342,7 @@ export function LoadingScreen({
                 className="g-loader-enter inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground backdrop-blur-sm"
                 style={{ animationDelay: `${280 + i * 60}ms` }}
               >
-                <Icon className="h-3 w-3 text-[#F5C451]" aria-hidden="true" />
+                <Icon className="h-3 w-3 text-[#DDAA55]" aria-hidden="true" />
                 {d.label}
               </span>
             );
@@ -369,8 +369,8 @@ export function LoadingScreen({
               style={{
                 width: `${fill}%`,
                 background:
-                  'linear-gradient(90deg, #C9A24C 0%, #F5C451 55%, #FFD36B 100%)',
-                boxShadow: '0 0 16px rgba(245,196,81,0.55)',
+                  'linear-gradient(90deg, #A8762B 0%, #DDAA55 55%, #FFC477 100%)',
+                boxShadow: '0 0 16px rgba(221,170,85,0.5)',
                 transition: 'width 280ms cubic-bezier(0.16,1,0.3,1)',
               }}
             />
@@ -385,7 +385,7 @@ export function LoadingScreen({
             />
           </div>
           <div className="flex items-center justify-between text-[11px] font-medium tracking-[0.08em]">
-            <span className="tabular-nums text-[#F5C451]">{fill}%</span>
+            <span className="tabular-nums text-[#DDAA55]">{fill}%</span>
             <span className="uppercase text-subtle-foreground">Groove is tuning up</span>
           </div>
         </div>
@@ -404,10 +404,11 @@ export function LoadingScreen({
 
       {/* Footer hint */}
       <p className="g-loader-enter absolute bottom-6 left-0 right-0 z-10 text-center text-[11px] tracking-[0.18em] text-subtle-foreground" style={{ animationDelay: '520ms' }}>
-        SAN JOSE DEL MONTE · BULACAN
+        SAN JOSE DEL MONTE • BULACAN
       </p>
     </div>
   );
 }
 
 export default LoadingScreen;
+

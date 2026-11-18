@@ -311,7 +311,7 @@ export const GrooveyStudioLobby: React.FC = () => {
         </div>
 
         {/* Input Textarea Container */}
-        <div className="relative bg-muted/50 rounded-2xl   focus-within: p-2 shadow-sm transition-all flex flex-col gap-2">
+        <div className="relative bg-muted/50 rounded-2xl border border-border focus-within: p-2 shadow-sm transition-all flex flex-col gap-2">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -369,3 +369,4 @@ export const GrooveyStudioLobby: React.FC = () => {
     </div>
   );
 };
+

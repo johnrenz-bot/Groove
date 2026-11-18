@@ -3,18 +3,18 @@
 /**
  * Coach Settings — Account, Profile, Appearance, Danger Zone.
  *
- * The sections come from the shared `SettingsSections`, so coach and client
- * Settings are structurally identical. There is no notification-preferences
- * section: this platform stores no such preference, so none is invented.
+ * Uses the same shared `SettingsSections` as the client Settings page, so both
+ * render identically. No notification-preferences section exists because this
+ * platform stores no such preference.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import type { Profile } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { FormError } from '@/components/ui/FormError';
+import { useProfile } from '@/hooks/useProfile';
 import {
   AccountSettings,
   AppearanceSettings,
@@ -24,36 +24,12 @@ import {
 
 export default function CoachSettingsPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [failure, setFailure] = useState<string | null>(null);
-
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (error) throw error;
-      setProfile(data);
-    } catch (err) {
-      setFailure(err instanceof Error ? err.message : 'Failed to load your account.');
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+  const { profile, setProfile, userId, loading, error } = useProfile();
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (!loading && !userId) router.push('/login');
+  }, [loading, userId, router]);
 
   if (loading) {
     return (
@@ -66,7 +42,7 @@ export default function CoachSettingsPage() {
   if (!profile) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-sm text-muted-foreground">{failure ?? 'Please log in to view settings.'}</p>
+        <p className="text-sm text-muted-foreground">{error ?? 'Please log in to view settings.'}</p>
       </div>
     );
   }
@@ -79,9 +55,9 @@ export default function CoachSettingsPage() {
         description="Manage your sign-in details, profile, appearance, and account safety."
       />
 
-      {failure && (
+      {error && error !== dismissedError && (
         <div className="mb-6">
-          <FormError message={failure} onDismiss={() => setFailure(null)} />
+          <FormError message={error} onDismiss={() => setDismissedError(error)} />
         </div>
       )}
 
@@ -127,3 +103,4 @@ export default function CoachSettingsPage() {
     </div>
   );
 }
+

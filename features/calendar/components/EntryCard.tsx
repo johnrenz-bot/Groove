@@ -33,7 +33,7 @@ export function EntryCard({
   return (
     <div
       className={cn(
-        'rounded-2xl   bg-card p-4 transition hover:',
+        'rounded-2xl border border-border bg-card p-4 transition hover:',
         statusBarClass(entry.status),
         compact && 'p-3',
         className

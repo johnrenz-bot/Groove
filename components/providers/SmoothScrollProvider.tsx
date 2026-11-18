@@ -59,13 +59,17 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       stopInertiaOnNavigate: true,
       respectReducedMotion: true,
       prevent: (node) => {
-        // Prevent Lenis smooth wheel hijacking inside modals, dialogs, or designated containers
+        // Lenis scrolls the WINDOW. Inside the dashboard shell the window is
+        // locked (100dvh + overflow: hidden) and `.dash-content` is the
+        // scroller instead — hijacking the wheel there would freeze the page.
+        // Same for modals, dialogs and designated scroll containers.
         if (!node) return false;
         return (
           node.hasAttribute('data-lenis-prevent') ||
           node.closest('[data-lenis-prevent]') !== null ||
           node.closest('[role="dialog"]') !== null ||
-          node.closest('.g-scroll') !== null
+          node.closest('.g-scroll') !== null ||
+          node.closest('.dash-shell') !== null
         );
       },
     });
@@ -101,6 +105,10 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       const href = target.getAttribute('href');
       if (!href) return;
 
+      // Inside the dashboard shell the WINDOW is locked and `.dash-content`
+      // is the scroller; let native anchor jumps handle scrolling there.
+      if (target.closest('.dash-shell')) return;
+
       // Only handle in-page hash links (e.g., "#disciplines", "#how", "#faq")
       if (href.startsWith('#') && href.length > 1) {
         const targetElement = document.getElementById(href.slice(1));
@@ -130,17 +138,22 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  // On client-side pathname change, scroll to top smoothly (or instant if preferred)
+  // On client-side pathname change, scroll back to the top. Two scroll
+  // containers exist: the OS page scroll (marketing/auth routes) and
+  // `.dash-content` (the dashboard shell's own scroller). Reset whichever
+  // is present — and if both are, both.
   useEffect(() => {
     if (!lenisRef.current) return;
     // Don't scroll to top if URL has a hash intended for this page
     if (typeof window !== 'undefined' && window.location.hash) {
       const hashTarget = document.getElementById(window.location.hash.slice(1));
       if (hashTarget) {
-        lenisRef.current.scrollTo(hashTarget, { offset: -84, immediate: true });
+        hashTarget.scrollIntoView({ behavior: 'auto', block: 'start' });
         return;
       }
     }
+    const dashScroller = document.querySelector<HTMLElement>('.dash-content');
+    if (dashScroller) dashScroller.scrollTo({ top: 0, behavior: 'auto' });
     lenisRef.current.scrollTo(0, { immediate: true });
   }, [pathname]);
 
@@ -176,3 +189,4 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
 }
 
 export default SmoothScrollProvider;
+

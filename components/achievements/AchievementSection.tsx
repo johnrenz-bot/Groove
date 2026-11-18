@@ -20,13 +20,13 @@ function getTaskUrls(role: 'client' | 'coach'): Record<string, string> {
     return {
       'Complete Your Performer Profile': '/client/profile/edit',
       'Book Your First Session': '/client/talent',
-      'Leave Your First Review': '/client/appointments',
+      'Leave Your First Review': '/client/messages?view=board',
     };
   }
   return {
     'Complete Your Coach Profile': '/coach/profile/edit',
-    'Secure Your First Booking': '/coach/appointments',
-    'Earn a 5-Star Review': '/coach/appointments',
+    'Secure Your First Booking': '/coach/messages?view=board',
+    'Earn a 5-Star Review': '/coach/messages?view=board',
   };
 }
 

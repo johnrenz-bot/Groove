@@ -3,704 +3,471 @@
 import React, {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
-  useEffect,
-  useRef,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
-import { usePathname } from 'next/navigation';
-import { MusicPlaylist, MusicTrack, MusicPlaybackSession } from '../types';
-import { GROOVE_OFFICIAL_REHEARSAL_MIX } from '../data/curatedTracks';
-// The route gate lives in `lib/routes` so it can be unit-tested without React,
-// and is re-exported here so player consumers keep a single import site.
+import { getPlayerEngine, type EngineSnapshot } from '../engine/engine';
+import { DEFAULT_QUEUE, SEED_TRACKS_MAP, SEED_PLAYLISTS } from '../data/seed';
+import type { Track, PersistedPlayerState } from '../types/track';
 import { MUSIC_ALLOWED_ROUTES, isMusicRoute } from '../lib/routes';
-import {
-  classifyPlaybackError,
-  planSkip,
-  type PlaybackErrorInfo,
-} from '../lib/playbackPolicy';
+import { usePathname } from 'next/navigation';
 
 export { MUSIC_ALLOWED_ROUTES, isMusicRoute };
 
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
+export type RepeatMode = 'off' | 'all' | 'one';
+const STORAGE_KEY = 'groove:player:v3'; // bump: drops stale queue from v2 that may contain non-playable IDs
+const HISTORY_KEY = 'groove:player:history:v2';
 
-export type RepeatMode = 'none' | 'all' | 'one';
+/**
+ * The playback context is now a thin shell over the singleton engine in
+ * `features/music/engine`. It exists to:
+ *   1. expose the engine's snapshot to React as context,
+ *   2. own UI-only state (volume, mute, repeat, shuffle, queue) — these are
+ *      product preferences, not playback state,
+ *   3. persist and restore the queue + position + preferences.
+ *
+ * The engine handles the hard part: one hidden YouTube player, one HTMLAudio
+ * element at a time, and a clean adapter interface between them.
+ */
 
-const SESSION_STORAGE_KEY = 'groove:music:playback-session:v2';
-const HISTORY_STORAGE_KEY = 'groove:music:history:v2';
-
-function readSavedSession(): MusicPlaybackSession | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeSavedSession(session: MusicPlaybackSession | null) {
-  if (typeof window === 'undefined') return;
-  try {
-    if (session) {
-      window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-    } else {
-      window.localStorage.removeItem(SESSION_STORAGE_KEY);
-    }
-  } catch {}
-}
-
-function readHistory(): MusicTrack[] {
-  if (typeof window === 'undefined') return [GROOVE_OFFICIAL_REHEARSAL_MIX];
-  try {
-    const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [GROOVE_OFFICIAL_REHEARSAL_MIX];
-  } catch {
-    return [GROOVE_OFFICIAL_REHEARSAL_MIX];
-  }
-}
-
-function writeHistory(tracks: MusicTrack[]) {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(tracks.slice(0, 15)));
-  } catch {}
-}
-
-interface MusicPlayerContextType {
-  currentTrack: MusicTrack | null;
-  activePlaylist: MusicPlaylist | null;
+export interface MusicPlayerContextType {
+  // playback core (mirrors engine snapshot)
+  currentTrack: Track | null;
   isPlaying: boolean;
-  isLoading: boolean;
+  isLoading: boolean; // buffering
   currentTime: number;
   duration: number;
+  isActive: boolean;
+  isVideoLoaded: boolean; // true once a track has reached `ready` this session
+  isEmbedRestricted: boolean;
+  error: string | null;
+  openOnYouTubeUrl: string | null;
   volume: number;
   isMuted: boolean;
+
+  // queue / playlist
+  activePlaylist: { id: string; name: string; tracks: Track[] } | null;
+  recentHistory: Track[];
+  savedSession: { track: Track; position: number } | null;
+
+  // preferences
+  shuffle: boolean;
   repeatMode: RepeatMode;
-  isShuffle: boolean;
-  error: string | null;
-  /**
-   * False on every route outside the Showcase. Derived straight from the
-   * pathname, so it can never drift from where the player actually is.
-   */
-  isActive: boolean;
-  /**
-   * True while the YouTube player actually holds a loaded clip.
-   */
-  isVideoLoaded: boolean;
-  /**
-   * True while the current track is only blocked because its owner disabled
-   * embedding.
-   */
-  isEmbedRestricted: boolean;
-  openOnYouTubeUrl: string | null;
-  savedSession: MusicPlaybackSession | null;
-  recentHistory: MusicTrack[];
-  resumeRecentPlayback: () => void;
-  playTrack: (track: MusicTrack, playlist?: MusicPlaylist, startSeconds?: number) => void;
+
+  // actions
+  playTrack: (track: Track, playlist?: { id: string; name: string; tracks: Track[] }, startSeconds?: number) => Promise<void>;
   togglePlay: () => void;
-  playNext: () => void;
-  playPrev: () => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
+  playNext: () => Promise<void>;
+  playPrev: () => Promise<void>;
   seekTo: (seconds: number) => void;
   setVolume: (vol: number) => void;
   toggleMute: () => void;
-  toggleRepeat: () => void;
-  toggleShuffle: () => void;
+  setQueue: (tracks: Track[]) => void;
+  setActivePlaylist: (id: string) => void;
+  /** Enqueue a track at the end of the queue. */
+  enqueue: (track: Track) => void;
+  /** Insert a track immediately after the current one ("Play next"). */
+  playNextInQueue: (track: Track) => void;
+  playFromQueue: (index: number) => Promise<void>;
+  removeFromMyPlaylist: (trackId: string) => void;
+  clearQueue: () => void;
+  resumeRecentPlayback: () => void;
   closePlayer: () => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
 
-/** YT.PlayerState value for "nothing loaded". */
-const YT_UNSTARTED = -1;
+/**
+ * Normalize a persisted track entry to something playable, or return null.
+ *
+ * System tracks are normalized to their canonical catalog twin (drops stale,
+ * renamed, removed, or needs-id ids). User-added tracks (id `user-*`) are not
+ * in the catalog, so they are kept as-is when they are self-contained and
+ * playable — user data must never be silently dropped.
+ */
+function toPlayableTrack(t: Track | null | undefined): Track | null {
+  if (!t || typeof t !== 'object' || typeof t.id !== 'string') return null;
+
+  const entry = SEED_TRACKS_MAP[t.id];
+  if (entry) {
+    if (entry.status !== 'ok') return null;
+    if (entry.source === 'youtube') {
+      return typeof entry.youtubeId === 'string' && entry.youtubeId.length > 0 ? entry : null;
+    }
+    if (entry.source === 'audio') {
+      return typeof entry.url === 'string' && entry.url.length > 0 ? entry : null;
+    }
+    return null;
+  }
+
+  if (t.addedBy === 'user' && t.status === 'ok') {
+    if (t.source === 'youtube' && typeof t.youtubeId === 'string' && t.youtubeId.length > 0) return t;
+    if (t.source === 'audio' && typeof t.url === 'string' && t.url.length > 0) return t;
+  }
+  return null;
+}
+
+function parsePersisted(): PersistedPlayerState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PersistedPlayerState> | null;
+    if (!parsed || parsed.version !== 3) return null; // v2 state is stale: discard
+    if (!Array.isArray(parsed.queue)) return null;
+
+    const normalized: Track[] = [];
+    for (const entry of parsed.queue) {
+      const playable = toPlayableTrack(entry as Track | null);
+      if (playable) normalized.push(playable);
+    }
+
+    const currentTrackId =
+      typeof parsed.currentTrackId === 'string' && normalized.some((t) => t.id === parsed.currentTrackId)
+        ? parsed.currentTrackId
+        : normalized[0]?.id ?? null;
+
+    return {
+      ...parsed,
+      queue: normalized,
+      currentTrackId,
+    } as PersistedPlayerState;
+  } catch {
+    return null;
+  }
+}
+
+function parseHistory(): Track[] {
+  if (typeof window === 'undefined') return DEFAULT_QUEUE;
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    const parsed = raw ? (JSON.parse(raw) as Track[]) : null;
+    if (!Array.isArray(parsed)) return DEFAULT_QUEUE;
+    const playable = parsed
+      .map((t) => toPlayableTrack(t))
+      .filter((t): t is Track => t !== null);
+    return playable.length > 0 ? playable : DEFAULT_QUEUE;
+  } catch {
+    return DEFAULT_QUEUE;
+  }
+}
 
 export function MusicPlayerProvider({ children }: { children: ReactNode }) {
-  const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(null);
-  const [activePlaylist, setActivePlaylist] = useState<MusicPlaylist | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolumeState] = useState(80);
-  const [isMuted, setIsMuted] = useState(false);
-  const [repeatMode, setRepeatMode] = useState<RepeatMode>('one');
-  const [isShuffle, setIsShuffle] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isEmbedRestricted, setIsEmbedRestricted] = useState(false);
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [savedSession, setSavedSession] = useState<MusicPlaybackSession | null>(null);
-  const [recentHistory, setRecentHistory] = useState<MusicTrack[]>([]);
-
-  const playerRef = useRef<any>(null);
-  const playerReadyRef = useRef<boolean>(false);
-  const pendingTrackRef = useRef<MusicTrack | null>(null);
-  const pendingStartSecondsRef = useRef<number>(0);
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Initialize saved session and history from localStorage
-  useEffect(() => {
-    const session = readSavedSession();
-    if (session) {
-      setSavedSession(session);
-      if (session.track) {
-        setCurrentTrack(session.track);
-        setCurrentTime(session.position || 0);
-        if (session.duration) setDuration(session.duration);
-      }
-    }
-    setRecentHistory(readHistory());
-  }, []);
-
-  const skipTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const skipInFlightRef = useRef(false);
-  const skipAttemptsRef = useRef<Set<string>>(new Set());
-  const handlePlayerErrorRef = useRef<(code: unknown) => void>(() => {});
-
   const pathname = usePathname();
   const isActive = useMemo(() => isMusicRoute(pathname), [pathname]);
 
-  // Record playback session
-  const saveCurrentSession = useCallback((track: MusicTrack, pos: number, dur?: number) => {
-    const sess: MusicPlaybackSession = {
-      track,
-      position: Math.max(0, Math.floor(pos)),
-      duration: dur,
+  const [snapshot, setSnapshot] = useState<EngineSnapshot>(() => getPlayerEngine().getSnapshot());
+  const [queue, setQueueState] = useState<Track[]>(() => {
+    const persisted = parsePersisted();
+    return persisted?.queue?.length ? persisted.queue : DEFAULT_QUEUE;
+  });
+  const [activePlaylistId, setActivePlaylistIdState] = useState<string>(() => {
+    const persisted = parsePersisted();
+    return persisted?.currentTrackId ? 'user' : 'grooveph-hits-2020s';
+  });
+  const [volume, setVolumeState] = useState<number>(() => {
+    const persisted = parsePersisted();
+    if (persisted && typeof persisted.volume === 'number' && Number.isFinite(persisted.volume)) {
+      return Math.max(0, Math.min(100, Math.round(persisted.volume)));
+    }
+    return 80;
+  });
+  const [isMuted, setIsMuted] = useState<boolean>(() => {
+    const persisted = parsePersisted();
+    return Boolean(persisted?.isMuted);
+  });
+  const [shuffle, setShuffle] = useState<boolean>(() => {
+    const persisted = parsePersisted();
+    return Boolean(persisted?.shuffle);
+  });
+  const [repeatMode, setRepeatModeState] = useState<RepeatMode>(() => {
+    const persisted = parsePersisted();
+    return persisted?.repeat ?? 'one';
+  });
+  const [recentHistory, setRecentHistory] = useState<Track[]>(() => parseHistory());
+  const [savedSession, setSavedSession] = useState<{ track: Track; position: number } | null>(null);
+  const [isEmbedRestricted, setIsEmbedRestricted] = useState(false);
+
+
+  // ───────────────────────────────────────── engine → React subscription
+  useEffect(() => {
+    const unsubscribe = getPlayerEngine().subscribe((event) => {
+      setSnapshot(getPlayerEngine().getSnapshot());
+      if (event.type === 'trackchange' && event.track) {
+        const next = event.track;
+        setRecentHistory((prev) => {
+          const filtered = prev.filter((t) => t.id !== next.id);
+          const updated = [next, ...filtered].slice(0, 15);
+          try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(updated)); } catch { /* blocked */ }
+          return updated;
+        });
+        setSavedSession({ track: next, position: 0 });
+      }
+      if (event.type === 'error') {
+        setIsEmbedRestricted(true);
+      }
+      if (event.type === 'ready') {
+        setIsEmbedRestricted(false);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  // ───────────────────────────────────────── engine queue sync
+  useEffect(() => {
+    getPlayerEngine().setQueue(queue);
+    getPlayerEngine().setShuffle(shuffle);
+    getPlayerEngine().setRepeat(repeatMode);
+  }, [queue, shuffle, repeatMode]);
+
+  // ───────────────────────────────────────── persist on changes
+  // Position is captured by a ref and written at most once per 10s (plus on
+  // page hide / unload); queue, track and preferences write immediately.
+  // Serializing the whole payload on every `timeupdate` event (several times
+  // per second during playback) was pure localStorage churn for no benefit.
+  const persistTimerRef = useRef<number | null>(null);
+  const latestPersistedRef = useRef<PersistedPlayerState | null>(null);
+  const writePersisted = useCallback((persisted: PersistedPlayerState) => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+    } catch {
+      /* blocked */
+    }
+  }, []);
+
+  useEffect(() => {
+    const persisted: PersistedPlayerState = {
+      version: 3,
+      queue,
+      currentTrackId: snapshot.track?.id ?? null,
+      positionSec: Math.floor(snapshot.currentTimeSec),
       volume,
       isMuted,
-      updatedAt: new Date().toISOString(),
+      shuffle,
+      repeat: repeatMode,
+      savedAt: new Date().toISOString(),
     };
-    setSavedSession(sess);
-    writeSavedSession(sess);
-  }, [volume, isMuted]);
+    latestPersistedRef.current = persisted;
 
-  // Add to track history
-  const addToHistory = useCallback((track: MusicTrack) => {
-    setRecentHistory((prev) => {
-      const filtered = prev.filter((t) => t.youtubeId !== track.youtubeId && t.id !== track.id);
-      const updated = [track, ...filtered].slice(0, 15);
-      writeHistory(updated);
-      return updated;
-    });
-  }, []);
+    if (persistTimerRef.current !== null) return;
+    const timer = window.setTimeout(() => {
+      persistTimerRef.current = null;
+      if (latestPersistedRef.current) writePersisted(latestPersistedRef.current);
+    }, 1000);
+    persistTimerRef.current = timer;
+  }, [queue, snapshot.track?.id, snapshot.currentTimeSec, volume, isMuted, shuffle, repeatMode, writePersisted]);
 
-  /**
-   * Leaving the Showcase stops playback immediately and releases the YouTube
-   * resource. We record the exact track and position so the member can resume.
-   */
+  // Flush the latest payload on hide/unload and on a slow heartbeat so the
+  // restored position is at most ~10s stale even if nothing else changed.
   useEffect(() => {
-    if (isActive) return;
-    if (skipTimerRef.current) {
-      clearTimeout(skipTimerRef.current);
-      skipTimerRef.current = null;
-    }
-    skipInFlightRef.current = false;
-    try {
-      if (playerRef.current?.getCurrentTime && currentTrack) {
-        const cur = playerRef.current.getCurrentTime();
-        const dur = playerRef.current.getDuration?.();
-        if (typeof cur === 'number' && !isNaN(cur)) {
-          saveCurrentSession(currentTrack, cur, dur);
-        }
+    const flush = () => {
+      if (latestPersistedRef.current) writePersisted(latestPersistedRef.current);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    const heartbeat = window.setInterval(flush, 10000);
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      if (persistTimerRef.current !== null) window.clearTimeout(persistTimerRef.current);
+      persistTimerRef.current = null;
+      window.clearInterval(heartbeat);
+      window.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [writePersisted]);
+
+  // ------------------------- Restore on mount (SSR-safe)
+  useEffect(() => {
+    // Drop the legacy v2 payload once so it can never restore a stale queue.
+    try { window.localStorage.removeItem('groove:player:v2'); } catch { /* blocked */ }
+    const persisted = parsePersisted();
+    if (!persisted) return;
+    const track = snapshot.track ?? queue.find((t) => t.id === persisted.currentTrackId) ?? null;
+    if (!track) return;
+    // Preloaded into the engine; do NOT autoplay.
+    void getPlayerEngine().load(track).then(() => {
+      if (persisted.positionSec > 3) {
+        getPlayerEngine().seekTo(persisted.positionSec);
       }
-      playerRef.current?.pauseVideo();
-      playerRef.current?.stopVideo?.();
-    } catch {
-      // The player may not exist yet on a cold route transition.
-    }
-  }, [isActive, currentTrack, saveCurrentSession]);
-
-  /** Clears any queued skip. Called whenever the user takes control. */
-  const cancelPendingSkip = useCallback(() => {
-    if (skipTimerRef.current) {
-      clearTimeout(skipTimerRef.current);
-      skipTimerRef.current = null;
-    }
-    skipInFlightRef.current = false;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount restore only
   }, []);
 
-  useEffect(() => () => {
-    if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
-  }, []);
-
-  const playTrackInternal = useCallback((track: MusicTrack, startSeconds: number = 0) => {
-    if (!playerRef.current || !playerReadyRef.current) {
-      pendingTrackRef.current = track;
-      pendingStartSecondsRef.current = startSeconds;
-      return;
-    }
-
-    try {
-      setError(null);
-      setIsLoading(true);
-      playerRef.current.loadVideoById({
-        videoId: track.youtubeId,
-        startSeconds: Math.max(0, Math.floor(startSeconds)),
-      });
-      playerRef.current.playVideo();
-      setIsPlaying(true);
-      setCurrentTime(startSeconds);
-    } catch (e) {
-      console.error('Error playing track on YouTube Player:', e);
-      setIsLoading(false);
-    }
-  }, []);
+  /* ---------------- actions ---------------- */
 
   const playTrack = useCallback(
-    (track: MusicTrack, playlist?: MusicPlaylist, startSeconds: number = 0) => {
-      if (!isActive) return;
-      cancelPendingSkip();
-      skipAttemptsRef.current = new Set();
-      setIsEmbedRestricted(false);
-      setCurrentTrack(track);
+    async (track: Track, playlist?: { id: string; name: string; tracks: Track[] }, startSeconds?: number) => {
+      // Resolve the list to play from BEFORE changing state, so the index
+      // lookup never depends on a stale closure value.
+      const baseList = playlist ? playlist.tracks : queue;
+      const ensured = baseList.some((t) => t.id === track.id) ? baseList : [...baseList, track];
+      const index = ensured.findIndex((t) => t.id === track.id);
+
       if (playlist) {
-        setActivePlaylist(playlist);
+        setQueueState(ensured);
+        setActivePlaylistIdState(playlist.id);
+      } else if (!queue.some((t) => t.id === track.id)) {
+        setQueueState((prev) => [...prev, track]);
       }
-      addToHistory(track);
-      saveCurrentSession(track, startSeconds);
-      playTrackInternal(track, startSeconds);
+
+      await getPlayerEngine().playQueue(ensured, Math.max(0, index));
+      if (startSeconds && startSeconds > 0) getPlayerEngine().seekTo(startSeconds);
     },
-    [cancelPendingSkip, playTrackInternal, isActive, addToHistory, saveCurrentSession]
+    [queue]
   );
-
-
-  const getCurrentIndex = useCallback(() => {
-    if (!activePlaylist || !currentTrack) return -1;
-    return activePlaylist.tracks.findIndex(
-      (t) => t.youtubeId === currentTrack.youtubeId || t.id === currentTrack.id
-    );
-  }, [activePlaylist, currentTrack]);
-
-  const playNext = useCallback(() => {
-    if (!isActive) return;
-    if (!activePlaylist || activePlaylist.tracks.length === 0) return;
-    const tracks = activePlaylist.tracks;
-    const currentIndex = getCurrentIndex();
-
-    let nextIndex = 0;
-    if (isShuffle && tracks.length > 1) {
-      do {
-        nextIndex = Math.floor(Math.random() * tracks.length);
-      } while (nextIndex === currentIndex);
-    } else {
-      nextIndex = currentIndex + 1;
-      if (nextIndex >= tracks.length) {
-        if (repeatMode === 'none') {
-          setIsPlaying(false);
-          setIsLoading(false);
-          // Leave no stale banner behind at the end of the playlist.
-          setError(null);
-          setIsEmbedRestricted(false);
-          return;
-        }
-        nextIndex = 0;
-      }
-    }
-
-    const nextTrack = tracks[nextIndex];
-    if (nextTrack) {
-      playTrack(nextTrack, activePlaylist);
-    }
-  }, [activePlaylist, getCurrentIndex, isShuffle, repeatMode, playTrack, isActive]);
-
-  /**
-   * Handles a YouTube `onError`.
-   *
-   * Order matters: classify, record the failure, publish the message, and only
-   * then decide whether to skip. The `skipInFlightRef` guard means a player that
-   * fires several errors for one track queues exactly one skip, and
-   * `skipAttemptsRef` means an all-restricted playlist walks each track once and
-   * then stops instead of cycling forever.
-   */
-  const handlePlayerError = useCallback(
-    (rawCode: unknown) => {
-      const info: PlaybackErrorInfo = classifyPlaybackError(rawCode);
-      console.warn('YouTube Player error code:', rawCode, `(${info.kind})`);
-
-      setIsLoading(false);
-      setIsPlaying(false);
-      setIsEmbedRestricted(info.openOnYouTube);
-      setError(info.message);
-
-      // Record the failure before planning, so the failed track can never be
-      // the next candidate — including in the single-element playlist case.
-      const failedId = currentTrack?.youtubeId;
-      if (failedId) skipAttemptsRef.current.add(failedId);
-
-      // A second error while a skip is already queued is a duplicate: the
-      // playlist decision has been made, so drop it.
-      if (skipInFlightRef.current) return;
-
-      const decision = planSkip({
-        trackIds: activePlaylist?.tracks.map((t) => t.youtubeId) ?? [],
-        currentIndex: getCurrentIndex(),
-        attempted: skipAttemptsRef.current,
-        isShuffle,
-      });
-
-      if (decision.type === 'stop') {
-        if (decision.reason === 'exhausted') {
-          setIsPlaying(false);
-          setIsLoading(false);
-          setError('No playable tracks left in this playlist.');
-          setIsEmbedRestricted(false);
-        }
-        return;
-      }
-
-      skipInFlightRef.current = true;
-      // Clear a superseded timer so two skips can never stack up.
-      if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
-
-      const nextTrack = activePlaylist?.tracks[decision.index];
-      if (!nextTrack) {
-        skipInFlightRef.current = false;
-        return;
-      }
-
-      skipTimerRef.current = setTimeout(() => {
-        skipTimerRef.current = null;
-        skipInFlightRef.current = false;
-
-        setCurrentTrack(nextTrack);
-        setActivePlaylist(activePlaylist);
-        playTrackInternal(nextTrack);
-        // `playTrackInternal` clears the banner; re-assert it so the user can
-        // see WHY we moved on (and reach the YouTube link) until the new track
-        // actually starts playing, which clears it via onStateChange.
-        setIsEmbedRestricted(info.openOnYouTube);
-        setError(info.message);
-      }, info.retryable ? 800 : 1200);
-    },
-    [currentTrack, activePlaylist, getCurrentIndex, isShuffle, playTrackInternal]
-  );
-
-  // Keep the session-long player callback pointed at the current implementation.
-  // No dependency array: this must be refreshed after every render so `onError`
-  // never runs against a stale playlist.
-  useEffect(() => {
-    handlePlayerErrorRef.current = handlePlayerError;
-  });
-
-  const handleTrackEnded = useCallback(() => {
-    if (repeatMode === 'one' && currentTrack) {
-      playerRef.current?.seekTo(0, true);
-      playerRef.current?.playVideo();
-    } else {
-      playNext();
-    }
-  }, [repeatMode, currentTrack, playNext]);
-
-  const initPlayer = useCallback(() => {
-    if (playerRef.current || !window.YT || !window.YT.Player) return;
-
-    let container = document.getElementById('groove-hidden-yt-player');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'groove-hidden-yt-player';
-      container.style.position = 'fixed';
-      container.style.top = '-9999px';
-      container.style.left = '-9999px';
-      container.style.width = '240px';
-      container.style.height = '180px';
-      container.style.pointerEvents = 'none';
-      container.style.opacity = '0.01';
-      document.body.appendChild(container);
-    }
-
-    try {
-      playerRef.current = new window.YT.Player('groove-hidden-yt-player', {
-        height: '180',
-        width: '240',
-        videoId: pendingTrackRef.current?.youtubeId || '3vmewzGcX2I',
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          modestbranding: 1,
-          rel: 0,
-          iv_load_policy: 3,
-          // NO `loop: 1` and NO `playlist:` here. The pair is the documented
-          // recipe for making the EMBED loop one video forever — and it did:
-          // after the first track ended the embed restarted a short segment
-          // on repeat instead of advancing, and the dock's repeat setting was
-          // ignored. `playlist` is also pinned at construction time, so once a
-          // different track was loaded the embed's loop target was a stale
-          // video id.
-          //
-          // Looping is owned by the APP: `handleTrackEnded` re-plays the track
-          // when repeatMode is 'one' and otherwise defers to `playNext`, which
-          // honours 'none' (stop at the end) and 'all' (wrap). `playbackPolicy`
-          // then guarantees the auto-skip path can never cycle. Do not add
-          // these two playerVars back.
-          origin: typeof window !== 'undefined' ? window.location.origin : '',
-        },
-        events: {
-          onReady: () => {
-            playerReadyRef.current = true;
-            if (pendingTrackRef.current) {
-              const trk = pendingTrackRef.current;
-              const startSec = pendingStartSecondsRef.current || 0;
-              pendingTrackRef.current = null;
-              pendingStartSecondsRef.current = 0;
-              playTrackInternal(trk, startSec);
-            }
-          },
-          onStateChange: (event: any) => {
-            // YT.PlayerState: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
-            const state = event.data;
-            if (state === 1) {
-              // A track that actually started playing clears the skip banner.
-              cancelPendingSkip();
-              setIsPlaying(true);
-              setIsLoading(false);
-              setIsVideoLoaded(true);
-              setError(null);
-              setIsEmbedRestricted(false);
-            } else if (state === 2) {
-              setIsPlaying(false);
-              setIsLoading(false);
-              setIsVideoLoaded(true);
-            } else if (state === 3) {
-              setIsLoading(true);
-            } else if (state === YT_UNSTARTED) {
-              // `stopVideo()` lands here. Clearing the flags here rather than in
-              // the route-change effect is what keeps that effect free of
-              // setState.
-              setIsPlaying(false);
-              setIsLoading(false);
-              setIsVideoLoaded(false);
-              setError(null);
-              setIsEmbedRestricted(false);
-            } else if (state === 0) {
-              handleTrackEnded();
-            }
-          },
-          onError: (e: any) => {
-            handlePlayerErrorRef.current(e?.data);
-          },
-        },
-      });
-    } catch (e) {
-      console.error('Failed to initialize YouTube IFrame Player', e);
-    }
-  }, [playTrackInternal, handleTrackEnded, cancelPendingSkip]);
-
-  /**
-   * Load the YouTube IFrame Player API and build the hidden player.
-   *
-   * Declared after every callback it wires up and invoked from the mount effect
-   * below, so it can never be reached through a stale closure. The player itself
-   * lives for the whole session; its `onError` therefore goes through
-   * `handlePlayerErrorRef`, which is refreshed after every render.
-   */
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    if (window.YT && window.YT.Player) {
-      initPlayer();
-      return;
-    }
-
-    const prevCallback = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      if (prevCallback) prevCallback();
-      initPlayer();
-    };
-
-    if (!document.getElementById('yt-iframe-api-script')) {
-      const tag = document.createElement('script');
-      tag.id = 'yt-iframe-api-script';
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-    }
-  }, [initPlayer]);
 
   const togglePlay = useCallback(() => {
-    if (!isActive) return;
-    if (!playerRef.current || !playerReadyRef.current || !currentTrack) return;
-    try {
-      if (isPlaying) {
-        playerRef.current.pauseVideo();
-        setIsPlaying(false);
-      } else {
-        playerRef.current.playVideo();
-        setIsPlaying(true);
-      }
-    } catch (e) {
-      console.warn('Toggle play error', e);
-    }
-  }, [isPlaying, currentTrack, isActive]);
+    void getPlayerEngine().togglePlay();
+  }, []);
 
-  const playPrev = useCallback(() => {
-    if (!isActive) return;
-    if (!activePlaylist || activePlaylist.tracks.length === 0) return;
-    const tracks = activePlaylist.tracks;
-    const currentIndex = getCurrentIndex();
+  const toggleShuffle = useCallback(() => setShuffle((v) => !v), []);
 
-    let prevIndex = currentIndex - 1;
-    if (prevIndex < 0) {
-      prevIndex = tracks.length - 1;
-    }
+  const toggleRepeat = useCallback(() => setRepeatModeState((v) => (v === 'off' ? 'all' : v === 'all' ? 'one' : 'off')), []);
 
-    const prevTrack = tracks[prevIndex];
-    if (prevTrack) {
-      playTrack(prevTrack, activePlaylist);
-    }
-  }, [activePlaylist, getCurrentIndex, playTrack, isActive]);
+  const playNext = useCallback(() => getPlayerEngine().next(), []);
+  const playPrev = useCallback(() => getPlayerEngine().prev(), []);
 
   const seekTo = useCallback((seconds: number) => {
-    if (!playerRef.current || !playerReadyRef.current) return;
-    try {
-      playerRef.current.seekTo(seconds, true);
-      setCurrentTime(seconds);
-    } catch (e) {
-      console.warn('Seek error', e);
-    }
+    getPlayerEngine().seekTo(seconds);
   }, []);
 
   const setVolume = useCallback((vol: number) => {
-    const clamped = Math.max(0, Math.min(100, vol));
+    const clamped = Math.max(0, Math.min(100, Math.round(vol)));
     setVolumeState(clamped);
-    if (!playerRef.current || !playerReadyRef.current) return;
-    try {
-      playerRef.current.setVolume(clamped);
-      if (clamped > 0 && isMuted) {
-        playerRef.current.unMute();
-        setIsMuted(false);
-      }
-    } catch (e) {
-      console.warn('Volume error', e);
+    getPlayerEngine().setVolume(clamped);
+    if (clamped > 0) {
+      setIsMuted(false);
+      getPlayerEngine().setMuted(false);
     }
-  }, [isMuted]);
+  }, []);
 
   const toggleMute = useCallback(() => {
-    if (!playerRef.current || !playerReadyRef.current) return;
-    try {
-      if (isMuted) {
-        playerRef.current.unMute();
-        setIsMuted(false);
-      } else {
-        playerRef.current.mute();
-        setIsMuted(true);
+    setIsMuted((m) => {
+      getPlayerEngine().setMuted(!m);
+      return !m;
+    });
+  }, []);
+
+  const setQueue = useCallback((tracks: Track[]) => {
+    setQueueState([...tracks]);
+  }, []);
+
+  const setActivePlaylist = useCallback((id: string) => {
+    const found = SEED_PLAYLISTS.find((p) => p.id === id);
+    if (found) {
+      setQueueState([...found.tracks]);
+      setActivePlaylistIdState(id);
+    }
+  }, []);
+
+  const playFromQueue = useCallback(async (index: number) => {
+    await getPlayerEngine().playAt(index);
+  }, []);
+
+  const enqueue = useCallback((track: Track) => {
+    setQueueState((prev) => (prev.some((t) => t.id === track.id) ? prev : [...prev, track]));
+  }, []);
+
+  const playNextInQueue = useCallback((track: Track) => {
+    setQueueState((prev) => {
+      const index = prev.findIndex((t) => t.id === track.id);
+      if (index >= 0) {
+        // Already in queue — move it after the current track.
+        const next = [...prev];
+        const [picked] = next.splice(index, 1);
+        const currentIndex = getPlayerEngine().getCurrentIndex();
+        const target = Math.min(next.length, Math.max(0, currentIndex + 1));
+        next.splice(target, 0, picked);
+        return next;
       }
-    } catch (e) {
-      console.warn('Mute error', e);
-    }
-  }, [isMuted]);
-
-  const toggleRepeat = useCallback(() => {
-    setRepeatMode((prev) => (prev === 'one' ? 'none' : 'one'));
+      const currentIndex = getPlayerEngine().getCurrentIndex();
+      const target = Math.min(prev.length, Math.max(0, currentIndex + 1));
+      const next = [...prev];
+      next.splice(target, 0, track);
+      return next;
+    });
   }, []);
 
-  const toggleShuffle = useCallback(() => {
-    setIsShuffle((prev) => !prev);
+  const removeFromMyPlaylist = useCallback((trackId: string) => {
+    setQueueState((prev) => prev.filter((t) => t.id !== trackId));
   }, []);
 
-  const closePlayer = useCallback(() => {
-    cancelPendingSkip();
-    skipAttemptsRef.current = new Set();
-    setIsEmbedRestricted(false);
-    if (playerRef.current && playerReadyRef.current) {
-      try {
-        playerRef.current.pauseVideo();
-      } catch (e) {}
-    }
-    setIsPlaying(false);
-    setCurrentTrack(null);
-  }, [cancelPendingSkip]);
+  const clearQueue = useCallback(() => {
+    setQueueState([]);
+  }, []);
 
   const resumeRecentPlayback = useCallback(() => {
-    if (!isActive) return;
-    const session = savedSession || readSavedSession();
-    if (session?.track) {
-      playTrack(session.track, activePlaylist || undefined, session.position || 0);
-    } else if (currentTrack) {
-      if (isVideoLoaded) {
-        togglePlay();
-      } else {
-        playTrack(currentTrack, activePlaylist || undefined, currentTime || 0);
-      }
-    } else {
-      playTrack(GROOVE_OFFICIAL_REHEARSAL_MIX, undefined, 0);
-    }
-  }, [isActive, savedSession, currentTrack, isVideoLoaded, currentTime, activePlaylist, togglePlay, playTrack]);
+    const first = recentHistory[0];
+    if (first) void playTrack(first);
+  }, [playTrack, recentHistory]);
 
-  // Update current time & duration timer while playing
-  useEffect(() => {
-    if (isPlaying) {
-      progressTimerRef.current = setInterval(() => {
-        if (playerRef.current && playerReadyRef.current) {
-          try {
-            const cur = playerRef.current.getCurrentTime();
-            const dur = playerRef.current.getDuration();
-            if (typeof cur === 'number' && !isNaN(cur)) {
-              setCurrentTime(cur);
-              if (currentTrack) {
-                saveCurrentSession(currentTrack, cur, dur);
-              }
-            }
-            if (typeof dur === 'number' && !isNaN(dur) && dur > 0) setDuration(dur);
-          } catch (e) {}
-        }
-      }, 500);
-    } else if (progressTimerRef.current) {
-      clearInterval(progressTimerRef.current);
-    }
+  const closePlayer = useCallback(() => {
+    getPlayerEngine().pause();
+    getPlayerEngine().setQueue([]);
+    setQueueState([]);
+  }, []);
 
-    return () => {
-      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-    };
-  }, [isPlaying, currentTrack, saveCurrentSession]);
+  const activePlaylist = useMemo(() => {
+    const found = SEED_PLAYLISTS.find((p) => p.id === activePlaylistId);
+    if (found) return { id: found.id, name: found.name, tracks: found.tracks };
+    return { id: 'user', name: 'My Playlist', tracks: queue };
+  }, [activePlaylistId, queue]);
 
-  return (
-    <MusicPlayerContext.Provider
-      value={{
-        currentTrack,
-        activePlaylist,
-        isPlaying,
-        isLoading,
-        currentTime,
-        duration,
-        volume,
-        isMuted,
-        repeatMode,
-        isShuffle,
-        error,
-        isActive,
-        isVideoLoaded,
-        isEmbedRestricted,
-        openOnYouTubeUrl:
-          isEmbedRestricted && currentTrack
-            ? `https://www.youtube.com/watch?v=${currentTrack.youtubeId}`
-            : null,
-        savedSession,
-        recentHistory,
-        resumeRecentPlayback,
-        playTrack,
-        togglePlay,
-        playNext,
-        playPrev,
-        seekTo,
-        setVolume,
-        toggleMute,
-        toggleRepeat,
-        toggleShuffle,
-        closePlayer,
-      }}
-    >
-      {children}
-    </MusicPlayerContext.Provider>
-  );
+  const contextValue = useMemo<MusicPlayerContextType>(() => ({
+    currentTrack: snapshot.track,
+    isPlaying: snapshot.playing,
+    isLoading: snapshot.buffering,
+    currentTime: snapshot.currentTimeSec,
+    duration: snapshot.durationSec,
+    isActive,
+    isVideoLoaded: snapshot.ready,
+    isEmbedRestricted,
+    error: snapshot.error,
+    volume,
+    isMuted,
+    openOnYouTubeUrl: snapshot.track?.youtubeId
+      ? `https://www.youtube.com/watch?v=${snapshot.track.youtubeId}`
+      : null,
+    activePlaylist,
+    recentHistory,
+    savedSession,
+    shuffle,
+    repeatMode,
+    playTrack,
+    togglePlay,
+    toggleShuffle,
+    toggleRepeat,
+    playNext,
+    playPrev,
+    seekTo,
+    setVolume,
+    toggleMute,
+    setQueue,
+    setActivePlaylist,
+    enqueue,
+    playNextInQueue,
+    playFromQueue,
+    removeFromMyPlaylist,
+    clearQueue,
+    resumeRecentPlayback,
+    closePlayer,
+  }), [
+    snapshot, isActive, isEmbedRestricted, activePlaylist, recentHistory, savedSession,
+    shuffle, repeatMode, volume, isMuted,
+    playTrack, togglePlay, toggleShuffle, toggleRepeat, playNext, playPrev,
+    seekTo, setVolume, toggleMute, setQueue, setActivePlaylist, enqueue,
+    playNextInQueue, playFromQueue, removeFromMyPlaylist, clearQueue, resumeRecentPlayback, closePlayer,
+  ]);
+
+  return <MusicPlayerContext.Provider value={contextValue}>{children}</MusicPlayerContext.Provider>;
 }
 
 export function useMusicPlayer() {
@@ -710,3 +477,4 @@ export function useMusicPlayer() {
   }
   return context;
 }
+

@@ -16,7 +16,7 @@ export default function Page() {
             <p className="mb-1.5 font-mono text-xs text-neutral-400">{frame.label}</p>
             <div
               aria-label={`${frame.key} viewport`}
-              className="overflow-hidden rounded-xl   bg-white"
+              className="overflow-hidden rounded-xl border border-border bg-white"
               style={{ width: 1180, height: 780 }}
             >
               <iframe
@@ -31,3 +31,4 @@ export default function Page() {
     </main>
   );
 }
+

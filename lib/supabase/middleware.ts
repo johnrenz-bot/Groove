@@ -43,10 +43,70 @@ function homeFor(role: UserRole | string | undefined, isAdmin: boolean = false):
   return roleHome(role);
 }
 
+/**
+ * OPTIMISTIC SESSION CHECK (Next.js 16 guidance: Proxy should read the cookie,
+ * not hit the network, on the fast path).
+ *
+ * Supabase stores the session under `sb-<project-ref>-auth-token` (chunked as
+ * `.0`, `.1`, … when large). Presence of that cookie is a cheap necessary
+ * condition for "probably signed in":
+ *   - No cookie  → no session can possibly be loaded. Protected routes bounce
+ *                  to /login without a single network call; guests on public
+ *                  and auth pages are let straight through.
+ *   - Cookie     → fall through to the authoritative `auth.getUser()` +
+ *                  `profiles` check below, so role-based redirects stay as
+ *                  strict as ever. A garbage cookie just costs one failed
+ *                  lookup, exactly as before.
+ *
+ * This is the difference between every navigation paying 1–2 Supabase round
+ * trips and paying them ONLY when a session actually exists.
+ */
+const SUPABASE_AUTH_COOKIE = /^sb-.+-auth-token(\.\d+)?$/;
+
+function hasAuthCookie(request: NextRequest): boolean {
+  try {
+    return request.cookies.getAll().some((cookie) => SUPABASE_AUTH_COOKIE.test(cookie.name));
+  } catch {
+    return false;
+  }
+}
+
 export async function updateSession(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  const kind = classify(path);
+
   let supabaseResponse = NextResponse.next({
     request,
   });
+
+  // API routes authenticate themselves (each handler calls getUser / requireAdmin
+  // on its own). Running the page-oriented checks here only paid a wasted auth
+  // round trip on every API call and every API prefetch.
+  if (path.startsWith('/api')) {
+    return supabaseResponse;
+  }
+
+  // Public pages other than `/` never redirect based on the session (the
+  // member-redirect below is only for the front door), so there is nothing to
+  // learn from a network call here. Skip it entirely — guests and members alike
+  // get the page immediately and the client chrome resolves the session.
+  if (kind === 'public' && path !== '/') {
+    return supabaseResponse;
+  }
+
+  const cookiePresent = hasAuthCookie(request);
+
+  // No auth cookie at all: everything the authoritative path would conclude is
+  // already known. Guests may see `/` and the auth pages; everyone else bounces.
+  if (!cookiePresent) {
+    if (kind === 'public' || kind === 'auth') {
+      return supabaseResponse;
+    }
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.search = `?redirectTo=${encodeURIComponent(path)}`;
+    return NextResponse.redirect(url);
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -93,9 +153,6 @@ export async function updateSession(request: NextRequest) {
       }
     }
   }
-
-  const path = request.nextUrl.pathname;
-  const kind = classify(path);
 
   const isProtected = kind !== 'public' && kind !== 'auth';
 

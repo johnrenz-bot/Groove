@@ -165,7 +165,7 @@ export function DancerCircleRules() {
   return (
     <section
       aria-label="Dancer Circle Community Rules & Guidelines"
-      className="overflow-hidden rounded-2xl   bg-card/90 shadow-[var(--shadow-sm)] backdrop-blur-md"
+      className="overflow-hidden rounded-2xl border border-border bg-card/90 shadow-[var(--shadow-sm)] backdrop-blur-md"
     >
       {/* Summary row — the entire panel when collapsed. */}
       <button
@@ -176,7 +176,7 @@ export function DancerCircleRules() {
         aria-label={expanded ? t('showcase.rulesCollapse', 'Collapse community rules') : t('showcase.rulesExpand', 'Expand community rules')}
         className="flex w-full cursor-pointer items-center gap-2.5 p-3 text-left transition hover:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:gap-3 sm:px-4"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-accent-soft text-accent-text">
           <ShieldCheck className="h-4.5 w-4.5" aria-hidden="true" />
         </span>
 
@@ -195,10 +195,10 @@ export function DancerCircleRules() {
         </span>
 
         <span className="hidden shrink-0 items-center gap-1.5 sm:flex">
-          <span className="rounded-full   bg-muted/50 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+          <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
             {t('showcase.rulesCount', '{count} rules', { count: rules.length })}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
             <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
             {t('showcase.rulesActive', 'Active')}
           </span>
@@ -241,10 +241,10 @@ export function DancerCircleRules() {
                   <div
                     key={rule.id}
                     className={cn(
-                      'overflow-hidden rounded-xl  transition-colors',
+                      'overflow-hidden rounded-xl border border-border transition-colors',
                       isOpen
-                        ? ' bg-muted/35'
-                        : ' bg-muted/15 hover:bg-muted/30'
+                        ? ' border border-border bg-muted/35'
+                        : ' border border-border bg-muted/15 hover:bg-muted/30'
                     )}
                   >
                     <h3>
@@ -295,7 +295,7 @@ export function DancerCircleRules() {
             </div>
 
             {/* Footer note — preserved from the full card. */}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl   bg-card/80 p-2.5 text-[11px]">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card/80 p-2.5 text-[11px]">
               <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
                 <Award className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
                 <span className="leading-snug">
@@ -308,7 +308,7 @@ export function DancerCircleRules() {
             </div>
 
             {/* Acknowledgement — persisted per device. */}
-            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl   bg-muted/20 p-2.5">
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/20 p-2.5">
               <div className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
                 <ShieldCheck
                   className={cn('h-4 w-4 shrink-0', acknowledged ? 'text-success' : 'text-accent-text')}
@@ -325,7 +325,7 @@ export function DancerCircleRules() {
                 <div className="flex items-center gap-2">
                   <span
                     role="status"
-                    className="inline-flex items-center gap-1 rounded-full   bg-success-soft px-2.5 py-1 text-[10px] font-bold text-success"
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-success-soft px-2.5 py-1 text-[10px] font-bold text-success"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                     {t('showcase.acknowledged', 'Acknowledged')}
@@ -357,3 +357,4 @@ export function DancerCircleRules() {
 }
 
 export default DancerCircleRules;
+

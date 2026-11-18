@@ -108,7 +108,10 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
       const { data: posts, error: postsError } = await supabase
         .from('community_posts')
         .select('author_id')
-        .is('deleted_at', null);
+        .is('deleted_at', null)
+        // Bounded snapshot; correct counts would need a grouped view/RPC,
+        // which needs a migration the client must apply manually.
+        .limit(1000);
 
       if (postsError) {
         console.warn('[CommunityLeaderboard] community_posts warning:', postsError.message);
@@ -117,7 +120,8 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
       // Fetch reactions counts from post_reacts table
       const { data: reacts, error: reactsError } = await supabase
         .from('post_reacts')
-        .select('user_id');
+        .select('user_id')
+        .limit(1000);
 
       if (reactsError) {
         console.warn('[CommunityLeaderboard] post_reacts warning:', reactsError.message);
@@ -126,28 +130,29 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
       // Fetch comments counts from comments table
       const { data: comments, error: commentsError } = await supabase
         .from('comments')
-        .select('user_id');
+        .select('user_id')
+        .limit(1000);
 
       if (commentsError) {
         console.warn('[CommunityLeaderboard] comments warning:', commentsError.message);
       }
 
       const postsMap = new Map<string, number>();
-      (posts || []).forEach((p) => {
+      (posts || []).forEach((p: any) => {
         if (p?.author_id) {
           postsMap.set(p.author_id, (postsMap.get(p.author_id) || 0) + 1);
         }
       });
 
       const reactsMap = new Map<string, number>();
-      (reacts || []).forEach((r) => {
+      (reacts || []).forEach((r: any) => {
         if (r?.user_id) {
           reactsMap.set(r.user_id, (reactsMap.get(r.user_id) || 0) + 1);
         }
       });
 
       const commentsMap = new Map<string, number>();
-      (comments || []).forEach((c) => {
+      (comments || []).forEach((c: any) => {
         if (c?.user_id) {
           commentsMap.set(c.user_id, (commentsMap.get(c.user_id) || 0) + 1);
         }
@@ -271,7 +276,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-2xl   bg-card shadow-sm backdrop-blur-md',
+        'overflow-hidden rounded-2xl border border-border bg-card shadow-sm backdrop-blur-md',
         className
       )}
     >
@@ -302,14 +307,14 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
             disabled={loading}
             aria-label="Refresh leaderboard"
             title="Refresh leaderboard rankings"
-            className="flex h-7 w-7 items-center justify-center rounded-lg   bg-card text-muted-foreground transition hover: hover:bg-muted hover:text-foreground disabled:opacity-50"
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground disabled:opacity-50"
           >
             <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin text-accent')} />
           </button>
         </div>
 
         {/* Role Filters */}
-        <div className="mt-3.5 flex gap-1 rounded-xl   bg-muted/40 p-1">
+        <div className="mt-3.5 flex gap-1 rounded-xl border border-border bg-muted/40 p-1">
           {[
             { id: 'all', label: t('showcase.tabAll', 'All Circles') },
             { id: 'client', label: t('showcase.tabClients', 'Dancers & Clients') },
@@ -340,7 +345,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
         {loading ? (
           <div className="py-8 flex flex-col items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin text-accent" />
-            <span className="text-xs">{t('showcase.calculating', 'Calculating participation points�')}</span>
+            <span className="text-xs">{t('showcase.calculating', 'Calculating participation points…')}</span>
           </div>
         ) : error ? (
           <div className="py-6 px-4 text-center">
@@ -348,7 +353,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
             <button
               type="button"
               onClick={() => void fetchLeaderboardData()}
-              className="inline-flex items-center gap-1.5 rounded-lg   bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted active:scale-95 cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>{t('common.retry', 'Retry')}</span>
@@ -370,14 +375,14 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                 <div
                   key={user.id}
                   className={cn(
-                    'flex items-center justify-between gap-3 rounded-xl  p-2.5 transition',
+                    'flex items-center justify-between gap-3 rounded-xl border border-border p-2.5 transition',
                     isTop1
                       ? ' bg-amber-500/5  '
                       : isTop2
                         ? ' bg-slate-400/5'
                         : isTop3
                           ? ' bg-amber-700/5'
-                          : ' bg-muted/20 hover:'
+                          : ' border border-border bg-muted/20 hover:'
                   )}
                 >
                   {/* Rank & User Info */}
@@ -396,7 +401,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                     </div>
 
                     {/* Avatar */}
-                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full   bg-muted">
+                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
                       {user.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -455,11 +460,12 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
 
       {/* Footer Info */}
       <div className="  bg-muted/20 px-4 py-2.5 text-center text-[10px] text-muted-foreground">
-        {t('showcase.pointsLegend', 'Points: +50 per post � +10 per reaction � +5 per comment � +100 verified badge')}
+        {t('showcase.pointsLegend', 'Points: +50 per post · +10 per reaction · +5 per comment · +100 verified badge')}
       </div>
     </div>
   );
 }
 
 export default CommunityLeaderboard;
+
 

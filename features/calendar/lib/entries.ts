@@ -167,7 +167,9 @@ export function toCalendarEntry(
     sessionType: appointment.session_type?.trim() || null,
     location: appointment.is_online ? 'Online session' : appointment.location ?? appointment.address,
     isOnline: Boolean(appointment.is_online),
-    messageHref: counterpartId ? `/messages?user=${counterpartId}` : null,
+    messageHref: counterpartId
+      ? `${role === 'client' ? '/client/messages' : '/coach/messages'}?conversation=${counterpartId}`
+      : null,
     appointment,
   };
 }

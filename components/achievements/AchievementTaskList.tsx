@@ -57,7 +57,7 @@ export function AchievementTaskList({
 
         {/* Progress ring / summary */}
         <div className="flex flex-col items-end lg:items-center gap-1 shrink-0 lg:shrink-0">
-          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full   bg-accent-soft">
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-border bg-accent-soft">
             <span className="text-lg font-bold tabular-nums text-accent-text">
               {completedCount}/{totalCount}
             </span>
@@ -77,10 +77,10 @@ export function AchievementTaskList({
           <article
             key={task.id}
             className={cn(
-              'relative group flex items-start gap-4 rounded-xl  p-4 transition-all duration-200',
+              'relative group flex items-start gap-4 rounded-xl border border-border p-4 transition-all duration-200',
               task.is_completed
                 ? ' bg-success-soft'
-                : ' bg-card hover: hover:bg-accent-soft/30',
+                : ' border border-border bg-card hover:border-accent-border hover:bg-accent-soft/30',
               onTaskClick && 'cursor-pointer'
             )}
             role="listitem"
@@ -90,10 +90,10 @@ export function AchievementTaskList({
             <div className="relative flex shrink-0 flex-col items-center">
               <div
                 className={cn(
-                  'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full  transition-colors',
+                  'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border transition-colors',
                   task.is_completed
-                    ? ' bg-success text-success-foreground'
-                    : ' bg-card text-muted-foreground'
+                    ? ' border-success/30 bg-success text-success-foreground'
+                    : ' border border-border bg-card text-muted-foreground'
                 )}
               >
                 {task.is_completed ? (

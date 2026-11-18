@@ -173,7 +173,6 @@ export function RegistrationSectionHeading({
   id,
   index,
   step,
-  icon: Icon,
   title,
   description,
   className = '',
@@ -195,17 +194,16 @@ export function RegistrationSectionHeading({
   const displayIndex = step ? `${step}.${index}` : String(index).padStart(2, '0');
 
   return (
-    <div className={cn('reg-section-heading', className)}>
-      <span className="reg-section-index" aria-hidden="true">
-        {displayIndex}
-      </span>
-      <div className="min-w-0 flex-1">
-        <h3 id={id} className="reg-section-title">
-          <Icon className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
-          <span>{title}</span>
+    <div className={cn('av-section', className)}>
+      <div className="av-section-row">
+        <h3 id={id} className="av-section-title">
+          {title}
         </h3>
-        {description && <p className="reg-section-description">{description}</p>}
+        <span className="av-section-meta" aria-hidden="true">
+          {displayIndex}
+        </span>
       </div>
+      {description && <p className="av-section-desc">{description}</p>}
       <span className="sr-only">
         {step ? `Step ${step}, section ${index}` : `Section ${index}`}
       </span>
@@ -714,7 +712,7 @@ export function RegistrationFormFields({
             <span className="g-label mb-0" id="reg-dob-label">
               Date of Birth <span className="text-accent-text">*</span>
             </span>
-            <span className="rounded-full   bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-subtle-foreground">
+            <span className="rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-subtle-foreground">
               Minimum 13 years old
             </span>
           </div>
@@ -1032,7 +1030,7 @@ export function RegistrationFormFields({
                     {idFile.name}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {formatFileSize(idFile.size)} · Ready for verification
+                    {formatFileSize(idFile.size)} • Ready for verification
                   </p>
                 </div>
                 <div className="relative z-20 flex flex-wrap items-center justify-center gap-2">
@@ -1273,7 +1271,7 @@ export function RegistrationSuccess({
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-48 right-0 h-[340px] w-[340px] rounded-full bg-accent/[0.04] blur-[110px]"
       />
-      <div className="glass relative z-10 w-full max-w-lg animate-in space-y-6 rounded-[26px]   p-6 text-center shadow-[var(--glass-shadow)] backdrop-blur-xl fade-in zoom-in-95 sm:p-9">
+      <div className="glass relative z-10 w-full max-w-lg animate-in space-y-6 rounded-[26px] border border-border p-6 text-center shadow-[var(--glass-shadow)] backdrop-blur-xl fade-in zoom-in-95 sm:p-9">
         <div
           aria-hidden="true"
           className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
@@ -1290,9 +1288,9 @@ export function RegistrationSuccess({
 
         <div
           className={cn(
-            'mx-auto flex h-16 w-16 items-center justify-center rounded-2xl  shadow-sm',
+            'mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-border shadow-sm',
             verificationRequired
-              ? ' bg-accent-soft text-accent-text'
+              ? ' border-accent-border bg-accent-soft text-accent-text'
               : ' bg-success-soft text-success'
           )}
         >
@@ -1306,7 +1304,7 @@ export function RegistrationSuccess({
         <div className="space-y-2">
           <span className="g-eyebrow">
             {verificationRequired
-              ? 'Account created · Email verification required'
+              ? 'Account created • Email verification required'
               : role === 'coach'
                 ? 'Coach application received'
                 : 'Performer account created'}
@@ -1332,7 +1330,7 @@ export function RegistrationSuccess({
           </p>
         </div>
 
-        <dl className="space-y-2.5 rounded-2xl   bg-card/60 p-4 text-left text-xs backdrop-blur-sm sm:p-5">
+        <dl className="space-y-2.5 rounded-2xl border border-border bg-card/60 p-4 text-left text-xs backdrop-blur-sm sm:p-5">
           {details.map((d, i) => (
             <div
               key={`${d.label}-${i}`}
@@ -1352,7 +1350,7 @@ export function RegistrationSuccess({
         </dl>
 
         {verificationRequired ? (
-          <div className="rounded-2xl   bg-accent-soft p-4 text-left shadow-sm">
+          <div className="rounded-2xl border border-border bg-accent-soft p-4 text-left shadow-sm">
             <div className="flex items-start gap-3">
               <Mail className="mt-0.5 h-5 w-5 shrink-0 text-accent-text" aria-hidden="true" />
               <div className="min-w-0 flex-1">
@@ -1395,7 +1393,7 @@ export function RegistrationSuccess({
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-3 rounded-2xl   bg-success-soft p-3.5 text-left text-xs text-foreground shadow-sm">
+          <div className="flex items-start gap-3 rounded-2xl border border-border bg-success-soft p-3.5 text-left text-xs text-foreground shadow-sm">
             <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-hidden="true" />
             <span className="leading-relaxed">
               Email verification is not required for this account. You can sign in now.
@@ -1406,7 +1404,7 @@ export function RegistrationSuccess({
         {warning && (
           <p
             role="alert"
-            className="flex items-start gap-2.5 rounded-2xl   bg-danger-soft p-3.5 text-left text-xs leading-relaxed text-danger"
+            className="flex items-start gap-2.5 rounded-2xl border border-border bg-danger-soft p-3.5 text-left text-xs leading-relaxed text-danger"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{warning}</span>
@@ -1424,7 +1422,7 @@ export function RegistrationSuccess({
           <Button
             size="lg"
             pill={false}
-            className="h-12 w-full bg-[#F4BE4D] text-sm font-bold tracking-wide text-[#121008] transition-all hover:bg-[#E5B23E] hover:shadow-[0_4px_24px_rgba(244,190,77,0.25)] active:scale-[0.99]"
+            className="h-12 w-full bg-[#DDAA55] text-sm font-bold tracking-wide text-[#121008] transition-all hover:bg-[#E5B23E] hover:shadow-[0_4px_24px_rgba(244,190,77,0.25)] active:scale-[0.99]"
             trailingIcon={<ArrowRight className="h-4 w-4" />}
           >
             {verificationRequired ? 'Return to Sign In' : 'Proceed to Sign In'}

@@ -140,7 +140,7 @@ export default function AdminMaintenancePage() {
             {formError && (
               <div
                 role="alert"
-                className="rounded-xl   bg-danger-soft px-4 py-3 text-xs text-danger"
+                className="rounded-xl border border-border bg-danger-soft px-4 py-3 text-xs text-danger"
               >
                 {formError}
               </div>
@@ -216,15 +216,15 @@ export default function AdminMaintenancePage() {
             />
           ) : (
             <ul className="space-y-3">
-              {notices.map((n) => {
+              {notices.map((n: any) => {
                 const meta = TYPE_META[n.type] ?? TYPE_META.warning;
                 const Icon = meta.icon;
                 return (
                   <li
                     key={n.id}
                     className={cn(
-                      'rounded-[20px]  p-5 transition-opacity',
-                      n.is_active ? ' bg-card' : ' bg-muted opacity-70'
+                      'rounded-[20px] border border-border p-5 transition-opacity',
+                      n.is_active ? ' bg-card' : ' border border-border bg-muted opacity-70'
                     )}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -286,7 +286,7 @@ export default function AdminMaintenancePage() {
                     </p>
 
                     {(n.starts_at || n.ends_at) && (
-                      <p className="mt-3 inline-flex items-center gap-1.5 rounded-full   bg-muted px-3 py-1 text-[11px] text-muted-foreground">
+                      <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 text-[11px] text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         {n.starts_at ? formatDateTime(n.starts_at) : 'Now'} →{' '}
                         {n.ends_at ? formatDateTime(n.ends_at) : 'Indefinite'}

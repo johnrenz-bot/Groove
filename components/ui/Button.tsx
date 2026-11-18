@@ -47,8 +47,7 @@ const SIZE_STYLES: Record<ButtonSize, string> = {
 
 /**
  * Every variant is token-driven — swapping `light` on <html> restyles all of
- * them. `primary` is Unity Blue and nothing else in the set introduces a hue;
- * `danger` is the one exception and it is Relief Red.
+ * them. `primary` is Groove Orange and nothing else in the set introduces a hue;`n * `danger` is the one exception and it carries the destructive red.
  *
  * Destructive buttons paint `--danger-solid`, NOT `--danger`. In dark mode
  * `--danger` is a lightened red chosen for AA *text* contrast, which would be

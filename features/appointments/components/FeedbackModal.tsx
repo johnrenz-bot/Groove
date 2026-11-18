@@ -150,7 +150,7 @@ export default function FeedbackModal({
 
         {success ? (
           <div className="py-8 text-center space-y-3">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl   bg-success-soft text-success shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-success-soft text-success shadow-sm">
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <h4 className="text-lg font-bold text-foreground">Review Submitted!</h4>
@@ -213,3 +213,4 @@ export default function FeedbackModal({
     </Modal>
   );
 }
+

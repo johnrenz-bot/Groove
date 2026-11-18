@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useChat } from '../context/ChatContext';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { EqualizerBars } from '@/components/loading/GrooveSpinner';
 import { DisciplineType } from '../types';
 import { SiteLinkCard } from '@/components/groovey/SiteLinkCard';
 import { isAboutPlatformMessage, isAboutGrooveyyMessage } from '../utils/isAboutPlatform';
@@ -262,7 +263,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
     <div className="flex-1 min-h-0 flex flex-col relative w-full bg-card">
       {/* Session Header Pill: subtle, centered, muted background */}
       <div className="shrink-0 px-4 py-2 flex justify-center z-10">
-        <div className="flex items-center gap-2 bg-muted/80 text-foreground px-3.5 py-1 rounded-full   max-w-full text-xs shadow-xs">
+        <div className="flex items-center gap-2 bg-muted/80 text-foreground px-3.5 py-1 rounded-full border border-border max-w-full text-xs shadow-xs">
           <Music className="w-3.5 h-3.5 text-accent-text shrink-0" />
           <span className="font-semibold text-accent-text tracking-tight truncate">
             {currentConversation?.discipline || selectedDiscipline}
@@ -355,7 +356,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
                     key={i}
                     type="button"
                     onClick={() => handleStarterClick(starter.prompt, starter.discipline)}
-                    className="group p-3.5 rounded-2xl bg-muted/60   hover: hover:bg-muted/90 transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer"
+                    className="group p-3.5 rounded-2xl bg-muted/60   hover:border-border-strong hover:bg-muted/90 transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-soft text-accent-text  ">
@@ -551,8 +552,13 @@ export const GrooveyActiveCoaching: React.FC = () => {
                     <span className="inline-block w-1.5 h-4 ml-0.5 bg-accent align-middle animate-groovey-blink" />
                   </>
                 ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground text-xs py-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                  <div
+                    className="flex items-center gap-2 text-muted-foreground text-xs py-1"
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Analyzing performance mechanics and drafting drills"
+                  >
+                    <EqualizerBars bars={5} height={16} />
                     <span>Analyzing performance mechanics and drafting drills...</span>
                   </div>
                 )}
@@ -568,7 +574,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
       <div className="shrink-0 max-w-3xl mx-auto w-full px-3 sm:px-4 pb-3 sm:pb-4 pt-1 z-20">
         <form
           onSubmit={handleSend}
-          className="rounded-2xl   bg-card/95 backdrop-blur-md shadow-sm focus-within: focus-within: focus-within: transition-all flex flex-col p-2.5 sm:p-3"
+          className="rounded-2xl border border-border bg-card/95 backdrop-blur-md shadow-sm focus-within: focus-within: focus-within: transition-all flex flex-col p-2.5 sm:p-3"
         >
           {/* Multi-line Auto-expanding Textarea */}
           <textarea
@@ -636,7 +642,7 @@ export const GrooveyActiveCoaching: React.FC = () => {
 
             {/* Middle Keyboard Hint */}
             <div className="hidden sm:inline-block text-[11px] text-muted-foreground select-none">
-              Press <kbd className="font-sans px-1 py-0.5 bg-muted rounded   text-[10px]">Enter ↵</kbd> to send
+              Press <kbd className="font-sans px-1 py-0.5 bg-muted rounded border border-border text-[10px]">Enter ↵</kbd> to send
             </div>
 
             {/* Right: Send / Stop Button */}

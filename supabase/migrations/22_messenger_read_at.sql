@@ -1,4 +1,4 @@
-﻿-- Migration 22: Messenger read receipts
+-- Migration 22: Messenger read receipts
 --
 -- Promotes the content of supabase/messenger.sql into the numbered migration
 -- sequence. The app code (lib/messenger/queries.ts) already degrades gracefully

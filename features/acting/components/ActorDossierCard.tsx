@@ -27,3 +27,4 @@ export function ActorDossierCard({ company }: ActorDossierCardProps) {
 }
 
 export default ActorDossierCard;
+

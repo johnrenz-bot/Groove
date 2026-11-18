@@ -161,7 +161,7 @@ function SectionHeading({
     <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
       <div className="flex min-w-0 items-start gap-3">
         <span
-          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg   bg-accent-soft text-accent-text"
+          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-accent-soft text-accent-text"
           aria-hidden="true"
         >
           {icon}
@@ -375,7 +375,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
             .from('appointments')
             .select('id,date,start_time,end_time,status,coach_id')
             .eq('client_id', user.id)
-            .in('status', ['pending', 'accepted', 'agreement_required', 'confirmed']);
+            .in('status', ['pending', 'accepted', 'agreement_required', 'confirmed', 'in_progress']);
 
           if (cancelled) return;
           const rows = (appointments ?? []) as Appointment[];
@@ -721,7 +721,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
           message: `${clientName} sent a booking request for ${talent} on ${formatBookingDate(
             date
           )} at ${formatClock(startTime)}.`,
-          cta_url: '/coach/appointments',
+          cta_url: '/coach/messages',
         });
         if (notifyError) {
           setWarning(
@@ -797,7 +797,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
           >
             Close
           </Button>
-          <Link href="/client/appointments">
+          <Link href="/client/messages?view=board">
             <Button
               variant="primary"
               className="rounded-full"
@@ -909,7 +909,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
     >
       {success ? (
         <ModalSection className="py-6 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl   bg-success-soft text-success">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-success-soft text-success">
             <CheckCircle2 className="h-7 w-7" aria-hidden="true" />
           </div>
           <h3 className="mt-4 text-lg font-bold tracking-[-0.01em] text-foreground">
@@ -920,7 +920,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
             {talent} session. Nothing is confirmed until they accept and both agreements are
             signed.
           </p>
-          <dl className="mx-auto mt-5 grid max-w-md gap-2.5 rounded-xl   bg-muted/25 p-4 text-left text-xs">
+          <dl className="mx-auto mt-5 grid max-w-md gap-2.5 rounded-xl border border-border bg-muted/25 p-4 text-left text-xs">
             <div className="flex items-start justify-between gap-4">
               <dt className="text-muted-foreground">Date</dt>
               <dd className="text-right font-semibold text-foreground">
@@ -961,7 +961,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
         </ModalSection>
       ) : !gate.allowed ? (
         <ModalSection className="py-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl   bg-warning-soft text-warning">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-warning-soft text-warning">
             <AlertCircle className="h-6 w-6" aria-hidden="true" />
           </div>
           <h3 className="mt-3 text-lg font-bold tracking-[-0.01em] text-foreground">
@@ -1029,7 +1029,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
               }
             />
 
-            <div className="rounded-2xl   bg-muted/20 p-4 sm:p-5">
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
               <div className="grid gap-5 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] md:gap-6">
                 <div className="min-w-0">
                   <FieldLabel required>Date</FieldLabel>
@@ -1048,7 +1048,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
 
                   <div
                     aria-live="polite"
-                    className="mt-3 rounded-xl   bg-accent-soft/70 px-3.5 py-3"
+                    className="mt-3 rounded-xl border border-border bg-accent-soft/70 px-3.5 py-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -1059,7 +1059,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                           {formatBookingDate(date)}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-md   bg-card px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                      <span className="shrink-0 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold text-muted-foreground">
                         {formatDuration(durationMinutes)}
                       </span>
                     </div>
@@ -1119,11 +1119,11 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                           title={slot.reason ?? undefined}
                           onClick={() => setStartTime(slot.start)}
                           className={cn(
-                            'flex h-10 cursor-pointer items-center justify-center rounded-lg  px-1 text-xs font-semibold tabular-nums transition-colors focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
+                            'flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border px-1 text-xs font-semibold tabular-nums transition-colors focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                             active
-                              ? ' bg-accent text-accent-foreground shadow-[var(--shadow-sm)]'
+                              ? ' border-accent-border bg-accent text-accent-foreground shadow-[var(--shadow-sm)]'
                               : slot.kind === 'available'
-                                ? ' bg-card text-foreground hover:-strong hover:bg-muted'
+                                ? ' border border-border bg-card text-foreground hover:-strong hover:bg-muted'
                                 : slot.kind === 'conflict'
                                   ? 'cursor-not-allowed  bg-warning-soft text-warning/80 line-through'
                                   : slot.kind === 'notice'
@@ -1140,7 +1140,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <span
-                        className="h-2.5 w-2.5 rounded-[3px]   bg-card"
+                        className="h-2.5 w-2.5 rounded-[3px] border border-border bg-card"
                         aria-hidden="true"
                       />
                       Open
@@ -1154,14 +1154,14 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <span
-                        className="h-2.5 w-2.5 rounded-[3px]   bg-warning-soft"
+                        className="h-2.5 w-2.5 rounded-[3px] border border-border bg-warning-soft"
                         aria-hidden="true"
                       />
                       Booked by you
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <span
-                        className="h-2.5 w-2.5 rounded-[3px]    bg-muted/40"
+                        className="h-2.5 w-2.5 rounded-[3px] border border-border bg-muted/40"
                         aria-hidden="true"
                       />
                       Past / notice
@@ -1169,7 +1169,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                   </div>
 
                   {availableSlotCount === 0 && (
-                    <p className="mt-3 rounded-lg   bg-warning-soft px-3 py-2 text-[11px] leading-relaxed text-warning">
+                    <p className="mt-3 rounded-lg border border-border bg-warning-soft px-3 py-2 text-[11px] leading-relaxed text-warning">
                       No open start times on this date. Choose another day to continue.
                     </p>
                   )}
@@ -1373,7 +1373,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                 <div className="flex w-full">
                   <span
                     aria-hidden="true"
-                    className="flex min-w-[64px] items-center justify-center gap-1 rounded-l-lg    bg-muted/50 text-sm font-semibold text-muted-foreground"
+                    className="flex min-w-[64px] items-center justify-center gap-1 rounded-l-lg border border-border bg-muted/50 text-sm font-semibold text-muted-foreground"
                   >
                     <Phone className="h-3.5 w-3.5" />
                     +63
@@ -1388,7 +1388,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
                     }}
                     autoComplete="tel-national"
                     placeholder="9171234567"
-                    className="g-input h-11 w-full rounded-l-none  text-sm"
+                    className="g-input h-11 w-full rounded-l-none border border-border text-sm"
                     aria-invalid={attempted && errors.contact ? 'true' : undefined}
                     aria-describedby={
                       attempted && errors.contact ? 'booking-contact-error' : undefined
@@ -1409,7 +1409,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
               {isOnline ? (
                 <div className="block">
                   <FieldLabel>Service area</FieldLabel>
-                  <div className="flex h-11 items-center gap-2 rounded-lg   bg-muted/40 px-3 text-sm text-muted-foreground">
+                  <div className="flex h-11 items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span className="truncate">{coachLocation || 'Online session'}</span>
                   </div>
@@ -1482,7 +1482,7 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
             <h3 id="booking-info-heading" className="sr-only">
               Booking information
             </h3>
-            <div className="grid gap-4 rounded-xl   bg-muted/25 p-4 sm:grid-cols-3">
+            <div className="grid gap-4 rounded-xl border border-border bg-muted/25 p-4 sm:grid-cols-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
                   Session fee
@@ -1521,3 +1521,4 @@ export function BookingModal({ coach, isOpen, onClose, onSuccess }: BookingModal
 }
 
 export default BookingModal;
+

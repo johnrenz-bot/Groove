@@ -354,3 +354,4 @@ export function SingingUpdateCard({ update, language }: SingingUpdateCardProps) 
 }
 
 export default SingingUpdateCard;
+

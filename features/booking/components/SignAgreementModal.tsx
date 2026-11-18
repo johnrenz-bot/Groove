@@ -97,7 +97,7 @@ export function SignAgreementModal({
           {/* Fixed Header */}
           <header className={cn(MODAL_HEADER_CLASS, 'items-center px-5 py-4 sm:px-7 sm:py-5')}>
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   bg-accent-soft text-accent-text shadow-sm">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-accent-soft text-accent-text shadow-sm">
                 <FileSignature className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
@@ -125,7 +125,7 @@ export function SignAgreementModal({
           <div className="shrink-0 space-y-3.5   bg-muted/40 px-5 py-4 backdrop-blur-sm sm:px-7 sm:py-5">
             {alreadySigned ? (
               <div className="flex items-center justify-between gap-3">
-                <p className="flex items-center gap-2 rounded-xl   bg-success-soft px-4 py-2.5 text-xs font-semibold text-success">
+                <p className="flex items-center gap-2 rounded-xl border border-border bg-success-soft px-4 py-2.5 text-xs font-semibold text-success">
                   <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
                   You have already signed this agreement. Signatures cannot be modified once recorded.
                 </p>
@@ -159,7 +159,7 @@ export function SignAgreementModal({
                     />
                   </div>
 
-                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl   bg-card/60 p-3 hover:bg-card">
+                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-card/60 p-3 hover:bg-card">
                     <input
                       type="checkbox"
                       checked={consent}
@@ -173,7 +173,7 @@ export function SignAgreementModal({
                 </div>
 
                 {error && (
-                  <p role="alert" className="rounded-xl   bg-danger-soft px-3.5 py-2 text-xs font-medium text-danger">
+                  <p role="alert" className="rounded-xl border border-border bg-danger-soft px-3.5 py-2 text-xs font-medium text-danger">
                     {error}
                   </p>
                 )}
@@ -215,3 +215,4 @@ export function SignAgreementModal({
 }
 
 export default SignAgreementModal;
+

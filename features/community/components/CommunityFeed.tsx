@@ -130,7 +130,9 @@ export default function CommunityFeed({
         `)
         .eq('talent', activeFilter)
         .is('deleted_at', null)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        // Bounded newest-first window instead of an unbounded table dump.
+        .limit(50);
 
       if (error) throw error;
 
@@ -145,9 +147,9 @@ export default function CommunityFeed({
 
         if (token !== fetchTokenRef.current) return;
 
-        const reactedPostIds = new Set(reacts?.map((r) => r.post_id) || []);
+        const reactedPostIds = new Set(reacts?.map((r: any) => r.post_id) || []);
         setPosts(
-          data.map((p) => ({
+          data.map((p: any) => ({
             ...p,
             user_has_reacted: reactedPostIds.has(p.id),
           })) as CommunityPost[]
@@ -279,11 +281,11 @@ export default function CommunityFeed({
           .from('post_reacts')
           .insert({ post_id: post.id, user_id: currentUser.id });
       }
-
-      await supabase
-        .from('community_posts')
-        .update({ reacts_count: newReactCount })
-        .eq('id', post.id);
+      // NOTE: `community_posts.reacts_count` does not exist in the schema —
+      // the old `.update({ reacts_count })` failed PGRST204 on every tap and
+      // was silently swallowed here. Counts are read optimistically from
+      // local state (seeded from the reaction rows fetched below); there is
+      // nothing to denormalize on the post row.
     } catch (err) {
       console.error('Error reacting to post:', err);
     }
@@ -366,7 +368,7 @@ export default function CommunityFeed({
   return (
     <div className="space-y-4">
       {showBanner && (
-        <div className="flex flex-col gap-3 rounded-[14px]   bg-card p-4 shadow-[var(--shadow-sm)] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-[14px] border border-border bg-card p-4 shadow-[var(--shadow-sm)] sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-accent-text" aria-hidden="true" />
@@ -388,7 +390,7 @@ export default function CommunityFeed({
           </div>
 
           {activeFilter && (
-            <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full   bg-accent-soft px-3 py-1.5 text-[11px] font-bold text-accent-text shadow-sm sm:self-auto">
+            <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-border bg-accent-soft px-3 py-1.5 text-[11px] font-bold text-accent-text shadow-sm sm:self-auto">
               <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
               {activeFilter} Circle
             </span>
@@ -404,9 +406,9 @@ export default function CommunityFeed({
       />
 
       {showLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-3" role="status" aria-busy="true" aria-label="Loading posts">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="space-y-2.5 rounded-[14px]   bg-card p-3.5 sm:p-4">
+            <div key={i} className="space-y-2.5 rounded-[14px] border border-border bg-card p-3.5 sm:p-4">
               <div className="flex items-center gap-2.5">
                 <div className="g-skeleton h-8 w-8 rounded-full" />
                 <div className="flex-1 space-y-1.5">
@@ -423,8 +425,8 @@ export default function CommunityFeed({
           ))}
         </div>
       ) : visiblePosts.length === 0 ? (
-        <div className="space-y-3 rounded-[14px]    bg-card p-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full   bg-accent-soft text-accent-text">
+        <div className="space-y-3 rounded-[14px] border border-border bg-card p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-accent-soft text-accent-text">
             <Sparkles className="h-6 w-6" aria-hidden="true" />
           </div>
           <h4 className="text-sm font-bold text-foreground">

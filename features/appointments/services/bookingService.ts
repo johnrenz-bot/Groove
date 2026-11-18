@@ -25,7 +25,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Appointment, Agreement } from '@/lib/types';
-import { isActiveStatus } from './bookingTime';
+import { isActiveStatus, parseBookingStart } from './bookingTime';
 import type { BookingEvent } from './bookingStatus';
 
 /** The columns the lifecycle stamps live in, aliased to the stage name. */
@@ -36,6 +36,9 @@ const TIMESTAMP_COLUMNS = [
   'completed_at',
   'declined_at',
   'cancelled_at',
+  'in_progress_at',
+  'no_show_at',
+  'expired_at',
 ] as const;
 
 /**
@@ -105,6 +108,34 @@ export async function loadBookings(
 
   const appointments = (data ?? []) as unknown as Appointment[];
   if (appointments.length === 0) return [];
+
+  // Persist expiry for rows whose slot has passed while they sat in an
+  // awaiting state. The pg_cron sweeper does this every 15 minutes; running it
+  // here as well means a member who opens this page right now still sees the
+  // truth, and the change is visible to the other party via realtime. The RPC
+  // is idempotent; if it is missing (migration 37 not applied yet) the rows are
+  // still PRESENTED as expired locally rather than as live forever.
+  const staleIds = appointments
+    .filter((a) => {
+      if (a.status !== 'pending' && a.status !== 'accepted' && a.status !== 'agreement_required') {
+        return false;
+      }
+      const start = parseBookingStart(a.date, a.start_time);
+      return start !== null && start.getTime() <= Date.now();
+    })
+    .map((a) => a.id);
+  if (staleIds.length > 0) {
+    try {
+      await supabase.rpc('expire_past_bookings');
+    } catch {
+      // Migration 37 not applied or insufficient privilege — fall back to a
+      // local presentation-only mark. Transitions from there fail the normal
+      // compare-and-set instead of lying about the database.
+    }
+    for (const a of appointments) {
+      if (staleIds.includes(a.id)) a.status = 'expired';
+    }
+  }
 
   const ids = appointments.map((a) => a.id);
 
@@ -463,4 +494,60 @@ export function stampsFor(appointment: Appointment): Partial<Record<string, stri
     out[col.replace(/_at$/, '')] = (appointment as unknown as Record<string, string | null>)[col] ?? null;
   }
   return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Notes and reminders                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Update the free-text goal/note on a booking. Participants only (enforced by
+ * RLS and the participant UPDATE policy) — no status move happens here, and the
+ * compare-and-set keeps a stale tab from overwriting a fresher note.
+ */
+export async function updateBookingNotes(
+  supabase: SupabaseClient,
+  args: {
+    appointmentId: number;
+    /** Whose dashboard the save came from — the column matches the actor. */
+    role: 'client' | 'coach';
+    message?: string | null;
+    coachNotes?: string | null;
+  }
+): Promise<void> {
+  const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (args.role === 'client' && args.message !== undefined) {
+    // The "goal" field renders from `purpose`; the note the client edits is `message`.
+    patch.message = args.message;
+  }
+  if (args.role === 'coach' && args.coachNotes !== undefined) {
+    patch.coach_notes = args.coachNotes;
+  }
+  if (Object.keys(patch).length === 1) return;
+
+  const { data, error } = await supabase
+    .from('appointments')
+    .update(patch)
+    .eq('id', args.appointmentId)
+    .select('id')
+    .maybeSingle();
+
+  if (error) throw new Error(explainBookingError(error));
+  if (!data) throw new Error('This booking no longer exists.');
+}
+
+/**
+ * Ask the backend to notify the other party, at most once per 10 minutes per
+ * sender per booking. The RPC is SECURITY DEFINER and participant-checked;
+ * the 10-minute cooldown is enforced in the database, not the button.
+ */
+export async function sendBookingReminder(
+  supabase: SupabaseClient,
+  appointmentId: number
+): Promise<string> {
+  const { data, error } = await supabase.rpc('send_booking_reminder', {
+    p_appointment_id: appointmentId,
+  });
+  if (error) throw new Error(explainBookingError(error));
+  return typeof data === 'string' ? data : 'sent';
 }

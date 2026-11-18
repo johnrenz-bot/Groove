@@ -141,7 +141,7 @@ function WeekBlock({
         type="button"
         onClick={() => onSelectDate(new Date(entry.date))}
         className={cn(
-          'absolute inset-x-1 top-1 z-10 cursor-pointer rounded-lg  p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
+          'absolute inset-x-1 top-1 z-10 cursor-pointer rounded-lg border border-border p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
           statusBarClass(entry.status)
         )}
         title={entry.counterpartLabel}
@@ -164,7 +164,7 @@ function WeekBlock({
       onClick={() => onSelectDate(new Date(entry.date))}
       title={`${entry.timeLabel} · ${entry.counterpartLabel} · ${entry.status}`}
       className={cn(
-        'absolute inset-x-1 z-10 cursor-pointer overflow-hidden rounded-lg  p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
+        'absolute inset-x-1 z-10 cursor-pointer overflow-hidden rounded-lg border border-border p-1.5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
         statusBarClass(entry.status)
       )}
       style={{ top, height }}

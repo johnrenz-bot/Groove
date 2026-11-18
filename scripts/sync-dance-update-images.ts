@@ -16,7 +16,7 @@
  * depends on the organisation's CDN staying up, staying CORS-permissive for
  * the optimizer, and never rotating the URL under us. For editorial cards that
  * have to render on a cold cache with no layout shift, vendoring the asset into
- * `public/dance-updates/` is the durable choice â€” the same decision
+ * `public/dance-updates/` is the durable choice — the same decision
  * `scripts/sync-dance-logos.ts` already makes for the logo carousel.
  *
  * ----------------------------------------------------------------------------
@@ -30,7 +30,7 @@
  *   3. `content-type: image/*`.
  *   4. Magic bytes decode to a real raster image (rejects HTML error pages
  *      served as 200).
- *   5. >= MIN_BYTES and decodable dimensions >= MIN_WIDTH x MIN_HEIGHT â€” kills
+ *   5. >= MIN_BYTES and decodable dimensions >= MIN_WIDTH x MIN_HEIGHT — kills
  *      tracking pixels, sprites, favicons and logos-as-og:image.
  *   6. Not from a stock-photo library (Unsplash/Pexels/etc.). Stock imagery is
  *      never "the event", and the original migration already purged it.
@@ -186,10 +186,10 @@ interface Candidate {
 
 /**
  * Pulls image candidates out of a page, in confidence order:
- *   0. `preferUrl` â€” a hand-picked, item-specific asset (see above)
- *   1. og:image / twitter:image â€” the image the publisher nominated for the page
+ *   0. `preferUrl` — a hand-picked, item-specific asset (see above)
+ *   1. og:image / twitter:image — the image the publisher nominated for the page
  *   2. YouTube oEmbed thumbnail (plus maxresdefault), when the page is a video
- *   3. body <img>/srcset â€” filtered down to genuine event photography
+ *   3. body <img>/srcset — filtered down to genuine event photography
  *
  * Tier 3 exists because the most useful archive is not always nominated: Hip Hop
  * International, Juste Debout and UDO are WordPress sites whose og:image is
@@ -270,7 +270,7 @@ function extractBodyImages(html: string, base: string): ScoredCandidate[] {
  * Red Bull's image CDN emits AVIF/WebP via `f_auto`. Those are valid but poorly
  * supported by older consumers of a vendored asset, so the same first-party
  * object is requested as JPEG instead. This is a format negotiation on a public
- * asset â€” it changes no access control and no pixels.
+ * asset — it changes no access control and no pixels.
  */
 function normalizeForVendor(url: string): string {
   if (url.includes('img.redbull.com')) {
@@ -300,12 +300,12 @@ async function discoverCandidates(spec: ImageSourceSpec): Promise<ScoredCandidat
   // Tier 0.
   add(spec.preferUrl, 'preferred', 10_000);
 
-  // Tier 2 â€” YouTube. oEmbed only ever hands back `hqdefault` (480x360,
+  // Tier 2 — YouTube. oEmbed only ever hands back `hqdefault` (480x360,
   // ~13 KB), which trips both the size and the width floor, so the ladder is
   // tried largest-first and stops at the first variant that validates.
-  //   maxres  1280x720 â€” present on most uploads, 404 on older ones
-  //   hq720   1280x720 â€” newer fallback when maxres is absent
-  //   sd      640x480  â€” 4:3, but large enough for a centre-cropped card
+  //   maxres  1280x720 — present on most uploads, 404 on older ones
+  //   hq720   1280x720 — newer fallback when maxres is absent
+  //   sd      640x480  — 4:3, but large enough for a centre-cropped card
   if (isYouTube) {
     const idMatch = pageUrl.match(/(?:v=|youtu\.be\/|shorts\/)([\w-]{6,})/);
     const vid = idMatch?.[1];
@@ -389,7 +389,7 @@ function jpegDims(buf: ArrayBuffer): Dimensions | null {
   const b = new Uint8Array(buf);
   if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8) return null;
   const v = new DataView(buf);
-  // NOTE: `b.length`, not `buf.length`. An ArrayBuffer has `byteLength` only â€”
+  // NOTE: `b.length`, not `buf.length`. An ArrayBuffer has `byteLength` only —
   // `buf.length` is `undefined`, every `i + 4 < buf.length` comparison is false,
   // and the loop silently never runs. That failure looks exactly like "this
   // JPEG has no decodable dimensions", which is why it is spelled out here.
@@ -639,7 +639,7 @@ async function main(): Promise<void> {
 
   const ok = results.filter((r) => r.localUrl).length;
   console.log('\n====================================================');
-  console.log(`DANCE UPDATE IMAGE SYNC${dryRun ? ' (DRY RUN â€” nothing written)' : ''}`);
+  console.log(`DANCE UPDATE IMAGE SYNC${dryRun ? ' (DRY RUN — nothing written)' : ''}`);
   console.log(`vendored: ${ok}/${results.length}   fallback: ${results.length - ok}/${results.length}`);
   console.log('====================================================');
 

@@ -1,20 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import {
   Image as ImageIcon,
-  MapPin,
-  RotateCcw,
   Search,
-  SlidersHorizontal,
-  Sparkles,
-  Wallet,
   X,
 } from 'lucide-react';
 import { ShowcaseShell } from '@/features/showcase/components/ShowcaseShell';
-import { useBackgroundMusic } from '@/features/showcase/hooks/useBackgroundMusic';
-import { MusicMiniPlayer } from '@/features/showcase/components/MusicMiniPlayer';
 import { communityOf } from '@/features/community/utils/community';
 import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
@@ -26,59 +19,36 @@ import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Panel, PanelBody, PanelHeader } from '@/components/ui/Panel';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/components/shared/cn';
-
-const TABS = [
-  { id: 'coaches', label: 'Coach Directory', emoji: '🎭' },
-  { id: 'community', label: 'Community Showcase', emoji: '🌟' },
-] as const;
-
-const DISCIPLINE_PRESETS = [
-  { id: 'All', label: 'All Coaches' },
-  { id: 'Dance', label: 'Dance & Choreography' },
-  { id: 'Singing', label: 'Singing & Vocal' },
-  { id: 'Acting', label: 'Acting & Theater' },
-  { id: 'Theater', label: 'Musical Theater' },
-] as const;
+import { DirectoryTabs, type DirectoryTabValue } from '@/components/directory/DirectoryTabs';
+import { DirectoryFilters } from '@/components/directory/DirectoryFilters';
+import { MobileFiltersSheet } from '@/components/directory/MobileFiltersSheet';
+import { useDirectoryFilters } from '@/components/directory/useDirectoryFilters';
 
 /**
- * The top of the budget slider. One constant, used for the initial value, for
- * "is this filtered?" and for Reset.
+ * The community tab id must match the sidebar's `#directory` / `#showcase`
+ * hash links. Coaches tab = directory (default), community = showcase.
  */
-const DEFAULT_MAX_PRICE = 3000;
+const TAB_TO_HASH: Record<DirectoryTabValue, string> = {
+  coaches: 'directory',
+  community: 'showcase',
+};
+const HASH_TO_TAB: Record<string, DirectoryTabValue> = {
+  directory: 'coaches',
+  showcase: 'community',
+};
 
-/**
- * Placeholder path for the AFTER gallery image.
- *
- * Drop the screenshot at `public/image/talent/coach-directory-after.png` and it
- * appears automatically. Until then the modal shows a designed placeholder
- * instead of a broken image; no generated artwork or invented coach data ships
- * with the page.
- */
 const PREVIEW_GALLERY_SRC = '/image/talent/coach-directory-after.png';
 
 export default function ClientTalentPage() {
-  const [activeTab, setActiveTab] = useState<'coaches' | 'community'>('coaches');
+  const [activeTab, setActiveTab] = useState<DirectoryTabValue>('coaches');
   const [coaches, setCoaches] = useState<FullCoach[]>([]);
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   /** The signed-in client's discipline, source of their community. */
   const [myTalent, setMyTalent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTalent, setSelectedTalent] = useState('All');
-  const [selectedCity, setSelectedCity] = useState('All');
-  /**
-   * `DEFAULT_MAX_PRICE` is the unfiltered state, and both the initial value and
-   * `isFiltered` below are derived from it. They used to be two different
-   * literals — the slider started at 3000 while `isFiltered` compared against
-   * 5000 — so the page reported itself as filtered on first paint and the
-   * "Reset filters" control was permanently on screen until the user pressed it.
-   */
-  const [maxPrice, setMaxPrice] = useState<number>(DEFAULT_MAX_PRICE);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Modals
   const [selectedCoachForBooking, setSelectedCoachForBooking] = useState<FullCoach | null>(null);
@@ -89,11 +59,9 @@ export default function ClientTalentPage() {
     'loading'
   );
 
-  // Background Music for /client/talent with auto-play and browser compliance
-  const music = useBackgroundMusic({
-    currentUser,
-    community: communityOf(currentUser, myTalent),
-  });
+  // One hook owns the whole filter state (search, discipline, location, fee)
+  const directoryFilters = useDirectoryFilters();
+  const { searchQuery, discipline, location, maxFee, resetAll } = directoryFilters;
 
   const loadCoachesAndProfile = useCallback(async () => {
     try {
@@ -143,86 +111,50 @@ export default function ClientTalentPage() {
     return () => window.clearTimeout(timer);
   }, [loadCoachesAndProfile]);
 
-  /**
-   * Deep-link the tabs.
-   *
-   * The header's Dashboard menu has two distinct entries — "Showcase" and "Find
-   * Coaches" — and this route is BOTH of them: it is one page with two tabs.
-   * Without this, both links would open the same tab and the menu would be
-   * lying about where it takes you.
-   *
-   * A hash rather than a query param deliberately: `useSearchParams()` opts a
-   * client page out of static rendering unless it is wrapped in a Suspense
-   * boundary, and a nav change should not cost this route that. A hash needs no
-   * framework support at all.
-   */
+  // Deep-link the tabs + honor ?q= / ?discipline= / ?location= / ?maxFee=.
+  // The hash is read so sidebar links like /client/talent#directory still land
+  // on the right tab; params hydrate the filters through the shared hook.
   useEffect(() => {
-    const applyHashAndParams = () => {
+    const applyHash = () => {
       const hash = window.location.hash.replace('#', '');
-      if (hash === 'showcase') setActiveTab('community');
-      else if (hash === 'directory') setActiveTab('coaches');
-
-      const params = new URLSearchParams(window.location.search);
-      const talentParam = params.get('talent') || params.get('discipline');
-      if (talentParam) {
-        const match = DISCIPLINE_PRESETS.find(
-          (p) =>
-            p.id.toLowerCase() === talentParam.toLowerCase() ||
-            p.label.toLowerCase().includes(talentParam.toLowerCase())
-        );
-        if (match) {
-          setSelectedTalent(match.id);
-          setActiveTab('coaches');
-        }
-      }
+      const tab = HASH_TO_TAB[hash];
+      if (tab) setActiveTab(tab);
     };
-    applyHashAndParams();
-    window.addEventListener('hashchange', applyHashAndParams);
-    return () => window.removeEventListener('hashchange', applyHashAndParams);
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
+
+  const setTab = useCallback((tab: DirectoryTabValue) => {
+    setActiveTab(tab);
+    window.history.replaceState(null, '', `#${TAB_TO_HASH[tab]}`);
   }, []);
 
   // Filter coaches
-  const filteredCoaches = coaches.filter((coach) => {
+  const filteredCoaches = useMemo(() => coaches.filter((coach) => {
     const fullName = `${coach.firstname} ${coach.lastname}`.toLowerCase();
     const matchesSearch = fullName.includes(searchQuery.toLowerCase());
 
     const coachTalents = coach.coach_profile?.talents || '';
     const matchesTalent =
-      selectedTalent === 'All' || coachTalents.toLowerCase().includes(selectedTalent.toLowerCase());
+      discipline === 'All' || coachTalents.toLowerCase().includes(discipline.toLowerCase());
 
     const coachCity = coach.city_name || coach.address_summary || '';
     const matchesCity =
-      selectedCity === 'All' || coachCity.toLowerCase().includes(selectedCity.toLowerCase());
+      location === 'All' || coachCity.toLowerCase().includes(location.toLowerCase());
 
     /**
-     * A coach with no published `service_fee` used to be priced at a hard-coded
-     * ₱500 by `?? 500`, so the budget slider silently filtered real coaches out
-     * of the directory on the strength of a number nobody entered. An unstated
-     * rate is not an unaffordable one: coaches without a published fee always
-     * pass the budget filter, and the card shows "—" instead of an invented
-     * figure.
+     * A coach with no published `service_fee` is not priced at a hard-coded
+     * number: an unstated rate is not an unaffordable one, so they always
+     * pass the budget filter.
      */
     const fee = coach.coach_profile?.service_fee ?? null;
-    const matchesPrice = fee === null || fee <= maxPrice;
+    const matchesPrice = fee === null || fee <= maxFee;
 
     return matchesSearch && matchesTalent && matchesCity && matchesPrice;
-  });
+  }), [coaches, searchQuery, discipline, location, maxFee]);
 
-  const activeFilterCount = [
-    searchQuery.trim() !== '',
-    selectedTalent !== 'All',
-    selectedCity !== 'All',
-    maxPrice < DEFAULT_MAX_PRICE,
-  ].filter(Boolean).length;
-
-  const isFiltered = activeFilterCount > 0;
-
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    setSelectedTalent('All');
-    setSelectedCity('All');
-    setMaxPrice(DEFAULT_MAX_PRICE);
-  };
+  const isFiltered = directoryFilters.isFiltered;
 
   const openPreviewGallery = () => {
     setPreviewImageStatus('loading');
@@ -242,275 +174,48 @@ export default function ClientTalentPage() {
         description="Find verified performing arts instructors for dance choreography, vocal training, stage acting, and theater in Bulacan."
         action={
           <div className="flex w-full flex-col items-stretch gap-2.5 sm:w-auto sm:flex-row sm:items-center">
-            <div
-              role="tablist"
-              aria-label="Directory sections"
-              className="flex w-full items-center gap-1 rounded-full   bg-card p-1 shadow-[var(--shadow-sm)] sm:w-fit"
-            >
-              {TABS.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      'inline-flex min-h-[38px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:flex-none sm:px-4',
-                      isActive
-                        ? 'bg-accent text-accent-foreground shadow-[var(--shadow-sm)]'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    )}
-                  >
-                    <span aria-hidden="true">{tab.emoji}</span>
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+            <DirectoryTabs value={activeTab} onChange={setTab} />
 
             <button
               type="button"
               onClick={openPreviewGallery}
               aria-haspopup="dialog"
-              className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full   bg-card px-4 text-xs font-semibold text-foreground shadow-[var(--shadow-sm)] transition-all hover:-translate-y-px hover: hover:bg-accent-soft/30 hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+              className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-2xl border border-white/5 bg-[#161616] px-4 text-xs font-semibold text-foreground transition-all hover:-translate-y-px hover:border-white/10 hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <ImageIcon className="h-4 w-4" aria-hidden="true" />
+              <ImageIcon className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
               Preview Gallery
             </button>
           </div>
         }
       />
 
-      {/* Floating player. Rendered OUTSIDE the tab switch so music controls stay
-          mounted and playback keeps running while the member browses coaches. */}
-      <MusicMiniPlayer music={music} />
-
       {activeTab === 'coaches' ? (
-        <div className="space-y-6">
-          {/* Filter Bar & Controls */}
-          <Panel className="overflow-hidden">
-            <PanelHeader
-              icon={<SlidersHorizontal className="h-4 w-4" />}
-              title="Refine the directory"
-              infoShort="Filter coaches by name, discipline, location and session fee."
-              info="Narrow the directory by name, discipline, city and maximum session fee. Quick-filter pills mirror the discipline selector. A coach with no published rate always passes the budget filter rather than being treated as unaffordable."
-              action={
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full  px-2.5 py-1 text-[11px] font-semibold',
-                    isFiltered
-                      ? ' bg-accent-soft/40 text-accent-text'
-                      : ' bg-muted/50 text-muted-foreground'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'h-1.5 w-1.5 rounded-full',
-                      isFiltered ? 'bg-accent' : 'bg-muted-foreground/50'
-                    )}
-                    aria-hidden="true"
-                  />
-                  {isFiltered ? `${activeFilterCount} active` : 'All coaches'}
-                </span>
-              }
-            />
-            <PanelBody className="space-y-5">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
-                {/* Search */}
-                <div>
-                  <label htmlFor="coach-search" className="g-label">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Search className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-                      Search Coach
-                    </span>
-                  </label>
-                  <div className="group relative">
-                    <Search
-                      className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-accent-text"
-                      aria-hidden="true"
-                    />
-                    <input
-                      id="coach-search"
-                      type="text"
-                      placeholder="Search coach by name..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="g-input pl-10 pr-10"
-                    />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchQuery('')}
-                        aria-label="Clear search"
-                        className="absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Talent Category Select */}
-                <div>
-                  <label htmlFor="talent-category" className="g-label">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-                      Discipline
-                    </span>
-                  </label>
-                  <select
-                    id="talent-category"
-                    value={selectedTalent}
-                    onChange={(e) => setSelectedTalent(e.target.value)}
-                    className="g-input cursor-pointer"
-                  >
-                    <option value="All">All Disciplines</option>
-                    <option value="Dance">Dance &amp; Choreography</option>
-                    <option value="Singing">Singing &amp; Vocal</option>
-                    <option value="Acting">Acting &amp; Theater</option>
-                    <option value="Theater">Musical Theater</option>
-                  </select>
-                </div>
-
-                {/* Location Select */}
-                <div>
-                  <label htmlFor="location-filter" className="g-label">
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-                      Location
-                    </span>
-                  </label>
-                  <select
-                    id="location-filter"
-                    value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
-                    className="g-input cursor-pointer"
-                  >
-                    <option value="All">All Locations in Bulacan</option>
-                    <option value="San Jose del Monte">San Jose del Monte (Primary)</option>
-                    <option value="Tungkong Mangga">Tungkong Mangga</option>
-                    <option value="Muzon">Muzon</option>
-                    <option value="Kaypian">Kaypian</option>
-                    <option value="Graceville">Graceville</option>
-                  </select>
-                </div>
-
-                {/* Price range */}
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <label htmlFor="price-filter" className="g-label mb-0">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Wallet className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-                        Max Session Fee
-                      </span>
-                    </label>
-                    <span className="rounded-full   bg-accent-soft/30 px-2 py-0.5 text-[11px] font-bold tabular-nums text-accent-text">
-                      ₱{maxPrice.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 flex h-11 items-center rounded-lg   bg-card px-3 transition-colors hover: focus-within: focus-within:shadow-[0_0_0_4px_var(--)]">
-                    <input
-                      id="price-filter"
-                      type="range"
-                      min="300"
-                      max="5000"
-                      step="100"
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(Number(e.target.value))}
-                      aria-valuetext={`₱${maxPrice.toLocaleString()}`}
-                      className="w-full cursor-pointer accent-[var(--accent)]"
-                    />
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-[10px] font-medium tabular-nums text-subtle-foreground">
-                    <span>₱300</span>
-                    <span>₱5,000</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Discipline Pills & Result Counter */}
-              <div className="flex flex-col gap-3   pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="mr-1 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    <SlidersHorizontal className="h-3 w-3" aria-hidden="true" />
-                    Quick Filter
-                  </span>
-                  {DISCIPLINE_PRESETS.map((preset) => {
-                    const isSelected = selectedTalent === preset.id;
-                    return (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        aria-pressed={isSelected}
-                        onClick={() => setSelectedTalent(preset.id)}
-                        className={cn(
-                          'inline-flex cursor-pointer items-center gap-1.5 rounded-full  px-3 py-1.5 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
-                          isSelected
-                            ? ' bg-accent text-accent-foreground shadow-sm'
-                            : ' bg-muted/50 text-muted-foreground hover:-translate-y-px hover: hover:bg-muted hover:text-foreground'
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            'h-1.5 w-1.5 rounded-full',
-                            isSelected ? 'bg-accent-foreground/80' : 'bg-muted-foreground/50'
-                          )}
-                          aria-hidden="true"
-                        />
-                        {preset.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {isFiltered && (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="inline-flex h-8 w-fit cursor-pointer items-center gap-1.5 rounded-full   bg-card px-3 text-xs font-semibold text-muted-foreground transition-all hover: hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span>Reset filters</span>
-                  </button>
-                )}
-              </div>
-            </PanelBody>
-          </Panel>
-
-          {/* Directory Count Header */}
-          <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-muted-foreground" aria-live="polite">
-              Showing{' '}
-              <strong className="font-semibold text-foreground">
-                {filteredCoaches.length}
-              </strong>{' '}
-              of <strong className="font-semibold text-foreground">{coaches.length}</strong>{' '}
-              {coaches.length === 1 ? 'coach' : 'coaches'}
-              {isFiltered && (
-                <span className="ml-2 inline-flex items-center gap-1.5 rounded-full   bg-accent-soft/20 px-2 py-0.5 text-[10px] font-semibold text-accent-text">
-                  Filtered
-                </span>
-              )}
-            </p>
-            <p className="text-[11px] font-medium text-subtle-foreground">
-              Coach directory · San Jose del Monte, Bulacan
-            </p>
-          </div>
+        <div
+          id="directory"
+          role="tabpanel"
+          aria-labelledby="directory-tab-coaches"
+          className="space-y-5"
+        >
+          {/* Sticky filter bar — never covers the header or the sidebar */}
+          <DirectoryFilters
+            filters={directoryFilters}
+            resultCount={filteredCoaches.length}
+            totalCount={coaches.length}
+            onOpenMobileSheet={() => setMobileFiltersOpen(true)}
+          />
 
           {/* Verification Notice if client account is blocked from booking */}
           {gateNotice && !loading && (
             <VerificationRequiredNotice gate={bookingGate(currentUser)} />
           )}
 
-          {/* Coach Grid */}
+          {/* Coach Grid — skeletons while loading; the filter bar stays visible */}
           {loading ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="relative flex flex-col justify-between overflow-hidden rounded-[24px]   bg-card p-5 aspect-[3/4] sm:aspect-[4/5] min-h-[26rem]"
+                  className="relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-border bg-card p-5 aspect-[3/4] sm:aspect-[4/5] min-h-[26rem]"
                 >
                   <div className="flex justify-between items-start">
                     <div className="g-skeleton h-6 w-24 rounded-full" />
@@ -529,16 +234,16 @@ export default function ClientTalentPage() {
             <EmptyState
               icon={<Search className="h-6 w-6" />}
               title="No coaches found matching your criteria"
-              description="Try broadening your discipline selection, adjusting price thresholds, or resetting filters."
+              description="Try broadening the discipline chips, the location or the fee ceiling."
               action={
                 isFiltered ? (
                   <button
                     type="button"
-                    onClick={handleResetFilters}
-                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-accent px-4 text-xs font-semibold text-accent-foreground shadow-sm transition hover:bg-accent-hover"
+                    onClick={resetAll}
+                    className="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-accent px-4 text-xs font-semibold text-accent-foreground shadow-sm transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span>Clear All Filters</span>
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Clear filters</span>
                   </button>
                 ) : undefined
               }
@@ -561,20 +266,36 @@ export default function ClientTalentPage() {
           )}
         </div>
       ) : (
-        /* The Community Showcase tab shares the coach showcase's shell, so both
-           routes get the identical compact header, player, modal, two-column
-           split and talent selector. The player itself is mounted above the tab
-           switch so it survives a switch to the coach directory. */
-        <ShowcaseShell
-          role="client"
-          eyebrow="Community Showcase · San Jose del Monte"
-          currentUser={currentUser}
-          memberCommunity={communityOf(currentUser, myTalent)}
-          loading={loading}
-          music={music}
-          hideMusicPlayer
-        />
+        /* Community Showcase tab — the same ShowcaseShell the coach route uses. */
+        <div
+          id="showcase"
+          role="tabpanel"
+          aria-labelledby="directory-tab-community"
+        >
+          <ShowcaseShell
+            role="client"
+            eyebrow="Community Showcase · San Jose del Monte"
+            currentUser={currentUser}
+            memberCommunity={communityOf(currentUser, myTalent)}
+            loading={loading}
+          />
+        </div>
       )}
+
+      {/* Mobile filter sheet — search stays visible in the bar behind it */}
+      <MobileFiltersSheet
+        open={mobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        discipline={discipline}
+        setDiscipline={directoryFilters.setDiscipline}
+        location={location}
+        setLocation={directoryFilters.setLocation}
+        maxFee={maxFee}
+        setMaxFee={directoryFilters.setMaxFee}
+        onReset={resetAll}
+        resultCount={filteredCoaches.length}
+        totalCount={coaches.length}
+      />
 
       <Modal
         open={previewGalleryOpen}
@@ -590,7 +311,7 @@ export default function ClientTalentPage() {
           </Button>
         }
       >
-        <figure className="overflow-hidden rounded-2xl   bg-muted/30">
+        <figure className="overflow-hidden rounded-2xl border border-border bg-muted/30">
           <div className="relative h-[clamp(240px,58vh,620px)] w-full overflow-hidden bg-[radial-gradient(circle_at_top,_var(--accent-soft),transparent_65%)]">
             {previewImageStatus !== 'error' && (
               <Image
@@ -610,7 +331,7 @@ export default function ClientTalentPage() {
 
             {previewImageStatus !== 'loaded' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center sm:p-8">
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl   bg-card/80 text-accent-text shadow-[var(--shadow-sm)]">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card/80 text-accent-text shadow-[var(--shadow-sm)]">
                   <ImageIcon className="h-6 w-6" aria-hidden="true" />
                 </span>
                 <div className="max-w-md">
@@ -619,7 +340,7 @@ export default function ClientTalentPage() {
                   </p>
                   <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                     Add the image at{' '}
-                    <code className="rounded-md   bg-card px-1.5 py-0.5 text-[11px] text-foreground">
+                    <code className="rounded-md border border-border bg-card px-1.5 py-0.5 text-[11px] text-foreground">
                       public/image/talent/coach-directory-after.png
                     </code>
                     . It will appear automatically in this frame.
@@ -671,3 +392,4 @@ export default function ClientTalentPage() {
     </>
   );
 }
+

@@ -136,7 +136,7 @@ export function AccountPanel({
         </div>
 
         {/* Quick Settings */}
-        <div className="bg-muted/30 rounded-2xl   overflow-hidden">
+        <div className="bg-muted/30 rounded-2xl border border-border overflow-hidden">
           {/* Status Row */}
           <div className="flex items-center justify-between px-3 py-2.5 min-h-11  ">
             <span className="text-xs font-medium text-muted-foreground">Status</span>
@@ -188,3 +188,4 @@ export function AccountPanel({
     </div>
   );
 }
+

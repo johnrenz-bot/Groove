@@ -102,19 +102,16 @@ export async function createAdminClient() {
     });
   }
 
+  // Service-role clients must never inherit the caller's session cookies: the
+  // whole point of the key is to bypass RLS independently of who is signed in.
+  // Identity is re-checked by callers via requireAdmin() before any write.
   return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, configured, {
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return [];
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        } catch {
-          // Ignored in server components
-        }
+      setAll() {
+        // No-op: a service-role client does not persist a session.
       },
     },
   });

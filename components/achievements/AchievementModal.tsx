@@ -258,7 +258,7 @@ export function AchievementModal({
           <p
             className={cn('mt-3.5', animate && 'am-rise am-delay-4')}
           >
-            <span className="am-hair inline-flex items-center gap-1.5 rounded-full  bg-foreground/[0.03] px-2.5 py-1 text-[11px] text-subtle-foreground">
+            <span className="am-hair inline-flex items-center gap-1.5 rounded-full border border-border bg-foreground/[0.03] px-2.5 py-1 text-[11px] text-subtle-foreground">
               <CalendarCheck className="h-3 w-3" aria-hidden="true" />
               <time dateTime={new Date(unlockedTime).toISOString()}>Unlocked {formattedDate}</time>
             </span>
@@ -283,7 +283,7 @@ export function AchievementModal({
               {tasks.map((task, index) => (
                 <li
                   key={`${task.title}-${index}`}
-                  className="am-faint-hair flex min-h-[52px] items-center gap-3 rounded-2xl  bg-foreground/[0.02] px-3 py-2.5"
+                  className="am-faint-hair flex min-h-[52px] items-center gap-3 rounded-2xl border border-border bg-foreground/[0.02] px-3 py-2.5"
                 >
                   <span className="am-tick flex h-7 w-7 shrink-0 items-center justify-center rounded-full ">
                     <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
@@ -546,3 +546,4 @@ export function AchievementModal({
 }
 
 export default AchievementModal;
+

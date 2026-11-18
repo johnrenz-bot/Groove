@@ -159,7 +159,7 @@ export function StatusSelect({
         ref={triggerRef}
         type="button"
         className={cn(
-          'flex items-center gap-2 rounded-full   bg-card px-2 py-1 text-[11px] font-bold transition-all hover:bg-muted/50 focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
+          'flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1 text-[11px] font-bold transition-all hover:bg-muted/50 focus-visible:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
           open && ' '
         )}
         aria-haspopup="true"
@@ -190,7 +190,7 @@ export function StatusSelect({
 
       {open && (
         <div
-          className="absolute right-0 top-full z-[110] mt-1 w-40 rounded-2xl   bg-card/95 shadow-xl backdrop-blur-md p-1 animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 top-full z-[110] mt-1 w-40 rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md p-1 animate-in fade-in zoom-in-95 duration-150"
           role="radiogroup"
           aria-label="Your status"
           onKeyDown={onMenuKeyDown}
@@ -235,3 +235,4 @@ export function StatusSelect({
 }
 
 export default StatusSelect;
+

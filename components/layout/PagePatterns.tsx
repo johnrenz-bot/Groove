@@ -121,3 +121,4 @@ export function PagePatterns({ variant = 'full' }: { variant?: PagePatternsVaria
 }
 
 export default PagePatterns;
+

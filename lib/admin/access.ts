@@ -1,4 +1,5 @@
 import type { UserRole } from '@/lib/types';
+import { homeForRole } from '@/lib/permissions';
 
 /**
  * The single definition of "who may administer this platform".
@@ -56,7 +57,5 @@ export function isAdminIdentity(identity: AdminIdentity | null | undefined): boo
 
 /** Where an unauthorized visitor should be sent, given whatever role we know. */
 export function roleHome(role?: UserRole | string | null): string {
-  if (role === 'coach') return '/coach/home';
-  if (role === 'admin') return '/admin/dashboard';
-  return '/client/home';
+  return homeForRole(role);
 }

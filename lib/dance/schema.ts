@@ -263,6 +263,9 @@ export const updatesQuerySchema = z.object({
   region: z.string().trim().min(1).max(MAX.region).optional(),
   category: categoryId.optional(),
   org: z.string().trim().min(1).max(MAX.organization).optional(),
+  /** League registry id (e.g. 'hhi-philippines'). Validated against the registry
+   *  in the route handler — never used as a free-text filter. */
+  league: z.string().trim().min(1).max(80).optional(),
   /** Free text. Length-capped here; the PostgREST-safe escaping happens in
    *  `normalize.ts`, which is the only place that knows PostgREST's grammar. */
   q: z.string().trim().max(120, 'Search is limited to 120 characters').optional(),

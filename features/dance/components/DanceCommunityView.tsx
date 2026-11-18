@@ -11,10 +11,12 @@ import { FeaturedCrewsRoster } from './FeaturedCrewsRoster';
 import { DanceUpdatesSkeletonGrid } from './DanceSkeletons';
 import type { DanceUpdateRecord } from '../services/danceService';
 import { isUpcomingEvent } from '../services/danceService';
-import { ORGANIZATIONS } from '@/lib/dance/constants';
-import type { DanceOrg } from '@/lib/dance/types';
-import { VERIFIED_DANCE_ORGS } from '../data/danceOrgs';
+
+import { leagueToDanceOrg } from '../data/danceOrgs';
+import { PUBLIC_LEAGUES, leagueForOrganization, lastSyncedAt } from '../data/leagues';
 import { OrgLogoCarouselClient } from './OrgLogoCarouselClient';
+import { FEATURED_CREWS } from '../data/crews';
+import type { LeagueScopeFilter } from '@/lib/dance/contracts';
 import { PerformingArtsNewsHubGuide } from '@/features/performing-arts/components/PerformingArtsNewsHubGuide';
 import { DisciplinePageHeader } from '@/features/performing-arts/components/DisciplinePageHeader';
 import { DisciplineHighlights } from '@/features/performing-arts/components/DisciplineHighlights';
@@ -32,7 +34,7 @@ import {
   Sparkles,
   ChevronRight as ChevronRightSmall,
 } from 'lucide-react';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 /**
  * Breadcrumb for the dance community page.
@@ -72,11 +74,9 @@ function Breadcrumb() {
   );
 }
 
-interface DanceCommunityViewProps {
-  initialOrgs?: DanceOrg[];
-}
-
-export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceCommunityViewProps) {
+/** The league registry (features/dance/data/leagues.ts) is the single source
+ *  of truth for the marquee and chips — no external props required. */
+export function DanceCommunityView() {
   // Filter states initialize directly from the URL on mount. Reading them in a
   // lazy initializer avoids a second render (and a duplicate fetch) that the
   // old "set state in an effect" pass caused.
@@ -90,8 +90,16 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
   });
   const [selectedOrg, setSelectedOrg] = useState<string>(() => {
     if (typeof window === 'undefined') return 'all';
-    return new URLSearchParams(window.location.search).get('org') || 'all';
+    const params = new URLSearchParams(window.location.search);
+    // ?league= is the canonical param; ?org= is read for backwards compatibility.
+    return params.get('league') || params.get('org') || 'all';
   });
+  const [leagueScope, setLeagueScope] = useState<LeagueScopeFilter>(() => {
+    if (typeof window === 'undefined') return 'all';
+    const scope = new URLSearchParams(window.location.search).get('scope');
+    return scope === 'international' || scope === 'philippines' ? scope : 'all';
+  });
+  const [leagueQuery, setLeagueQuery] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
     return new URLSearchParams(window.location.search).get('q') || '';
@@ -117,7 +125,19 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
   const [loading, setLoading] = useState<boolean>(true);
   const [eventsLoading, setEventsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<string>('Recently verified');
+  // "Last synced" reflects the newest verification stamp in the verified league
+  // registry — the editorial source the page is built from.
+  const lastUpdated = useMemo(() => {
+    try {
+      return new Date(lastSyncedAt()).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return 'Recently verified';
+    }
+  }, []);
 
   // Sync state to URL params cleanly
   useEffect(() => {
@@ -127,7 +147,9 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
     const params = new URLSearchParams(window.location.search);
     if (region !== 'all') params.set('region', region); else params.delete('region');
     if (category !== 'all') params.set('category', category); else params.delete('category');
-    if (selectedOrg !== 'all') params.set('org', selectedOrg); else params.delete('org');
+    params.delete('org'); // legacy param, superseded by ?league=
+    if (selectedOrg !== 'all') params.set('league', selectedOrg); else params.delete('league');
+    if (leagueScope !== 'all') params.set('scope', leagueScope); else params.delete('scope');
     if (searchQuery.trim()) params.set('q', searchQuery.trim()); else params.delete('q');
     if (language !== 'en') params.set('lang', language); else params.delete('lang');
     if (page > 1) params.set('page', String(page)); else params.delete('page');
@@ -137,7 +159,7 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
       ? `${window.location.pathname}?${newQuery}${window.location.hash}`
       : `${window.location.pathname}${window.location.hash}`;
     window.history.replaceState(null, '', newUrl);
-  }, [region, category, selectedOrg, searchQuery, language, page]);
+  }, [region, category, selectedOrg, leagueScope, searchQuery, language, page]);
 
   // Check if any filter is active
   const hasActiveFilters =
@@ -152,7 +174,7 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
       const params = new URLSearchParams();
       if (region !== 'all') params.set('region', region);
       if (category !== 'all') params.set('category', category);
-      if (selectedOrg !== 'all') params.set('org', selectedOrg);
+      if (selectedOrg !== 'all') params.set('league', selectedOrg);
       if (searchQuery.trim()) params.set('q', searchQuery.trim());
       params.set('page', String(page));
       params.set('limit', '12');
@@ -166,23 +188,6 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
       setUpdates(data.updates || []);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
-
-      // Determine last updated time from latest update
-      if (data.updates && data.updates.length > 0 && data.updates[0].published_at) {
-        try {
-          const date = new Date(data.updates[0].published_at);
-          setLastUpdated(
-            date.toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          );
-        } catch {
-          setLastUpdated('Recently verified');
-        }
-      }
     } catch (err) {
       console.error('Failed to load dance updates:', err);
       setError('Unable to load latest dance updates. Please try again.');
@@ -198,7 +203,10 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
   const fetchUpcomingEvents = useCallback(async () => {
     setEventsLoading(true);
     try {
-      const res = await fetch('/api/dance/events/upcoming');
+      const params = new URLSearchParams();
+      if (selectedOrg !== 'all') params.set('league', selectedOrg);
+      const query = params.toString();
+      const res = await fetch(`/api/dance/events/upcoming${query ? `?${query}` : ''}`);
       if (res.ok) {
         const data = await res.json();
         setUpcomingEvents(data.events || []);
@@ -210,7 +218,9 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
     }
 
     try {
-      const res = await fetch('/api/dance/updates?limit=50');
+      const params = new URLSearchParams({ limit: '50' });
+      if (selectedOrg !== 'all') params.set('league', selectedOrg);
+      const res = await fetch(`/api/dance/updates?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         const all: DanceUpdateRecord[] = data.updates || [];
@@ -226,7 +236,7 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
     } catch (err) {
       console.error('Failed to derive past events:', err);
     }
-  }, []);
+  }, [selectedOrg]);
 
   // Initial load & when filters change. The timer keeps the effect body free of
   // synchronous state updates and coalesces rapid filter changes into one fetch.
@@ -265,6 +275,8 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
     setRegion('all');
     setCategory('all');
     setSelectedOrg('all');
+    setLeagueScope('all');
+    setLeagueQuery('');
     setSearchQuery('');
     setPage(1);
   };
@@ -287,7 +299,46 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
   };
 
   // Distinct federations count from tracked organizations
-  const federationsCount = useMemo(() => ORGANIZATIONS.length, []);
+  const federationsCount = useMemo(() => PUBLIC_LEAGUES.length, []);
+
+  // Leagues visible under the active scope + search. Approved only — the
+  // public marquee and chips never render needs-info entries.
+  const visibleLeagues = useMemo(() => {
+    const q = leagueQuery.trim().toLowerCase();
+    return PUBLIC_LEAGUES.filter((league) => {
+      if (leagueScope !== 'all' && league.scope !== leagueScope) return false;
+      if (!q) return true;
+      const hay = `${league.name} ${league.shortName} ${league.id}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [leagueScope, leagueQuery]);
+
+  const visibleOrgs = useMemo(
+    () => visibleLeagues.map((league, index) => leagueToDanceOrg(league, index)),
+    [visibleLeagues]
+  );
+
+  // Counts per league chip: verified crews tied to the league + upcoming
+  // events whose org text resolves to it (registry token match, never guessed).
+  const crewCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const crew of FEATURED_CREWS) {
+      for (const leagueId of crew.leagueIds) {
+        counts[leagueId] = (counts[leagueId] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, []);
+
+  const eventCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const evt of upcomingEvents) {
+      const league = leagueForOrganization(evt.organization ?? null);
+      if (league) counts[league.id] = (counts[league.id] ?? 0) + 1;
+    }
+    return counts;
+  }, [upcomingEvents]);
+
   const pageMeta = DISCIPLINE_PAGES.dance;
 
   return (
@@ -324,11 +375,22 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
 
       {/* 3. Official League Logo Carousel */}
       <OrgLogoCarouselClient
-        orgs={initialOrgs && initialOrgs.length > 0 ? initialOrgs : VERIFIED_DANCE_ORGS}
+        orgs={visibleOrgs}
+        totalLeagues={PUBLIC_LEAGUES.length}
       />
 
-      {/* 4. Organization Logo Filter Bar */}
-      <OrgLogoBar selectedOrg={selectedOrg} onSelectOrg={handleSelectOrg} />
+      {/* 4. League filter bar: scope toggle, search, chips with counts */}
+      <OrgLogoBar
+        leagues={visibleLeagues}
+        selectedOrg={selectedOrg}
+        onSelectOrg={handleSelectOrg}
+        scope={leagueScope}
+        onScopeChange={setLeagueScope}
+        query={leagueQuery}
+        onQueryChange={setLeagueQuery}
+        crewCounts={crewCounts}
+        eventCounts={eventCounts}
+      />
 
       {/* 5. Upcoming / Past Events Showcase Grid */}
       <UpcomingEventsSection
@@ -459,7 +521,7 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
       </section>
 
       {/* 7. Featured Crews & Match Recaps Roster */}
-      <FeaturedCrewsRoster />
+      <FeaturedCrewsRoster leagueId={selectedOrg} scope={leagueScope} onScopeChange={setLeagueScope} />
 
       {/* 8. Performing Arts News Hub Guide, Editorial Standards & Safety Disclaimer */}
       <PerformingArtsNewsHubGuide discipline="dance" />
@@ -472,3 +534,4 @@ export function DanceCommunityView({ initialOrgs = VERIFIED_DANCE_ORGS }: DanceC
     </div>
   );
 }
+

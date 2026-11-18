@@ -591,10 +591,10 @@ export function CoachSkillsSection({
                 type="button"
                 onClick={() => toggleGenre(genre)}
                 aria-pressed={selected}
-                className={`inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg  px-3 py-1.5 text-xs font-medium transition ${
+                className={`inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition ${
                   selected
-                    ? ' bg-accent-soft font-semibold text-accent-text'
-                    : ' bg-card text-muted-foreground hover: hover:text-foreground'
+                    ? ' border-accent-border bg-accent-soft font-semibold text-accent-text'
+                    : ' border border-border bg-card text-muted-foreground hover:border-border-strong hover:text-foreground'
                 }`}
               >
                 {selected && <Check className="h-3 w-3 text-foreground" />}
@@ -771,7 +771,7 @@ export function VerificationReadOnly({
   rows: { label: string; uploaded: boolean; detail?: string }[];
 }) {
   return (
-    <div className="rounded-2xl   bg-muted/40 p-5">
+    <div className="rounded-2xl border border-border bg-muted/40 p-5">
       <div className="flex items-center gap-2">
         <ShieldCheck className="h-4 w-4 text-accent-text" aria-hidden="true" />
         <h3 className="text-sm font-bold text-foreground">Identity Verification</h3>
@@ -785,7 +785,7 @@ export function VerificationReadOnly({
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between gap-3 rounded-xl   bg-card px-3.5 py-2.5 text-xs"
+            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs"
           >
             <dt className="font-medium text-muted-foreground">{row.label}</dt>
             <dd className="flex items-center gap-2 font-semibold">

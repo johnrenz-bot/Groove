@@ -397,3 +397,4 @@ export function CoachAIAssistantModal({
 }
 
 export default CoachAIAssistantModal;
+

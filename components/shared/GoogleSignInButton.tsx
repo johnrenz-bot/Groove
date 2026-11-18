@@ -90,14 +90,14 @@ export function GoogleSignInButton({
             : label
         }
         title={!GOOGLE_OAUTH_ENABLED ? 'Google sign-in is coming soon' : undefined}
-        className={`group relative flex h-12 w-full items-center justify-center gap-3 rounded-xl  px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-[#F4BE4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-[#08090b] ${
+        className={`group relative flex h-12 w-full items-center justify-center gap-3 rounded-xl border px-5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
           !GOOGLE_OAUTH_ENABLED
-            ? 'cursor-not-allowed -[#1e2029] bg-[#0e0f14] text-[#4a4a55] opacity-60 select-none'
-            : 'cursor-pointer -[#2a2c38] bg-[#121319] text-[#f5f5f5] hover:-[#F4BE4D]/60 hover:bg-[#181a22] hover:shadow-[0_4px_20px_-4px_rgba(244,190,77,0.15)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
+            ? 'cursor-not-allowed border-border bg-muted text-subtle-foreground opacity-60 select-none'
+            : 'cursor-pointer border-border bg-elevated text-foreground hover:border-border-strong hover:bg-[#2B2B2B] hover:shadow-[0_8px_24px_-12px_rgba(245,138,24,0.35)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
         } ${className}`}
       >
         {busy ? (
-          <Loader2 className="h-5 w-5 animate-spin text-[#F4BE4D]" aria-hidden="true" />
+          <Loader2 className="h-5 w-5 animate-spin text-accent" aria-hidden="true" />
         ) : (
           <GoogleMark />
         )}
@@ -114,7 +114,7 @@ export function GoogleSignInButton({
         <div
           role="alert"
           aria-live="polite"
-          className="mt-2.5 rounded-lg   bg-danger/10 px-3 py-2 text-center text-xs font-medium text-danger"
+          className="mt-2.5 rounded-lg border border-border bg-danger/10 px-3 py-2 text-center text-xs font-medium text-danger"
         >
           {error}
         </div>
@@ -124,3 +124,4 @@ export function GoogleSignInButton({
 }
 
 export default GoogleSignInButton;
+

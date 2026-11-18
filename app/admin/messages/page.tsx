@@ -141,7 +141,7 @@ export default function AdminMessagesPage() {
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages' },
-          (payload) => {
+          (payload: any) => {
             const row = payload.new as Message;
             if (!adminId) return;
             if (row.sender_id !== adminId && row.receiver_id !== adminId) return;
@@ -287,7 +287,7 @@ export default function AdminMessagesPage() {
                       key={partner.id}
                       onClick={() => void openThread(partner)}
                       aria-current={isSelected ? 'true' : undefined}
-                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl  p-3 text-left transition-colors ${
+                      className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border border-border p-3 text-left transition-colors ${
                         isSelected
                           ? ' bg-accent-soft'
                           : ' hover:bg-muted'
@@ -295,10 +295,10 @@ export default function AdminMessagesPage() {
                     >
                       <span
                         aria-hidden="true"
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full  text-xs font-bold uppercase ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border text-xs font-bold uppercase ${
                           isSelected
-                            ? ' bg-accent text-accent-foreground'
-                            : ' bg-muted text-muted-foreground'
+                            ? ' border-accent-border bg-accent text-accent-foreground'
+                            : ' border border-border bg-muted text-muted-foreground'
                         }`}
                       >
                         {partner.photo_url ? (
@@ -345,7 +345,7 @@ export default function AdminMessagesPage() {
                   <div className="flex min-w-0 items-center gap-3">
                     <span
                       aria-hidden="true"
-                      className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full   bg-muted text-xs font-bold uppercase text-muted-foreground"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-xs font-bold uppercase text-muted-foreground"
                     >
                       {active.firstname?.[0]}
                     </span>
@@ -360,7 +360,7 @@ export default function AdminMessagesPage() {
                   </div>
                   <Link
                     href={`/userprofile/${active.id}`}
-                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-full   px-3.5 text-xs font-semibold text-muted-foreground transition-colors hover: hover:text-foreground"
+                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-border px-3.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
                   >
                     View Profile
                   </Link>
@@ -395,7 +395,7 @@ export default function AdminMessagesPage() {
                           <div
                             className={`max-w-[75%] space-y-1 rounded-2xl p-3.5 text-xs leading-relaxed ${
                               isMine
-                                ? 'rounded-bl-md   bg-card text-foreground'
+                                ? 'rounded-bl-md border border-border bg-card text-foreground'
                                 : 'rounded-br-md bg-accent font-medium text-accent-foreground shadow-[var(--shadow-sm)]'
                             }`}
                           >
@@ -460,3 +460,4 @@ export default function AdminMessagesPage() {
       </div>
   );
 }
+

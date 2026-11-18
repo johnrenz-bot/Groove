@@ -38,6 +38,12 @@ interface FollowButtonProps {
   profileId: string;
   /** Visual shape, so it matches the buttons already on the page. */
   shape?: 'pill' | 'rounded';
+  /**
+   * `primary` (default) is the solid accent call-to-action — right for a
+   * member profile. `secondary` is the quiet bordered style — right next to a
+   * coach's louder "Book Session" button.
+   */
+  emphasis?: 'primary' | 'secondary';
   /** Called after any successful change, so a parent can refresh its own counts. */
   onChanged?: (counts: FollowCounts) => void;
   className?: string;
@@ -46,6 +52,7 @@ interface FollowButtonProps {
 export function FollowButton({
   profileId,
   shape = 'pill',
+  emphasis = 'primary',
   onChanged,
   className = '',
 }: FollowButtonProps) {
@@ -61,7 +68,7 @@ export function FollowButton({
     let cancelled = false;
     void createClient()
       .auth.getUser()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (!cancelled) setViewerId(data?.user?.id ?? null);
       });
     return () => {
@@ -125,7 +132,15 @@ export function FollowButton({
   // Signed out, or looking at yourself: render nothing at all.
   if (!viewerId || viewerId === profileId) return null;
 
-  const radius = shape === 'pill' ? 'rounded-full' : 'rounded-lg';
+  const radius = shape === 'pill' ? 'rounded-full' : 'rounded-xl';
+  const tone =
+    emphasis === 'secondary'
+      ? isFollowing
+        ? 'border-accent-border bg-accent-soft text-accent-text hover:bg-accent/20'
+        : 'border-border bg-card text-foreground hover:border-border-strong hover:bg-muted'
+      : isFollowing
+        ? 'border-accent-border bg-accent-soft text-accent-text hover:bg-accent/20'
+        : 'border-accent-border bg-accent text-accent-foreground shadow-[var(--shadow-accent)] hover:bg-accent-hover';
 
   return (
     <div className={className}>
@@ -135,11 +150,7 @@ export function FollowButton({
         disabled={busy || unavailable || !ready}
         aria-pressed={isFollowing}
         aria-label={isFollowing ? 'Unfollow this member' : 'Follow this member'}
-        className={`inline-flex cursor-pointer items-center gap-1.5  px-4 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60 ${radius} ${
-          isFollowing
-            ? ' bg-accent-soft text-accent-text hover:bg-accent/20'
-            : ' bg-accent text-accent-foreground shadow-[var(--shadow-accent)] hover:bg-accent-hover'
-        }`}
+        className={`inline-flex h-10 cursor-pointer items-center gap-1.5 border px-4 text-[13px] font-bold transition-all duration-200 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60 ${radius} ${tone}`}
       >
         <span
           className={`transition-transform duration-200 ${
@@ -167,3 +178,4 @@ export function FollowButton({
 }
 
 export default FollowButton;
+

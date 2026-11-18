@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient, createClient, hasServiceRoleKey } from '@/lib/supabase/server';
+import { clientIp, rateLimit } from '@/lib/rateLimit';
+import { internalError, tooManyRequests } from '@/lib/api/errors';
 
 /**
  * PUBLIC SUPPORT TICKETS.
@@ -96,6 +98,14 @@ async function insertTicket(
 }
 
 export async function POST(req: NextRequest) {
+  // Anonymous endpoint: cap submissions per IP to prevent abuse / spam.
+  const limit = rateLimit(`tickets:${clientIp(req)}`, 5, 60_000);
+  if (!limit.allowed) {
+    const res = tooManyRequests(limit.retryAfter);
+    res.headers.set('Retry-After', String(limit.retryAfter));
+    return res;
+  }
+
   try {
     const formData = await req.formData();
     const name = clamp(formData.get('name'), 120);
@@ -194,8 +204,6 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    console.error('Ticket route error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalError(err, 'Ticket route');
   }
 }

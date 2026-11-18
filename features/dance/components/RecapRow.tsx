@@ -1,10 +1,10 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
 import { ReportIssueLink } from './ReportIssueLink';
-import type { MatchRecap } from '../data/crews';
+import type { MatchRecap } from '@/lib/dance/contracts';
 
 interface RecapRowProps {
   recap: MatchRecap;

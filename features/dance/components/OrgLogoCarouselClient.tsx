@@ -6,6 +6,8 @@ import { SafeImage } from './SafeImage';
 
 interface OrgLogoCarouselClientProps {
   orgs: DanceOrg[];
+  /** Total approved leagues in the registry before filtering (for the "N of M" hint). */
+  totalLeagues?: number;
 }
 
 /** One consistent text badge for leagues without a verifiable logo. */
@@ -15,10 +17,6 @@ function LeagueTextBadge({ name }: { name: string }) {
       <span className="line-clamp-2 leading-tight">{name}</span>
     </span>
   );
-}
-
-interface OrgLogoCarouselClientProps {
-  orgs: DanceOrg[];
 }
 
 /**
@@ -36,7 +34,7 @@ interface OrgLogoCarouselClientProps {
  * - Falls back to one consistent text badge when a logo is unavailable or fails.
  * - Respects `prefers-reduced-motion`.
  */
-export function OrgLogoCarouselClient({ orgs }: OrgLogoCarouselClientProps) {
+export function OrgLogoCarouselClient({ orgs, totalLeagues }: OrgLogoCarouselClientProps) {
   const [failed, setFailed] = useState<Set<string>>(new Set());
   const trackRef = useRef<HTMLDivElement>(null);
   const dragState = useRef({
@@ -135,7 +133,13 @@ export function OrgLogoCarouselClient({ orgs }: OrgLogoCarouselClientProps) {
     }
   }, []);
 
-  if (!orgs || orgs.length === 0) return null;
+  if (!orgs || orgs.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
+        No verified leagues match the current filter — clear the search or pick a different scope.
+      </div>
+    );
+  }
 
   // Duplicate the list so the -50% translate loops seamlessly.
   const loop = [...orgs, ...orgs];
@@ -150,8 +154,9 @@ export function OrgLogoCarouselClient({ orgs }: OrgLogoCarouselClientProps) {
         <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Leagues &amp; Federations
         </h2>
-        <span className="hidden text-xs text-muted-foreground sm:inline-block">
-          Hover to pause · Swipe to explore · Click to visit
+        <span className="hidden text-xs text-muted-foreground sm:inline-block" aria-live="polite">
+          Showing {orgs.length}
+          {typeof totalLeagues === 'number' && totalLeagues !== orgs.length ? ` of ${totalLeagues}` : ''} leagues · Hover to pause · Click to visit
         </span>
       </div>
 
@@ -218,3 +223,4 @@ export function OrgLogoCarouselClient({ orgs }: OrgLogoCarouselClientProps) {
     </section>
   );
 }
+

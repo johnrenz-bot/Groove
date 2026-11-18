@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Trophy, Calendar, ExternalLink } from 'lucide-react';
-import type { MatchRecap } from '../data/crews';
+import type { MatchRecap } from '@/lib/dance/contracts';
 import { ReportIssueLink } from './ReportIssueLink';
 import { cn } from '@/components/shared/cn';
 
@@ -107,3 +107,4 @@ export function MatchRecapsSection({ recaps, crewName }: MatchRecapsSectionProps
     </div>
   );
 }
+

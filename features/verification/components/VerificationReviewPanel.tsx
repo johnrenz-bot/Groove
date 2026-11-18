@@ -175,7 +175,7 @@ export function VerificationReviewPanel({ user, onClose, onReviewed }: Props) {
         {error && (
           <div
             role="alert"
-            className="mb-5 flex items-start gap-2.5 rounded-xl   bg-danger-soft px-4 py-3 text-xs text-danger"
+            className="mb-5 flex items-start gap-2.5 rounded-xl border border-border bg-danger-soft px-4 py-3 text-xs text-danger"
           >
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{error}</span>
@@ -227,7 +227,7 @@ export function VerificationReviewPanel({ user, onClose, onReviewed }: Props) {
           {!approvable && (
             <div
               role="status"
-              className="mt-4 flex items-start gap-2.5 rounded-xl   bg-warning-soft px-4 py-3 text-xs text-warning"
+              className="mt-4 flex items-start gap-2.5 rounded-xl border border-border bg-warning-soft px-4 py-3 text-xs text-warning"
             >
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
@@ -240,7 +240,7 @@ export function VerificationReviewPanel({ user, onClose, onReviewed }: Props) {
 
         {/* Rejection history */}
         {user.verification_rejection_reason && status === 'rejected' && (
-          <section className="mt-5 rounded-2xl   bg-danger-soft p-4">
+          <section className="mt-5 rounded-2xl border border-border bg-danger-soft p-4">
             <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-danger">
               <XCircle className="h-4 w-4" aria-hidden="true" />
               Rejection reason shown to the user
@@ -263,7 +263,7 @@ export function VerificationReviewPanel({ user, onClose, onReviewed }: Props) {
 
         {/* Existing approval record */}
         {status === 'verified' && user.approved_at && (
-          <section className="mt-5 flex items-start gap-2.5 rounded-2xl   bg-success-soft p-4">
+          <section className="mt-5 flex items-start gap-2.5 rounded-2xl border border-border bg-success-soft p-4">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
             <p className="text-xs text-muted-foreground">
               <strong className="font-semibold text-foreground">Verified</strong> on{' '}
@@ -274,7 +274,7 @@ export function VerificationReviewPanel({ user, onClose, onReviewed }: Props) {
 
         {/* Rejection form */}
         {rejecting && (
-          <section className="mt-5 rounded-2xl   bg-muted/40 p-4">
+          <section className="mt-5 rounded-2xl border border-border bg-muted/40 p-4">
             <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-foreground">
               <XCircle className="h-4 w-4 text-danger" aria-hidden="true" />
               Reason for rejection

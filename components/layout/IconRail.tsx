@@ -35,7 +35,7 @@ export function IconRail({ items, className = '' }: IconRailProps) {
             aria-label={item.label}
             className={cn(
               'group relative flex h-11 w-11 items-center justify-center rounded-[12px] text-white/60 transition-colors hover:bg-white/8 hover:text-white',
-              item.active && 'bg-white/10 text-[#f4be4d]'
+              item.active && 'bg-white/10 text-[#DDAA55]'
             )}
           >
             <Icon className="h-5 w-5" />
@@ -50,3 +50,4 @@ export function IconRail({ items, className = '' }: IconRailProps) {
 }
 
 export default IconRail;
+

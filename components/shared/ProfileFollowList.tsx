@@ -71,7 +71,7 @@ export function ProfileFollowList({
     let cancelled = false;
     void createClient()
       .auth.getUser()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (!cancelled) setViewerId(data?.user?.id ?? null);
       });
     return () => {
@@ -203,7 +203,7 @@ export function ProfileFollowList({
         <div
           role="tablist"
           aria-label="Follow lists"
-          className="flex rounded-xl   bg-muted/50 p-1"
+          className="flex rounded-xl border border-border bg-muted/50 p-1"
         >
           {(['followers', 'following'] as const).map((s) => (
             <button
@@ -235,7 +235,7 @@ export function ProfileFollowList({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={`Search ${heading.toLowerCase()}…`}
             aria-label={`Search ${heading}`}
-            className="w-full rounded-xl   bg-surface py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus: focus: "
+            className="w-full rounded-xl border border-border bg-surface py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus: focus: "
           />
         </div>
       </div>

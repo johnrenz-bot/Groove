@@ -143,7 +143,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       if (event === 'SIGNED_OUT' || !session?.user) {
         setProfile(null);
         setStatus('guest');
@@ -151,8 +151,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       }
       // TOKEN_REFRESHED / USER_UPDATED do not change identity, so re-querying
       // on every refresh would be a pointless round trip. Only a genuinely new
-      // session triggers a re-read.
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      // session triggers a re-read. INITIAL_SESSION is deliberately excluded:
+      // the mount effect above already resolves exactly once, and handling it
+      // here too meant two getUser + two profiles queries on every cold load.
+      if (event === 'SIGNED_IN') {
         void resolve();
       }
     });
@@ -195,3 +197,4 @@ export function useSession(): SessionValue {
 }
 
 export default SessionProvider;
+

@@ -131,7 +131,7 @@ export function WhyGroove() {
       {/* Ambient background glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[600px] rounded-full bg-[#E8B84B]/5 blur-[140px]"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[600px] rounded-full bg-[#FF9B2F]/5 blur-[140px]"
       />
 
       {/* Section Heading */}
@@ -165,8 +165,8 @@ export function WhyGroove() {
                   ? undefined
                   : {
                       y: -4,
-                      borderColor: 'rgba(232, 184, 75, 0.45)',
-                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(232, 184, 75, 0.1)',
+                      borderColor: 'rgba(255,155,47, 0.45)',
+                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255,155,47, 0.1)',
                     }
               }
               className="group relative flex flex-col justify-between rounded-[22px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200"
@@ -174,7 +174,7 @@ export function WhyGroove() {
               {/* Card top row */}
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#E8B84B]/25 bg-[#E8B84B]/10 text-[#E8B84B] shadow-[0_0_12px_rgba(232,184,75,0.15)] group-hover:border-[#E8B84B]/50 transition-colors">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#FF9B2F]/25 bg-[#FF9B2F]/10 text-[#FF9B2F] shadow-[0_0_12px_rgba(255,155,47,0.15)] group-hover:border-[#FF9B2F]/50 transition-colors">
                     <Icon className="h-5 w-5" />
                   </div>
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
@@ -183,7 +183,7 @@ export function WhyGroove() {
                 </div>
 
                 {/* Animated Stat Value */}
-                <div className="mt-5 text-3xl font-bold tracking-tight text-[#E8B84B]">
+                <div className="mt-5 text-3xl font-bold tracking-tight text-[#FF9B2F]">
                   <CountUpNumber target={stat.value} suffix={stat.suffix} />
                 </div>
 
@@ -210,15 +210,15 @@ export function WhyGroove() {
         transition={{ duration: 0.6, delay: 0.4 }}
         className="mt-10 flex flex-wrap items-center justify-center gap-2 text-center text-xs text-white/55"
       >
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8B84B]/30 bg-[#E8B84B]/10 px-3 py-1 font-semibold text-[#E8B84B]">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FF9B2F]/30 bg-[#FF9B2F]/10 px-3 py-1 font-semibold text-[#FF9B2F]">
           <BarChart2 className="h-3.5 w-3.5" />
           152 respondents
         </span>
-        <span className="text-white/30">·</span>
+        <span className="text-white/30">•</span>
         <span>San Jose del Monte, Bulacan</span>
-        <span className="text-white/30">·</span>
+        <span className="text-white/30">•</span>
         <span>2025</span>
-        <span className="text-white/30">·</span>
+        <span className="text-white/30">•</span>
         <span className="font-medium text-white/70">STI College San Jose Del Monte</span>
       </motion.div>
     </section>
@@ -226,3 +226,4 @@ export function WhyGroove() {
 }
 
 export default WhyGroove;
+

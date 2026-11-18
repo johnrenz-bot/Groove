@@ -104,7 +104,7 @@ export const GrooveyHeader: React.FC = () => {
             onClick={() => setActiveTab('coach')}
           >
             <div className="relative shrink-0">
-              <div className="w-8 h-8 rounded-full   bg-muted overflow-hidden flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full border border-border bg-muted overflow-hidden flex items-center justify-center">
                 <Image
                   src="/groovey/grooveyy-mascot.png"
                   alt="Grooveyy Mascot"
@@ -266,3 +266,4 @@ export const GrooveyHeader: React.FC = () => {
     </header>
   );
 };
+

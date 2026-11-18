@@ -57,9 +57,12 @@ const TRACKER_LABELS: Record<AppointmentStatus, string> = {
   accepted: 'Accepted',
   agreement_required: 'Awaiting Signatures',
   confirmed: 'Confirmed',
+  in_progress: 'In Session',
   completed: 'Completed',
   declined: 'Declined',
   cancelled: 'Cancelled',
+  expired: 'Expired',
+  no_show: 'No-show',
 };
 
 const BADGE_VARIANT: Record<string, BadgeVariant> = {
@@ -67,9 +70,12 @@ const BADGE_VARIANT: Record<string, BadgeVariant> = {
   accepted: 'scheduled',
   agreement_required: 'pending',
   confirmed: 'confirmed',
+  in_progress: 'scheduled',
   completed: 'completed',
   declined: 'cancelled',
   cancelled: 'neutral',
+  expired: 'cancelled',
+  no_show: 'cancelled',
 };
 
 type OffPathTone = 'danger' | 'neutral' | 'warning' | 'accent';
@@ -83,9 +89,9 @@ interface OffPathState {
 
 const TONE_STYLES: Record<OffPathTone, string> = {
   danger: ' bg-danger-soft text-danger',
-  neutral: ' bg-muted/60 text-muted-foreground',
+  neutral: ' border border-border bg-muted/60 text-muted-foreground',
   warning: ' bg-warning-soft text-warning',
-  accent: ' bg-accent-soft text-accent-text',
+  accent: ' border-accent-border bg-accent-soft text-accent-text',
 };
 
 /**
@@ -114,9 +120,10 @@ const EXTRA_STATES: Record<string, OffPathState> = {
   },
   expired: {
     label: 'Expired',
-    description: 'This request expired before it was accepted.',
+    description:
+      'The scheduled time passed without a response, so the request expired. Pick a new time from the coach profile to rebook.',
     Icon: TimerOff,
-    tone: 'neutral',
+    tone: 'warning',
   },
 };
 
@@ -213,6 +220,31 @@ function nextStepCopy(args: {
                 ? 'If the session took place, mark it completed. If it did not, you can still cancel with a reason.'
                 : 'Your coach can mark the session completed. Message them if something went wrong.',
           };
+    case 'in_progress':
+      return role === 'coach'
+        ? {
+            title: 'Session in progress',
+            body: 'Mark the session completed when it ends, or mark no-show if it did not happen.',
+          }
+        : {
+            title: 'Session in progress',
+            body: 'Enjoy your session. Your coach will mark it completed when it wraps up.',
+          };
+    case 'expired':
+      return role === 'client'
+        ? {
+            title: 'This request expired',
+            body: 'The scheduled time passed before your coach responded. Rebook with the same coach from their profile.',
+          }
+        : {
+            title: 'This request expired',
+            body: 'The scheduled time passed before it was accepted. The client has been notified.',
+          };
+    case 'no_show':
+      return {
+        title: 'Marked as a no-show',
+        body: 'The session did not take place. The other party can still discuss it in Messages.',
+      };
     case 'completed':
       return role === 'client'
         ? {
@@ -355,7 +387,7 @@ export function BookingTracker({
       {offPath && (
         <div
           className={cn(
-            'flex items-start gap-2.5 rounded-2xl  px-3.5 py-3 text-xs leading-relaxed',
+            'flex items-start gap-2.5 rounded-2xl border border-border px-3.5 py-3 text-xs leading-relaxed',
             TONE_STYLES[offPath.tone]
           )}
           role="status"
@@ -394,10 +426,10 @@ export function BookingTracker({
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full  text-[11px] font-bold transition-colors duration-300 motion-reduce:transition-none',
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-[11px] font-bold transition-colors duration-300 motion-reduce:transition-none',
                     step.reached
                       ? '- bg-brand-sunburst text-brand-sunburst-fg'
-                      : ' bg-muted/40 text-muted-foreground',
+                      : ' border border-border bg-muted/40 text-muted-foreground',
                     step.current &&
                       '   '
                   )}
@@ -458,12 +490,12 @@ export function BookingTracker({
 
       {/* ── Reschedule request ── */}
       {pendingRequest && (
-        <div className="rounded-2xl   bg-accent-soft/70 p-3.5 text-xs">
+        <div className="rounded-2xl border border-border bg-accent-soft/70 p-3.5 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <CalendarClock className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
             <p className="font-bold text-foreground">Reschedule requested</p>
             {requestedWindow && (
-              <span className="inline-flex items-center gap-1 rounded-full   bg-card px-2 py-0.5 font-semibold tabular-nums text-accent-text">
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 font-semibold tabular-nums text-accent-text">
                 {requestedWindow}
               </span>
             )}
@@ -490,13 +522,13 @@ export function BookingTracker({
       {!offPath && (
         <div
           className={cn(
-            'flex items-start gap-2.5 rounded-2xl   bg-muted/40 p-3.5',
+            'flex items-start gap-2.5 rounded-2xl border border-border bg-muted/40 p-3.5',
             compact && 'p-3'
           )}
         >
           <span
             aria-hidden="true"
-            className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full   bg-accent-soft text-accent-text"
+            className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-accent-soft text-accent-text"
           >
             <ArrowRight className="h-3.5 w-3.5" />
           </span>
@@ -511,7 +543,7 @@ export function BookingTracker({
 
       {/* ── History ── */}
       {history.length > 0 && (
-        <details className="group rounded-xl   bg-muted/30 px-3.5 py-2.5">
+        <details className="group rounded-xl border border-border bg-muted/30 px-3.5 py-2.5">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground">
             <History className="h-3.5 w-3.5" aria-hidden="true" />
             History ({history.length})
@@ -560,3 +592,4 @@ export function BookingTracker({
 }
 
 export default BookingTracker;
+

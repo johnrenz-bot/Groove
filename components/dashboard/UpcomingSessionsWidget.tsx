@@ -6,7 +6,7 @@ import { Calendar, Clock } from 'lucide-react';
 import { Appointment } from '@/lib/types';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { formatDate } from '@/lib/utils';
 import type { BadgeVariant } from '@/components/ui/Badge';
 
@@ -71,7 +71,7 @@ export function UpcomingSessionsWidget({
           icon={<Calendar className="h-5 w-5" />}
           title="No upcoming sessions."
           description="Book a coach to schedule rehearsal."
-          actionHref={perspective === 'client' ? '/client/talent' : '/coach/appointments'}
+          actionHref={perspective === 'client' ? '/client/talent' : '/coach/messages?view=board'}
           action="Browse"
         />
       ) : (
@@ -89,7 +89,7 @@ export function UpcomingSessionsWidget({
             return (
               <div
                 key={appt.id}
-                className="rounded-2xl   bg-card p-3.5 transition hover:"
+                className="rounded-2xl border border-border bg-card p-3.5 transition hover:"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="truncate text-xs font-bold text-foreground">{name}</span>
@@ -117,3 +117,4 @@ export function UpcomingSessionsWidget({
 }
 
 export default UpcomingSessionsWidget;
+

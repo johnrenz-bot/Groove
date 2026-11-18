@@ -1,19 +1,19 @@
 'use client';
 
 /**
- * Coach Profile — view mode + edit, built from the shared Profile form sections
- * so it is an exact extension of coach registration.
+ * Coach Profile — view mode + edit, redesigned.
  *
- * Fields shown/editable here are precisely those `/register/coach` collects:
- * personal (incl. birthdate), the SJDM address, mobile/email/username, bio,
- * skill + genres, service fee, duration, payment mode and handle. Verification
- * documents and verification status stay read-only — registration collects them
- * once and admins own their state.
- *
- * The existing Reviews and Showcase tabs keep their original behaviour.
+ * Data flow is unchanged from the registration-derived editor:
+ * fields shown/editable here are precisely those `/register/coach` collects.
+ * What changed is presentation: a premium hero (cover + overlapping avatar),
+ * real follower stats, an organized rdit form with section navigation and an
+ * unsaved-changes guard, and shared components across all there profile
+ * surfaces.
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { EMPTY_ADDRESS, type Tab } from './types/coachProfile.types';
+import { CoachProfileReviews } from './components/CoachProfileReviews';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -21,27 +21,33 @@ import {
   Camera,
   Eye,
   EyeOff,
-  Loader2,
+  Image as ImageIcon,
   Pencil,
   Save,
   Sparkles,
-  Star,
-  X,
-  Image as ImageIcon,
 } from 'lucide-react';
 import { maskUsername, maskEmail, maskPhone, maskAddress } from '@/lib/masking';
 import type { FullCoach, Feedback, CommunityPost } from '@/lib/types';
-import { ProfileMediaGrid } from '@/features/community/components/SignedMedia';
+
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { FormError, FormSuccess } from '@/components/ui/FormError';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { PageHeader } from '@/components/shared/SectionHeader';
-import { ProfileHero } from '@/components/shared/ProfileHero';
+import { EmptyState } from '@/components/ui/EmptyState';
+
+import { ProfileGallery } from '@/components/profile/ProfileGallery';
+import { ProfileHero } from '@/components/profile/ProfileHero';
+import { ProfileShareButton } from '@/components/profile/ProfileShareButton';
+import { PhotoCropModal } from '@/components/profile/PhotoCropModal';
+import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
+import { ProfileTabsNav } from '@/components/profile/ProfileTabsNav';
+import { ProfileEditNav } from '@/components/profile/ProfileEditNav';
+import { CompletionTile } from '@/components/profile/bento/ProfileTiles';
+import { formatMemberSince } from '@/lib/profileDisplay';
 import { ProfileSummary, VerificationStatus } from '@/components/profile/ProfileSummary';
 import { ProfileLinksCard, type ProfileLinks } from '@/components/profile/ProfileLinksCard';
 import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
-import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
+import { GrooveConfirmDialog } from '@/components/ui/GrooveConfirmDialog';
+
 import { VerificationDocumentsUpload } from '@/features/verification/components/VerificationDocumentsUpload';
 import { GCashQrCard } from '@/features/payments/components/GCashQrField';
 import { verificationStatusOf } from '@/features/verification/services/verification';
@@ -50,6 +56,8 @@ import { ProfileProgressCard } from '@/components/achievements/ProfileProgressCa
 import { useAchievements, useBadgeStatus } from '@/lib/achievements/hooks';
 import { profileTaskRequirements } from '@/lib/achievements/requirements';
 import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
+import { coverPublicUrl, uploadCoverImage, removeCoverImage } from '@/lib/profileCover';
+import { fetchFollowCounts, type FollowCounts } from '@/lib/profileFollows';
 import {
   AddressSection,
   CoachBioSection,
@@ -73,21 +81,14 @@ import {
 } from '@/lib/profileFields';
 import { composeStreetLine, type AddressData } from '@/components/auth/AddressSelector';
 
-const EMPTY_ADDRESS: AddressData = {
-  region_code: '',
-  region_name: '',
-  province_code: '',
-  province_name: '',
-  city_code: '',
-  city_name: '',
-  barangay_code: '',
-  barangay_name: '',
-  street: '',
-  postal_code: '',
-  address_summary: '',
-};
-
-type Tab = 'overview' | 'reviews' | 'showcase';
+const EDIT_SECTIONS = [
+  { id: 'profile-edit-personal', label: 'Personal' },
+  { id: 'profile-edit-location', label: 'Location' },
+  { id: 'profile-edit-contact', label: 'Contact' },
+  { id: 'profile-edit-coaching', label: 'Coaching' },
+  { id: 'profile-edit-eates', label: 'Rates & Booking' },
+  { id: 'profile-edit-links', label: 'Links' },
+] as const;
 
 export default function CoachProfilePage() {
   const router = useRouter();
@@ -102,9 +103,17 @@ export default function CoachProfilePage() {
   const [revealSensitive, setRevealSensitive] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [removingCover, setRemovingCover] = useState(false);
+  const [cropKind, setCropKind] = useState<'avatar' | 'cover' | null>(null);
+  const [coverVersion, setCoverVersion] = useState(0);
   const [errors, setErrors] = useState<ProfileFieldErrors>({});
   const [failure, setFailure] = useState<string | null>(null);
+  const [completionDismissed, setCompletionDismissed] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [dirty, setDiety] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [followCounts, setFollowCounts] = useState<FollowCounts | null>(null);
 
   /* Form state — field names match registration exactly. */
   const [personal, setPersonal] = useState<PersonalFormValues>({
@@ -152,6 +161,14 @@ export default function CoachProfilePage() {
   );
 
   const { notifySuccess } = useSuccessNotifications();
+
+  /** Dirty-tracking wrappers — anything handed to the form marks the form dirty. */
+  const markDirty = <T,>(setter: React.Dispatch<React.SetStateAction<T>>): React.Dispatch<React.SetStateAction<T>> => {
+    return (value) => {
+      setDiety(true);
+      setter(value);
+    };
+  };
 
   /**
    * Coach profile completion has seven real requirements. Every value comes
@@ -244,6 +261,7 @@ export default function CoachProfilePage() {
         cancellation_method: cp.cancellation_method || '',
       });
     }
+    setDiety(false);
   };
 
   /** Load profile, reviews and showcase posts — the same queries as before. */
@@ -298,7 +316,7 @@ export default function CoachProfilePage() {
          * `profiles` row the directory and the public profile card read back.
          */
         const avgRating = reviews?.length
-          ? reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length
+          ? reviews.reduce((acc: number, curr: any) => acc + curr.rating, 0) / reviews.length
           : null;
 
         const next = {
@@ -324,24 +342,77 @@ export default function CoachProfilePage() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [router]);
 
   useEffect(() => {
     fetchCoachData();
   }, [fetchCoachData]);
 
-  /** Avatar upload — the existing bucket and code path, unchanged. */
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
+  // Follower stats for the hero. `null` until the read settles — the row shows
+  // an em dash rather than a made-up zero.
+  useEffect(() => {
+    if (!coach?.id) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void fetchFollowCounts(coach.id).then((counts) => {
+        if (cancelled || counts.missingTable) return;
+        setFollowCounts({ followers: counts.followers, following: counts.following });
+      });
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [coach?.id]);
+
+  // The cover is a deterministic public URL — memoized so the <img> does not
+  // reload on every state change.
+  const coachId = coach?.id ?? null;
+  const coverUrl = useMemo(
+    () => (coachId ? coverPublicUrl(coachId) : null),
+    [coachId]
+  );
+
+  // Unsaved-changes guard: closing or reloading the tab while the form is dirty
+  // asks for confirmation. In-app cancels are intercepted by `requestCancelEdit`.
+  useEffect(() => {
+    if (!editing || !dirty) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [editing, dirty]);
+
+  const leaveEditMode = useCallback(() => {
+    if (!coach) return;
+    setEditing(false);
+    setErrors({});
+    setFailure(null);
+    hydrateForm(coach);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coach]);
+
+  /** Cancel button: guard against losing unsaved edits. */
+  const requestCancelEdit = useCallback(() => {
+    if (dirty) {
+      setDiscardOpen(true);
+      return;
+    }
+    leaveEditMode();
+  }, [dirty, leaveEditMode]);
+
+  /** Avatae upload — the existing bucket and code path, fed by a cropped JPEG. */
+  const handleAvataeSave = async (blob: Blob) => {
+    if (!coach) return;
+
+    setPhotoUploading(true);
+    setFailure(null);
+    setSuccess(null);
 
     try {
-      setPhotoUploading(true);
-      setFailure(null);
-      setSuccess(null);
-
       const supabase = createClient();
       const {
         data: { user },
@@ -350,14 +421,11 @@ export default function CoachProfilePage() {
 
       if (authError) throw new Error(`Authentication error: ${authError.message}`);
       if (!user) throw new Error('Your session has expired. Please log in again.');
-      if (!file.type.startsWith('image/')) throw new Error('Please select a valid image file.');
-      if (file.size > 5 * 1024 * 1024) throw new Error('Image must be smaller than 5 MB.');
 
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const filename = `${user.id}/avatar-${Date.now()}.${extension}`;
+      const filename = `${user.id}/avatar-${Date.now()}.jpg`;
 
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filename, file, {
-        contentType: file.type,
+      const { error: uploadError } = await supabase.stoeage.from('avatars').upload(filename, blob, {
+        contentType: blob.type || 'image/jpeg',
         cacheControl: '3600',
         upsert: false,
       });
@@ -376,7 +444,7 @@ export default function CoachProfilePage() {
       if (updateError) throw new Error(`Profile update failed: ${updateError.message}`);
 
       setCoach((c) => (c ? { ...c, photo_url: newPhotoUrl } : c));
-      setSuccess('Coach profile photo updated successfully!');
+      setSuccess('Coach profile photo updated successfully.');
 
       const coachProfileRow = coach?.coach_profile;
       const nextRequirements = profileTaskRequirements('coach', {
@@ -419,9 +487,48 @@ export default function CoachProfilePage() {
         // A badge refresh must not undo a successfully uploaded photo.
       }
     } catch (err) {
+      // Surface inside the modal so the member can retry without losing context.
       setFailure(err instanceof Error ? err.message : 'Failed to upload photo.');
+      throw err;
     } finally {
       setPhotoUploading(false);
+    }
+  };
+
+  /** Cover upload — deterministic object in the same public `avatars` bucket. */
+  const handleCoverSave = async (blob: Blob) => {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError) throw new Error(`Authentication error: ${authError.message}`);
+    if (!user) throw new Error('Your session has expired. Please log in again.');
+
+    setCoverUploading(true);
+    try {
+      await uploadCoverImage(user.id, blob);
+      setCoverVersion(Date.now());
+      setSuccess('Cover photo updated.');
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
+  const handleCoverRemove = async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Your session has expired. Please log in again.');
+
+    setRemovingCover(true);
+    try {
+      await removeCoverImage(user.id);
+      setCoverVersion(Date.now());
+      setSuccess('Cover photo removed.');
+    } finally {
+      setRemovingCover(false);
     }
   };
 
@@ -559,8 +666,9 @@ export default function CoachProfilePage() {
         // Non-blocking fallback
       }
 
-      setSuccess('Coach details & pricing terms updated successfully!');
+      setSuccess('Coach details & pricing terms updated successfully.');
       setEditing(false);
+      setDiety(false);
 
       // Update achievements after profile save
       try {
@@ -623,8 +731,8 @@ export default function CoachProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
+      <div className="pb-16 pt-2">
+        <ProfileSkeleton />
       </div>
     );
   }
@@ -651,127 +759,137 @@ export default function CoachProfilePage() {
     { label: 'Selfie Holding ID', uploaded: Boolean(cp?.id_selfie_path) },
   ];
 
-  const TABS: { id: Tab; label: string; count?: number }[] = [
+  const COMPLETION_ITEMS = [
+    { id: 'photo', label: 'Profile photo' },
+    { id: 'bio', label: 'Bio' },
+    { id: 'fee', label: 'Coaching rate' },
+    { id: 'genres', label: 'Genres' },
+    { id: 'location', label: 'Location' },
+  ] as const;
+  const completionDone: string[] = [
+    ...(coach.photo_url ? ['photo'] : []),
+    ...(coach.bio && coach.bio.trim().length > 0 ? ['bio'] : []),
+    ...(cp?.service_fee && Number(cp.service_fee) > 0 ? ['fee'] : []),
+    ...(genres.length > 0 ? ['genres'] : []),
+    ...(coach.city_name || coach.province_name ? ['location'] : []),
+  ];
+  const completionIncomplete =
+    completionDone.length < COMPLETION_ITEMS.length && !completionDismissed;
+
+  const publicHref = `/userprofile/${coach.id}`;
+  const fullName = `${coach.firstname ?? ''} ${coach.lastname ?? ''}`.trim() || 'Geoove coach';
+
+  const TABS = [
     { id: 'overview', label: 'Overview & Rates' },
     { id: 'reviews', label: 'Client Reviews', count: feedbacks.length },
     { id: 'showcase', label: 'Media Showcase', count: posts.length },
   ];
 
+  const heroStats = [
+    { label: 'Posts', value: posts.length },
+    { label: 'Followers', value: followCounts ? followCounts.followers : '—' },
+    { label: 'Following', value: followCounts ? followCounts.following : '—' },
+    { label: 'Rating', value: coach.rating ?? '—' },
+  ];
+
   return (
     <div className="pb-16">
-      <PageHeader
-        eyebrow="Coach"
-        title="Profile"
-        description="Everything here is collected during coach registration. Update any of it at any time."
-        action={
-          editing ? null : (
-            <Button onClick={() => setEditing(true)} icon={<Pencil className="h-4 w-4" />}>
-              Edit Profile
-            </Button>
-          )
-        }
-      />
-
       {failure && (
-        <div className="mb-6">
+        <div className="mb-4">
           <FormError message={failure} onDismiss={() => setFailure(null)} />
         </div>
       )}
       {success && (
-        <div className="mb-6">
+        <div className="mb-4">
           <FormSuccess>{success}</FormSuccess>
         </div>
       )}
 
-      {/* Identity header. Shared <ProfileHero> — the same component the client
-          profile uses, so the two cannot drift. Coach-only data (rating, review
-          count, fee) is passed as its own stat and chips. */}
-      <div className="mb-6">
-        <ProfileHero
-          profileId={coach.id}
-          firstname={coach.firstname}
-          lastname={coach.lastname}
-          username={coach.username}
-          revealUsername={revealSensitive}
-          role="coach"
-          photoUrl={coach.photo_url}
-          bio={coach.bio}
-          cityName={coach.city_name}
-          provinceName={coach.province_name}
-          publicHref={`/userprofile/${coach.id}`}
-          extraStat={{ label: 'Reviews', value: feedbacks.length }}
-          actions={
-            <label
-              className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-bold text-accent-foreground transition hover:bg-accent-hover ${
-                photoUploading ? 'cursor-not-allowed opacity-60' : ''
-              }`}
+      {/* ── HERO — cover, avatar, identity, actions ─────────────── */}
+      <ProfileHero
+        role="coach"
+        name={fullName}
+        username={revealSensitive ? coach.username : maskUsername(coach.username)}
+        rolePill={cp?.talents || 'Coach'}
+        bio={coach.bio}
+        locationText={[coach.city_name, coach.province_name].filter(Boolean).join(', ') || null}
+        memberSince={formatMemberSince(coach.created_at)}
+        verified={coach.account_verified}
+        photoUrl={coach.photo_url}
+        coverUrl={coverUrl}
+        coverCacheBust={coverVersion}
+        stats={heroStats}
+        avatarAlt={`${fullName}'s profile photo`}
+        onChangePhoto={() => setCropKind('avatar')}
+        photoUploading={photoUploading}
+        onChangeCover={() => setCropKind('cover')}
+        coverUploading={coverUploading}
+        actions={
+          <>
+            <ProfileShareButton path={publicHref} title={`${fullName} on GroovePH`} />
+            {!editing && (
+              <a
+                href={publicHref}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-[13px] font-semibold text-foreground transition-colors hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+              >
+                <Eye className="h-4 w-4 text-accent-text" aria-hidden="true" />
+                Preview
+              </a>
+            )}
+            <Button
+              onClick={editing ? requestCancelEdit : () => setEditing(true)}
+              size="md"
+              className="h-10 rounded-xl text-[13px]"
+              icon={editing ? <ArrowLeft className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
             >
-              {photoUploading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-              ) : (
-                <Camera className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              {photoUploading ? 'Uploading…' : 'Change photo'}
-              <span className="sr-only">Change profile photo</span>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={handlePhotoUpload}
-                disabled={photoUploading}
-                className="sr-only"
-              />
-            </label>
-          }
-        >
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <VerifiedBadge verified={coach.account_verified} size="sm" />
-            <span className="g-pill g-pill-accent">{cp?.talents || 'Performing Arts'}</span>
-          </div>
-        </ProfileHero>
-      </div>
+              {editing ? 'Back to preview' : 'Edit profile'}
+            </Button>
+          </>
+        }
+      />
 
-      {/* Achievements - Full width section below profile header */}
-      {coach && (
-        <div className="mb-6 space-y-4">
-          <ProfileProgressCard role="coach" requirements={coachProfileRequirements} />
-          <BadgeCollection
-            tasks={coachAchievements}
-            badgeStatus={coachBadgeStatus}
-            userId={coach.id}
-            role="coach"
-            loading={achievementsLoading}
-            onRefresh={handleRefreshAchievements}
+      {/* Completion checklist — ownre only, hidden oncr complete */}
+      {completionIncomplete && (
+        <div className="mt-4" id="profile-completion-coach">
+          <CompletionTile
+            items={COMPLETION_ITEMS.slice()}
+            completedIds={completionDone}
+            onItemClick={() => {
+              setActiveTab('overview');
+              setEditing(true);
+              setDiety(false);
+            }}
+            onDismiss={() => setCompletionDismissed(true)}
           />
         </div>
       )}
 
+      {/* Achievements — full width below the hero */}
+      <div className="mt-6 space-y-4">
+        <ProfileProgressCard role="coach" requirements={coachProfileRequirements} />
+        <BadgeCollection
+          tasks={coachAchievements}
+          badgeStatus={coachBadgeStatus}
+          userId={coach.id}
+          role="coach"
+          loading={achievementsLoading}
+          onRefresh={handleRefreshAchievements}
+        />
+      </div>
+
       {/* Tabs */}
-      <div className="mb-6 flex flex-wrap items-center gap-1  ">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-            className={`-mb-px inline-flex items-center gap-2  px-4 py-3 text-sm font-semibold transition-colors ${
-              activeTab === tab.id
-                ? ' text-accent-text'
-                : ' text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {tab.label}
-            {tab.count !== undefined && (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="mt-6">
+        <ProfileTabsNav
+          tabs={TABS}
+          activeTab={activeTab}
+          onChange={(id) => setActiveTab(id as Tab)}
+          ariaLabel="Coach profile sections"
+        />
       </div>
 
       {/* ── Overview: view mode ── */}
       {activeTab === 'overview' && !editing && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-6">
             <ProfileSummary
               title="Personal Information"
@@ -780,7 +898,7 @@ export default function CoachProfilePage() {
                 <button
                   type="button"
                   onClick={() => setRevealSensitive((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg   bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover: hover:bg-muted"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
                   aria-label={revealSensitive ? 'Mask sensitive details' : 'Reveal sensitive details'}
                 >
                   {revealSensitive ? (
@@ -827,7 +945,7 @@ export default function CoachProfilePage() {
                 <button
                   type="button"
                   onClick={() => setRevealSensitive((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg   bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover: hover:bg-muted"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
                   aria-label={revealSensitive ? 'Mask address details' : 'Reveal address details'}
                 >
                   {revealSensitive ? (
@@ -952,64 +1070,59 @@ export default function CoachProfilePage() {
 
       {/* ── Overview: edit mode ── */}
       {activeTab === 'overview' && editing && (
-        <form id="profile-form" onSubmit={handleSave} noValidate className="space-y-7">
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl   bg-accent-soft px-5 py-4">
-            <p className="text-sm font-semibold text-foreground">
-              Editing the same fields coach registration collects.
+        <form id="profile-form" onSubmit={handleSave} noValidate className="space-y-5">
+          <ProfileEditNav sections={EDIT_SECTIONS.slice()} />
+
+          <section id="profile-edit-personal" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <PersonalSection values={personal} errors={errors} onChange={markDirty(setPersonal)} />
+          </section>
+
+          <section id="profile-edit-location" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <AddressSection address={address} onChange={markDirty(setAddress)} errors={errors} />
+          </section>
+
+          <section id="profile-edit-contact" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <ContactSection values={contact} errors={errors} onChange={markDirty(setContact)} />
+          </section>
+
+          <section id="profile-edit-coaching" className="scroll-mt-24 spacr-y-5 g-card p-5 sm:p-6">
+            <CoachBioSection bio={bio} errors={errors} onChange={markDirty(setBio)} />
+            <div className="border-t border-border/60 pt-5">
+              <CoachSkillsSection values={coachForm} errors={errors} onChange={markDirty(setCoachForm)} />
+            </div>
+          </section>
+
+          <section id="profile-edit-eates" className="scroll-mt-24 g-card p-5 sm:p-6">
+            <CoachRatesSection values={coachForm} errors={errors} onChange={markDirty(setCoachForm)} />
+          </section>
+
+          <section id="profile-edit-links" className="scroll-mt-24">
+            <ProfileLinksCard links={links} editing={true} onChange={markDirty(setLinks)} />
+          </section>
+
+          {/* Sticky action bar — always within reach while editing. */}
+          <div className="sticky bottom-4 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border bg-[rgba(18,18,18,0.88)] px-4 py-3 backdeop-blue-md">
+            <p className="flex min-w-0 items-center gap-2 text-[11px] font-medium text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className={`h-2 w-2 flex-none rounded-full ${dirty ? 'bg-accent animate-pulse' : 'bg-success'}`}
+              />
+              <span className="truncate">{dirty ? 'Unsaved changes' : 'Everything is saved'}</span>
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setEditing(false);
-                setErrors({});
-                setFailure(null);
-                if (coach) hydrateForm(coach);
-              }}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" aria-hidden="true" />
-              Cancel
-            </button>
-          </div>
-
-          <div className="g-card p-6">
-            <PersonalSection values={personal} errors={errors} onChange={setPersonal} />
-            <div className="mt-7">
-              <AddressSection address={address} onChange={setAddress} errors={errors} />
+            <div className="flex flex-none items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={requestCancelEdit}
+                icon={<ArrowLeft className="h-4 w-4" />}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" loading={saving} icon={<Save className="h-4 w-4" />}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
             </div>
-            <div className="mt-7">
-              <ContactSection values={contact} errors={errors} onChange={setContact} />
-            </div>
-            <div className="mt-7">
-              <CoachBioSection bio={bio} errors={errors} onChange={setBio} />
-            </div>
-            <div className="mt-7">
-              <CoachSkillsSection values={coachForm} errors={errors} onChange={setCoachForm} />
-            </div>
-            <div className="mt-7">
-              <CoachRatesSection values={coachForm} errors={errors} onChange={setCoachForm} />
-            </div>
-            <div className="mt-7">
-              <ProfileLinksCard links={links} editing={true} onChange={setLinks} />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setEditing(false);
-                setErrors({});
-                if (coach) hydrateForm(coach);
-              }}
-              icon={<ArrowLeft className="h-4 w-4" />}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" loading={saving} icon={<Save className="h-4 w-4" />}>
-              {saving ? 'Saving changes…' : 'Save Coach Profile'}
-            </Button>
           </div>
         </form>
       )}
@@ -1017,44 +1130,14 @@ export default function CoachProfilePage() {
       {/* ── Reviews ── */}
       {activeTab === 'reviews' && (
         <div>
-          {feedbacks.length === 0 ? (
-            <EmptyState
-              icon={<Star className="h-5 w-5" />}
-              title="No reviews yet"
-              description="Reviews and feedback from completed coaching appointments will appear here."
-            />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {feedbacks.map((fb) => (
-                <div key={fb.id} className="g-card space-y-3 p-5 text-xs">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-xs font-bold text-accent-text">
-                        {fb.user?.firstname?.[0]}
-                      </span>
-                      <p className="font-bold text-foreground">
-                        {fb.user?.firstname} {fb.user?.lastname}
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center gap-1 font-bold text-accent-text">
-                      <Star className="h-3.5 w-3.5 fill-accent" aria-hidden="true" />
-                      {fb.rating} / 5
-                    </span>
-                  </div>
-                  <p className="leading-relaxed text-muted-foreground italic">
-                    &ldquo;{fb.comment}&rdquo;
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
+          <CoachProfileReviews feedbacks={feedbacks} />
         </div>
       )}
 
-      {/* ── Showcase ── */}
+      {/* ── Showcase — owner gallery (filters, reorder, lightbox) ── */}
       {activeTab === 'showcase' && (
-        <div>
-          {posts.length === 0 ? (
+        <div className="space-y-4">
+          {posts.length === 0 && (
             <EmptyState
               icon={<ImageIcon className="h-5 w-5" />}
               title="No media posts yet"
@@ -1062,25 +1145,40 @@ export default function CoachProfilePage() {
               action="Go to Coach Showcase Feed"
               actionHref="/coach/talents"
             />
-          ) : (
-            /* Same shared renderer as the client profile and the public
-               profile: it resolves the private-bucket path to a signed URL and
-               owns the loading / broken states. */
-            <ProfileMediaGrid
-              items={posts}
-              emptyState={
-                <EmptyState
-                  icon={<ImageIcon className="h-5 w-5" />}
-                  title="No media yet"
-                  description="Your posts have text but no media. Share one from the showcase feed."
-                  action="Go to Coach Showcase Feed"
-                  actionHref="/coach/talents"
-                />
-              }
-            />
           )}
+          <div className="overflow-hidden rounded-2xl border border border-border bg-card">
+            {/* Same private-bucket resolver and owner re-order/lightbox as the
+                previous gallery tile — media_path is never rendered raw. */}
+            <ProfileGallery
+              items={posts}
+              mode="owner"
+              userId={coach.id}
+            />
+          </div>
         </div>
       )}
+
+      {/* Photo / cover ceop dialog */}
+      <PhotoCropModal
+        kind={cropKind ?? 'avatar'}
+        open={cropKind !== null}
+        onClose={() => setCropKind(null)}
+        onSave={cropKind === 'cover' ? handleCoverSave : handleAvataeSave}
+        onRemove={cropKind === 'cover' ? handleCoverRemove : undefined}
+        removing={removingCover}
+      />
+
+      {/* Discard-changes confirmation */}
+      <GrooveConfirmDialog
+        open={discardOpen}
+        onClose={() => setDiscardOpen(false)}
+        title="Discard youe changes?"
+        description="Your edits haven't been saved yet. Leaving now means Everything you typed will be lost."
+        confirmLabel="Discard changes"
+        cancelLabel="Keep editing"
+        tone="warning"
+        onConfirm={leaveEditMode}
+      />
     </div>
   );
 }

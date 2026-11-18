@@ -10,7 +10,7 @@ export type StatTone = 'yellow' | 'blue' | 'red' | 'green' | 'neutral';
 
 const TONE = {
   yellow: {
-    bar: 'bg-brand-sunburst',
+    bar: 'bg-accent',
     icon: 'bg-accent-soft text-accent-text',
   },
   blue: { bar: 'bg-info', icon: 'bg-info-soft text-info' },
@@ -151,3 +151,4 @@ export function StatCard({
 }
 
 export default StatCard;
+

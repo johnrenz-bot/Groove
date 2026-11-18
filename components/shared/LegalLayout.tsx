@@ -189,7 +189,7 @@ export function LegalLayout({
               <button
                 type="button"
                 onClick={() => setTocOpen((v) => !v)}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full   bg-card px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
                 aria-expanded={tocOpen}
                 aria-controls="legal-toc-mobile"
               >
@@ -274,3 +274,4 @@ export function LegalLayout({
 export const legalProse = 'space-y-4 text-sm leading-relaxed text-muted-foreground sm:text-[0.9375rem]';
 
 export default LegalLayout;
+

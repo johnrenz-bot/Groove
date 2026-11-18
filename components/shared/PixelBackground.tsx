@@ -48,3 +48,4 @@ export function PixelBackground({ className = '', intensity = 'subtle' }: PixelB
 }
 
 export default PixelBackground;
+

@@ -284,7 +284,7 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
         {actionError && (
           <div
             role="alert"
-            className="mb-5 rounded-xl   bg-danger-soft px-4 py-3 text-xs text-danger"
+            className="mb-5 rounded-xl border border-border bg-danger-soft px-4 py-3 text-xs text-danger"
           >
             {actionError}
           </div>
@@ -294,7 +294,7 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
         <div className="flex flex-wrap items-center gap-4   pb-5">
           <span
             aria-hidden="true"
-            className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl   bg-accent-soft text-lg font-bold text-accent-text"
+            className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-accent-soft text-lg font-bold text-accent-text"
           >
             {user.photo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -413,7 +413,7 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
             </button>
           </div>
           {user.verification_rejection_reason && !isVerified && (
-            <div className="mb-4 rounded-xl   bg-danger-soft px-4 py-3">
+            <div className="mb-4 rounded-xl border border-border bg-danger-soft px-4 py-3">
               <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-danger">
                 Rejection reason
               </p>
@@ -503,7 +503,7 @@ export function AdminUserDrawer({ user, onClose, onChanged, onDelete, busyKey }:
             />
 
             {isCoach && (
-              <div className="grid grid-cols-1 gap-4 rounded-2xl   bg-muted p-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 rounded-2xl border border-border bg-muted p-4 sm:grid-cols-2">
                 <Input
                   label="Session fee (PHP)"
                   type="number"
@@ -597,7 +597,7 @@ function MetaRow({ icon, label }: { icon?: React.ReactNode; label: string }) {
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl   bg-muted px-3 py-2.5">
+    <div className="rounded-xl border border-border bg-muted px-3 py-2.5">
       <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground">
         {label}
       </dt>
@@ -630,7 +630,7 @@ function DocumentPreview({ label, url }: { label: string; url: string | null }) 
           href={url}
           target="_blank"
           rel="noreferrer"
-          className="group relative block overflow-hidden rounded-xl   transition-opacity hover:opacity-90"
+          className="group relative block overflow-hidden rounded-xl border border-border transition-opacity hover:opacity-90"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={url} alt={label} className="h-44 w-full bg-muted object-cover" />
@@ -640,7 +640,7 @@ function DocumentPreview({ label, url }: { label: string; url: string | null }) 
           </span>
         </a>
       ) : (
-        <div className="flex h-44 items-center justify-center gap-2 rounded-xl    text-xs text-muted-foreground">
+        <div className="flex h-44 items-center justify-center gap-2 rounded-xl border border-border text-xs text-muted-foreground">
           <ImageOff className="h-4 w-4" />
           Not uploaded
         </div>
@@ -669,7 +669,7 @@ function StatusControl({
   return (
     <div
       className={cn(
-        'rounded-2xl  p-4',
+        'rounded-2xl border border-border p-4',
         tone === 'success' && ' bg-success-soft',
         tone === 'warning' && ' bg-warning-soft',
         tone === 'danger' && ' bg-danger-soft',

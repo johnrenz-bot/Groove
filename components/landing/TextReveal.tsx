@@ -96,3 +96,4 @@ export function TextReveal({
 }
 
 export default TextReveal;
+

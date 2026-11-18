@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import React from 'react';
+import { RouteSkeleton } from '@/components/loading/LoadingState';
 import { SingingCommunityPageServer } from '@/features/singing/components/SingingCommunityPageServer';
 
 export const metadata: Metadata = {
@@ -36,8 +37,9 @@ export const metadata: Metadata = {
 
 export default function SingingCommunityPage() {
   return (
-    <React.Suspense fallback={null}>
+    <React.Suspense fallback={<RouteSkeleton variant="hero" />}>
       <SingingCommunityPageServer />
     </React.Suspense>
   );
 }
+

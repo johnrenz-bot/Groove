@@ -5,6 +5,13 @@ import { usePathname } from 'next/navigation';
 import { ArrowUp } from 'lucide-react';
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider';
 
+/**
+ * Floating "back to top" control.
+ *
+ * Two scroll containers exist in this app: the window (marketing, auth and
+ * public pages) and the dashboard shell's own `.dash-content` scroller. This
+ * button tracks both and returns the active one to the top.
+ */
 export function BackToTopButton() {
   const [visible, setVisible] = useState(false);
   const visibleRef = useRef(false);
@@ -20,35 +27,55 @@ export function BackToTopButton() {
     let ticking = false;
     let frame = 0;
 
+    const readScroll = () => {
+      const dash = document.querySelector<HTMLElement>('.dash-content');
+      return dash ? dash.scrollTop : window.scrollY || document.documentElement.scrollTop;
+    };
+
+    const update = () => {
+      const currentScrollY = readScroll();
+      const nextVisible = currentScrollY > 350;
+      // setState on every scroll frame would re-render the button even when
+      // its visibility has not changed.
+      if (nextVisible !== visibleRef.current) {
+        visibleRef.current = nextVisible;
+        setVisible(nextVisible);
+      }
+    };
+
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       frame = window.requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-        const nextVisible = currentScrollY > 350;
-        // setState on every scroll frame would re-render the button even when
-        // its visibility has not changed.
-        if (nextVisible !== visibleRef.current) {
-          visibleRef.current = nextVisible;
-          setVisible(nextVisible);
-        }
+        update();
         ticking = false;
       });
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    // The dashboard scroller is a plain element, not the window — listen on
+    // it too. Attaching the same listener twice to the same node is a no-op.
+    const dash = document.querySelector<HTMLElement>('.dash-content');
+    if (dash) dash.addEventListener('scroll', onScroll, { passive: true });
+
+    update();
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+      if (dash) dash.removeEventListener('scroll', onScroll);
       window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [pathname]);
 
   const handleScrollTop = () => {
     const reduceMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const dash = document.querySelector<HTMLElement>('.dash-content');
+    if (dash) {
+      dash.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      return;
+    }
     scrollTo(0, { duration: reduceMotion ? 0 : 1.15 });
   };
 
@@ -60,9 +87,9 @@ export function BackToTopButton() {
       onClick={handleScrollTop}
       aria-label="Back to top"
       title="Back to top"
-      className={`group fixed z-50 flex h-11 w-11 items-center justify-center rounded-full   bg-card/85 text-foreground shadow-[var(--shadow-md)] backdrop-blur-md transition-all duration-300 hover: hover:bg-accent hover:text-accent-foreground hover:shadow-[var(--shadow-accent)] hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background animate-in fade-in zoom-in-90 ${
+      className={`group fixed z-50 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/85 text-foreground shadow-[var(--shadow-md)] backdrop-blur-md transition-all duration-300 hover:border-accent-border hover:bg-accent hover:text-accent-foreground hover:shadow-[var(--shadow-accent)] hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background animate-in fade-in zoom-in-90 ${
         isDashboardRoute
-          ? 'bottom-20 right-5 sm:bottom-24 sm:right-6'
+          ? 'bottom-[92px] right-4 sm:bottom-24 sm:right-6'
           : 'bottom-5 right-5 sm:bottom-6 sm:right-6'
       }`}
     >
@@ -73,3 +100,4 @@ export function BackToTopButton() {
 }
 
 export default BackToTopButton;
+

@@ -100,3 +100,4 @@ export function PhilippineFlag({ className, width = 20, height = 14 }: Philippin
 }
 
 export default PhilippineFlag;
+

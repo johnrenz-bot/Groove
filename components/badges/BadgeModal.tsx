@@ -115,7 +115,7 @@ export function BadgeModal({
       <div className="-mt-1 mb-4 flex items-center justify-between gap-3">
         <div>
           {isUnlocked && (
-            <span className="inline-flex items-center rounded-full   bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
+            <span className="inline-flex items-center rounded-full border border-border bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success">
               Badge Earned
             </span>
           )}
@@ -244,3 +244,4 @@ export function BadgeModal({
 }
 
 export default BadgeModal;
+

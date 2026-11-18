@@ -110,3 +110,4 @@ export function LoadingState({ label = 'Loading…', className = '' }: { label?:
 }
 
 export default Skeleton;
+

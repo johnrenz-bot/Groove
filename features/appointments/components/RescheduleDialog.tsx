@@ -34,9 +34,10 @@ export function RescheduleDialog({
   errorMessage,
   onClose,
   onSubmit,
+  proposerRole = 'client',
 }: {
   detail: BookingDetail;
-  /** The client's other bookings, used only to catch their OWN conflicts. */
+  /** The proposer's other bookings, used only to catch their OWN conflicts. */
   ownAppointments?: readonly Appointment[];
   nowMs: number;
   busy?: boolean;
@@ -50,6 +51,8 @@ export function RescheduleDialog({
     durationMinutes: number;
     reason: string;
   }) => Promise<boolean>;
+  /** 'coach' proposes; 'client' requests. Copy only — the flow is identical. */
+  proposerRole?: 'client' | 'coach';
 }) {
   const appointment = detail.appointment;
   const bookedWindow = (() => {
@@ -190,8 +193,12 @@ export function RescheduleDialog({
       animated
       size="md"
       showClose={!working}
-      title="Request a new time"
-      description="Your coach approves the change. The original time stands until they do."
+      title={proposerRole === 'coach' ? 'Propose a new time' : 'Request a new time'}
+      description={
+        proposerRole === 'coach'
+          ? 'The client approves the change. The original time stands until they do.'
+          : 'Your coach approves the change. The original time stands until they do.'
+      }
       footer={
         <>
           <Button type="button" variant="outline" onClick={onClose} disabled={working}>
@@ -204,7 +211,7 @@ export function RescheduleDialog({
             disabled={!valid}
             onClick={() => void handleSubmit()}
           >
-            {working ? 'Sending request…' : 'Send reschedule request'}
+            {working ? 'Sending…' : proposerRole === 'coach' ? 'Send proposal' : 'Send reschedule request'}
           </Button>
         </>
       }
@@ -372,3 +379,4 @@ export function RescheduleDialog({
 }
 
 export default RescheduleDialog;
+

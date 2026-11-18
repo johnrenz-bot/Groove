@@ -13,6 +13,30 @@
  * context ask for it — makes that class of bug impossible to reintroduce.
  */
 
+import type { Track } from '../types/track';
+
+/* --- Track playability ------------------------------------------------------- */
+
+/**
+ * A track may only be handed to an adapter when it is marked `ok` AND carries
+ * the media reference its source needs. Anything else is unverifiable and
+ * must be skipped by the engine — never loaded.
+ *
+ * User-added tracks are covered too: they are created with `status: 'ok'`
+ * and either a YouTube id or a direct url, so they pass this unchanged.
+ */
+export function isPlayableTrack(track: Track | null | undefined): boolean {
+  if (!track) return false;
+  if (track.status !== 'ok') return false;
+  if (track.source === 'youtube') {
+    return typeof track.youtubeId === 'string' && track.youtubeId.trim().length > 0;
+  }
+  if (track.source === 'audio') {
+    return typeof track.url === 'string' && track.url.trim().length > 0;
+  }
+  return false;
+}
+
 /* --- YouTube IFrame Player error codes -------------------------------------
    2   invalid parameter value (malformed / unusable video id)
    5   HTML5 player error — the stream could not be played

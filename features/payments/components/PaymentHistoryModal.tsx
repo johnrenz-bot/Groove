@@ -252,7 +252,7 @@ export function PaymentHistoryModal({
               />
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-2xl    py-16 text-center text-muted-foreground">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-border py-16 text-center text-muted-foreground">
               <Inbox className="h-10 w-10 opacity-40 mb-2" />
               <p className="text-sm font-bold text-foreground">No transactions found</p>
               <p className="mt-1 text-xs text-muted-foreground max-w-xs">
@@ -288,3 +288,4 @@ export function PaymentHistoryModal({
     </div>
   );
 }
+

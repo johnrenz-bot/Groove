@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { cn } from '@/components/shared/cn';
-import type { CrewAchievement } from '../data/crews';
+import type { CrewAchievement } from '@/lib/dance/contracts';
 
 interface TitleRowProps {
   achievement: CrewAchievement;

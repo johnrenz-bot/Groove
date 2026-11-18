@@ -360,3 +360,4 @@ export function ActingUpdateCard({ update, language }: ActingUpdateCardProps) {
 }
 
 export default ActingUpdateCard;
+
