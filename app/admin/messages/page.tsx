@@ -272,7 +272,7 @@ export default function AdminMessagesPage() {
             <div className="g-scroll max-h-[38vh] min-h-0 flex-1 space-y-1 overflow-y-auto p-2 md:max-h-none">
               {loading ? (
                 <div className="flex flex-col items-center gap-2 py-12 text-center text-xs text-muted-foreground">
-                  <Loader2 className="g-spin h-5 w-5 text-accent" aria-hidden="true" />
+                  <Loader2 className="g-spin h-5 w-5 text-accent-text" aria-hidden="true" />
                   Loading clients...
                 </div>
               ) : filtered.length === 0 ? (
@@ -369,7 +369,7 @@ export default function AdminMessagesPage() {
                 <div className="g-scroll min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
                   {threadLoading ? (
                     <div className="flex flex-col items-center gap-2 py-20 text-center text-xs text-muted-foreground">
-                      <Loader2 className="g-spin h-5 w-5 text-accent" aria-hidden="true" />
+                      <Loader2 className="g-spin h-5 w-5 text-accent-text" aria-hidden="true" />
                       Loading messages...
                     </div>
                   ) : messages.length === 0 ? (

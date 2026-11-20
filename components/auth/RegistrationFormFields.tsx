@@ -32,7 +32,7 @@ import {
 import { FormError } from '@/components/ui/FormError';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { AnimatedLogo } from '@/components/header/AnimatedLogo';
 import {
   MAX_UPLOAD_BYTES,
@@ -1422,7 +1422,7 @@ export function RegistrationSuccess({
           <Button
             size="lg"
             pill={false}
-            className="h-12 w-full bg-[#DDAA55] text-sm font-bold tracking-wide text-[#121008] transition-all hover:bg-[#E5B23E] hover:shadow-[0_4px_24px_rgba(244,190,77,0.25)] active:scale-[0.99]"
+            className="h-12 w-full bg-accent text-sm font-bold tracking-wide text-accent-contrast transition-all hover:bg-accent-hover active:scale-[0.99]"
             trailingIcon={<ArrowRight className="h-4 w-4" />}
           >
             {verificationRequired ? 'Return to Sign In' : 'Proceed to Sign In'}

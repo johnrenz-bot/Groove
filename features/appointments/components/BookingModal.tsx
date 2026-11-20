@@ -31,9 +31,8 @@ import {
 } from '@/lib/profileFields';
 import { Button } from '@/components/ui/Button';
 import { Modal, ModalSection, ModalCard, ModalFooter } from '@/components/ui/Modal';
-import { cn } from '@/components/shared/cn';
+import { cn, formatCurrency } from '@/lib/utils';
 import { useSuccessNotifications } from '@/components/notifications/SuccessNotificationProvider';
-import { formatCurrency } from '@/lib/utils';
 import { explainBookingError } from '../services/bookingService';
 import {
   clientBusyWindowsForDate,

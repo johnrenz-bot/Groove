@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import type { NextRequest } from 'next/server';
 
 /**
@@ -52,19 +53,13 @@ export function authorizeCronRequest(request: NextRequest, routeLabel: string): 
   const bearerSecret = authHeader?.replace(/^Bearer\s+/i, '') ?? '';
   const queryKey = request.nextUrl.searchParams.get('key') ?? '';
 
-  // Compared as equal-length digests so a wrong-length guess cannot be
-  // distinguished from a correct-length one by timing, and so the comparison
-  // never throws on a length mismatch.
-  const digest = (value: string) => {
-    let hash = 0;
-    for (let i = 0; i < value.length; i += 1) {
-      hash = (hash * 31 + value.charCodeAt(i)) | 0;
-    }
-    return hash;
-  };
-
-  const matches = digest(bearerSecret) === digest(expectedSecret) && bearerSecret === expectedSecret;
-  const matchesQuery = digest(queryKey) === digest(expectedSecret) && queryKey === expectedSecret;
+  // Compare SHA-256 digests with timingSafeEqual: fixed-length, and the
+  // candidate's content cannot influence whether comparison short-circuits.
+  // (The previous hand-rolled 32-bit hash had a collision space of ~2^32 and
+  // the final `===` on the raw strings was not constant-time.)
+  const digest = (value: string) => createHash('sha256').update(value, 'utf8').digest();
+  const matches = timingSafeEqual(digest(bearerSecret), digest(expectedSecret));
+  const matchesQuery = timingSafeEqual(digest(queryKey), digest(expectedSecret));
 
   if (!matches && !matchesQuery) {
     return {

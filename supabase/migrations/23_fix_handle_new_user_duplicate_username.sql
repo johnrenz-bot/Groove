@@ -71,9 +71,3 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-```<|end|><|start|>write to=assistant<|channel|>analysis<|message|>Tool write completed.<|end|><|start|>assist<|channel|>analysis<|message|>Need account_verified for admin? Since admin no longer created via signup, profile account_verified false. Admin accounts provisioned via seed set account_verified true manually. But what if trusted server-side process creates admin via service role with metadata role admin? Trigger now ignores admin and creates client, so admin account wouldn't be admin. The task says admin must be provisioned through trusted server-side process. The admin route `/api/admin/users` only creates client/coach, not admin. Seed creates admin profile manually. But if a trusted process inserts auth.users with role admin, trigger would create client profile, then process must update role to admin. That's okay. But maybe we should allow admin role only if email pinned, as before? The review explicitly says "Prevent public signup metadata from granting the admin role, even when the email is admin@gmail.com. Admin accounts must be provisioned through a trusted server-side process." So no admin from signup at all. Good.
-
-But account_verified false for all signup. Fine.
-
-Now also need update previous migration 23? We overwrote. Good. Should we also update schema.sql account_verified line? We changed to FALSE in migration but in schema.sql we left `v_role = 'admin'` in account_verified expression. Since v_role never admin now, it's false anyway. But for consistency, update schema.sql account_verified to FALSE. Let's edit.<|end|><|start|>assist to=edit<|channel|>analysis <|constrain|>xml<|message|><rfl:parameter name="path">
-C:\website\GrooveSystem\supabase\schema.sql

@@ -14,7 +14,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Circle, AlertCircle, Loader2, Send } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { bookingGate, verificationStatusOf } from '@/features/verification/services/verification';
 import { explainBookingError } from '@/features/appointments/services/bookingService';

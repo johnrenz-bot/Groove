@@ -3,10 +3,8 @@
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/components/shared/cn';
-import { getInitials } from '@/lib/utils';
+import { cn, getInitials, formatDate } from '@/lib/utils';
 import { maskUsername } from '@/lib/masking';
-import { formatDate } from '@/lib/utils';
 import type { DirectoryUser } from '@/app/users/page';
 import { UserPlus, MapPin, CheckCircle2 } from 'lucide-react';
 

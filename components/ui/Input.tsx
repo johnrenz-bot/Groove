@@ -2,7 +2,7 @@
 
 import React, { forwardRef } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /** Shared message row under a control — error first, then hint. */
 function FieldMessage({ id, error, hint }: { id: string; error?: string | null; hint?: string }) {
@@ -59,7 +59,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           id={inputId}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={describedBy}
-          className={cn('rounded-[12px] w-full bg-card border border-input px-3 py-2.5 text-sm text-foreground placeholder:text-subtle-foreground outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', suffix && 'pr-12', className)}
+          className={cn('rounded-[12px] w-full bg-surface-2 border border-border px-3 py-2.5 text-sm text-foreground placeholder:text-muted outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', suffix && 'pr-12', className)}
           {...props}
         />
         {suffix && (
@@ -106,7 +106,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         id={inputId}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy}
-        className={cn('rounded-[12px] w-full bg-card border border-input px-3 py-3 resize-none text-sm text-foreground placeholder:text-subtle-foreground outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', className)}
+        className={cn('rounded-[12px] w-full bg-surface-2 border border-border px-3 py-3 resize-none text-sm text-foreground placeholder:text-muted outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', className)}
         {...props}
       />
       <FieldMessage id={`${inputId}-error`} error={error} hint={hint} />
@@ -147,7 +147,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
         id={inputId}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy}
-        className={cn('rounded-[12px] w-full appearance-none bg-card border border-input [background-image:var(--select-chevron)] [background-repeat:no-repeat] [background-position:right_0.75rem_center] pr-9 cursor-pointer text-sm text-foreground outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', className)}
+        className={cn('rounded-[12px] w-full appearance-none bg-surface-2 border border-border [background-image:var(--select-chevron)] [background-repeat:no-repeat] [background-position:right_0.75rem_center] pr-9 cursor-pointer text-sm text-foreground outline-none transition-colors hover:border-border-strong focus:border-accent focus:shadow-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50', className)}
         {...props}
       >
         {children}

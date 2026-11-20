@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { checkSendEmailRateLimit, sameOriginDecision, sendEmailClientIp } from '@/lib/sendEmailSecurity';
 
 // SENDER NOTE:
 // `onboarding@resend.dev` is a Resend-managed test address. On test/free
@@ -180,6 +181,33 @@ function classifyResendError(name: string, message: string): string {
 
 export async function POST(request: Request) {
     try {
+        // T2 (1): same-origin validation. A present Origin must match this
+        // deployment's host and protocol; mismatches are rejected before any
+        // other work happens. A missing Origin is allowed by approved design
+        // decision (see lib/sendEmailSecurity.ts).
+        const originCheck = sameOriginDecision(
+            request.headers.get("origin"),
+            request.headers.get("host"),
+            new URL(request.url).protocol
+        );
+        if (!originCheck.allowed) {
+            return Response.json(
+                { success: false, error: "Forbidden: origin not allowed." },
+                { status: 403 }
+            );
+        }
+
+        // T2 (2): per-IP rate limits — 3/minute and 20/day, both enforced.
+        // In-memory and per-instance (not globally distributed); see
+        // lib/sendEmailSecurity.ts for the limitation note.
+        const rate = checkSendEmailRateLimit(sendEmailClientIp(request));
+        if (!rate.allowed) {
+            return Response.json(
+                { success: false, error: "Too many requests. Please try again later." },
+                { status: 429, headers: { "Retry-After": String(rate.retryAfter) } }
+            );
+        }
+
         if (!process.env.RESEND_API_KEY) {
             console.error(
                 "[send-email] RESEND_API_KEY is not set. " +

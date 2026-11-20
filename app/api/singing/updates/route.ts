@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { errorResponse } from '@/lib/errors';
 import { getPublishedSingingUpdates } from '@/features/singing/services/singingService';
 
 export const dynamic = 'force-dynamic';
@@ -29,14 +30,7 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
       },
     });
-  } catch (error: any) {
-    console.error('[API /api/singing/updates] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to retrieve singing updates',
-        message: error?.message || 'Internal server error',
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return errorResponse(error, 'GET /api/singing/updates');
   }
 }

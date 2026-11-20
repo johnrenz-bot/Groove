@@ -543,6 +543,7 @@ const navTl: Record<string, NavText> = {
   },
   'find-coaches': { label: 'Humanap ng mga Coach', description: 'Tumingin at mag-book ng verified na coach' },
   groovey: { label: 'Groovey AI', description: 'Tanungin si Groovey tungkol sa performing arts' },
+  builder: { label: 'Shirt Builder', description: 'Mag-disenyo ng custom na jersey tee gamit ang sarili mong artwork' },
   'pa-dance': { label: 'Sayaw', description: 'Hip-hop, contemporary at tradisyonal na choreography' },
   'pa-singing': { label: 'Pag-awit', description: 'Vocal coaching, harmonies at stage presence' },
   'pa-acting': { label: 'Pag-arte', description: 'Method acting, character work at scene study' },

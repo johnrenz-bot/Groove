@@ -11,7 +11,7 @@ import {
   type FaqCategory,
 } from '@/lib/faq/faq-data';
 import { FaqAccordion } from './FaqAccordion';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * THE FAQ BROWSER — search, category filter, and the accordion list.

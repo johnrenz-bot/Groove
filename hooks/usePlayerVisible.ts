@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { PLAYER_ROUTES, type PlayerRouteRule } from '@/config/player-routes';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 
 /** SSR-safe hash reader (no `window` access during render). */
 function readHash(): string {

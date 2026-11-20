@@ -39,10 +39,9 @@
 -- ------------------------------------------------------------------------------
 DO $$
 BEGIN
-    SELECT 1 FROM pg_proc WHERE proname = 'is_admin';
-EXCEPTION
-    WHEN undefined_table THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'is_admin') THEN
         RAISE EXCEPTION 'Run supabase/schema.sql and supabase/admin_hardening.sql first';
+    END IF;
 END $$;
 
 -- ------------------------------------------------------------------------------

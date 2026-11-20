@@ -34,8 +34,7 @@ import {
 
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
-import { getInitials } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
+import { getInitials, cn } from '@/lib/utils';
 
 export interface LeaderboardUser {
   id: string;
@@ -284,7 +283,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
       <div className="  p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-500  ">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-soft text-warning  ">
               <Trophy className="h-4 w-4" />
             </div>
             <div>
@@ -349,7 +348,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
           </div>
         ) : error ? (
           <div className="py-6 px-4 text-center">
-            <p className="text-xs text-rose-400 dark:text-rose-300 mb-3">{error}</p>
+            <p className="text-xs text-danger mb-3">{error}</p>
             <button
               type="button"
               onClick={() => void fetchLeaderboardData()}
@@ -382,7 +381,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                         ? ' bg-slate-400/5'
                         : isTop3
                           ? ' bg-amber-700/5'
-                          : ' border border-border bg-muted/20 hover:'
+                          : 'border border-border bg-muted/20 hover:bg-muted/30'
                   )}
                 >
                   {/* Rank & User Info */}
@@ -390,11 +389,11 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                     {/* Rank Badge */}
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center font-bold text-xs">
                       {isTop1 ? (
-                        <Crown className="h-5 w-5 text-amber-500" />
+                        <Crown className="h-5 w-5 text-warning" />
                       ) : isTop2 ? (
-                        <Medal className="h-5 w-5 text-slate-300" />
+                        <Medal className="h-5 w-5 text-muted-foreground" />
                       ) : isTop3 ? (
-                        <Medal className="h-5 w-5 text-amber-700" />
+                        <Medal className="h-5 w-5 text-warning" />
                       ) : (
                         <span className="font-mono text-muted-foreground">#{rank}</span>
                       )}
@@ -428,7 +427,7 @@ export function CommunityLeaderboard({ className, compact = false }: CommunityLe
                           {user.name}
                         </span>
                         {user.role === 'coach' && (
-                          <span className="rounded bg-sky-500/15 px-1 text-[9px] font-bold text-sky-400  ">
+                          <span className="rounded bg-info-soft px-1 text-[9px] font-bold text-info  ">
                             Coach
                           </span>
                         )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface AttributionFooterProps {
   /** Accessible name for the page-level attribution landmark. */

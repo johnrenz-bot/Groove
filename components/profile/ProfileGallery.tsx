@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 import { useSignedMedia, type ProfileMediaItem } from '@/features/community/components/SignedMedia';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { FileUpload } from '@/components/auth/ui/FileUpload';
 import { Modal } from '@/components/ui/Modal';
 
@@ -209,7 +209,7 @@ export function ProfileGallery({
         );
       })}
       {mode === 'owner' && (
-        <div className="overflow-hidden rounded-[1.25rem] border-2 border-dashed border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.02)]">
+        <div className="overflow-hidden rounded-[1.25rem] border-2 border-dashed border-border-strong bg-muted">
           <FileUpload
             id="gallery-upload"
             label="Add photos"
@@ -342,7 +342,7 @@ function GalleryCell({
       ref={sortable.setNodeRef}
       style={sortable.isDragging ? { zIndex: 2 } : undefined}
       className={cn(
-        'relative aspect-square overflow-hidden rounded-[1.25rem] bg-[#202020]',
+        'relative aspect-square overflow-hidden rounded-[1.25rem] bg-muted',
         'tile-gallery-cell',
         moreTile && 'col-span-2 row-span-2'
       )}
@@ -554,7 +554,7 @@ function Lightbox({
               className={cn(
                 'h-12 w-12 flex-none overflow-hidden rounded-lg border transition',
                 i === index
-                  ? 'border-[var(--accent)] ring-2 ring-[rgba(245,138,24,0.35)]'
+                  ? 'border-[var(--accent)] ring-2 ring-[rgba(217, 180, 91,0.35)]'
                   : 'border-white/10 opacity-60 hover:opacity-100'
               )}
             >

@@ -59,7 +59,7 @@ import {
   POPULAR_PHILIPPINE_CITIES,
   type PhilippineCity,
 } from '@/lib/studios/philippineCities';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import StudioLocatorMap, { type MapStudio } from './StudioLocatorMap';
 
 const RADII = [1, 5, 10, 25, 50] as const;
@@ -1397,7 +1397,7 @@ export function StudioLocator({
                 <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
-                <h2 className="truncate font-serif text-base font-bold leading-tight tracking-tight text-foreground">
+                <h2 className="truncate font-sans text-base font-bold leading-tight tracking-tight text-foreground">
                   {title}
                 </h2>
                 <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -2010,7 +2010,7 @@ export function StudioLocator({
               ref={sheetRef}
               style={sheetHeight !== null ? { height: sheetHeight } : undefined}
               className={cn(
-                'g-locator-panel absolute inset-x-0 bottom-0 z-[500] flex flex-col overflow-hidden rounded-t-3xl bg-card/95 shadow-[0_-12px_48px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-[height] duration-300 ease-out motion-reduce:transition-none',
+                'g-locator-panel absolute inset-x-0 bottom-0 z-[500] flex flex-col overflow-hidden rounded-t-3xl bg-card/95  backdrop-blur-xl transition-[height] duration-300 ease-out motion-reduce:transition-none',
                 sheetDragging && 'transition-none',
                 sheetOpen ? 'h-[82%]' : 'h-[84px]',
                 'lg:inset-y-auto lg:bottom-4 lg:left-auto lg:right-4 lg:top-24 lg:h-auto lg:min-h-0 lg:w-[380px] lg:rounded-2xl lg:shadow-[var(--shadow-lg)] lg:transition-none'

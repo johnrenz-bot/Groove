@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface OutlineButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
@@ -17,7 +17,7 @@ export const OutlineButton = React.forwardRef<HTMLButtonElement, OutlineButtonPr
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'group inline-flex items-center justify-center gap-2 rounded-[12px] border border-border bg-card/60 px-5 py-3 text-sm font-semibold text-foreground backdrop-blur-[12px]',
+          'group inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card/60 px-5 py-3 text-sm font-semibold text-foreground backdrop-blur-[12px]',
           'transition-all duration-200 hover:border-accent-border hover:bg-accent-soft hover:text-accent-text hover:-translate-y-px',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           'disabled:pointer-events-none disabled:opacity-50 active:translate-y-0',

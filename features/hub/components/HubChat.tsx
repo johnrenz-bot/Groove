@@ -17,7 +17,7 @@ import {
   sendMessage,
 } from '@/lib/messenger/queries';
 import { historyFromEvents, type BookingEvent } from '@/features/appointments/services/bookingStatus';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { ELLIPSIS, EM_DASH } from '@/lib/typography';
 import type { Message, Profile } from '@/lib/types';
 
@@ -182,18 +182,25 @@ export function HubChat({
             </span>
           </div>
         ) : groups.length === 0 ? (
-          <p className="py-10 text-center text-xs text-muted-foreground">
-            No messages yet {EM_DASH} say hello.
-          </p>
+          <div className="mx-auto flex max-w-xs flex-col items-center gap-3 py-12 text-center">
+            {/* Editorial empty state */}
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-border bg-accent-soft text-accent-text">
+              <Send className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <p className="font-sans text-base font-semibold text-foreground">A blank stage</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              No messages yet {EM_DASH} say hello and discuss the details of your session.
+            </p>
+          </div>
         ) : (
           groups.map((group) => (
             <section key={group.day} aria-label={group.day}>
               <div className="my-3 flex items-center gap-3">
-                <span className="h-px flex-1 bg-divider" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                <span className="h-px flex-1 bg-[linear-gradient(90deg,transparent,var(--accent-border))]" />
+                <span className="rounded-full border border-border bg-card px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                   {group.day}
                 </span>
-                <span className="h-px flex-1 bg-divider" />
+                <span className="h-px flex-1 bg-[linear-gradient(270deg,transparent,var(--accent-border))]" />
               </div>
               <ul className="space-y-2">
                 {group.rows.map((item, index) => {
@@ -227,10 +234,10 @@ export function HubChat({
                     >
                       <div
                         className={cn(
-                          'max-w-[78%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed whitespace-pre-line break-words sm:max-w-[70%]',
+                          'max-w-[78%] whitespace-pre-line break-words rounded-2xl px-3.5 py-2 text-xs leading-relaxed sm:max-w-[70%]',
                           mine
-                            ? 'bg-accent text-accent-foreground'
-                            : ' text-foreground'
+                            ? 'rounded-br-md bg-gradient-to-br from-[#e4c989] to-[#d6b36a] text-[#141414] '
+                            : 'rounded-bl-md border border-border bg-elevated text-foreground '
                         )}
                       >
                         {msg.media_path && msg.media_path.match(/\.(png|jpe?g|gif|webp|avif|mp4|mov)$/i) ? (
@@ -263,7 +270,7 @@ export function HubChat({
               type="button"
               disabled={sending}
               onClick={() => void sendText(chip)}
-              className="inline-flex h-8 shrink-0 cursor-pointer items-center rounded-full border border-border bg-card px-3 text-[10px] font-semibold text-muted-foreground transition hover:border-accent-border hover:border-accent/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-8 shrink-0 cursor-pointer items-center rounded-full border border-border bg-card px-3 text-[10px] font-semibold text-muted-foreground transition hover:border-accent-border hover:bg-accent-soft hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               {chip}
             </button>
@@ -286,7 +293,7 @@ export function HubChat({
           onChange={(event) => setDraft(event.target.value)}
           placeholder={`Message ${partner.firstname ?? partner.username ?? 'them'}...`}
           autoComplete="off"
-          className="h-11 min-w-0 flex-1 rounded-full border border-border bg-card px-4 text-xs text-foreground outline-none placeholder:text-subtle-foreground focus:ring-2 focus:ring-ring"
+          className="h-11 min-w-0 flex-1 rounded-full border border-border bg-card px-4 text-xs text-foreground outline-none placeholder:text-subtle-foreground focus:border-accent-border focus:ring-2 focus:ring-accent-soft"
         />
         <button
           type="submit"

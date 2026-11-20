@@ -2,7 +2,7 @@
 
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { Sparkles, Users, type LucideIcon } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export type DirectoryTabValue = 'coaches' | 'community';
 
@@ -20,9 +20,9 @@ const TABS: readonly TabDef[] = [
 /**
  * Accessible segmented control for the directory views.
  *
- * role="tablist" with a shared track and ONE orange pill that slides between
+ * role="tablist" with a shared track and ONE gold pill that slides between
  * the two tabs (measured from the DOM, never guessed). Line icons only;
- * the pill is the single orange surface in the header.
+ * the pill is the single gold surface in the header.
  */
 export function DirectoryTabs({
   value,
@@ -58,7 +58,7 @@ export function DirectoryTabs({
       role="tablist"
       aria-label="Directory sections"
       className={cn(
-        'relative flex w-full items-stretch gap-1 rounded-2xl border border-white/5 bg-[#161616] p-1 shadow-[var(--shadow-sm)] sm:w-fit',
+        'relative flex w-full items-stretch gap-1 rounded-2xl border border-divider bg-muted p-1 shadow-[var(--shadow-sm)] sm:w-fit',
         className
       )}
     >
@@ -86,7 +86,7 @@ export function DirectoryTabs({
             aria-controls={`directory-panel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'relative z-10 inline-flex min-h-[40px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold tracking-[0.01em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#161616] sm:flex-none sm:px-5',
+              'relative z-10 inline-flex min-h-[40px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold tracking-[0.01em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-muted sm:flex-none sm:px-5',
               selected ? 'text-accent-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >

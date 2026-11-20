@@ -38,7 +38,7 @@ import {
   SuccessModal,
   TermsModal,
 } from '@/components/auth/ui/Modal';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { getFeaturedLocationsDisplay, getFeaturedLocationsAddressSummary } from '@/lib/config/featuredLocations';
 import {
   DOCUMENT_EXTENSIONS,

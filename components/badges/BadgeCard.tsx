@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Lock } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { FeatureProgress } from '@/components/notifications/FeatureProgress';
 
 interface BadgeCardBadge {
@@ -86,7 +86,7 @@ export function BadgeCard({ badge, onClick, comingSoon = false }: BadgeCardProps
       className={cn(
         'g-card flex min-h-[112px] cursor-pointer items-center gap-3 p-3 transition-all',
         'hover:-translate-y-0.5 hover:shadow-md hover:',
-        isUnlocked && 'shadow-[0_0_14px_hsl(var(--success)/0.22)]'
+        isUnlocked && ''
       )}
     >
       {/* Left — badge image */}

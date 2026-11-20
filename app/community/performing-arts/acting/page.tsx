@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
-import { RouteSkeleton } from '@/components/loading/LoadingState';
-import { ActingCommunityPageServer } from '@/features/acting/components/ActingCommunityPageServer';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
+import { DisciplineCommunityPageServer } from '@/features/discipline/components/DisciplineCommunityPageServer';
 
 export const metadata: Metadata = {
   title: 'Acting & Stage Craft Community — Auditions, Conservatories, Monologues | GroovePH',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function ActingCommunityPage() {
   return (
     <React.Suspense fallback={<RouteSkeleton variant="hero" />}>
-      <ActingCommunityPageServer />
+      <DisciplineCommunityPageServer variant="acting" />
     </React.Suspense>
   );
 }

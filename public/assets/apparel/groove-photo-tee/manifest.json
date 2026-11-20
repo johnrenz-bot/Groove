@@ -1,0 +1,166 @@
+{
+  "model": "groove-photo-tee-v1",
+  "renderer": "photo-alpha-ingest-v1",
+  "note": "Photographic mockup derived from public/image/Shirts/<View>/image.png (garment on native transparency). Originals unmodified; base neutrally white-balanced for multiply zone compositing.",
+  "generatedAt": "2026-11-19T11:22:17.674Z",
+  "canvas": {
+    "width": 1536,
+    "height": 1024
+  },
+  "viewBox": {
+    "width": 1536,
+    "height": 1024
+  },
+  "views": {
+    "front": {
+      "mockup": "/assets/apparel/groove-photo-tee/front/mockup.png",
+      "mockupFallback": "/assets/apparel/groove-photo-tee/front/mockup.png",
+      "sourceMockup": "/image/Shirts/Front/image.png",
+      "shading": "/assets/apparel/groove-photo-tee/front/shading.png",
+      "highlight": "/assets/apparel/groove-photo-tee/front/highlight.png",
+      "garment": {
+        "x": 174,
+        "y": 15,
+        "width": 1187,
+        "height": 982
+      },
+      "masks": {
+        "silhouette": "/assets/apparel/groove-photo-tee/front/masks/silhouette-mask.png",
+        "body": "/assets/apparel/groove-photo-tee/front/masks/body-mask.png",
+        "left-sleeve": "/assets/apparel/groove-photo-tee/front/masks/left-sleeve-mask.png",
+        "right-sleeve": "/assets/apparel/groove-photo-tee/front/masks/right-sleeve-mask.png",
+        "cuffs": "/assets/apparel/groove-photo-tee/front/masks/cuffs-mask.png",
+        "collar": "/assets/apparel/groove-photo-tee/front/masks/collar-mask.png",
+        "printable": "/assets/apparel/groove-photo-tee/front/masks/printable-mask.png"
+      },
+      "boxes": {
+        "silhouette": {
+          "x": 174,
+          "y": 15,
+          "width": 1187,
+          "height": 982
+        },
+        "body": {
+          "x": 383,
+          "y": 15,
+          "width": 778,
+          "height": 982
+        },
+        "left-sleeve": {
+          "x": 174,
+          "y": 126,
+          "width": 271,
+          "height": 486
+        },
+        "right-sleeve": {
+          "x": 1091,
+          "y": 126,
+          "width": 270,
+          "height": 486
+        },
+        "cuffs": {
+          "x": 174,
+          "y": 126,
+          "width": 1187,
+          "height": 486
+        },
+        "collar": {
+          "x": 607,
+          "y": 20,
+          "width": 322,
+          "height": 145
+        },
+        "printable": {
+          "x": 481,
+          "y": 177,
+          "width": 579,
+          "height": 752
+        }
+      },
+      "coverage": {
+        "silhouette": 100,
+        "body": 83.11766889894253,
+        "sleeves": 14.67589079558112,
+        "cuffs": 3.536930060217694,
+        "collar": 2.2064403054763475,
+        "printable": 51.152786927872526,
+        "leakPixelsOutsideSilhouette": 0
+      }
+    },
+    "back": {
+      "mockup": "/assets/apparel/groove-photo-tee/back/mockup.png",
+      "mockupFallback": "/assets/apparel/groove-photo-tee/back/mockup.png",
+      "sourceMockup": "/image/Shirts/Back/image.png",
+      "shading": "/assets/apparel/groove-photo-tee/back/shading.png",
+      "highlight": "/assets/apparel/groove-photo-tee/back/highlight.png",
+      "garment": {
+        "x": 194,
+        "y": 24,
+        "width": 1151,
+        "height": 970
+      },
+      "masks": {
+        "silhouette": "/assets/apparel/groove-photo-tee/back/masks/silhouette-mask.png",
+        "body": "/assets/apparel/groove-photo-tee/back/masks/body-mask.png",
+        "left-sleeve": "/assets/apparel/groove-photo-tee/back/masks/left-sleeve-mask.png",
+        "right-sleeve": "/assets/apparel/groove-photo-tee/back/masks/right-sleeve-mask.png",
+        "cuffs": "/assets/apparel/groove-photo-tee/back/masks/cuffs-mask.png",
+        "collar": "/assets/apparel/groove-photo-tee/back/masks/collar-mask.png",
+        "printable": "/assets/apparel/groove-photo-tee/back/masks/printable-mask.png"
+      },
+      "boxes": {
+        "silhouette": {
+          "x": 194,
+          "y": 24,
+          "width": 1151,
+          "height": 970
+        },
+        "body": {
+          "x": 397,
+          "y": 26,
+          "width": 746,
+          "height": 968
+        },
+        "left-sleeve": {
+          "x": 194,
+          "y": 153,
+          "width": 262,
+          "height": 444
+        },
+        "right-sleeve": {
+          "x": 1084,
+          "y": 154,
+          "width": 261,
+          "height": 446
+        },
+        "cuffs": {
+          "x": 194,
+          "y": 153,
+          "width": 1151,
+          "height": 447
+        },
+        "collar": {
+          "x": 624,
+          "y": 24,
+          "width": 290,
+          "height": 69
+        },
+        "printable": {
+          "x": 494,
+          "y": 164,
+          "width": 553,
+          "height": 763
+        }
+      },
+      "coverage": {
+        "silhouette": 100,
+        "body": 84.81174904958503,
+        "sleeves": 13.845751498665809,
+        "cuffs": 3.623086740774743,
+        "collar": 1.3424994517491584,
+        "printable": 53.36231003619136,
+        "leakPixelsOutsideSilhouette": 0
+      }
+    }
+  }
+}

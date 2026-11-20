@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { SectionHeader } from '@/features/dance/components/SectionHeader';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
 import { FeaturedRosterSelector } from '@/features/performing-arts/components/FeaturedRosterSelector';
-import { FEATURED_THEATER_COMPANIES, type TheaterCompany } from '../data/theaterCompanies';
-import { TheaterCompanyDossierCard } from './TheaterCompanyDossierCard';
+import { FEATURED_THEATER_COMPANIES, type TheaterCompany } from '../data/theaterCompanies.ts';
+import { TheaterCompanyDossierCard } from './TheaterCompanyDossierCard.tsx';
 
 function findCompanyFromUrl(): TheaterCompany | null {
   if (typeof window === 'undefined') return null;
@@ -63,7 +63,7 @@ export function FeaturedTheaterCompaniesRoster() {
           title={
             <span id="featured-theater-title">
               Featured{' '}
-              <span className="font-normal italic text-[var(--crew-text-muted)]">
+              <span className="font-normal text-[var(--crew-text-muted)]">
                 Theater Companies, Stage Actors &amp; Productions
               </span>
             </span>

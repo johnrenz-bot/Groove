@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { ChevronLeft, ChevronRight, ArrowUpDown, type LucideIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUpDown, Search, type LucideIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Panel, PanelHeader } from '@/components/ui/Panel';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * The table primitive every admin list uses.
@@ -129,9 +129,9 @@ export function AdminTable<T extends { id: string | number }>({
       {/* Horizontal scroll containment: on a phone this scrolls sideways instead
           of breaking the dashboard layout. */}
       <div className="g-scroll w-full overflow-x-auto">
-        <table className="w-full min-w-[640px]  text-left">
+        <table className="adm-table w-full min-w-[640px] text-left">
           <thead>
-            <tr className="  bg-muted">
+            <tr className="adm-thead">
               {columns.map((c) => (
                 <th
                   key={c.key}
@@ -169,8 +169,8 @@ export function AdminTable<T extends { id: string | number }>({
                 key={rowKey(row)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 className={cn(
-                  '  transition-colors last:',
-                  onRowClick && 'cursor-pointer hover:bg-muted'
+                  'adm-row transition-colors last:border-b-0',
+                  onRowClick && 'cursor-pointer'
                 )}
               >
                 {columns.map((c) => (
@@ -215,18 +215,22 @@ export function AdminToolbar({
   className?: string;
 }) {
   return (
-    <div className={cn('flex flex-col gap-3 sm:flex-row sm:items-center', className)}>
+    <div className={cn('adm-toolbar flex flex-col gap-3 sm:flex-row sm:items-center', className)}>
       <div className="relative flex-1">
         <label htmlFor="admin-search" className="sr-only">
           Search
         </label>
+        <Search
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle-foreground"
+          aria-hidden="true"
+        />
         <input
           id="admin-search"
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="g-input cursor-text pl-4"
+          className="g-input h-11 cursor-text rounded-full border-border bg-card pl-11 pr-4"
         />
       </div>
       {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
@@ -362,7 +366,7 @@ export function Pagination({
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           aria-label="Previous page"
-          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent-border hover:text-accent-text disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -374,7 +378,7 @@ export function Pagination({
           onClick={() => onPageChange(page + 1)}
           disabled={page >= pageCount}
           aria-label="Next page"
-          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent-border hover:text-accent-text disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronRight className="h-4 w-4" />
         </button>

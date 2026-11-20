@@ -14,14 +14,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image as ImageIcon, Loader2, Send, Sparkles, X } from 'lucide-react';
 
 import { createClient } from '@/lib/supabase/client';
-import { getInitials } from '@/lib/utils';
+import { getInitials, cn } from '@/lib/utils';
 import type { CommunityPost, Profile } from '@/lib/types';
 import type { Community } from '../utils/community';
 import {
   uploadCommunityMedia,
   validateMedia,
 } from '../utils/communityMedia';
-import { cn } from '@/components/shared/cn';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 function describeError(err: unknown, fallback: string): string {

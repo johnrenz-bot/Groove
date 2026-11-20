@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { SectionHeader } from '@/features/dance/components/SectionHeader';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
 import { FeaturedRosterSelector } from '@/features/performing-arts/components/FeaturedRosterSelector';
-import { FEATURED_ACTING_COMPANIES, type ActingCompany } from '../data/actors';
-import { ActorDossierCard } from './ActorDossierCard';
+import { FEATURED_ACTING_COMPANIES, type ActingCompany } from '../data/actors.ts';
+import { ActorDossierCard } from './ActorDossierCard.tsx';
 
 function findCompanyFromUrl(): ActingCompany | null {
   if (typeof window === 'undefined') return null;
@@ -63,7 +63,7 @@ export function FeaturedActorsRoster() {
           title={
             <span id="featured-actors-title">
               Featured{' '}
-              <span className="font-normal italic text-[var(--crew-text-muted)]">
+              <span className="font-normal text-[var(--crew-text-muted)]">
                 Actors, Acting Groups &amp; Screen Artists
               </span>
             </span>

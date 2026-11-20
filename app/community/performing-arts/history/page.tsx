@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import React from 'react';
-import { RouteSkeleton } from '@/components/loading/LoadingState';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
 import { PerformingArtsHistoryPage } from '@/features/performing-arts/components/PerformingArtsHistoryPage';
 
 export const metadata: Metadata = {

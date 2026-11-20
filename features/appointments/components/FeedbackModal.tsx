@@ -172,14 +172,14 @@ export default function FeedbackModal({
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
-                    className="p-1 transition-transform hover:scale-125 focus: cursor-pointer"
+                    className="p-1 transition-transform hover:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
                     aria-label={`Rate ${star} star`}
                   >
                     <Star
                       className={`h-7 w-7 transition-colors ${
                         (hoverRating || rating) >= star
-                          ? 'fill-amber-400 text-warning'
-                          : 'text-'
+                          ? 'fill-warning text-warning'
+                          : 'text-muted-foreground'
                       }`}
                     />
                   </button>

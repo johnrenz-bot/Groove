@@ -2,7 +2,7 @@
 
 import React, { useCallback, useId, useRef } from 'react';
 import { Plus } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * ONE QUESTION, ONE ANSWER — the disclosure primitive behind every FAQ list.

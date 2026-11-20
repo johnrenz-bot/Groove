@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { CalendarEntry } from '../../lib/entries';
 import { statusDotClass } from '../../lib/entries';
 import {

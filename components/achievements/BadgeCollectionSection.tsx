@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CheckCircle2, Circle, Lock, RefreshCw, Trophy } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { InfoTip } from '@/components/ui/InfoTip';
 import { AchievementModal } from './AchievementModal';
 import { AchievementsModal } from './AchievementsModal';
@@ -249,7 +249,7 @@ export function BadgeCollectionSection({
 
               {/* Earned date (only when unlocked and date is available) */}
               {isUnlocked && unlockedAt && (
-                <p className="text-xs text-green-700">
+                <p className="text-xs text-success">
                   Earned{' '}
                   {new Date(unlockedAt).toLocaleDateString('en-PH', {
                     year: 'numeric',
@@ -286,7 +286,7 @@ export function BadgeCollectionSection({
                       <li key={task.slug} className="flex items-start gap-2">
                         {task.is_completed ? (
                           <CheckCircle2
-                            className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-green-600"
+                            className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-success"
                             aria-hidden="true"
                           />
                         ) : (

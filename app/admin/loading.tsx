@@ -1,5 +1,5 @@
 import React from 'react';
-import { RouteSkeleton } from '@/components/loading/LoadingState';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
 
 /**
  * Admin console loading boundary — instant skeleton on slow segments.

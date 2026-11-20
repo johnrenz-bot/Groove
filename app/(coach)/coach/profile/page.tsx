@@ -16,6 +16,7 @@ import { EMPTY_ADDRESS, type Tab } from './types/coachProfile.types';
 import { CoachProfileReviews } from './components/CoachProfileReviews';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import {
   ArrowLeft,
   Camera,
@@ -37,12 +38,18 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ProfileGallery } from '@/components/profile/ProfileGallery';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileShareButton } from '@/components/profile/ProfileShareButton';
-import { PhotoCropModal } from '@/components/profile/PhotoCropModal';
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
 import { ProfileTabsNav } from '@/components/profile/ProfileTabsNav';
 import { ProfileEditNav } from '@/components/profile/ProfileEditNav';
 import { CompletionTile } from '@/components/profile/bento/ProfileTiles';
 import { formatMemberSince } from '@/lib/profileDisplay';
+
+// PhotoCropModal pulls in react-easy-crop (~170 KB); it only renders after an
+// explicit edit action, so it is split out of the profile routes' initial bundle.
+const PhotoCropModal = dynamic(
+  () => import('@/components/profile/PhotoCropModal').then((m) => m.PhotoCropModal),
+  { ssr: false }
+);
 import { ProfileSummary, VerificationStatus } from '@/components/profile/ProfileSummary';
 import { ProfileLinksCard, type ProfileLinks } from '@/components/profile/ProfileLinksCard';
 import { SignInMethodCard } from '@/components/profile/SignInMethodCard';
@@ -1101,7 +1108,7 @@ export default function CoachProfilePage() {
           </section>
 
           {/* Sticky action bar — always within reach while editing. */}
-          <div className="sticky bottom-4 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border bg-[rgba(18,18,18,0.88)] px-4 py-3 backdeop-blue-md">
+          <div className="sticky bottom-4 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/90 px-4 py-3 backdeop-blue-md">
             <p className="flex min-w-0 items-center gap-2 text-[11px] font-medium text-muted-foreground">
               <span
                 aria-hidden="true"

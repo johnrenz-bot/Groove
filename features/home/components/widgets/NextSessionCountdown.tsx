@@ -71,7 +71,7 @@ export function NextSessionCountdown({
             {isToday ? 'Today' : target ? target.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : 'Upcoming'}
             {session.start_time ? ` · ${session.start_time}` : ''}
           </p>
-          <p className="mt-3 font-serif text-5xl font-bold tabular-nums tracking-tight text-foreground" aria-live="polite">
+          <p className="mt-3 font-sans text-5xl font-semibold tabular-nums tracking-tight text-accent-text" aria-live="polite">
             {remaining && !remaining.past ? (
               remaining.days > 0 ? (
                 <>

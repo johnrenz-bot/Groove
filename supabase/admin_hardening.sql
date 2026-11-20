@@ -22,10 +22,9 @@
 -- time rather than silently denying every admin operation at runtime.
 DO $$
 BEGIN
-  SELECT 1 FROM pg_proc WHERE proname = 'is_admin';
-EXCEPTION
-  WHEN undefined_table THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'is_admin') THEN
     RAISE EXCEPTION 'Run supabase/schema.sql before admin_hardening.sql';
+  END IF;
 END $$;
 
 CREATE OR REPLACE FUNCTION public.is_admin()
@@ -80,6 +79,7 @@ ALTER TABLE public.admin_activity_log ENABLE ROW LEVEL SECURITY;
 -- Admins read the full log; nobody writes through RLS — the app records entries
 -- from the server route handler using the service-role client, so a compromised
 -- client session cannot forge an audit record.
+DROP POLICY IF EXISTS "Admins can view admin activity log" ON public.admin_activity_log;
 CREATE POLICY "Admins can view admin activity log" ON public.admin_activity_log
     FOR SELECT USING (public.is_admin());
 
@@ -104,10 +104,12 @@ $$ LANGUAGE sql SECURITY DEFINER;
 
 -- Appointments: admins need to cancel/delete, and to see every booking.
 DROP POLICY IF EXISTS "Admins have full access to appointments" ON public.appointments;
+DROP POLICY IF EXISTS "Admins have full access to appointments" ON public.appointments;
 CREATE POLICY "Admins have full access to appointments" ON public.appointments
     FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Agreements: admins manage the contract register.
+DROP POLICY IF EXISTS "Admins can manage agreements" ON public.agreements;
 DROP POLICY IF EXISTS "Admins can manage agreements" ON public.agreements;
 CREATE POLICY "Admins can manage agreements" ON public.agreements
     FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
@@ -115,19 +117,23 @@ CREATE POLICY "Admins can manage agreements" ON public.agreements
 -- Coach / client detail tables: the admin console edits talent, fee, duration,
 -- payment method, and review verification documents.
 DROP POLICY IF EXISTS "Admins can manage coach profiles" ON public.coach_profiles;
+DROP POLICY IF EXISTS "Admins can manage coach profiles" ON public.coach_profiles;
 CREATE POLICY "Admins can manage coach profiles" ON public.coach_profiles
     FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can manage client profiles" ON public.client_profiles;
 DROP POLICY IF EXISTS "Admins can manage client profiles" ON public.client_profiles;
 CREATE POLICY "Admins can manage client profiles" ON public.client_profiles
     FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Feedback moderation: admins remove abuse from the reviews surface.
 DROP POLICY IF EXISTS "Admins can manage feedback" ON public.feedbacks;
+DROP POLICY IF EXISTS "Admins can manage feedback" ON public.feedbacks;
 CREATE POLICY "Admins can manage feedback" ON public.feedbacks
     FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Tickets: admins delete spam outright, not just close it.
+DROP POLICY IF EXISTS "Admins can delete tickets" ON public.tickets;
 DROP POLICY IF EXISTS "Admins can delete tickets" ON public.tickets;
 CREATE POLICY "Admins can delete tickets" ON public.tickets
     FOR DELETE USING (public.is_admin());
@@ -135,15 +141,18 @@ CREATE POLICY "Admins can delete tickets" ON public.tickets
 -- Messages: admins moderate reported conversations. Read-only for admins — the
 -- console surfaces counts and participants, never message bodies.
 DROP POLICY IF EXISTS "Admins can view all messages" ON public.messages;
+DROP POLICY IF EXISTS "Admins can view all messages" ON public.messages;
 CREATE POLICY "Admins can view all messages" ON public.messages
     FOR SELECT USING (public.is_admin());
 
 -- Community moderation.
 DROP POLICY IF EXISTS "Admins can delete community posts" ON public.community_posts;
+DROP POLICY IF EXISTS "Admins can delete community posts" ON public.community_posts;
 CREATE POLICY "Admins can delete community posts" ON public.community_posts
     FOR DELETE USING (public.is_admin());
 
 -- Admins broadcast and clear notifications from the console.
+DROP POLICY IF EXISTS "Admins can manage notifications" ON public.notifications;
 DROP POLICY IF EXISTS "Admins can manage notifications" ON public.notifications;
 CREATE POLICY "Admins can manage notifications" ON public.notifications
     FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
@@ -153,6 +162,7 @@ CREATE POLICY "Admins can manage notifications" ON public.notifications
 --    another admin. Without this, any admin could mint a second admin and the
 --    email pin would be defeated by a second account.
 -- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Admins can insert profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can insert profiles" ON public.profiles;
 CREATE POLICY "Admins can insert profiles" ON public.profiles
     FOR INSERT WITH CHECK (public.is_admin());

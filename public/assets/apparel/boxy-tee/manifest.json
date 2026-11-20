@@ -1,0 +1,184 @@
+{
+  "model": "groove-boxy-tee-v2",
+  "renderer": "procedural-studio-v1",
+  "note": "Rendered studio mockup (computer graphics), not a photograph. Swap in photography with scripts/build-apparel-assets.mjs --front/--back.",
+  "generatedAt": "2026-11-19T10:30:35.517Z",
+  "canvas": {
+    "width": 1200,
+    "height": 1440
+  },
+  "viewBox": {
+    "width": 1200,
+    "height": 1440
+  },
+  "views": {
+    "front": {
+      "mockup": "/assets/apparel/boxy-tee/front/mockup.webp",
+      "mockupFallback": "/assets/apparel/boxy-tee/front/mockup-photo.png",
+      "shading": "/assets/apparel/boxy-tee/front/shading.png",
+      "highlight": "/assets/apparel/boxy-tee/front/highlight.png",
+      "masks": {
+        "silhouette": "/assets/apparel/boxy-tee/front/masks/silhouette-mask.png",
+        "body": "/assets/apparel/boxy-tee/front/masks/body-mask.png",
+        "left-sleeve": "/assets/apparel/boxy-tee/front/masks/left-sleeve-mask.png",
+        "right-sleeve": "/assets/apparel/boxy-tee/front/masks/right-sleeve-mask.png",
+        "cuffs": "/assets/apparel/boxy-tee/front/masks/cuffs-mask.png",
+        "collar": "/assets/apparel/boxy-tee/front/masks/collar-mask.png",
+        "side-panels": "/assets/apparel/boxy-tee/front/masks/side-panels-mask.png",
+        "hem-tag": "/assets/apparel/boxy-tee/front/masks/hem-tag-mask.png",
+        "printable": "/assets/apparel/boxy-tee/front/masks/printable-mask.png"
+      },
+      "boxes": {
+        "silhouette": {
+          "x": 114,
+          "y": 262,
+          "width": 972,
+          "height": 898
+        },
+        "body": {
+          "x": 247,
+          "y": 262,
+          "width": 705,
+          "height": 898
+        },
+        "left-sleeve": {
+          "x": 114,
+          "y": 336,
+          "width": 181,
+          "height": 213
+        },
+        "right-sleeve": {
+          "x": 905,
+          "y": 336,
+          "width": 181,
+          "height": 213
+        },
+        "cuffs": {
+          "x": 114,
+          "y": 393,
+          "width": 972,
+          "height": 156
+        },
+        "collar": {
+          "x": 496,
+          "y": 262,
+          "width": 208,
+          "height": 120
+        },
+        "side-panels": {
+          "x": 202,
+          "y": 556,
+          "width": 796,
+          "height": 612
+        },
+        "hem-tag": {
+          "x": 716,
+          "y": 1106,
+          "width": 88,
+          "height": 32
+        },
+        "printable": {
+          "x": 114,
+          "y": 336,
+          "width": 972,
+          "height": 760
+        }
+      },
+      "coverage": {
+        "silhouette": 36.09461805555556,
+        "body": 33.40700231481482,
+        "left-sleeve": 1.3396412037037035,
+        "right-sleeve": 1.3398726851851852,
+        "cuffs": 0.7645833333333334,
+        "collar": 0.1971064814814815,
+        "side-panels": 10.483680555555555,
+        "hem-tag": 0.16215277777777778,
+        "printable": 19.588483796296295
+      }
+    },
+    "back": {
+      "mockup": "/assets/apparel/boxy-tee/back/mockup.webp",
+      "mockupFallback": "/assets/apparel/boxy-tee/back/mockup-photo.png",
+      "shading": "/assets/apparel/boxy-tee/back/shading.png",
+      "highlight": "/assets/apparel/boxy-tee/back/highlight.png",
+      "masks": {
+        "silhouette": "/assets/apparel/boxy-tee/back/masks/silhouette-mask.png",
+        "body": "/assets/apparel/boxy-tee/back/masks/body-mask.png",
+        "left-sleeve": "/assets/apparel/boxy-tee/back/masks/left-sleeve-mask.png",
+        "right-sleeve": "/assets/apparel/boxy-tee/back/masks/right-sleeve-mask.png",
+        "cuffs": "/assets/apparel/boxy-tee/back/masks/cuffs-mask.png",
+        "collar": "/assets/apparel/boxy-tee/back/masks/collar-mask.png",
+        "side-panels": "/assets/apparel/boxy-tee/back/masks/side-panels-mask.png",
+        "hem-tag": "/assets/apparel/boxy-tee/back/masks/hem-tag-mask.png",
+        "printable": "/assets/apparel/boxy-tee/back/masks/printable-mask.png"
+      },
+      "boxes": {
+        "silhouette": {
+          "x": 114,
+          "y": 262,
+          "width": 972,
+          "height": 898
+        },
+        "body": {
+          "x": 247,
+          "y": 262,
+          "width": 705,
+          "height": 898
+        },
+        "left-sleeve": {
+          "x": 114,
+          "y": 336,
+          "width": 181,
+          "height": 213
+        },
+        "right-sleeve": {
+          "x": 905,
+          "y": 336,
+          "width": 181,
+          "height": 213
+        },
+        "cuffs": {
+          "x": 114,
+          "y": 393,
+          "width": 972,
+          "height": 156
+        },
+        "collar": {
+          "x": 496,
+          "y": 262,
+          "width": 208,
+          "height": 85
+        },
+        "side-panels": {
+          "x": 202,
+          "y": 556,
+          "width": 796,
+          "height": 612
+        },
+        "hem-tag": {
+          "x": 716,
+          "y": 1106,
+          "width": 88,
+          "height": 32
+        },
+        "printable": {
+          "x": 114,
+          "y": 336,
+          "width": 972,
+          "height": 760
+        }
+      },
+      "coverage": {
+        "silhouette": 36.39403935185185,
+        "body": 33.70815972222222,
+        "left-sleeve": 1.3396412037037035,
+        "right-sleeve": 1.3398726851851852,
+        "cuffs": 0.7645833333333334,
+        "collar": 0.1960648148148148,
+        "side-panels": 10.483680555555555,
+        "hem-tag": 0.16215277777777778,
+        "printable": 19.588483796296295
+      }
+    }
+  }
+}

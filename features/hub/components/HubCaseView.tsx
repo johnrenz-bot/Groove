@@ -28,7 +28,7 @@ import {
   Hash,
   Tag,
 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn, getInitials } from '@/lib/utils';
 import {
   formatBookingDate,
   formatClock,
@@ -38,7 +38,6 @@ import { Badge } from '@/components/ui/Badge';
 import { deriveStepperSteps } from '../services/stepper';
 import { stampMap } from '../services/stamps';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
-import { getInitials } from '@/lib/utils';
 import { SignoffStepper } from './SignoffStepper';
 import { BookingAgreementPanel } from '@/features/appointments/components/BookingAgreementPanel';
 import type { BookingDetail } from '@/features/appointments/services/bookingService';
@@ -509,7 +508,7 @@ export function HubCaseView({
                 </p>
               )}
               {appointment.message && (
-                <blockquote className="mt-2 border-l-2   border-accent/50 pl-3 text-[11px] italic text-muted-foreground">
+                <blockquote className="mt-2 border-l-2 border-border pl-3 text-[11px] text-muted-foreground">
                   &ldquo;{appointment.message}&rdquo;
                 </blockquote>
               )}

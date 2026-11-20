@@ -1,10 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, MapPin, Check, Building2 } from 'lucide-react';
 
 import { PublicLayout } from '@/components/shared/PublicLayout';
 import { Footer } from '@/components/shared/Footer';
-import { GlassCard } from '@/components/ui/GlassCard';
 import { GradientButton } from '@/components/ui/GradientButton';
 import { OutlineButton } from '@/components/ui/OutlineButton';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -24,14 +24,18 @@ export async function LandingPage() {
   const stats = await getLandingStats();
   const studios = CURATED_STUDIOS.slice(0, 3);
 
+  // Database-backed numbers only. A stat the query could not answer arrives
+  // as 0 and is hidden rather than replaced with a made-up figure.
   const statItems = [
-    { value: (stats.coaches > 0 ? stats.coaches : 18).toLocaleString(), label: 'Verified Coaches' },
-    { value: (stats.studios > 0 ? stats.studios : 6).toLocaleString(), label: 'Rehearsal Studios' },
-    { value: (stats.disciplines > 0 ? stats.disciplines : 4).toLocaleString(), label: 'Core Disciplines' },
-  ];
+    { value: stats.coaches, label: 'Verified Coaches' },
+    { value: stats.studios, label: 'Rehearsal Studios' },
+    { value: stats.disciplines, label: 'Core Disciplines' },
+  ]
+    .filter((s) => s.value > 0)
+    .map((s) => ({ ...s, display: s.value.toLocaleString() }));
 
   return (
-    <div className="groove-landing dark min-h-screen bg-[#111111] text-white overflow-x-hidden relative">
+    <div className="groove-landing dark min-h-screen bg-background text-white overflow-x-hidden relative">
       <PublicLayout showFooter={false}>
         {/* 1. HERO SECTION */}
         <HeroSection />
@@ -65,30 +69,32 @@ export async function LandingPage() {
             align="left"
           />
 
-          {/* Platform Stats Row */}
-          <div className="mt-12 grid gap-4 sm:grid-cols-3">
-            {statItems.map((s) => (
-              <div
-                key={s.label}
-                className="rounded-[22px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
-              >
-                <p className="text-4xl font-extrabold tracking-tight text-[#FF9B2F]">{s.value}</p>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-white/60">{s.label}</p>
-              </div>
-            ))}
-          </div>
+          {/* Platform Stats Row — only when the database answered with at least one real figure */}
+          {statItems.length > 0 && (
+            <div className="mt-12 grid gap-4 sm:grid-cols-3">
+              {statItems.map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-[22px] border border-white/5 bg-surface/70 p-6 backdrop-blur-md "
+                >
+                  <p className="font-sans text-5xl font-semibold tracking-[-0.02em] text-muted-foreground">{s.display}</p>
+                  <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/55">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Curated Studios Preview Cards */}
           {studios.length > 0 && (
             <div className="mt-8">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#FF9B2F]/80 flex items-center gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
                   <Building2 className="h-4 w-4" />
                   Featured Rehearsal Spaces
                 </span>
                 <Link
                   href="/users"
-                  className="text-xs font-semibold text-white/60 hover:text-[#FF9B2F] transition-colors flex items-center gap-1"
+                  className="text-xs font-semibold text-white/60 hover:text-muted-foreground transition-colors flex items-center gap-1"
                 >
                   View all spaces
                   <ArrowRight className="h-3 w-3" />
@@ -99,20 +105,20 @@ export async function LandingPage() {
                 {studios.map((studio) => (
                   <div
                     key={studio.id}
-                    className="group relative flex flex-col justify-between rounded-[22px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200 hover:border-[#FF9B2F]/40 hover:-translate-y-1"
+                    className="group relative flex flex-col justify-between rounded-[22px] border border-white/5 bg-surface/70 p-6 backdrop-blur-md  transition-all duration-200 hover:border-border hover:-translate-y-1"
                   >
                     <div>
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#FF9B2F]/25 bg-[#FF9B2F]/10 text-[#FF9B2F] shadow-[0_0_12px_rgba(255,155,47,0.15)]">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border bg-surface-2 text-muted-foreground ">
                           <MapPin className="h-5 w-5" />
                         </div>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#FF9B2F]/20 bg-[#FF9B2F]/10 px-2.5 py-0.5 text-[10px] font-semibold text-[#FF9B2F]">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
                           <Check className="h-2.5 w-2.5" />
                           Verified
                         </span>
                       </div>
 
-                      <h3 className="mt-4 text-base font-semibold text-white group-hover:text-[#FF9B2F] transition-colors">
+                      <h3 className="mt-4 text-base font-semibold text-white group-hover:text-muted-foreground transition-colors">
                         {studio.name}
                       </h3>
                       <p className="mt-1.5 text-xs leading-relaxed text-white/60">
@@ -135,29 +141,48 @@ export async function LandingPage() {
         {/* 7. CENTERED FAQ SECTION (6-8 Questions in Smooth Accordion + Contact Support Link) */}
         <FaqSection />
 
-        {/* 8. FINAL CTA */}
-        <section className="relative mx-auto max-w-[1240px] px-6 pb-24 sm:px-8 lg:px-10 lg:pb-32">
-          <FilipinoPatternBackground variant="subtle" />
-          <GlassCard glow className="p-10 text-center sm:p-16 border border-[#FF9B2F]/30 bg-[#121212]/80 backdrop-blur-xl shadow-[0_0_50px_rgba(255,155,47,0.15)]">
-            <h2 className="text-3xl font-bold text-white sm:text-4xl">Take the next step of your craft.</h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
-              Join performers, coaches and studios building a stronger performing arts scene in San Jose del Monte.
-            </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/register/client">
-                <GradientButton className="px-6 py-3.5">
-                  Get started free <ArrowRight className="h-4 w-4" />
-                </GradientButton>
-              </Link>
-              <Link href="/login">
-                <OutlineButton className="px-6 py-3.5">Sign in</OutlineButton>
-              </Link>
+        {/* 8. FINAL CTA — cinematic editorial statement band */}
+        <section className="relative mx-auto max-w-[1240px] px-4 pb-20 sm:px-8 lg:px-10 lg:pb-28">
+          <div className="relative overflow-hidden rounded-[28px] border border-white/10">
+            <Image
+              src="/image/bg/hero-theater.jpg"
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover object-[center_22%]"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-[#080808]/95 via-[#080808]/72 to-[#080808]/25"
+              aria-hidden="true"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-[#080808]/90 via-transparent to-transparent"
+              aria-hidden="true"
+            />
+            <div className="relative z-10 flex min-h-[26rem] flex-col justify-center gap-6 px-6 py-14 sm:min-h-[30rem] sm:px-12 lg:px-16">
+              <h2 className="max-w-2xl font-sans text-3xl font-semibold leading-[1.08] tracking-[-0.02em] text-white sm:text-5xl">
+                Take the next step<br />
+                <span className="ed-accent">of your craft.</span>
+              </h2>
+              <p className="max-w-md text-sm leading-relaxed text-white/75 sm:text-base">
+                Join the performers, coaches and studios building a stronger performing arts scene in San Jose del Monte.
+              </p>
+              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link href="/register/client">
+                  <GradientButton className="px-7 py-4 text-sm">
+                    Get started free <ArrowRight className="h-4 w-4" />
+                  </GradientButton>
+                </Link>
+                <Link href="/login">
+                  <OutlineButton className="px-7 py-4 text-sm">Sign in</OutlineButton>
+                </Link>
+              </div>
             </div>
-          </GlassCard>
+          </div>
         </section>
 
         {/* 9. FOOTER */}
-        <Footer className="border-t border-white/5 bg-[#111111]" showThemeToggle={false} />
+        <Footer className="border-t border-white/5 bg-background" showThemeToggle={false} />
       </PublicLayout>
     </div>
   );

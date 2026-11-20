@@ -270,7 +270,7 @@ function matchers(role: HeaderRole) {
 
   return {
     dashboard: {
-      match: [portal, '/messages', '/users', '/contracts', '/userprofile'],
+      match: [portal, '/messages', '/users', '/contracts', '/userprofile', '/builder'],
       exclude: excludedHub,
     },
     community: {

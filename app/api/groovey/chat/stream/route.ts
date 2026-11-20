@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import {
+  checkGrooveyChatRate,
+  validateChatBody,
+  MAX_BODY_BYTES,
+} from '@/lib/grooveyValidation';
+import {
   getGeminiClient,
   getGeminiApiKey,
   GROOVEYY_SYSTEM_INSTRUCTION,
@@ -40,13 +45,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Validate request body
-    const body = await req.json().catch(() => null);
-    const { messages, discipline, level } = body || {};
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'Valid messages array is required' }, { status: 400 });
+    // 2. Rate limit: shared 30/5min bucket with /api/groovey/chat.
+    const rate = checkGrooveyChatRate(user.id);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment and try again.' },
+        { status: 429, headers: { 'Retry-After': String(rate.retryAfter) } }
+      );
     }
+
+    // 3. Reject oversized payloads before buffering the body.
+    const contentLength = Number(req.headers.get('content-length') ?? '0');
+    if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request payload is too large.' }, { status: 413 });
+    }
+
+    // 4. Validate request body
+    const body = await req.json().catch(() => null);
+    const validation = validateChatBody(body);
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status });
+    }
+
+    const { discipline, level } = (body ?? {}) as { discipline?: unknown; level?: unknown };
+    if (discipline !== undefined && (typeof discipline !== 'string' || discipline.length > 100)) {
+      return NextResponse.json({ error: 'discipline must be a string of at most 100 characters.' }, { status: 400 });
+    }
+    if (level !== undefined && (typeof level !== 'string' || level.length > 100)) {
+      return NextResponse.json({ error: 'level must be a string of at most 100 characters.' }, { status: 400 });
+    }
+    const safeDiscipline = discipline as string | undefined;
+    const safeLevel = level as string | undefined;
 
     // 3. Verify server API configuration
     const apiKey = getGeminiApiKey();
@@ -61,18 +90,18 @@ export async function POST(req: NextRequest) {
 
     // Build context-specific prompt
     let contextualSystemInstruction = GROOVEYY_SYSTEM_INSTRUCTION;
-    if (discipline && discipline !== 'General') {
-      contextualSystemInstruction += `\n\nCURRENT SESSION DISCIPLINE FOCUS: ${discipline}. Prioritize coaching frameworks and vocabulary specific to this art form.`;
+    if (safeDiscipline && safeDiscipline !== 'General') {
+      contextualSystemInstruction += `\n\nCURRENT SESSION DISCIPLINE FOCUS: ${safeDiscipline}. Prioritize coaching frameworks and vocabulary specific to this art form.`;
     }
-    if (level && level !== 'All') {
-      contextualSystemInstruction += `\nARTIST PROFICIENCY LEVEL: ${level}. Calibrate terminology and complexity appropriately.`;
+    if (safeLevel && safeLevel !== 'All') {
+      contextualSystemInstruction += `\nARTIST PROFICIENCY LEVEL: ${safeLevel}. Calibrate terminology and complexity appropriately.`;
     }
 
-    // Transform messages format for Google GenAI SDK (last 16 messages)
-    const contextWindow = messages.slice(-16);
-    const contents = contextWindow.map((msg: { role: string; content?: string; text?: string }) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content || msg.text || '' }],
+    // Transform messages format for Google GenAI SDK (already capped at 16)
+    const contextWindow = validation.messages;
+    const contents = contextWindow.map((msg) => ({
+      role: msg.role,
+      parts: [{ text: msg.text }],
     }));
 
     const encoder = new TextEncoder();

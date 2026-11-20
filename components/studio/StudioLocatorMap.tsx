@@ -84,7 +84,7 @@ interface Props {
 export { DEFAULT_CENTER } from '@/lib/geo';
 
 const KM_TO_M = 1000;
-const PIN_COLOR = '#DDAA55';
+const PIN_COLOR = '#D9B45B';
 /** Deep enough to separate studios in the same district, but bounded. */
 const SELECT_MAX_ZOOM = 17;
 

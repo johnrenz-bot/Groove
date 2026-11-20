@@ -12,7 +12,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { MarkdownRenderer } from '@/features/groovey/components/MarkdownRenderer';
-import { getInitials } from '@/lib/utils';
+import { getInitials, cn } from '@/lib/utils';
 import {
   ModalCloseButton,
   MODAL_CLOSE_BUTTON_CLASS,
@@ -21,7 +21,6 @@ import {
   MODAL_PANEL_CLASS,
   useModalDismiss,
 } from '@/components/ui/Modal';
-import { cn } from '@/components/shared/cn';
 
 export interface CoachAIContext {
   id?: string;

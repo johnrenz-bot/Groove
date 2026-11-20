@@ -22,7 +22,7 @@ export default async function SupportPage() {
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
           Support
         </span>
-        <h1 className="text-3xl font-black tracking-[-0.02em] text-foreground sm:text-4xl">
+        <h1 className="font-sans text-4xl font-semibold tracking-[-0.02em] text-foreground sm:text-5xl">
           Talk to the GroovePH team
         </h1>
         <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
@@ -35,7 +35,7 @@ export default async function SupportPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <article className="rounded-2xl border border-border bg-card p-5">
           <MessageSquare className="h-6 w-6 text-accent-text" aria-hidden="true" />
-          <h2 className="mt-3 text-sm font-bold text-foreground">In-app messenger</h2>
+          <h2 className="mt-3 font-sans text-base font-semibold text-foreground">In-app messenger</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             Message the platform administrators directly. Available from the messenger once
             you&apos;re signed in; the admin&apos;s reply arrives as a notification.
@@ -51,7 +51,7 @@ export default async function SupportPage() {
 
         <article className="rounded-2xl border border-border bg-card p-5">
           <ShieldCheck className="h-6 w-6 text-accent-text" aria-hidden="true" />
-          <h2 className="mt-3 text-sm font-bold text-foreground">Email</h2>
+          <h2 className="mt-3 font-sans text-base font-semibold text-foreground">Email</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             For anything that needs a permanent record - verification appeals, legal, or
             safety reports.

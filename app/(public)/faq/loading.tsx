@@ -1,5 +1,5 @@
 import React from 'react';
-import { RouteSkeleton } from '@/components/loading/LoadingState';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
 
 /**
  * /faq loading boundary — instant directory skeleton while the shared help

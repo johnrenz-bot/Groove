@@ -9,7 +9,7 @@ import {
   Info,
   ShieldCheck,
 } from 'lucide-react';
-import { SafeImage } from '@/features/dance/components/SafeImage';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
 import { DisciplinePageHeader } from './DisciplinePageHeader';
 import { AttributionFooter } from './AttributionFooter';
 import {

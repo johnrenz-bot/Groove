@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Sun, Moon, Laptop } from 'lucide-react';
 import { useTheme, type ThemeMode } from './ThemeProvider';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * Compact 3-segment appearance control.

@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { availableActions } from '@/features/appointments/services/bookingStatus';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 import type { HubRole } from '../types';
 
 export function useHubBadge(role: HubRole | null): number {

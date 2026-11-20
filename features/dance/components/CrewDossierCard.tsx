@@ -3,14 +3,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Award, ExternalLink, MapPin, Users } from 'lucide-react';
-import { ReportIssueLink } from './ReportIssueLink';
-import { cn } from '@/components/shared/cn';
-import { StatTile } from './StatTile';
-import { SafeImage } from './SafeImage';
-import { TitleTile } from './TitleTile';
-import { TitleRow } from './TitleRow';
-import { VideoCard } from './VideoCard';
-import { RecapRow } from './RecapRow';
+import { ReportIssueLink } from '@/features/discipline/components/ReportIssueLink';
+import { cn } from '@/lib/utils';
+import { StatTile } from '@/features/discipline/components/StatTile';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
+import { TitleTile } from '@/features/discipline/components/TitleTile';
+import { TitleRow } from '@/features/discipline/components/TitleRow';
+import { VideoCard } from './VideoCard.tsx';
+import { RecapRow } from './RecapRow.tsx';
 import type { Crew, CrewAchievement } from '@/lib/dance/contracts';
 import { COMPLETENESS_THRESHOLD } from '@/lib/dance/contracts';
 
@@ -108,7 +108,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
       id={`crew-panel-${crew.id}`}
       role="tabpanel"
       aria-labelledby={`crew-tab-${crew.id}`}
-      className="group relative overflow-hidden rounded-[28px] border crew-bd bg-[var(--crew-bg-card)] shadow-[0_30px_80px_-48px_rgba(0,0,0,0.9)]"
+      className="group relative overflow-hidden rounded-[28px] border crew-bd bg-[var(--crew-bg-card)] "
     >
       {/* Hairline of gold across the top: the dossier's editorial masthead. */}
       <div
@@ -218,7 +218,7 @@ export function CrewDossierCard({ crew }: CrewDossierCardProps) {
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--crew-accent-gold)]">
               {countryMissing ? 'Featured crew' : `${crew.flag} ${crew.country}`}
             </p>
-            <h3 className="max-w-xl font-serif text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-[2.9rem]">
+            <h3 className="max-w-xl font-sans text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-[2.9rem]">
               {crew.name}
             </h3>
 

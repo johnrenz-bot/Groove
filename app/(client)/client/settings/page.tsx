@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { FormError } from '@/components/ui/FormError';
 import { useProfile } from '@/hooks/useProfile';
+import { signOutEverywhere } from '@/lib/auth/signOut';
 import {
   AccountSettings,
   AppearanceSettings,
@@ -87,10 +88,7 @@ export default function ClientSettingsPage() {
         <AppearanceSettings />
 
         <DangerZone
-          onSignOutAll={async () => {
-            const supabase = createClient();
-            await supabase.auth.signOut();
-          }}
+          onSignOutAll={() => signOutEverywhere(profile.id)}
           onDeleteAccount={async () => {
             // No account-deletion endpoint exists, so this raises a request in
             // the existing `tickets` channel for an admin to action.

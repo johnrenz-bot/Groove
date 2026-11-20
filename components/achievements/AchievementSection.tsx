@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Sparkles } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 import { AchievementModal } from './AchievementModal';
 import { AchievementsModal } from './AchievementsModal';

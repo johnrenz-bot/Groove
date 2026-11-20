@@ -2,20 +2,20 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { SectionHeader } from './SectionHeader';
-import { OrgLogoBar } from './OrgLogoBar';
-import { UpdatesFilterBar } from './UpdatesFilterBar';
-import { UpdateCard } from './UpdateCard';
-import { UpcomingEventsSection, type EventTimeframe } from './UpcomingEventsSection';
-import { FeaturedCrewsRoster } from './FeaturedCrewsRoster';
-import { DanceUpdatesSkeletonGrid } from './DanceSkeletons';
-import type { DanceUpdateRecord } from '../services/danceService';
-import { isUpcomingEvent } from '../services/danceService';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
+import { OrgLogoBar } from './OrgLogoBar.tsx';
+import { UpdatesFilterBar } from './UpdatesFilterBar.tsx';
+import { UpdateCard } from './UpdateCard.tsx';
+import { UpcomingEventsSection, type EventTimeframe } from './UpcomingEventsSection.tsx';
+import { FeaturedCrewsRoster } from './FeaturedCrewsRoster.tsx';
+import { DanceUpdatesSkeletonGrid } from '@/features/discipline/components/DanceSkeletons';
+import type { DanceUpdateRecord } from '../services/danceService.ts';
+import { isUpcomingEvent } from '../services/danceService.ts';
 
-import { leagueToDanceOrg } from '../data/danceOrgs';
-import { PUBLIC_LEAGUES, leagueForOrganization, lastSyncedAt } from '../data/leagues';
-import { OrgLogoCarouselClient } from './OrgLogoCarouselClient';
-import { FEATURED_CREWS } from '../data/crews';
+import { leagueToDanceOrg } from '../data/danceOrgs.ts';
+import { PUBLIC_LEAGUES, leagueForOrganization, lastSyncedAt } from '../data/leagues.ts';
+import { OrgLogoCarouselClient } from '@/features/discipline/components/OrgLogoCarouselClient';
+import { FEATURED_CREWS } from '../data/crews.ts';
 import type { LeagueScopeFilter } from '@/lib/dance/contracts';
 import { PerformingArtsNewsHubGuide } from '@/features/performing-arts/components/PerformingArtsNewsHubGuide';
 import { DisciplinePageHeader } from '@/features/performing-arts/components/DisciplinePageHeader';
@@ -409,7 +409,7 @@ export function DanceCommunityView() {
           eyebrow="Real-Time Discovery & Reporting"
           title={
             <span id="latest-updates-title">
-              Latest <span className="font-normal italic text-muted-foreground">Updates</span>
+              Latest <span className="font-normal text-muted-foreground">Updates</span>
             </span>
           }
           meta={

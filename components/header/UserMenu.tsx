@@ -7,7 +7,7 @@ import { PresenceDot } from '@/features/presence/components/StatusSelect';
 import { usePresence } from '@/features/presence/hooks/usePresence';
 import { ProfileMenuContent } from './ProfileMenuContent';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { Profile } from '@/lib/types';
 import type { AppHeaderConfig } from './appHeaderConfig';
 import type { NavRole } from './navConfig';

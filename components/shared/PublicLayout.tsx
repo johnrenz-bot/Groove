@@ -57,11 +57,18 @@ export function PublicLayout({
        `<SessionProvider>`, so there is exactly one instance for the whole app.
        Mounting another one here would shadow the root provider and split the
        theme state in two, which is the bug this paragraph is about. */
-    <div className="dark flex min-h-screen flex-col font-sans text-foreground bg-background overflow-x-hidden">
+    /* No `.dark` scope here by design: public pages used to pin the dark palette
+       onto the whole subtree, which silently overrode the visitor's saved
+       Light/Dark/System choice on every non-landing route. Light and dark are
+       the same token set with two values, so the shell just honours <html>.
+       The landing (`components/landing/LandingPage.tsx`) and the auth screens
+       keep their own intentional dark scope — those are designed dark, not a
+       route-wide pin. */
+    <div className="flex min-h-screen flex-col font-sans text-foreground bg-background overflow-x-hidden">
       <AppHeader />
       <main id="main-content" tabIndex={-1} className="flex-1 overflow-x-hidden">{children}</main>
       {showFooter && (
-        <Footer className="mt-auto border-t border-white/5 bg-background" showThemeToggle={false}>
+        <Footer className="mt-auto border-t border-divider bg-background" showThemeToggle={false}>
           {footerExtra}
         </Footer>
       )}

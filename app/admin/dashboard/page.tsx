@@ -15,7 +15,6 @@ import {
   Megaphone,
   type LucideIcon,
 } from 'lucide-react';
-import { PageHeader } from '@/components/shared/SectionHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { StatCard } from '@/components/ui/StatCard';
@@ -32,8 +31,7 @@ import {
 import { fetchBookings, fetchOverview } from '@/lib/admin/service';
 import { useAdminData } from '@/lib/admin/useAdminData';
 import { useAdminRevision } from '@/components/admin/AdminContext';
-import { formatDate, formatTimeAgo, formatCurrency } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
+import { formatDate, formatTimeAgo, formatCurrency, cn } from '@/lib/utils';
 
 /**
  * The admin landing page.
@@ -150,27 +148,59 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="g-fade-up space-y-6">
-      <PageHeader
-        eyebrow="System Overview"
-        title="Admin Control Center"
-        description="Live platform metrics across accounts, bookings, support, and system health."
-        action={
-          <span className="inline-flex items-center gap-2 rounded-full border border-success/30 bg-success-soft px-3.5 py-1.5 text-xs font-semibold text-success" role="status">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+      {/* Bespoke admin command masthead — replaces the generic page header */}
+      <header className="dash-greet">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em] text-foreground sm:text-[32px]">
+              Admin Control Center
+            </h1>
+            <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
+              Live platform metrics across accounts, bookings, support and system health —
+              every tile launches the page where you act on it.
+            </p>
+          </div>
+
+          <div className="flex shrink-0 flex-col items-start gap-3 sm:flex-row sm:items-center xl:flex-col xl:items-end">
+            <span
+              className="inline-flex items-center gap-2 rounded-full border border-success/30 bg-success-soft px-3.5 py-1.5 text-xs font-semibold text-success"
+              role="status"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+              </span>
+              Database Connected
             </span>
-            Database Connected
-          </span>
-        }
-      />
+            {/* Quick-jump rail — every destination is an existing admin route */}
+            <nav className="flex flex-wrap gap-1.5" aria-label="Admin quick actions">
+              {[
+                { label: 'Clients', href: '/admin/clients' },
+                { label: 'Coaches', href: '/admin/coaches' },
+                { label: 'Bookings', href: '/admin/bookings' },
+                { label: 'Verifications', href: '/admin/verifications' },
+                { label: 'Transactions', href: '/admin/transactions' },
+                { label: 'Maintenance', href: '/admin/maintenance' },
+                { label: 'Theme', href: '/admin/theme' },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-accent-border hover:bg-accent-soft hover:text-accent-text"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </header>
 
       <section aria-labelledby="metrics-heading" className="space-y-4">
         <h2
           id="metrics-heading"
-          className="text-[11px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground"
         >
-          Key metrics
+          Key metrics (live)
         </h2>
 
         {overview.loading ? (
@@ -251,7 +281,7 @@ export default function AdminDashboardPage() {
                       aria-label={`${bucket.label}: ${value} coaches, ${pct} percent`}
                     >
                       <div
-                        className="h-full rounded-full bg-accent transition-all"
+                        className="ed-bar"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -379,7 +409,6 @@ export default function AdminDashboardPage() {
         <section aria-labelledby="attention-heading" className="space-y-4">
           <h2
             id="attention-heading"
-            className="text-[11px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground"
           >
             Needs attention
           </h2>

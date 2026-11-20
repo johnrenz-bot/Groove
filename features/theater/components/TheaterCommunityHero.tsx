@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { CalendarDays, Theater, Trophy, Globe, ArrowRight, ShieldCheck } from 'lucide-react';
-import { PhilippineSunMark } from '@/features/dance/components/PhilippineSunMark';
-import { SafeImage } from '@/features/dance/components/SafeImage';
+import { PhilippineSunMark } from '@/features/discipline/components/PhilippineSunMark';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
 
 interface TheaterCommunityHeroProps {
   totalUpdatesCount: number;
@@ -66,9 +66,9 @@ export function TheaterCommunityHero({
           <div className="mt-5 max-w-3xl">
             <h1
               id="theater-hero-title"
-              className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+              className="font-sans text-3xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
             >
-              Musical Theater &amp; Stage <span className="font-normal italic text-muted-foreground">Community</span>
+              Musical Theater &amp; Stage <span className="font-medium text-accent-text">Community</span>
             </h1>
             <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-accent-text sm:text-base">
               Productions · Playwriting · Stage Direction · Technical Backstage · Philippines &amp; Global
@@ -138,7 +138,7 @@ export function TheaterCommunityHero({
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{label}</span>
                 </dt>
-                <dd className="mt-1 text-lg font-bold tabular-nums text-foreground sm:text-2xl">
+                <dd className="mt-1 text-lg font-sans font-semibold tabular-nums text-foreground">
                   {value}
                 </dd>
               </div>

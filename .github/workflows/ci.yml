@@ -1,0 +1,30 @@
+name: CI
+
+# Minimal pipeline mirroring local verification: full test chain, then a
+# production build. No secrets are used; the build does not require live
+# credentials (service-role client falls back to placeholders by design, and
+# the check:encoding gate runs inside `npm run build`).
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Full verification chain (encoding, typecheck, lint, all suites, unit)
+        run: npm test
+
+      - name: Production build
+        run: npm run build

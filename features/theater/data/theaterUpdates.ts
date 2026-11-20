@@ -86,7 +86,7 @@ export const VERIFIED_THEATER_UPDATES: DanceUpdateRecord[] = [
     region: 'philippines',
     location: 'Tanghalang Ignacio Gimenez, CCP Complex, Pasay City',
     event_date: '2026-11-27T19:00:00+08:00',
-    source_url: 'http://tanghalangpilipino.com/',
+    source_url: 'https://tanghalangpilipino.com/',
     image_url: '/image/pa/ccp-tanghalang-pilipino.jpg',
     image_source_url: 'https://culturalcenter.gov.ph/',
     image_credit: 'Cultural Center of the Philippines Archives',

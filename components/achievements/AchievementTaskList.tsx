@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CheckCircle2, Circle, ArrowRight } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { AchievementWithProgress } from '@/lib/achievements/types';
 

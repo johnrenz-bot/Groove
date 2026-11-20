@@ -12,7 +12,7 @@ import React, {
 import { createPortal } from 'react-dom';
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Appointment } from '@/lib/types';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import {
   clientBusyWindowsForDate,
   dayAvailability,

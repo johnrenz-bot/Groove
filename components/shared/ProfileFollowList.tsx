@@ -13,7 +13,7 @@ import { Modal, ModalIconTile } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { UserListItem, UserListItemSkeleton } from '@/components/shared/UserListItem';
 import { Search, UserRound } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * Followers / Following list — one shared modal for every surface.
@@ -241,7 +241,7 @@ export function ProfileFollowList({
       </div>
 
       {loading ? (
-        <ul className=" (--divider)]">
+        <ul className="divide-y divide-border">
           {[0, 1, 2, 3].map((i) => (
             <UserListItemSkeleton key={i} />
           ))}
@@ -266,7 +266,7 @@ export function ProfileFollowList({
         </div>
       ) : (
         <>
-          <ul className=" (--divider)]">
+          <ul className="divide-y divide-border">
             {filtered.map((person) => {
               const isSelf = viewerId !== null && person.id === viewerId;
               return (

@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import { Search, X, Check } from 'lucide-react';
 import type { League } from '@/lib/dance/contracts';
 import type { LeagueScopeFilter } from '@/lib/dance/contracts';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 interface OrgLogoBarProps {
   /** Leagues visible after scope + search filtering (status === 'approved'). */

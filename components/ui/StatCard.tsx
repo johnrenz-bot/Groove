@@ -4,19 +4,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useInView, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export type StatTone = 'yellow' | 'blue' | 'red' | 'green' | 'neutral';
 
 const TONE = {
-  yellow: {
-    bar: 'bg-accent',
-    icon: 'bg-accent-soft text-accent-text',
-  },
-  blue: { bar: 'bg-info', icon: 'bg-info-soft text-info' },
-  red: { bar: 'bg-danger', icon: 'bg-danger-soft text-danger' },
-  green: { bar: 'bg-success', icon: 'bg-success-soft text-success' },
-  neutral: { bar: 'bg-border-strong', icon: 'bg-muted text-muted-foreground' },
+  yellow: { icon: 'text-muted-foreground' },
+  blue: { icon: 'text-muted-foreground' },
+  red: { icon: 'text-muted-foreground' },
+  green: { icon: 'text-muted-foreground' },
+  neutral: { icon: 'text-muted-foreground' },
 } as const;
 
 function FormattedNumber({ value }: { value: number }) {
@@ -47,7 +44,6 @@ function CountUp({ value }: { value: number }) {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-    // `display` is intentionally read once as the animation's starting point.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView, reduceMotion, value]);
 
@@ -75,19 +71,15 @@ export interface StatCardProps {
 }
 
 /**
- * The one metric tile: icon, counted-up number, label, optional single line.
- *
- * The card is a fixed rhythm — a top row for the icon and the outbound affordance,
- * then a bottom block for value, label and context. Equal-height cards and
- * generous internal padding keep long values like a region name from crowding
- * the edge or colliding with the number above them.
+ * Neutral metric tile: no colored left bar, no colored icon tile. Plain muted
+ * line icon, big number, label, meta in muted text. 1px border only.
  */
 export function StatCard({
   icon,
   value,
   label,
   sub,
-  accentColor = 'yellow',
+  accentColor = 'neutral',
   href,
   className = '',
 }: StatCardProps) {
@@ -96,34 +88,23 @@ export function StatCard({
 
   const content = (
     <>
-      <span
-        className={cn('absolute inset-y-0 left-0 w-[3px] rounded-r-full', tone.bar)}
-        aria-hidden="true"
-      />
-
       <div className="flex items-start justify-between gap-3">
-        <span
-          className={cn(
-            'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
-            tone.icon
-          )}
-          aria-hidden="true"
-        >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-muted-foreground" aria-hidden="true">
           {icon}
         </span>
         {href && (
           <ArrowUpRight
-            className="mt-0.5 h-4 w-4 shrink-0 text-subtle-foreground transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent-text motion-reduce:transform-none"
+            className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
             aria-hidden="true"
           />
         )}
       </div>
 
-      <div className="mt-5 min-w-0">
-        <p className="break-words text-2xl font-bold leading-tight tracking-[-0.025em] tabular-nums text-foreground">
+      <div className="mt-4 min-w-0">
+        <p className="break-words text-[24px] font-bold leading-none tracking-[-0.02em] tabular-nums text-foreground sm:text-[28px]">
           {isNumber ? <CountUp value={value} /> : value}
         </p>
-        <p className="mt-1.5 text-sm font-semibold leading-snug text-foreground">{label}</p>
+        <p className="mt-1.5 text-sm font-medium leading-snug text-foreground">{label}</p>
         {sub && (
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{sub}</p>
         )}
@@ -132,10 +113,9 @@ export function StatCard({
   );
 
   const classes = cn(
-    'group relative flex min-h-[9.25rem] flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-5',
-    'shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-md)]',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-    'motion-reduce:transform-none',
+    'group flex min-h-[9.25rem] flex-col justify-between rounded-[16px] border border-border bg-surface p-5',
+    'transition-colors hover:border-border-strong',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
     className
   );
 
@@ -151,4 +131,3 @@ export function StatCard({
 }
 
 export default StatCard;
-

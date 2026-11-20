@@ -13,7 +13,7 @@
 
 import type { DanceOrg } from '@/lib/dance/types';
 import type { League } from '@/lib/dance/contracts';
-import { VERIFIED_LEAGUES, PUBLIC_LEAGUES, leagueForOrganization } from './leagues';
+import { VERIFIED_LEAGUES, PUBLIC_LEAGUES, leagueForOrganization } from './leagues.ts';
 
 /** Map a registry League to the DanceOrg shape the carousel renders. */
 export function leagueToDanceOrg(league: League, index = 0): DanceOrg {

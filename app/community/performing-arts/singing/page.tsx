@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
-import { RouteSkeleton } from '@/components/loading/LoadingState';
-import { SingingCommunityPageServer } from '@/features/singing/components/SingingCommunityPageServer';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
+import { DisciplineCommunityPageServer } from '@/features/discipline/components/DisciplineCommunityPageServer';
 
 export const metadata: Metadata = {
   title: 'Singing & Vocal Community — Choirs, Competitions, Masterclasses | GroovePH',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function SingingCommunityPage() {
   return (
     <React.Suspense fallback={<RouteSkeleton variant="hero" />}>
-      <SingingCommunityPageServer />
+      <DisciplineCommunityPageServer variant="singing" />
     </React.Suspense>
   );
 }

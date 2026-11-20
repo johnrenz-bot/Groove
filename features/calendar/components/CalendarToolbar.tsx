@@ -2,7 +2,7 @@
 
 import React, { useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import {
   CALENDAR_VIEWS,
   VIEW_LABELS,
@@ -85,7 +85,7 @@ export function CalendarToolbar({
         <button
           type="button"
           onClick={onToday}
-          className="inline-flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card px-3 text-xs font-semibold text-muted-foreground transition hover:border-border-strong hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+          className="inline-flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card px-3 text-xs font-semibold text-muted-foreground transition hover:border-accent-border hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
         >
           Today
         </button>
@@ -95,7 +95,7 @@ export function CalendarToolbar({
             type="button"
             onClick={onPrev}
             aria-label={`Previous ${VIEW_LABELS[view].toLowerCase()}`}
-            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-accent-border hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
           >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -103,7 +103,7 @@ export function CalendarToolbar({
             type="button"
             onClick={onNext}
             aria-label={`Next ${VIEW_LABELS[view].toLowerCase()}`}
-            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
+            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:border-accent-border hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background "
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -117,7 +117,7 @@ export function CalendarToolbar({
 
       <h2
         aria-hidden="true"
-        className="order-first min-w-0 truncate text-lg font-bold tracking-[-0.01em] text-foreground sm:order-none sm:text-left"
+        className="order-first min-w-0 truncate font-sans text-xl font-semibold tracking-[-0.015em] text-foreground sm:order-none sm:text-left"
       >
         {title}
       </h2>
@@ -144,7 +144,7 @@ export function CalendarToolbar({
               className={cn(
                 'cursor-pointer whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ',
                 selected
-                  ? 'bg-accent text-accent-foreground shadow-[var(--shadow-sm)]'
+                  ? 'bg-gradient-to-br from-[#e4c989] to-[#d6b36a] text-[#141414] '
                   : 'text-muted-foreground hover:bg-card hover:text-foreground'
               )}
             >

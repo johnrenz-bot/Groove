@@ -8,8 +8,7 @@
  * is the UI for ONE partner - never split per booking.
  */
 import React from 'react';
-import { cn } from '@/components/shared/cn';
-import { getInitials } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { statusMeta } from '@/features/appointments/services/bookingStatus';
 import type { InboxRow } from '../types';
 import type { HubRole } from '../types';
@@ -53,8 +52,10 @@ export function HubSidebarRow({
       aria-current={selected ? 'true' : undefined}
       aria-label={`Conversation with ${name}${row.unread > 0 ? `, ${row.unread} unread` : ''}`}
       className={cn(
-        'group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        selected ? 'bg-accent-soft' : 'hover:bg-muted'
+        'group relative flex w-full items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        selected
+          ? 'border-accent-border bg-gradient-to-r from-[var(--accent-soft)] via-transparent to-transparent shadow-[inset_3px_0_0_var(--accent)]'
+          : 'hover:border-border hover:bg-muted'
       )}
     >
       <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted text-xs font-bold text-accent-text">
@@ -102,7 +103,7 @@ export function HubSidebarRow({
       {row.unread > 0 && (
         <span
           aria-label={`${row.unread} unread`}
-          className="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full border border-border bg-accent px-2 text-[10px] font-bold text-accent-foreground"
+          className="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full border border-accent-border bg-gradient-to-br from-[#e4c989] to-[#d6b36a] px-2 text-[10px] font-bold text-[#141414] "
         >
           {row.unread > 99 ? '99+' : row.unread}
         </span>

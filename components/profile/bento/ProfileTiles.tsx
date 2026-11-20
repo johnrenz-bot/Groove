@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Check, X } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /* ==========================================================================
    PROFILE COMPLETION TILE (owner mode only)
@@ -53,7 +53,7 @@ export function CompletionTile({
                   'inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold transition-colors',
                   isDone
                     ? 'border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]'
-                    : 'border-[rgba(255,255,255,0.1)] text-[var(--muted-foreground)] hover:border-[var(--accent-border)] hover:text-[var(--accent-text)]'
+                    : 'border-border text-[var(--muted-foreground)] hover:border-[var(--accent-border)] hover:text-[var(--accent-text)]'
                 )}
               >
                 {isDone ? (
@@ -101,7 +101,7 @@ function CompletionRing({ percent, done, total }: { percent: number; done: numbe
       aria-label={`${percent}% complete`}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.09)" strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--border)" strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}

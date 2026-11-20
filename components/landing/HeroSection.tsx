@@ -40,7 +40,7 @@ export function HeroSection() {
 
   return (
     <section className="relative isolate min-h-[740px] lg:min-h-[820px] overflow-hidden flex items-center">
-      {/* Background Theater Image */}
+      {/* Cinematic theater backdrop with a near-black left-to-right editorial scrim */}
       <div className="absolute inset-0 -z-20">
         <Image
           src="/Hero-landing/hero-theater.jpg"
@@ -50,14 +50,23 @@ export function HeroSection() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        {/* Dark Left-to-Right and Bottom Gradient Overlay */}
+        {/* Near-black scrims — atmosphere, never a colored wash */}
         <div
-          className="absolute inset-0 bg-gradient-to-r from-[#111111]/95 via-[#111111]/80 to-[#111111]/45"
+          className="absolute inset-0 bg-gradient-to-r from-[#080808]/95 via-[#080808]/80 to-[#080808]/40"
           aria-hidden="true"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-black/40"
+          className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-black/50"
           aria-hidden="true"
+        />
+        {/* Soft champagne bloom behind the headline — quiet, static, cheap to paint */}
+        <div
+          className="absolute inset-0"
+          aria-hidden="true"
+          style={{
+            background:
+              'transparent',
+          }}
         />
       </div>
 
@@ -69,27 +78,26 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#FF9B2F]/30 bg-black/60 px-3.5 py-1.5 text-xs text-white/80 backdrop-blur-xl shadow-[0_0_20px_rgba(255,155,47,0.12)]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-black/60 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/75 backdrop-blur-xl ">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF9B2F]/60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FF9B2F]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-surface-2" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#D9B45B]" />
               </span>
               Performing arts platform • Bulacan
             </span>
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline — editorial serif with a champagne italic highlight */}
           <motion.h1
             initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-6 font-bold leading-[1.05] tracking-tight text-white"
-            style={{ fontSize: 'clamp(2.75rem, 6vw, 4.75rem)' }}
+            className="ed-serif mt-6 leading-[1.04] text-white"
+            style={{ fontSize: 'clamp(2.6rem, 5.6vw, 4.5rem)', letterSpacing: '-0.02em' }}
           >
-            A performing arts home for{' '}
-            <span className="bg-gradient-to-r from-[#FF9B2F] to-[#DDAA55] bg-clip-text text-transparent">
-              San Jose del Monte.
-            </span>
+            A performing arts home<br />
+            for{' '}
+            <span className="ed-accent">San Jose del Monte.</span>
           </motion.h1>
 
           {/* Description */}
@@ -153,14 +161,14 @@ export function HeroSection() {
                       ? undefined
                       : {
                           scale: 1.03,
-                          boxShadow: '0 16px 40px rgba(255,155,47, 0.25)',
-                          borderColor: 'rgba(255,155,47, 0.7)',
+                          boxShadow: '0 16px 40px rgba(217, 180, 91, 0.25)',
+                          borderColor: 'rgba(217, 180, 91, 0.7)',
                         }
                   }
-                  className={`absolute ${card.position} cursor-default rounded-[24px] border border-[#FF9B2F]/30 bg-black/55 p-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(255,155,47,0.12)] transition-colors duration-200`}
+                  className={`absolute ${card.position} cursor-default rounded-[20px] border border-border bg-background/70 p-5 backdrop-blur-xl  transition-colors duration-200`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-[#FF9B2F]/35 bg-[#FF9B2F]/10 text-[#FF9B2F] shadow-[0_0_15px_rgba(255,155,47,0.2)]">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-border bg-surface-2 text-muted-foreground ">
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>

@@ -41,7 +41,7 @@ import {
   type GlobalTheme,
   type GlobalThemeId,
 } from '@/components/theme/ThemeProvider';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * Global Theme & Appearance Management for GroovePH.
@@ -384,7 +384,7 @@ export default function AdminThemePage() {
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl  "
                     style={{ backgroundColor: option.swatch }}
                   >
-                    {selected && <Check className="h-4 w-4 text-white drop-shadow" />}
+                    {selected && <Check className="h-4 w-4 text-accent-foreground drop-shadow" />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <span className="block truncate text-xs font-bold text-foreground">

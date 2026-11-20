@@ -88,7 +88,7 @@ ON CONFLICT (id) DO UPDATE
 -- public would expose every object already in it.
 
 COMMENT ON COLUMN storage.buckets.file_size_limit IS
-    NULL on buckets with no limit; 8388608 (8 MB) for media-posts.';
+    'NULL on buckets with no limit; 8388608 (8 MB) for media-posts.';
 
 -- ------------------------------------------------------------------------------
 -- 2. Policies

@@ -41,13 +41,13 @@ export function resolveMode(mode: ThemeMode): Theme {
 export type Accent = 'unity' | 'relief' | 'sunburst';
 
 /**
- * The admin-selectable interactive color. Only the brand's own orange-family
+ * The admin-selectable interactive color. Only the brand's own gold-family
  * hues — there is no sixth hue that is not part of GroovePH's identity.
  */
 export const ACCENTS: { value: Accent; label: string; description: string; swatch: string }[] = [
-  { value: 'unity', label: 'Groove Orange', description: 'The default brand accent', swatch: '#F58A18' },
-  { value: 'relief', label: 'Groove Gold', description: 'Rich, warm, unmistakable', swatch: '#DDAA55' },
-  { value: 'sunburst', label: 'Soft Amber', description: 'Bright, optimistic highlight', swatch: '#FFC477' },
+  { value: 'unity', label: 'Groove gold', description: 'The default brand accent', swatch: '#D9B45B' },
+  { value: 'relief', label: 'Groove Gold', description: 'Rich, warm, unmistakable', swatch: '#D9B45B' },
+  { value: 'sunburst', label: 'Soft Amber', description: 'Bright, optimistic highlight', swatch: '#E6CB8A' },
 ];
 
 export const DEFAULT_ACCENT: Accent = 'unity';
@@ -275,7 +275,7 @@ export function setAccent(next: Accent) {
  * Which *palette* the app should paint with, given what is in storage.
  *
  * An explicit stored mode wins. With nothing stored the OS decides, and an
- * unrecognised or absent accent falls back to Groove Orange — so a database row
+ * unrecognised or absent accent falls back to Groove gold — so a database row
  * left over from a previous accent scheme (`gold`, `ember`, …) degrades to the
  * brand default instead of leaving the app unstyled.
  */

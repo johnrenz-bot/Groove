@@ -25,7 +25,7 @@ import {
   MODAL_PANEL_CLASS,
   useModalDismiss,
 } from '@/components/ui/Modal';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import {
   fullName,

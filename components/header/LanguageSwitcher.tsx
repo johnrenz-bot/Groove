@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { LANGUAGES, useLanguage } from '@/lib/i18n/LanguageProvider';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * EN | TL segmented switcher for dashboard navbars (Admin, Coach, Client).

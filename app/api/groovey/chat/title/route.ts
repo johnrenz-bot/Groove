@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import {
+  checkGrooveyTitleRate,
+  validateTitleBody,
+  MAX_BODY_BYTES,
+} from '@/lib/grooveyValidation';
+import {
   getGeminiClient,
   getGeminiApiKey,
   generateContentWithFallbackAndRetry,
@@ -23,13 +28,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Parse request body
-    const body = await req.json().catch(() => null);
-    const { prompt } = body || {};
-
-    if (!prompt || typeof prompt !== 'string') {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+    // 2. Rate limit: 10 req/min per authenticated user.
+    const rate = checkGrooveyTitleRate(user.id);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment and try again.' },
+        { status: 429, headers: { 'Retry-After': String(rate.retryAfter) } }
+      );
     }
+
+    // 3. Reject oversized payloads before buffering the body.
+    const contentLength = Number(req.headers.get('content-length') ?? '0');
+    if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request payload is too large.' }, { status: 413 });
+    }
+
+    // 4. Validate request body
+    const body = await req.json().catch(() => null);
+    const validation = validateTitleBody(body);
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status });
+    }
+    const { prompt } = validation;
 
     const apiKey = getGeminiApiKey();
     if (!apiKey) {

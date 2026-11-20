@@ -126,6 +126,8 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE SECURITY DEFINER;
 
 -- 5. Updated Public Profile View with automatic masking
+-- DROP first: CREATE OR REPLACE VIEW cannot change a view's column types.
+DROP VIEW IF EXISTS public.v_public_profiles;
 CREATE OR REPLACE VIEW public.v_public_profiles
 WITH (security_invoker = true)
 AS
@@ -151,6 +153,7 @@ COMMENT ON VIEW public.v_public_profiles IS
 'Public member identity with server-enforced personal information masking. Never includes email, contact, birthdate, street, address_summary or verification documents. Unauthorized queries receive masked usernames.';
 
 -- 6. Comprehensive Masked Profile View for authorized application queries
+DROP VIEW IF EXISTS public.v_profiles_masked;
 CREATE OR REPLACE VIEW public.v_profiles_masked
 WITH (security_invoker = true)
 AS

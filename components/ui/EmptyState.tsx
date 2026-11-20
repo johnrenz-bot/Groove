@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { InfoTip } from '@/components/ui/InfoTip';
 
@@ -42,7 +42,7 @@ export function EmptyState({
         </span>
       )}
       <div className="flex items-center justify-center gap-1.5">
-        <h3 className="text-base font-bold tracking-[-0.01em] text-foreground">{title}</h3>
+        <h3 className="font-sans text-base font-semibold tracking-[-0.01em] text-foreground">{title}</h3>
         {description && <InfoTip title={title} short={description} details={description} />}
       </div>
       {actionHref && (

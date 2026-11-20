@@ -121,7 +121,7 @@ export function AudienceTabs() {
 
       {/* Animated Tab Switcher */}
       <div className="mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
-        <div className="inline-flex rounded-full border border-white/10 bg-[#121212]/80 p-1.5 backdrop-blur-md">
+        <div className="inline-flex rounded-full border border-white/10 bg-surface/80 p-1.5 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setActiveTab('client')}
@@ -132,7 +132,7 @@ export function AudienceTabs() {
             {isPerformer && (
               <motion.div
                 layoutId="audienceTabActivePill"
-                className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FF9B2F] to-[#DDAA55] shadow-[0_0_20px_rgba(255,155,47,0.4)]"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E6CB8A] to-[#D9B45B] "
                 transition={{ type: 'spring', stiffness: 450, damping: 35 }}
               />
             )}
@@ -152,7 +152,7 @@ export function AudienceTabs() {
             {!isPerformer && (
               <motion.div
                 layoutId="audienceTabActivePill"
-                className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FF9B2F] to-[#DDAA55] shadow-[0_0_20px_rgba(255,155,47,0.4)]"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E6CB8A] to-[#D9B45B] "
                 transition={{ type: 'spring', stiffness: 450, damping: 35 }}
               />
             )}
@@ -194,15 +194,15 @@ export function AudienceTabs() {
                     ? undefined
                     : {
                         y: -4,
-                        borderColor: 'rgba(255,155,47, 0.4)',
-                        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255,155,47, 0.08)',
+                        borderColor: 'rgba(255,127,71, 0.4)',
+                        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255,127,71, 0.08)',
                       }
                 }
-                className="group relative flex flex-col justify-between rounded-[22px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200"
+                className="group relative flex flex-col justify-between rounded-[18px] border border-white/5 bg-surface p-6 backdrop-blur-md  transition-all duration-200"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#FF9B2F]/25 bg-[#FF9B2F]/10 text-[#FF9B2F] shadow-[0_0_12px_rgba(255,155,47,0.15)] group-hover:border-[#FF9B2F]/50 transition-colors">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border bg-surface-2 text-muted-foreground  group-hover:border-border transition-colors">
                       <Icon className="h-5 w-5" />
                     </div>
                     <span className="text-[11px] font-semibold text-white/40">

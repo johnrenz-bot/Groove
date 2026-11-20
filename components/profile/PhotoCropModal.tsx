@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /* ==========================================================================
    PHOTO CROP MODAL — avatar & cover uploads
@@ -251,7 +251,7 @@ export function PhotoCropModal({
         <button
           type="button"
           onClick={pickFile}
-          className="group flex min-h-[13rem] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.02)] px-6 py-8 text-center transition-colors hover:border-accent-border hover:bg-[rgba(245,138,24,0.04)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="group flex min-h-[13rem] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border-strong bg-muted px-6 py-8 text-center transition-colors hover:border-accent-border hover:bg-[rgba(217, 180, 91,0.04)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-border/50 bg-accent-soft text-accent-text transition-transform duration-200 group-hover:scale-105">
             <Upload className="h-5 w-5" aria-hidden="true" />
@@ -268,7 +268,7 @@ export function PhotoCropModal({
         <div className="space-y-3">
           <div
             className={cn(
-              'relative w-full overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[#101010]',
+              'relative w-full overflow-hidden rounded-2xl border border-border bg-surface',
               isAvatar ? 'h-64' : 'h-56 sm:h-64'
             )}
           >

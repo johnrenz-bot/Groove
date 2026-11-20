@@ -17,7 +17,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Clock3, UserRound, Search, RotateCw, AlertCircle } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { SearchRow, SearchStatus } from './useGlobalSearch';
 
 export interface SearchResultsListProps {

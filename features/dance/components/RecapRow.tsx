@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
-import { ReportIssueLink } from './ReportIssueLink';
+import { cn } from '@/lib/utils';
+import { ReportIssueLink } from '@/features/discipline/components/ReportIssueLink';
 import type { MatchRecap } from '@/lib/dance/contracts';
 
 interface RecapRowProps {

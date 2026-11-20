@@ -21,7 +21,7 @@ import {
   Users2,
   Zap,
 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export function TambayanPulseCard() {
   const [cheerCount, setCheerCount] = useState(48);
@@ -76,7 +76,7 @@ export function TambayanPulseCard() {
         {/* Trending Tambayan Tags */}
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1 mb-2">
-            <Flame className="h-3 w-3 text-amber-500" />
+            <Flame className="h-3 w-3 text-warning" />
             Active Jams &amp; Hashtags
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -111,11 +111,11 @@ export function TambayanPulseCard() {
             className={cn(
               'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition active:scale-95 cursor-pointer',
               hasCheered
-                ? 'bg-emerald-500/20 text-emerald-400  '
+                ? 'bg-success-soft text-success  '
                 : 'bg-accent text-accent-foreground hover:bg-accent-hover shadow-xs'
             )}
           >
-            <Heart className={cn('h-3.5 w-3.5', hasCheered && 'fill-current text-emerald-400')} />
+            <Heart className={cn('h-3.5 w-3.5', hasCheered && 'fill-current text-success')} />
             <span>{cheerCount}</span>
           </button>
         </div>

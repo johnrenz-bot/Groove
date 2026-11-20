@@ -82,6 +82,12 @@ The platform serves three distinct audiences behind a single Next.js application
 ### Payments
 - GCash payment handling with generated QR codes stored in a private bucket and served via signed URLs.
 
+### Tee Customizer
+- `/builder` is a standalone, no-commerce shirt studio: live front/back preview rendered as a lit studio mockup (rendered garment + zone masks, not flat vector shapes), six panel patterns, per-zone colors and gradients on five zones, chest wordmark and crest, jersey back print, fit and size selection.
+- Imports PNG, JPG, WEBP, SVG and GIF artwork (5 MB each) with drag, resize, rotate, flip, opacity and layer order; large rasters are downscaled and SVGs are sanitized before embedding.
+- Saves drafts to `localStorage` for guests or to the account for signed-in users, exports PNG (including 3000 px print output and a transparent option) or re-importable JSON, and publishes view-only share links.
+- See `features/tee-customizer/README.md` for the schema, persistence model and how to add patterns, colorways or fonts.
+
 ### AI
 - **Groovey**, a context-aware assistant backed by Google Gemini, with a multi-tier provider fallback chain, streaming chat, and generated conversation titles.
 

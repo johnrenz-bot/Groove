@@ -14,12 +14,9 @@ export interface GreetingProps {
 }
 
 /**
- * Time-of-day salutation.
- *
- * Split into its own module so the dashboard pages do not each carry their own
- * copy — `app/(coach)/coach/home/page.tsx` defined a `getGreeting()` that was
- * never called, which is why the coach dashboard said "Good morning" at nine in
- * the evening.
+ * Time-of-day salutation. Simplified to a clean "Welcome back, {name}" title
+ * per the new design language: Inter only, 28-32px/700, tight tracking.
+ * No eyebrow labels, sun graphics, date pills, or italic script.
  */
 export function greetingForHour(hour: number): string {
   if (hour < 12) return 'Good morning';
@@ -27,74 +24,33 @@ export function greetingForHour(hour: number): string {
   return 'Good evening';
 }
 
-/* ── The clock, read without breaking hydration ──────────────────────────────
-   `new Date().getHours()` evaluated during render disagrees between the server
-   and the client whenever the two renders straddle an hour boundary, and React
-   reports that as a hydration mismatch. Resolving it in an effect produces a
-   second problem — a `setState` in an effect, which cascades a render and
-   flashes.
-
-   `useSyncExternalStore` with a distinct server snapshot is the supported answer
-   to both. React uses `getServerSnapshot` for the server render AND for the
-   first client render during hydration, so the two always agree; immediately
-   afterwards it re-reads `getSnapshot` and, if the real hour differs from the
-   placeholder, re-renders once. No mismatch, no effect, one extra frame. */
 const NO_SUBSCRIPTION = () => () => {};
-const getClientHour = () => new Date().getHours();
-/** -1 is not an hour, so it never renders a salutation on the server. */
-const getServerHour = () => -1;
+let nowCache: number | null = null;
+const getClientNow = () => {
+  if (nowCache === null) nowCache = Date.now();
+  return nowCache;
+};
+const getServerNow = () => 0;
 
 export function Greeting({
-  eyebrow,
   role,
   firstName,
   subtitle,
-  tagline = 'Art • Discipline • Community',
 }: GreetingProps) {
-  const hour = useSyncExternalStore(NO_SUBSCRIPTION, getClientHour, getServerHour);
-  const greeting = hour < 0 ? '' : greetingForHour(hour);
+  const now = useSyncExternalStore(NO_SUBSCRIPTION, getClientNow, getServerNow);
+  const clientNow = now > 0 ? new Date(now) : null;
+  const greeting = clientNow ? greetingForHour(clientNow.getHours()) : 'Welcome back';
 
-  /**
-   * `[role, firstName].filter(Boolean).join(' ')` rather than `{role} {firstName}`.
-   * The client dashboard passes `role=""`, which used to render a leading space
-   * inside the coloured span before every member's name.
-   */
   const name = [role, firstName].filter(Boolean).join(' ');
 
   return (
-    <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div className="min-w-0">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground shadow-[var(--shadow-sm)]">
-          {eyebrow}
-        </span>
-        <h1 className="mt-3 font-serif text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
-          {greeting && <>{greeting}, </>}
-          <span className="text-accent-text">{name}</span>
-        </h1>
-        <div className="mt-2 flex items-center gap-2">
-          <p className="text-xs font-medium text-muted-foreground">
-            {greeting ? 'Your workspace at a glance' : 'Your workspace'}
-          </p>
-          <InfoTip title="What you can do here" short={subtitle} details={subtitle} />
-        </div>
-      </div>
-
-      {/* Tagline — script font with hairlines, hidden under 900px */}
-      <div className="hidden items-center gap-3 lg:flex">
-        <span
-          className="h-px w-12 bg-[linear-gradient(to_right,transparent,var(--accent-border))]"
-          aria-hidden="true"
-        />
-        <span
-          className="font-[var(--font-script)] text-lg italic tracking-wide g-gold-text"
-          style={{ fontFamily: "'Mr De Haviland', cursive" }}
-        >
-          {tagline}
-        </span>
-        <span
-          className="h-px w-12 bg-[linear-gradient(to_left,transparent,var(--accent-border))]"
-          aria-hidden="true"
-        />
+    <header className="flex flex-col gap-1">
+      <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em] text-foreground sm:text-[32px]">
+        {greeting}, {name}
+      </h1>
+      <div className="flex items-center gap-2">
+        <p className="text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
+        <InfoTip title="What you can do here" short={subtitle} details={subtitle} className="shrink-0" />
       </div>
     </header>
   );

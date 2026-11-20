@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * GrooveSpinner — the single loading glyph for every Groove surface.
@@ -67,8 +67,8 @@ export function GrooveSpinner({
               height: '100%',
               borderRadius: 999,
               background:
-                'linear-gradient(180deg, #FFC477 0%, #DDAA55 55%, #C9A24C 100%)',
-              boxShadow: '0 0 10px rgba(221,170,85,0.45)',
+                'linear-gradient(180deg, #E6CB8A 0%, #D9B45B 55%, #D9B45B 100%)',
+              boxShadow: '0 0 10px rgba(217, 180, 91,0.45)',
               animationDelay: `${i * 120}ms`,
               transformOrigin: 'bottom',
             }}
@@ -114,15 +114,15 @@ export function GrooveSpinner({
         <span
           aria-hidden="true"
           className="g-pulse-ring motion-reduce:animate-none absolute inset-0 rounded-full"
-          style={{ border: '1.5px solid var(--accent)', borderColor: 'rgba(221,170,85,0.55)' }}
+          style={{ border: '1.5px solid var(--accent)', borderColor: 'rgba(217, 180, 91,0.55)' }}
         />
         <span
           aria-hidden="true"
           className="g-pulse-core motion-reduce:animate-none absolute rounded-full"
           style={{
             inset: px * 0.28,
-            background: 'radial-gradient(circle at 35% 30%, #FFC477, #DDAA55 60%, #C9A24C)',
-            boxShadow: '0 0 18px rgba(221,170,85,0.55)',
+            background: 'radial-gradient(circle at 35% 30%, #E6CB8A, #D9B45B 60%, #D9B45B)',
+            boxShadow: '0 0 18px rgba(217, 180, 91,0.55)',
           }}
         />
       </span>
@@ -144,9 +144,9 @@ export function GrooveSpinner({
             width: '100%',
             height: '100%',
             background:
-              'linear-gradient(135deg, rgba(221,170,85,0.28), rgba(221,170,85,0.06) 55%, var(--muted))',
-            border: '1px solid rgba(221,170,85,0.5)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 0 22px rgba(221,170,85,0.18)',
+              'linear-gradient(135deg, rgba(217, 180, 91,0.28), rgba(217, 180, 91,0.06) 55%, var(--muted))',
+            border: '1px solid rgba(217, 180, 91,0.5)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 0 22px rgba(217, 180, 91,0.18)',
             animationDuration: '3.2s',
           }}
         />
@@ -175,9 +175,9 @@ export function GrooveSpinner({
           className="g-orbit motion-reduce:animate-none absolute inset-0 rounded-full"
           style={{
             border: '1.5px solid transparent',
-            borderTopColor: '#DDAA55',
-            borderRightColor: 'rgba(221,170,85,0.35)',
-            filter: 'drop-shadow(0 0 6px rgba(221,170,85,0.45))',
+            borderTopColor: '#D9B45B',
+            borderRightColor: 'rgba(217, 180, 91,0.35)',
+            filter: 'drop-shadow(0 0 6px rgba(217, 180, 91,0.45))',
           }}
         />
         <span
@@ -196,11 +196,11 @@ export function GrooveSpinner({
             width={glyph}
             height={glyph}
             focusable="false"
-            style={{ overflow: 'visible', filter: 'drop-shadow(0 0 8px rgba(221,170,85,0.55))' }}
+            style={{ overflow: 'visible', filter: 'drop-shadow(0 0 8px rgba(217, 180, 91,0.55))' }}
           >
             <path
               d="M 11.2 6.8 Q 6.4 5.2 6.4 11 L 6.4 21 Q 6.4 26.8 11.2 25.2 Q 17.5 22.6 23.8 18.4 Q 27.2 16 23.8 13.6 Q 17.5 9.4 11.2 6.8 Z"
-              fill="#DDAA55"
+              fill="#D9B45B"
               stroke="rgba(26,24,20,0.4)"
               strokeWidth={1.8}
               strokeLinejoin="round"
@@ -232,9 +232,9 @@ export function GrooveSpinner({
         className="g-orbit motion-reduce:animate-none absolute inset-0 rounded-full"
         style={{
           border: '1.5px solid transparent',
-          borderTopColor: '#DDAA55',
-          borderRightColor: 'rgba(221,170,85,0.35)',
-          filter: 'drop-shadow(0 0 6px rgba(221,170,85,0.45))',
+          borderTopColor: '#D9B45B',
+          borderRightColor: 'rgba(217, 180, 91,0.35)',
+          filter: 'drop-shadow(0 0 6px rgba(217, 180, 91,0.45))',
         }}
       />
       <span
@@ -247,8 +247,8 @@ export function GrooveSpinner({
           left: '50%',
           marginTop: -(Math.max(5, px * 0.22) / 2),
           marginLeft: -(Math.max(5, px * 0.22) / 2),
-          background: '#FFC477',
-          boxShadow: '0 0 12px rgba(221,170,85,0.8)',
+          background: '#E6CB8A',
+          boxShadow: '0 0 12px rgba(217, 180, 91,0.8)',
           transformOrigin: 'center',
         }}
       />
@@ -257,7 +257,7 @@ export function GrooveSpinner({
         className="absolute rounded-full"
         style={{
           inset: px * 0.34,
-          background: 'radial-gradient(circle at 40% 35%, rgba(255,211,107,0.9), rgba(221,170,85,0.25) 70%)',
+          background: 'radial-gradient(circle at 40% 35%, rgba(255,211,107,0.9), rgba(217, 180, 91,0.25) 70%)',
           opacity: 0.85,
         }}
       />
@@ -304,10 +304,10 @@ export function EqualizerBars({
             borderRadius: 999,
             background:
               i % 6 === 0
-                ? 'linear-gradient(180deg,#FFE9A8,#DDAA55)'
-                : 'linear-gradient(180deg,#DDAA55,#B8933A)',
+                ? 'linear-gradient(180deg,#F6EEDC,#D9B45B)'
+                : 'linear-gradient(180deg,#D9B45B,#B8892B)',
             opacity: 0.35 + peak * 0.65,
-            boxShadow: '0 0 8px rgba(221,170,85,0.35)',
+            boxShadow: '0 0 8px rgba(217, 180, 91,0.35)',
             animationDuration: `${0.85 + phase * 0.7}s`,
             animationDelay: `${i * 55}ms`,
             transformOrigin: mirrored ? 'center' : 'bottom',

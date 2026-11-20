@@ -2,8 +2,8 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
-import { SafeImage } from '@/features/dance/components/SafeImage';
+import { cn } from '@/lib/utils';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
 
 /**
  * The minimum a card needs to render in the shared roster selector. All four
@@ -160,7 +160,7 @@ export function FeaturedRosterSelector({
                   'group relative w-[152px] shrink-0 snap-start overflow-hidden rounded-2xl border bg-[var(--crew-bg-tile)] text-left transition-all duration-300 sm:w-[172px]',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--crew-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-page)]',
                   isSelected
-                    ? 'border-[color:var(--crew-accent-gold)] shadow-[0_16px_36px_-20px_rgba(0,0,0,0.9)]'
+                    ? 'border-[color:var(--crew-accent-gold)] '
                     : 'border-[color:var(--crew-border)] hover:-translate-y-0.5 hover:border-[color:var(--crew-border-hover)]'
                 )}
               >

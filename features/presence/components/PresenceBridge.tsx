@@ -1,7 +1,7 @@
 'use client';
 
 import { PresenceRealtime } from '../hooks/usePresence';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 
 /**
  * Starts the app-wide presence subscription, once, from the root layout.

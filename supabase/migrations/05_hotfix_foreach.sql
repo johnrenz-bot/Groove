@@ -158,13 +158,13 @@ SELECT tgname,
 -- 3c. No other booking function was altered. Each of these must still exist.
 --     Only notify_booking_parties should differ from before this file ran.
 SELECT proname,
-       (pg_get_functiondef(oid) LIKE '%IS DISTINCT FROM%suspended%') AS transition_guard_intact,
-       (pg_get_functiondef(oid) LIKE '%both signatures are required%') AS signature_gate_intact,
-       (pg_get_functiondef(oid) LIKE '%array_remove(ARRAY[v_client, v_coach], v_actor)%') AS notify_fixed
-  FROM pg_proc
-  JOIN pg_namespace n ON n.oid = pronamespace
+       (pg_get_functiondef(p.oid) LIKE '%IS DISTINCT FROM%suspended%') AS transition_guard_intact,
+       (pg_get_functiondef(p.oid) LIKE '%both signatures are required%') AS signature_gate_intact,
+       (pg_get_functiondef(p.oid) LIKE '%array_remove(ARRAY[v_client, v_coach], v_actor)%') AS notify_fixed
+  FROM pg_proc p
+  JOIN pg_namespace n ON n.oid = p.pronamespace
  WHERE n.nspname = 'public'
-   AND proname IN ('guard_booking_transition', 'guard_agreement_signature',
+   AND p.proname IN ('guard_booking_transition', 'guard_agreement_signature',
                    'guard_agreement_edit_scope', 'confirm_booking_when_both_signed',
                    'notify_booking_parties', 'can_book_appointment')
  ORDER BY proname;

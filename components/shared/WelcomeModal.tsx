@@ -12,7 +12,7 @@ import {
   MODAL_OVERLAY_CLASS,
   useModalDismiss,
 } from '@/components/ui/Modal';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { createClient } from '@/lib/supabase/client';
 
@@ -272,7 +272,7 @@ export function WelcomeModal({
                 <p className="text-lg font-bold tracking-[-0.02em] text-foreground sm:text-xl">
                   {t('welcome.welcomeBack', 'Welcome back, {name}', { name: resolvedName })}
                 </p>
-                <p className="text-xs italic text-accent-text">
+                <p className="text-xs text-accent-text">
                   {t('welcome.tagline', 'Para sa sining, para sa Pilipino.')}
                 </p>
               </div>

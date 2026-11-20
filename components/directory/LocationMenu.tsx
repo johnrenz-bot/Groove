@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { LOCATION_OPTIONS } from './types';
 
 /**
@@ -104,7 +104,7 @@ export function LocationMenu({
         className={cn(
           'inline-flex h-11 w-full cursor-pointer items-center gap-2 rounded-[14px] border px-3 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           value === 'All'
-            ? 'border-white/5 bg-[#161616] text-foreground hover:border-white/10'
+            ? 'border-divider bg-muted text-foreground hover:border-border'
             : 'border-accent/40 bg-accent-soft/15 text-foreground'
         )}
       >
@@ -121,12 +121,12 @@ export function LocationMenu({
           role="listbox"
           aria-label="Filter by location"
           id={listboxId}
-          className="absolute left-0 z-30 mt-2 w-[280px] overflow-hidden rounded-2xl border border-white/5 bg-[#161616] shadow-[var(--shadow-lg)]"
+          className="absolute left-0 z-30 mt-2 w-[280px] overflow-hidden rounded-2xl border border-divider bg-muted shadow-[var(--shadow-lg)]"
         >
           <label className="sr-only" htmlFor={`${buttonId}-search`}>
             Search locations
           </label>
-          <div className="flex items-center gap-2 border-b border-white/5 px-3 py-2">
+          <div className="flex items-center gap-2 border-b border-divider px-3 py-2">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <input
               id={`${buttonId}-search`}
@@ -160,7 +160,7 @@ export function LocationMenu({
                     aria-selected={selectedRow}
                     className={cn(
                       'flex cursor-pointer items-center gap-2 rounded-xl px-2.5 py-2 text-[13px] transition-colors',
-                      active ? 'bg-white/5 text-foreground' : 'text-muted-foreground',
+                      active ? 'bg-accent-soft text-foreground' : 'text-muted-foreground',
                       selectedRow && 'text-foreground'
                     )}
                     onMouseEnter={() => setHighlight(index)}

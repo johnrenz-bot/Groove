@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { BadgeCheck, CheckCircle2, Clock, XCircle } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { VerificationStatus } from '../services/verification';
 
 /**

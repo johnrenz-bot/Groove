@@ -12,7 +12,7 @@ import React, {
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { AlertCircle, Award, CheckCircle2, X } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { FeatureProgress } from './FeatureProgress';
 
 export type SuccessNotificationTone = 'success' | 'achievement' | 'danger';
@@ -153,8 +153,8 @@ export function SuccessNotificationProvider({ children }: { children: React.Reac
       {mounted &&
         createPortal(
           <div
-            className="pointer-events-none fixed inset-x-0 z-[1300] flex flex-col items-center gap-2 px-3 sm:px-4"
-            style={{ top: 'calc(1.25rem + env(safe-area-inset-top, 0px))' }}
+            className="pointer-events-none fixed bottom-0 right-0 z-[1300] flex flex-col items-end gap-2 px-3 sm:px-4"
+            style={{ bottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
             role="region"
             aria-label="Success notifications"
             aria-live="polite"
@@ -212,9 +212,9 @@ function NotificationCard({
       aria-live="polite"
       className={cn(
         'pointer-events-auto flex w-full max-w-[27rem] items-start gap-3 rounded-2xl border border-border px-3.5 py-3',
-        'bg-[#111110]/95 text-[#f7f0e1] shadow-[0_18px_50px_-18px_rgba(0,0,0,0.92)]',
-        'backdrop-blur-md supports-[backdrop-filter]:bg-[#111110]/88',
-        isDanger ? '' : '(--brand-sunburst-)]'
+        'bg-card/95 text-card-foreground shadow-[var(--shadow-lg)]',
+        'backdrop-blur-md supports-[backdrop-filter]:bg-card/88',
+        isDanger ? '' : 'border-accent-border'
       )}
     >
       <span
@@ -222,7 +222,7 @@ function NotificationCard({
           'mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full ',
           isDanger
             ? ' border-danger/30 bg-danger/15 text-danger'
-            : '(--brand-sunburst-)] bg-[rgba(244,190,77,0.14)] text-[var(--brand-sunburst)]'
+            : 'border border-accent-border bg-accent-soft text-accent-text'
         )}
         aria-hidden="true"
       >
@@ -230,15 +230,14 @@ function NotificationCard({
       </span>
 
       <div className="min-w-0 flex-1 pt-0.5">
-        <p className="text-sm font-semibold leading-snug text-[#f7f0e1]">{item.title}</p>
+        <p className="text-sm font-semibold leading-snug text-card-foreground">{item.title}</p>
         {item.description && (
-          <p className="mt-0.5 text-xs leading-relaxed text-[#c9c1b2]">{item.description}</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{item.description}</p>
         )}
         {item.progress && (
           <FeatureProgress
             className="mt-2"
             size="sm"
-            onDark
             showLabel={false}
             completed={item.progress.completed}
             total={item.progress.total}
@@ -256,7 +255,7 @@ function NotificationCard({
               item.action?.onClick();
               onDismiss(item.id);
             }}
-            className="inline-flex h-8 cursor-pointer items-center rounded-full  (244,190,77,0.4)] bg-[rgba(244,190,77,0.1)] px-2.5 text-[11px] font-semibold text-[#DDAA55] transition-colors hover:bg-[rgba(244,190,77,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--brand-sunburst)]"
+            className="inline-flex h-8 cursor-pointer items-center rounded-full bg-accent-soft px-2.5 text-[11px] font-semibold text-accent-text transition-colors hover:bg-accent-soft/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {item.action.label}
           </button>
@@ -265,7 +264,7 @@ function NotificationCard({
           type="button"
           onClick={() => onDismiss(item.id)}
           aria-label="Dismiss notification"
-          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#a8a093] transition-colors hover:bg-white/10 hover:text-[#f7f0e1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--brand-sunburst)]"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
         </button>

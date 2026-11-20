@@ -34,8 +34,7 @@ import {
   type FollowPerson,
 } from '@/lib/profileFollows';
 import type { Profile } from '@/lib/types';
-import { cn } from '@/components/shared/cn';
-import { formatDate, getInitials } from '@/lib/utils';
+import { cn, formatDate, getInitials } from '@/lib/utils';
 import { maskUsername } from '@/lib/masking';
 
 /**
@@ -343,7 +342,7 @@ export default function UsersDirectoryPage() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or @username…"
               aria-label="Search members"
-              className="w-full rounded-xl border border-border bg-surface py-2.5 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus: focus: "
+              className="w-full rounded-xl border border-border bg-surface py-2.5 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {query && (
               <button

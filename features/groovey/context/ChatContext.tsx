@@ -16,7 +16,7 @@ import {
   ServerHealth,
 } from '../services/api';
 import { createClient } from '@/lib/supabase/client';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 
 const DEFAULT_PROFILE: ArtistProfile = {
   name: 'Performer',

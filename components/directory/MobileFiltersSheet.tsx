@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { Check, MapPin, RotateCcw, Tag, Wallet, X } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { DISCIPLINE_OPTIONS, LOCATION_OPTIONS, MAX_FEE, MIN_FEE } from './types';
 
 /**
@@ -67,17 +67,17 @@ export function MobileFiltersSheet({
 
       {/* Sheet */}
       <div
-        className="relative mt-auto flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-3xl border-t border-white/5 bg-[#161616] shadow-[var(--shadow-lg)]"
+        className="relative mt-auto flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-3xl border-t border-divider bg-muted shadow-[var(--shadow-lg)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-white/10" aria-hidden="true" />
-        <div className="flex items-center justify-between gap-3 border-b border-white/5 px-5 py-3">
+        <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-border-strong" aria-hidden="true" />
+        <div className="flex items-center justify-between gap-3 border-b border-divider px-5 py-3">
           <h2 className="text-sm font-semibold text-foreground">Filters</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close filters"
-            className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-accent-soft hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <X className="h-5 w-5 stroke-[1.5]" aria-hidden="true" />
           </button>
@@ -104,7 +104,7 @@ export function MobileFiltersSheet({
                       'inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-[12px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                       selected
                         ? 'border-accent/50 bg-accent-soft/20 text-foreground'
-                        : 'border-white/5 bg-white/[0.03] text-muted-foreground hover:border-white/10 hover:text-foreground'
+                        : 'border-divider bg-elevated text-muted-foreground hover:border-border hover:text-foreground'
                     )}
                   >
                     <Icon className={cn('h-4 w-4 shrink-0 stroke-[1.5]', selected ? 'text-accent-text' : 'text-muted-foreground')} aria-hidden="true" />
@@ -135,7 +135,7 @@ export function MobileFiltersSheet({
                       'inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-[12px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                       selected
                         ? 'border-accent/50 bg-accent-soft/20 text-foreground'
-                        : 'border-white/5 bg-white/[0.03] text-muted-foreground hover:border-white/10 hover:text-foreground'
+                        : 'border-divider bg-elevated text-muted-foreground hover:border-border hover:text-foreground'
                     )}
                   >
                     <MapPin className={cn('h-4 w-4 shrink-0 stroke-[1.5]', selected ? 'text-accent-text' : 'text-muted-foreground')} aria-hidden="true" />
@@ -169,7 +169,7 @@ export function MobileFiltersSheet({
               aria-valuetext={`₱${maxFee.toLocaleString()}`}
               className="h-2 w-full cursor-pointer appearance-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent motion-reduce:transition-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:border-0 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-accent"
               style={{
-                background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`,
+                background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`,
               }}
             />
             <div className="mt-1.5 flex items-center justify-between text-[10px] font-medium tabular-nums text-subtle-foreground">
@@ -186,13 +186,13 @@ export function MobileFiltersSheet({
 
         {/* Actions pinned above the safe area */}
         <div
-          className="flex items-center gap-2 border-t border-white/5 bg-[#161616] px-5 py-3"
+          className="flex items-center gap-2 border-t border-divider bg-muted px-5 py-3"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-white/5 bg-white/[0.03] text-sm font-semibold text-muted-foreground transition hover:border-white/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-divider bg-elevated text-sm font-semibold text-muted-foreground transition hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <RotateCcw className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
             Reset

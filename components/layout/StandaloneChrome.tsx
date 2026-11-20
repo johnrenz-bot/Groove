@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { DashboardChrome } from '@/components/layout/DashboardChrome';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 import type { DashboardRole } from '@/components/header/roleMeta';
 
 /**

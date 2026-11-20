@@ -132,7 +132,7 @@ export const VERIFIED_SINGING_UPDATES: DanceUpdateRecord[] = [
     region: 'philippines',
     location: 'Santísimo Rosario Parish Church / UST Plaza Mayor, Manila',
     event_date: '2026-11-18T19:30:00+08:00',
-    source_url: 'http://www.ustsingers.com/',
+    source_url: 'https://www.ustsingers.com/',
     image_url: '/image/pa/ccp-ppo-opera.jpg',
     image_source_url: 'https://culturalcenter.gov.ph/',
     image_credit: 'UST Singers Official Archive',

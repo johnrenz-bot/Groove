@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * GoldParticles — deterministic floating gold dust for the splash.
@@ -55,7 +55,7 @@ export function GoldParticles({
           className="absolute left-1/2 top-[38%] h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
             background:
-              'radial-gradient(circle, rgba(221,170,85,0.07) 0%, transparent 65%)',
+              'radial-gradient(circle, rgba(217, 180, 91,0.07) 0%, transparent 65%)',
           }}
         />
       </div>
@@ -76,8 +76,8 @@ export function GoldParticles({
               height: p.size,
               opacity: p.opacity,
               background:
-                'radial-gradient(circle at 35% 30%, #FFE9A8, #DDAA55 70%)',
-              boxShadow: '0 0 10px rgba(221,170,85,0.5)',
+                'radial-gradient(circle at 35% 30%, #F6EEDC, #D9B45B 70%)',
+              boxShadow: '0 0 10px rgba(217, 180, 91,0.5)',
               animationDuration: `${p.duration}s`,
               animationDelay: `${p.delay}s`,
               ['--drift' as string]: `${p.drift}px`,

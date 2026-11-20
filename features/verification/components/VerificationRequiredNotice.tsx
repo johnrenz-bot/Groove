@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { AlertTriangle, Lock, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { VerificationGate } from '../services/verification';
 
 /**

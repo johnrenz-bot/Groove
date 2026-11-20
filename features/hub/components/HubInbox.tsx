@@ -10,7 +10,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import { Search, X, MessageSquare } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { useNow } from '@/features/appointments/hooks/useNow';
 import { availableActions } from '@/features/appointments/services/bookingStatus';
 import type { InboxRow } from '../types';
@@ -105,7 +105,7 @@ export function HubInbox({
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 items-center justify-between gap-2 px-3 pb-2 pt-3">
-        <h2 className="text-sm font-bold text-foreground">
+        <h2 className="font-sans text-base font-semibold tracking-[-0.01em] text-foreground">
           {role === 'client' ? 'Your coaches' : 'Your students'}
         </h2>
         <button
@@ -131,7 +131,7 @@ export function HubInbox({
           inputMode="search"
           placeholder="Search name, discipline"
           aria-label="Search conversations"
-          className="h-11 w-full rounded-2xl border border-border bg-card pl-9 pr-9 text-xs text-foreground outline-none placeholder:text-subtle-foreground focus:ring-2 focus:ring-ring"
+          className="h-11 w-full rounded-2xl border border-border bg-card pl-9 pr-9 text-xs text-foreground outline-none placeholder:text-subtle-foreground focus:border-accent-border focus:ring-2 focus:ring-accent-soft"
         />
         {query && (
           <button
@@ -163,7 +163,9 @@ export function HubInbox({
                 onClick={() => onFilterChange(item.value)}
                 className={cn(
                   'inline-flex h-9 shrink-0 snap-start cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[10px] font-bold uppercase tracking-[0.06em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  active ? 'bg-accent text-accent-foreground' : ' border border-border bg-card text-muted-foreground hover:border-accent-border hover:text-foreground'
+                  active
+                    ? 'border-transparent bg-gradient-to-br from-[#e4c989] to-[#d6b36a] text-[#141414] '
+                    : 'border border-border bg-card text-muted-foreground hover:border-accent-border hover:text-foreground'
                 )}
               >
                 {item.label}

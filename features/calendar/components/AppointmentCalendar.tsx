@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { Appointment } from '@/lib/types';
 import {
   endOfMonth,

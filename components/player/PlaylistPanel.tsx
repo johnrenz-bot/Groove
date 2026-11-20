@@ -22,7 +22,7 @@ import type { Track } from '@/features/music/types/track';
 import { SEED_PLAYLISTS } from '@/features/music/data/seed';
 import { useMyPlaylist } from '@/features/music/hooks/useMyPlaylist';
 import { EqualizerBars } from '@/components/loading/GrooveSpinner';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { useMusicPlayer } from '@/features/music/context/MusicPlayerContext';
 
 const iconBtn =
@@ -119,12 +119,12 @@ export function PlaylistPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="w-full overflow-hidden rounded-2xl border border-white/5 bg-[#161616]/95 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.8)] backdrop-blur-xl backdrop-saturate-150 motion-reduce:transition-none sm:w-[420px] sm:max-w-[92vw]"
+      className="w-full overflow-hidden rounded-2xl border border-divider bg-card/95 shadow-[var(--shadow-lg)] backdrop-blur-xl backdrop-saturate-150 motion-reduce:transition-none sm:w-[420px] sm:max-w-[92vw]"
       role="dialog"
       aria-label="Playback queue"
     >
       {/* Tabs + close */}
-      <div className="flex items-center justify-between gap-2 border-b border-white/5 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-divider px-3 py-2">
         <div className="flex h-8 items-center gap-1 overflow-x-auto" role="tablist" aria-label="Playlists">
           {SEED_PLAYLISTS.map((p) => (
             <button
@@ -133,7 +133,7 @@ export function PlaylistPanel({ onClose }: { onClose: () => void }) {
               role="tab"
               aria-selected={activeTab === p.id}
               onClick={() => setActiveTab(p.id)}
-              className={cn(tabBtn, activeTab === p.id && 'border-white/10 bg-white/5 text-foreground')}
+              className={cn(tabBtn, activeTab === p.id && 'border-border bg-muted text-foreground')}
             >
               <ListMusic className="h-3.5 w-3.5 stroke-[1.5]" aria-hidden="true" />
               <span className="whitespace-nowrap">{p.name}</span>
@@ -144,7 +144,7 @@ export function PlaylistPanel({ onClose }: { onClose: () => void }) {
             role="tab"
             aria-selected={activeTab === 'my-playlist'}
             onClick={() => setActiveTab('my-playlist')}
-            className={cn(tabBtn, activeTab === 'my-playlist' && 'border-white/10 bg-white/5 text-foreground')}
+            className={cn(tabBtn, activeTab === 'my-playlist' && 'border-border bg-muted text-foreground')}
           >
             <Music2 className="h-3.5 w-3.5 stroke-[1.5]" aria-hidden="true" />
             <span>My Playlist</span>
@@ -156,14 +156,14 @@ export function PlaylistPanel({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* Search + add */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-white/5 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-divider px-3 py-2">
         <label htmlFor="playlist-search" className="sr-only">Search tracks</label>
         <input
           id="playlist-search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search this playlist…"
-          className="h-8 min-w-0 flex-1 rounded-lg border border-white/5 bg-white/5 px-2.5 text-[11px] text-foreground outline-none placeholder:text-subtle-foreground focus:border-accent focus:bg-white/[0.06] focus:ring-2 focus:ring-accent/30"
+          className="h-8 min-w-0 flex-1 rounded-lg border border-divider bg-muted px-2.5 text-[11px] text-foreground outline-none placeholder:text-subtle-foreground focus:border-accent focus:bg-elevated focus:ring-2 focus:ring-accent/30"
         />
         {activeTab === 'my-playlist' ? (
           <div className="flex shrink-0 items-center gap-1.5">
@@ -180,7 +180,7 @@ export function PlaylistPanel({ onClose }: { onClose: () => void }) {
                 if (e.key === 'Enter') void handleAdd();
               }}
               placeholder="Paste a YouTube link…"
-              className="h-8 w-40 rounded-lg border border-white/5 bg-white/5 px-2 text-[11px] text-foreground outline-none placeholder:text-subtle-foreground focus:border-accent focus:ring-2 focus:ring-accent/30"
+              className="h-8 w-40 rounded-lg border border-divider bg-muted px-2 text-[11px] text-foreground outline-none placeholder:text-subtle-foreground focus:border-accent focus:ring-2 focus:ring-accent/30"
               aria-invalid={urlState === 'error'}
               aria-describedby={urlError ? 'add-song-error' : undefined}
             />
@@ -210,7 +210,7 @@ export function PlaylistPanel({ onClose }: { onClose: () => void }) {
       )}
 
       {/* Subheader */}
-      <div className="flex items-center justify-between border-b border-white/5 px-3 py-1.5 text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between border-b border-divider px-3 py-1.5 text-[10px] text-muted-foreground">
         <span aria-live="polite">{visibleTracks.length} track{visibleTracks.length === 1 ? '' : 's'}</span>
         <div className="flex items-center gap-1">
           <button

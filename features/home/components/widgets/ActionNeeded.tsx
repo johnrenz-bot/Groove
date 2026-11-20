@@ -12,7 +12,7 @@ import React from 'react';
 import { PenLine, CheckCircle2 } from 'lucide-react';
 import { PanelCard } from '@/components/dashboard/PanelCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { ActionItem } from '../../types';
 
 export function ActionNeeded({ items }: { items: ActionItem[] }) {

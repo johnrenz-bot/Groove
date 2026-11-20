@@ -35,8 +35,7 @@ import {
 import { VerificationReviewPanel } from '@/features/verification/components/VerificationReviewPanel';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { canApproveVerification, approvalBlockMessage } from '@/features/verification/services/verification';
-import { getInitials, formatDate, formatCurrency, parseGenres, VERIFICATION_BUCKET, SIGNED_URL_TTL_SECONDS } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
+import { getInitials, formatDate, formatCurrency, parseGenres, VERIFICATION_BUCKET, SIGNED_URL_TTL_SECONDS, cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
 /**

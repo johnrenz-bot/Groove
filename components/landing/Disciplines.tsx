@@ -2,46 +2,59 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Sparkles, Music, Film, Theater, Check } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 
-const DISCIPLINES_DATA = [
+/**
+ * Disciplines — the editorial gallery.
+ *
+ * Asymmetric 12-column composition: one tall feature frame (Dance), two
+ * stacked frames (Vocal Performance, Acting), and a wide cinematic banner
+ * (Theater). Real photography from the repository — never placeholders —
+ * under dark gradient scrims so copy stays legible.
+ */
+const DISCIPLINES = [
   {
+    id: '01',
     title: 'Dance & Choreography',
     tagline: 'Hip-Hop to Ballet',
-    description:
-      'Connect with expert choreographers and dancers specializing in Hip-Hop, Contemporary, Ballet, Ballroom, K-Pop, and traditional folk dances.',
-    icon: Sparkles,
-    genres: ['Hip-Hop', 'Contemporary', 'Ballet', 'Ballroom', 'K-Pop', 'Folk'],
+    genres: ['Hip-Hop', 'Contemporary', 'Ballet', 'K-Pop', 'Folk'],
     href: '/community/performing-arts/dance',
+    image: '/images/community/dance/hero-dance.jpg',
+    alt: 'Dancers performing on stage under theatrical lighting',
+    layout: 'feature' as const,
   },
   {
+    id: '02',
     title: 'Vocal Performance',
     tagline: 'Pop to Musical Theater',
-    description:
-      'Train your vocals across Pop, R&B, Classical, Acoustic, and Musical Theater with experienced vocal coaches and session mentors.',
-    icon: Music,
-    genres: ['Pop', 'R&B', 'Classical', 'Acoustic', 'Musical Theater'],
+    genres: ['Pop', 'R&B', 'Classical', 'Musical Theater'],
     href: '/community/performing-arts/singing',
+    image: '/singing-updates/world-choir-games-2026.jpg',
+    alt: 'Choir and vocal ensemble performing on stage',
+    layout: 'tile' as const,
   },
   {
+    id: '03',
     title: 'Acting & Stage Craft',
     tagline: 'Method to Screen Presence',
-    description:
-      'Learn method acting, improvisation, monologue delivery, audition preparation, and screen presence from accomplished theater artists.',
-    icon: Film,
-    genres: ['Method Acting', 'Improv', 'Audition Prep', 'Screen Acting'],
+    genres: ['Method Acting', 'Improv', 'Audition Prep'],
     href: '/community/performing-arts/acting',
+    image: '/acting-updates/dulaang-up-auditions.jpg',
+    alt: 'Actors auditioning on stage',
+    layout: 'tile' as const,
   },
   {
+    id: '04',
     title: 'Theater & Production',
     tagline: 'Stagecraft & Direction',
-    description:
-      'Immerse yourself in live show discipline, musical theater staging, stage direction, production design, and ensemble performance.',
-    icon: Theater,
-    genres: ['Musical Theater', 'Stage Management', 'Directing', 'Production Design'],
+    genres: ['Musical Theater', 'Directing', 'Production Design'],
     href: '/community/performing-arts/theater',
+    image: '/theater-updates/vlf-21-festival-announcement.jpg',
+    alt: 'Theater festival stage with ensemble production',
+    layout: 'banner' as const,
   },
 ];
 
@@ -49,90 +62,90 @@ export function Disciplines() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section id="disciplines" className="relative mx-auto max-w-[1240px] px-6 py-24 sm:px-8 lg:px-10 lg:py-32 scroll-mt-24">
-      {/* Section Header */}
-      <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        <SectionHeading
-          eyebrow="Disciplines"
-          title="Every performing art has a home here."
-          description="From street dance to classical ballet, vocal coaching to full theatrical staging — four core disciplines, dozens of genres, unified in one platform."
-          align="left"
-        />
-      </motion.div>
+    <section id="disciplines" className="relative mx-auto max-w-[1240px] scroll-mt-24 px-6 py-20 sm:px-8 lg:px-10 lg:py-28">
+      <SectionHeading
+        eyebrow="Disciplines"
+        title="Every performing art has a home here."
+        description="From street dance to classical ballet, vocal coaching to full theatrical staging — four core disciplines, dozens of genres, one platform."
+        align="left"
+      />
 
-      {/* 4 Equal Cards Grid */}
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {DISCIPLINES_DATA.map((discipline, idx) => {
-          const Icon = discipline.icon;
+      {/* Asymmetric editorial gallery */}
+      <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:grid-rows-2 lg:gap-5">
+        {DISCIPLINES.map((d, idx) => {
+          const span =
+            d.layout === 'feature'
+              ? 'sm:col-span-2 lg:col-span-6 lg:row-span-2 min-h-[26rem] sm:min-h-[30rem] lg:min-h-[34rem]'
+              : d.layout === 'banner'
+                ? 'sm:col-span-2 lg:col-span-12 min-h-[15rem] sm:min-h-[17rem]'
+                : 'lg:col-span-6 min-h-[15rem] sm:min-h-[16rem] lg:min-h-0';
+
           return (
             <motion.div
-              key={discipline.title}
+              key={d.title}
               initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.08 }}
-              whileHover={
-                prefersReducedMotion
-                  ? undefined
-                  : {
-                      y: -6,
-                      borderColor: 'rgba(255,155,47, 0.5)',
-                      boxShadow: '0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255,155,47, 0.12)',
-                    }
-              }
-              className="group relative flex flex-col justify-between rounded-[24px] border border-white/5 bg-[#121212]/70 p-6 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-all duration-200"
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.55, delay: idx * 0.07, ease: [0.16, 1, 0.3, 1] }}
+              className={`group relative overflow-hidden rounded-[22px] border border-white/8 ${span}`}
             >
-              <div>
-                {/* Header row */}
-                <div className="flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-[#FF9B2F]/25 bg-[#FF9B2F]/10 text-[#FF9B2F] shadow-[0_0_15px_rgba(255,155,47,0.15)] group-hover:border-[#FF9B2F]/60 transition-colors">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#FF9B2F]/70">
-                    Discipline 0{idx + 1}
-                  </span>
-                </div>
+              <Image
+                src={d.image}
+                alt={d.alt}
+                fill
+                sizes={
+                  d.layout === 'feature'
+                    ? '(max-width: 1024px) 100vw, 55vw'
+                    : d.layout === 'banner'
+                      ? '100vw'
+                      : '(max-width: 1024px) 50vw, 38vw'
+                }
+                className="object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]"
+              />
+              {/* Scrim — heavier at the bottom for type, lighter at rest */}
+              <div
+                className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/5 transition-opacity duration-500 group-hover:from-black/95"
+                aria-hidden="true"
+              />
+              <div
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                aria-hidden="true"
+                style={{ background: 'transparent' }}
+              />
 
-                {/* Title & Tagline */}
-                <h3 className="mt-5 text-xl font-bold text-white tracking-tight group-hover:text-[#FF9B2F] transition-colors">
-                  {discipline.title}
+              {/* Index — top left */}
+              <span className="absolute left-5 top-5 inline-flex items-center rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md">
+                Discipline {d.id}
+              </span>
+              <ArrowUpRight
+                className="absolute right-5 top-5 h-5 w-5 text-white/60 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-muted-foreground"
+                aria-hidden="true"
+              />
+
+              {/* Copy — bottom */}
+              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
+                  {d.tagline}
+                </p>
+                <h3 className="mt-1.5 font-sans text-xl font-semibold leading-tight tracking-[-0.01em] text-white sm:text-2xl">
+                  {d.title}
                 </h3>
-                <p className="mt-1 text-xs font-medium uppercase tracking-wider text-[#FF9B2F]/80">
-                  {discipline.tagline}
-                </p>
-
-                {/* Description */}
-                <p className="mt-3 text-xs leading-relaxed text-white/65">
-                  {discipline.description}
-                </p>
-
-                {/* Genre Tags */}
-                <div className="mt-5 flex flex-wrap gap-1.5">
-                  {discipline.genres.map((genre) => (
+                <div className="mt-3 hidden flex-wrap gap-1.5 sm:flex">
+                  {d.genres.map((g) => (
                     <span
-                      key={genre}
-                      className="inline-flex items-center gap-1 rounded-full border border-white/5 bg-white/5 px-2.5 py-0.5 text-[11px] font-medium text-white/70"
+                      key={g}
+                      className="rounded-full border border-white/12 bg-black/40 px-2.5 py-0.5 text-[10px] font-medium text-white/75 backdrop-blur-sm"
                     >
-                      <Check className="h-2.5 w-2.5 text-[#FF9B2F]" />
-                      {genre}
+                      {g}
                     </span>
                   ))}
                 </div>
-              </div>
-
-              {/* Action Link */}
-              <div className="mt-6 pt-4 border-t border-white/5">
                 <Link
-                  href={discipline.href}
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-white/80 group-hover:text-[#FF9B2F] transition-colors"
+                  href={d.href}
+                  className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-[#F6EEDC]"
                 >
                   Explore community
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
                 </Link>
               </div>
             </motion.div>
@@ -144,4 +157,3 @@ export function Disciplines() {
 }
 
 export default Disciplines;
-

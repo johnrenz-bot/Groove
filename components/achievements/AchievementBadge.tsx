@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Award, Lock, CheckCircle2, Sparkles } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 
 interface AchievementBadgeProps {

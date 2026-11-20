@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FEATURED_CREWS, type Crew } from '../data/crews';
-import { getLeagueById } from '../data/leagues';
+import { FEATURED_CREWS, type Crew } from '../data/crews.ts';
+import { getLeagueById } from '../data/leagues.ts';
 import type { League } from '@/lib/dance/contracts';
 export type { ScopeFilter };
-import { cn } from '@/components/shared/cn';
-import { SectionHeader } from './SectionHeader';
-import { CrewChips } from './CrewChips';
-import { CrewDossierCard } from './CrewDossierCard';
+import { cn } from '@/lib/utils';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
+import { CrewChips } from './CrewChips.tsx';
+import { CrewDossierCard } from './CrewDossierCard.tsx';
 import { SearchX } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -103,7 +103,7 @@ export function FeaturedCrewsRoster({
           title={
             <span id="featured-crews-title">
               Featured{' '}
-              <span className="font-normal italic text-[var(--crew-text-muted)]">
+              <span className="font-normal text-[var(--crew-text-muted)]">
                 Crews &amp; Athletes
               </span>
             </span>

@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Users, ShieldCheck, Ban, Eye, MapPin, Star } from 'lucide-react';
-import { PageHeader } from '@/components/shared/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
@@ -272,7 +271,13 @@ export function UserDirectory({
 
   return (
     <div className="g-fade-up space-y-6">
-      <PageHeader eyebrow={eyebrow} title={title} description={description} />
+      {/* Bespoke admin masthead — eyebrow, serif title, divider */}
+      <div className="border-b border-border pb-6">
+        <h1 className="mt-2.5 font-sans text-3xl font-semibold leading-[1.08] tracking-[-0.015em] text-foreground sm:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-muted-foreground">{description}</p>
+      </div>
 
       {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -443,7 +448,7 @@ function SummaryTile({
   tone?: 'default' | 'warning' | 'danger' | 'success';
 }) {
   return (
-    <div className="g-card flex items-center gap-4 p-5">
+    <div className="g-card g-kpi-card flex items-center gap-4 p-5">
       <span
         aria-hidden="true"
         className={
@@ -460,7 +465,7 @@ function SummaryTile({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-2xl font-bold tabular-nums tracking-[-0.03em] text-foreground">{value}</p>
+        <p className="font-sans text-[1.6rem] font-semibold tabular-nums tracking-[-0.02em] text-foreground">{value}</p>
         <p className="text-xs font-semibold text-foreground">{label}</p>
         <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{hint}</p>
       </div>

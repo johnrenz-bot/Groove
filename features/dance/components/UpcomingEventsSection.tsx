@@ -2,14 +2,14 @@
 
 import React, { useMemo } from 'react';
 import { MapPin, ExternalLink, Ticket, CalendarX2 } from 'lucide-react';
-import type { DanceUpdateRecord } from '../services/danceService';
-import { isUpcomingEvent } from '../services/danceService';
-import { getOrgLogo } from '../data/danceOrgs';
+import type { DanceUpdateRecord } from '../services/danceService.ts';
+import { isUpcomingEvent } from '../services/danceService.ts';
+import { getOrgLogo } from '../data/danceOrgs.ts';
 import { parseEventDateParts } from '@/lib/dance/types';
-import { SectionHeader } from './SectionHeader';
-import { ReportIssueLink } from './ReportIssueLink';
-import { SafeImage } from './SafeImage';
-import { cn } from '@/components/shared/cn';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
+import { ReportIssueLink } from '@/features/discipline/components/ReportIssueLink';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
+import { cn } from '@/lib/utils';
 
 export type EventTimeframe = 'upcoming' | 'past';
 
@@ -87,7 +87,7 @@ export function UpcomingEventsSection({
         title={
           <span id="upcoming-events-title">
             {timeframe === 'past' ? 'Past' : 'Upcoming'}{' '}
-            <span className="font-normal italic text-muted-foreground">Events</span>
+            <span className="font-normal text-muted-foreground">Events</span>
           </span>
         }
         description="Official dates, certified locations, and direct registration links for league battles."

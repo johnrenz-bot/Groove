@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Loader2 } from 'lucide-react';
 import { SELF_ASSIGNABLE, statusMeta, type Presence } from '../utils/presence';
 import { usePresence, useSetPresence } from '../hooks/usePresence';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * Presence selector for coaches and clients.

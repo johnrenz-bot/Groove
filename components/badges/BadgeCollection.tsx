@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Award, RefreshCw } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { AchievementModal } from '@/components/achievements/AchievementModal';
 import { AchievementWithProgress, UserBadgeStatus } from '@/lib/achievements/types';
 import { getBadgeName, getBadgeDescription } from '@/lib/achievements/definitions';

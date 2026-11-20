@@ -605,7 +605,7 @@ VALUES ('contract-signatures', 'contract-signatures', false, 2097152,
 ON CONFLICT (id) DO UPDATE
     SET public = false,
         file_size_limit = 2097152,
-        allowed_mime_types = EXCLUDE.allowed_mime_types;
+        allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 -- Object name shape:  <booking id>/<party>-<unix>.png
 -- e.g. storage.objects.name = '7/client-1758000000000.png'

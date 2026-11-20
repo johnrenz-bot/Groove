@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export type BadgeVariant =
   | 'pending'
@@ -69,7 +69,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-[6px] px-2.5 py-0.5 text-[11px] font-semibold',
+        'inline-flex select-none items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
         VARIANT_STYLES[variant],
         className
       )}

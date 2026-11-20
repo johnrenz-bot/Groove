@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { SELF_ASSIGNABLE, statusMeta, type Presence } from '../utils/presence';
 import { usePresence, useSetPresence } from '../hooks/usePresence';
 

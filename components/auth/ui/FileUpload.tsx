@@ -12,7 +12,7 @@ import {
   Trash2,
   UploadCloud,
 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { ImagePreviewModal } from './Modal';
 
 /* ==========================================================================

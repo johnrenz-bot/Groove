@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Play, ExternalLink } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 interface VideoCardProps {
   videoUrl: string;
@@ -67,7 +67,7 @@ export function VideoCard({ videoUrl, title, thumbnailUrl, crewName }: VideoCard
           <span>Official Performance Video</span>
         </div>
 
-        <h4 className="font-serif text-lg font-semibold text-[var(--crew-text-primary)] leading-snug mb-3 whitespace-normal break-words">
+        <h4 className="font-sans text-lg font-semibold text-[var(--crew-text-primary)] leading-snug mb-3 whitespace-normal break-words">
           {title}
         </h4>
 

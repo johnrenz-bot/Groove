@@ -2,7 +2,7 @@
 
 import React, { useEffect, useId, useState } from 'react';
 import { ArrowRight, Award, BadgeCheck, CalendarCheck, Check, Download, Share2 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { Modal, ModalCloseButton } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 

@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
-import { cn } from './cn';
+import { cn } from '@/lib/utils';
 import { AmbientBackground } from './AmbientBackground';
 import { PixelBackground } from './PixelBackground';
 import { AnimatedLogo } from '@/components/header/AnimatedLogo';

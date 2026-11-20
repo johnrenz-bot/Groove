@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { errorResponse } from '@/lib/errors';
+import { authorizeIngestRequest } from '@/lib/ingest/auth';
 import { ingestBodySchema } from '@/lib/dance/schema';
 import { ingestDanceUpdates, logAgentRun } from '@/features/dance/services/danceService';
 
@@ -8,25 +10,10 @@ export async function POST(request: NextRequest) {
   const startedAt = new Date().toISOString();
 
   try {
-    // 1. Authenticate with INGEST_API_KEY
-    const expectedKey = process.env.INGEST_API_KEY;
-    const providedKey =
-      request.headers.get('x-api-key') ||
-      request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-
-    if (!expectedKey) {
-      console.error('[API /api/dance/ingest] INGEST_API_KEY is not configured in server environment.');
-      return NextResponse.json(
-        { error: 'Server configuration error: INGEST_API_KEY is not configured.' },
-        { status: 500 }
-      );
-    }
-
-    if (!providedKey || providedKey !== expectedKey) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Invalid or missing INGEST_API_KEY.' },
-        { status: 401 }
-      );
+    // 1. Authenticate with INGEST_API_KEY (constant-time digest compare)
+    const ingestAuth = authorizeIngestRequest(request, 'API /api/dance/ingest');
+    if (!ingestAuth.ok) {
+      return NextResponse.json(ingestAuth.body, { status: ingestAuth.status });
     }
 
     // 2. Parse and validate payload
@@ -78,12 +65,6 @@ export async function POST(request: NextRequest) {
       finished_at: new Date().toISOString(),
     });
 
-    return NextResponse.json(
-      {
-        error: 'Ingestion failed',
-        message: error?.message || 'Internal server error',
-      },
-      { status: 500 }
-    );
+    return errorResponse(error, 'POST /api/dance/ingest');
   }
 }

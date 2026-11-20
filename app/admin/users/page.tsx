@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from 'react';
 import { Users, ShieldCheck, Ban, Eye, MapPin, Sparkles, Loader2, Search } from 'lucide-react';
-import { PageHeader } from '@/components/shared/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
@@ -229,14 +228,21 @@ export default function AdminUsersPage() {
 
   return (
     <div className="g-fade-up space-y-6">
-      <PageHeader
-        eyebrow="Account Management"
-        title="Users & Verification"
-        description="Every registered account across all roles. Review verification documents, edit profiles, and control account access."
-      />
-
-      <div className="flex justify-end">
-        <Button onClick={() => setCreateOpen(true)} icon={<Users className="h-4 w-4" />}>
+      {/* Bespoke admin masthead — eyebrow, serif title, primary action in one band */}
+      <div className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="mt-2.5 font-sans text-3xl font-semibold leading-[1.08] tracking-[-0.015em] text-foreground sm:text-4xl">
+            Users <span className="dash-greet-name">&amp; Verification</span>
+          </h1>
+          <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
+            Every registered account across all roles. Review verification documents, edit profiles, and control account access.
+          </p>
+        </div>
+        <Button
+          onClick={() => setCreateOpen(true)}
+          icon={<Users className="h-4 w-4" />}
+          className="shrink-0"
+        >
           Add account
         </Button>
       </div>
@@ -289,7 +295,7 @@ export default function AdminUsersPage() {
           ]}
         />
 
-        <div className="g-card flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
+        <div className="g-card flex flex-col gap-3 border-t-2 border-t-[var(--accent-border)] p-4 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1">
             <label htmlFor="user-search" className="sr-only">
               Search accounts
@@ -445,7 +451,7 @@ function SummaryTile({
   tone?: 'default' | 'warning' | 'danger' | 'success';
 }) {
   return (
-    <div className="g-card flex items-center gap-4 p-5">
+    <div className="g-card g-kpi-card flex items-center gap-4 p-5">
       <span
         aria-hidden="true"
         className={
@@ -462,7 +468,7 @@ function SummaryTile({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-2xl font-bold tabular-nums tracking-[-0.03em] text-foreground">{value}</p>
+        <p className="font-sans text-3xl font-semibold tabular-nums tracking-[-0.02em] text-foreground">{value}</p>
         <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
           {label}
         </p>

@@ -33,7 +33,7 @@ import {
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import {
   ARTICLES,
   CATEGORIES,

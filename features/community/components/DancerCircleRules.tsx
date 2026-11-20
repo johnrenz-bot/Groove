@@ -37,7 +37,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 const ACK_STORAGE_KEY = 'groove:showcase:dancer-rules-ack:v1';
 const ACK_EVENT = 'groove:showcase:dancer-rules-ack-changed';
@@ -116,7 +116,7 @@ export function DancerCircleRules() {
       id: 'respect',
       icon: HeartHandshake,
       title: t('showcase.rule1Title', '1. Mutual Respect & Pakikisama (Anti-Harassment)'),
-      color: 'text-emerald-500 bg-emerald-500/10 ',
+      color: 'text-success bg-success-soft ',
       description:
         t('showcase.rule1Body', 'Dance is a universal language of expression. We enforce zero tolerance for bullying, hate speech, body-shaming, discrimination, or aggressive mockery in battle comments. Welcome beginners and uplift fellow dancers across all styles.'),
     },
@@ -132,7 +132,7 @@ export function DancerCircleRules() {
       id: 'privacy',
       icon: Eye,
       title: t('showcase.rule3Title', '3. Studio Privacy & Recording Consent'),
-      color: 'text-sky-500 bg-sky-500/10 ',
+      color: 'text-info bg-info-soft ',
       description:
         t('showcase.rule3Body', 'Always ask for consent before recording rehearsal footage that features other studio members, students, or instructors in the background. Never publish private phone numbers, rehearsal studio door codes, or sensitive personal data.'),
     },
@@ -140,7 +140,7 @@ export function DancerCircleRules() {
       id: 'copyright',
       icon: Copyright,
       title: t('showcase.rule4Title', '4. Choreography Credits & Music Copyright'),
-      color: 'text-amber-500 bg-amber-500/10 ',
+      color: 'text-warning bg-warning-soft ',
       description:
         t('showcase.rule4Body', 'Always tag and credit the original choreographer, crew, and music producer in your captions. Routine plagiarism or claiming another creator’s choreo as your original work violates community trust.'),
     },
@@ -156,7 +156,7 @@ export function DancerCircleRules() {
       id: 'reporting',
       icon: Flag,
       title: t('showcase.rule6Title', '6. Reporting Inappropriate Behavior'),
-      color: 'text-rose-500 bg-rose-500/10 ',
+      color: 'text-danger bg-danger-soft ',
       description:
         t('showcase.rule6Body', 'If you encounter harassment, copyright infringement, or spam, click the three dots (⋮) on the post or comment to report it, or contact Groove community moderators. All reports are confidential and reviewed promptly.'),
     },

@@ -3,9 +3,8 @@
 import Link from 'next/link';
 import { Loader2, MapPin, UserCheck, UserPlus } from 'lucide-react';
 import type { FollowPerson } from '@/lib/profileFollows';
-import { getInitials } from '@/lib/utils';
+import { getInitials, cn } from '@/lib/utils';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
-import { cn } from '@/components/shared/cn';
 import { maskUsername } from '@/lib/masking';
 
 /**

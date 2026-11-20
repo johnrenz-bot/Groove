@@ -245,12 +245,12 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
 
         <article className="g-card space-y-7 p-6 text-sm sm:p-8">
           {/* Header */}
-          <header className="space-y-2   pb-6 text-center">
+          <header className="space-y-2 border-b border-accent-border/30 pb-6 text-center">
             <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-text">
               <FileText className="h-3.5 w-3.5" aria-hidden="true" />
               Official Groove Digital Agreement
             </div>
-            <h1 className="text-2xl font-bold tracking-[-0.03em] text-foreground sm:text-3xl">
+            <h1 className="font-sans text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
               Coaching Service Agreement
             </h1>
             <p className="text-xs text-subtle-foreground">
@@ -284,14 +284,14 @@ export default function ContractPage({ params }: { params: Promise<{ id: string 
 
           {/* Agreed Terms */}
           <section className="space-y-3">
-            <h2 className="flex items-center gap-2 text-base font-bold tracking-[-0.01em] text-foreground">
+            <h2 className="flex items-center gap-2 font-sans text-lg font-semibold tracking-[-0.01em] text-foreground">
               <Shield className="h-4 w-4 text-success" aria-hidden="true" />
               Agreed Session Terms &amp; Pricing
             </h2>
             <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
               <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-3">
                 <span className="text-muted-foreground">Service Rate:</span>
-                <span className="font-bold text-success">
+                <span className="font-bold tabular-nums text-accent-text">
                   ₱{agreement.appointment_price || '500'}
                 </span>
               </div>

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Award, Sparkles, CheckCircle2, Circle, Share2, Download, Lock, AlertCircle } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import {
   Modal,
   ModalCloseButton,

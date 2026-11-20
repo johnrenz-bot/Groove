@@ -14,7 +14,6 @@ import {
   Check,
   Search,
 } from 'lucide-react';
-import { PageHeader } from '@/components/shared/SectionHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -260,11 +259,15 @@ export default function AdminBookingsPage() {
 
   return (
     <div className="g-fade-up space-y-6">
-      <PageHeader
-        eyebrow="Session Management"
-        title="Bookings"
-        description="Every session request on the platform. Adjust status, inspect full booking detail, and remove cancelled records."
-      />
+      {/* Bespoke admin masthead — eyebrow, serif title, divider */}
+      <div className="border-b border-border pb-6">
+        <h1 className="mt-2.5 font-sans text-3xl font-semibold leading-[1.08] tracking-[-0.015em] text-foreground sm:text-4xl">
+          Bookings
+        </h1>
+        <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
+          Every session request on the platform. Adjust status, inspect full booking detail, and remove cancelled records.
+        </p>
+      </div>
 
       {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -540,8 +543,8 @@ function SummaryTile({
   tone?: 'default' | 'warning' | 'success';
 }) {
   return (
-    <div className="g-card p-5">
-      <p className="text-2xl font-bold tabular-nums tracking-[-0.03em] text-foreground">{value}</p>
+    <div className="g-card g-kpi-card p-5">
+      <p className="font-sans text-[1.65rem] font-semibold tabular-nums tracking-[-0.02em] text-foreground">{value}</p>
       <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </p>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { errorResponse } from '@/lib/errors';
 import { updatesQuerySchema } from '@/lib/dance/schema';
 import { isKnownLeagueId } from '@/features/dance/data/leagues';
 import { getPublishedDanceUpdates } from '@/features/dance/services/danceService';
@@ -56,14 +57,7 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
       },
     });
-  } catch (error: any) {
-    console.error('[API /api/dance/updates] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to retrieve dance updates',
-        message: error?.message || 'Internal server error',
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return errorResponse(error, 'GET /api/dance/updates');
   }
 }

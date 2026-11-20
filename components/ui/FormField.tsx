@@ -2,7 +2,7 @@
 
 import React, { forwardRef } from 'react';
 import { AlertCircle, Check, Eye, EyeOff } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /* ------------------------------------------------------------------ */
 /* Shared primitives                                                   */

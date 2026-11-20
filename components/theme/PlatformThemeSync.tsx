@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import {
   ACCENTS,
   setAccent,
@@ -11,13 +10,20 @@ import {
   type GlobalThemeId,
 } from './ThemeProvider';
 import { isDarkOnlyRoute } from './RouteThemeEnforcer';
+import {
+  fetchPlatformThemeSettings,
+  resolvePlatformThemeId,
+  subscribePlatformThemeSettings,
+} from '@/features/theme/services/platformThemeService';
 
 /**
  * Applies the platform appearance chosen in the admin console to every
  * interface — admin, coach, client, and the public pages.
  *
  * When an admin activates a theme, this sync immediately updates all open tabs
- * and pages across all user roles.
+ * and pages across all user roles. The data access lives in
+ * `features/theme/services/platformThemeService.ts`; this component only
+ * decides what to do with the values.
  */
 export function PlatformThemeSync() {
   const applied = useRef(false);
@@ -30,34 +36,21 @@ export function PlatformThemeSync() {
 
     const apply = async () => {
       try {
-        const supabase = createClient();
-        // Only the four keys this component reads. The table is an admin-tunable
-        // settings bag; selecting every row (and shipping it to every browser on
-        // every load) scales with admin activity, not with what is needed here.
-        const { data, error } = await supabase
-          .from('system_settings')
-          .select('key, value')
-          .in('key', ['theme_accent', 'theme_locked', 'platform_theme', 'theme']);
-        if (error || !data || cancelled) return;
-
-        const settings: Record<string, string> = {};
-        data.forEach((row: any) => {
-          settings[row.key] = row.value ?? '';
-        });
+        const settings = await fetchPlatformThemeSettings();
+        if (!settings || cancelled) return;
 
         // Accent: always platform-wide.
-        const accent = settings.theme_accent;
-        if (ACCENTS.some((a) => a.value === accent)) {
+        const accent = settings.accent;
+        if (accent && (ACCENTS as readonly { value: string }[]).some((a) => a.value === accent)) {
           setAccent(accent as Accent);
         }
 
-        const locked = settings.theme_locked === 'true';
-
-        // Check platform_theme (e.g. 'classic', 'halloween', 'christmas', 'dark', 'light')
-        const rawPlatformTheme = settings.platform_theme || settings.theme || 'dark';
-        const platformTheme: GlobalThemeId = GLOBAL_THEMES.some((t) => t.id === rawPlatformTheme)
-          ? (rawPlatformTheme as GlobalThemeId)
-          : 'dark';
+        const rawPlatformTheme = settings.platformTheme;
+        const platformTheme = resolvePlatformThemeId(
+          rawPlatformTheme,
+          GLOBAL_THEMES.map((t) => t.id),
+          'dark'
+        );
 
         const hasStoredPreference = (() => {
           try {
@@ -69,9 +62,15 @@ export function PlatformThemeSync() {
           }
         })();
 
-        if (locked || !hasStoredPreference) {
-          const isDarkOnly = typeof window !== 'undefined' && isDarkOnlyRoute(window.location.pathname);
-          if (!isDarkOnly || platformTheme === 'dark' || platformTheme === 'halloween' || platformTheme === 'christmas') {
+        if (settings.locked || !hasStoredPreference) {
+          const isDarkOnly =
+            typeof window !== 'undefined' && isDarkOnlyRoute(window.location.pathname);
+          if (
+            !isDarkOnly ||
+            platformTheme === 'dark' ||
+            platformTheme === 'halloween' ||
+            platformTheme === 'christmas'
+          ) {
             setGlobalTheme(platformTheme);
           }
         }
@@ -80,24 +79,15 @@ export function PlatformThemeSync() {
       }
     };
 
-    apply();
+    void apply();
 
-    // Listen for realtime theme changes from Supabase system_settings
-    const supabase = createClient();
-    const channel = supabase
-      .channel('theme-system-settings')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'system_settings' },
-        () => {
-          apply();
-        }
-      )
-      .subscribe();
+    const unsubscribe = subscribePlatformThemeSettings(() => {
+      void apply();
+    });
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, []);
 

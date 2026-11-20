@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { RotateCcw, SlidersHorizontal, X } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface FilterChip {
   id: string;

@@ -3,9 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { CalendarDays, Sparkles, Trophy, Globe, ArrowRight, ShieldCheck } from 'lucide-react';
-import { PhilippineSunMark } from './PhilippineSunMark';
-import { DANCE_HERO_IMAGE } from './danceFallbackImages';
-import { SafeImage } from './SafeImage';
+import { PhilippineSunMark } from '@/features/discipline/components/PhilippineSunMark';
+import { DANCE_HERO_IMAGE } from '@/features/discipline/components/danceFallbackImages';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
 
 interface DanceCommunityHeroProps {
   totalUpdatesCount: number;
@@ -75,9 +75,9 @@ export function DanceCommunityHero({
         <div className="mt-5 max-w-3xl">
           <h1
             id="dance-hero-title"
-            className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+            className="font-sans text-3xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
           >
-            Dance <span className="font-normal italic text-muted-foreground">Community</span>
+            Dance <span className="font-medium text-accent-text">Community</span>
           </h1>
           <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-accent-text sm:text-base">
             Competitions · Events · Crews · Philippines &amp; Worldwide
@@ -150,7 +150,7 @@ export function DanceCommunityHero({
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{label}</span>
                 </dt>
-                <dd className="mt-1 text-lg font-bold tabular-nums text-foreground sm:text-2xl">
+                <dd className="mt-1 text-lg font-sans font-semibold tabular-nums text-foreground">
                   {value}
                 </dd>
               </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { CheckCircle2, Circle } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { FeatureProgress } from '@/components/notifications/FeatureProgress';
@@ -136,7 +136,7 @@ export function BadgeModal({
           />
           {isUnlocked && (
             <div
-              className="absolute inset-0 rounded-full shadow-[0_0_32px_hsl(var(--success)/0.2)]"
+              className="absolute inset-0 rounded-full"
               aria-hidden="true"
             />
           )}

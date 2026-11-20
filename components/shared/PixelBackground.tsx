@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface PixelBackgroundProps {
   className?: string;
@@ -40,7 +40,10 @@ export function PixelBackground({ className = '', intensity = 'subtle' }: PixelB
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 70%, #000000 100%)',
+            /* Settle into the page: the vignette fades to whichever palette the
+               route is using, not to a fixed black — the black fade was only
+               correct on the dark theme. */
+            'linear-gradient(180deg, transparent 0%, transparent 55%, var(--background) 100%)',
         }}
       />
     </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { DisciplineHighlight } from '../data/disciplineMeta';
 
 export interface DisciplineHighlightsProps {

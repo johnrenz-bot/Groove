@@ -24,7 +24,7 @@ import {
   X,
   Info,
 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { BookingDetail } from '@/features/appointments/services/bookingService';
 import type { Profile } from '@/lib/types';
 import type { HubRole, HubSection, HubView, InboxRow } from '../types';
@@ -165,12 +165,12 @@ export function HubViewShell(props: {
         onClose={() => setNewMessageOpen(false)}
         onPick={(partnerId) => onSelectConversation(partnerId)}
       />
-      {/* Hub header */}
-      <header className="shrink-0   border-b border-divider bg-card/80 px-4 py-3 backdrop-blur">
+      {/* Hub header — editorial chrome around the workspace */}
+      <header className="shrink-0 border-b border-accent-border/60 bg-card/80 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-2 sm:px-2">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{eyebrow}</p>
-            <h1 className="text-base font-bold tracking-[-0.01em] text-foreground">{title}</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent-text">{eyebrow}</p>
+            <h1 className="font-sans text-lg font-semibold leading-tight tracking-[-0.01em] text-foreground">{title}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span

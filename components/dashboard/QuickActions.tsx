@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 
 export interface QuickAction {
   label: string;
@@ -9,27 +8,32 @@ export interface QuickAction {
   variant?: 'primary' | 'default';
 }
 
+/**
+ * Quick-access lane: outlined cards. Transparent bg, 1px border, radius 16px,
+ * icon top-left, label below. No gold fill, no glows.
+ */
 export function QuickActions({ actions }: { actions: QuickAction[] }) {
   return (
-    <div className="flex flex-wrap gap-2.5" role="navigation" aria-label="Quick actions">
+    <nav
+      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+      aria-label="Quick actions"
+    >
       {actions.map((a) => (
         <Link
           key={a.href}
           href={a.href}
-          className={
-            a.variant === 'primary'
-              ? 'inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none'
-              : 'inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-muted hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none'
-          }
+          className="group flex h-[72px] flex-col justify-between rounded-[16px] border border-border bg-transparent p-4 transition-colors hover:border-border-strong hover:bg-surface"
         >
-          <span className="shrink-0" aria-hidden>{a.icon}</span>
-          {a.label}
-          {a.variant === 'primary' && <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />}
+          <span className="flex h-8 w-8 items-center justify-center rounded-[10px] text-muted-foreground transition-colors group-hover:text-foreground">
+            {a.icon}
+          </span>
+          <span className="truncate text-sm font-semibold leading-tight text-foreground">
+            {a.label}
+          </span>
         </Link>
       ))}
-    </div>
+    </nav>
   );
 }
 
 export default QuickActions;
-

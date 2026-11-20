@@ -14,8 +14,7 @@ import {
 } from 'lucide-react';
 import type { Appointment } from '@/lib/types';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
-import { cn } from '@/components/shared/cn';
-import { formatDateTime } from '@/lib/utils';
+import { cn, formatDateTime } from '@/lib/utils';
 import {
   buildTimeline,
   historyFromEvents,

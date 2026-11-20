@@ -13,7 +13,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { MessageSquare, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 import {
   loadHubSnapshot,
   type HubSnapshot,

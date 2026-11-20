@@ -67,7 +67,7 @@ type HoverKind = 'idle' | 'button' | 'link' | 'card' | 'native';
  * Organic rounded play-button glyph. The path is a right-pointing triangle
  * with fully rounded corners and a barely-there bulge along both edges, so it
  * reads as a soft play blob rather than a sharp sign-off shape. Fill is driven
- * by CSS per hover state (white by default, GROOVE Groove orange on
+ * by CSS per hover state (white by default, GROOVE Groove gold on
  * interaction); the dark hairline stroke keeps the white fill visible on the
  * light cream theme, the same trick the native arrow uses.
  */

@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { Award, Drama, ExternalLink, MapPin, Music, Theater, Users } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
-import { SafeImage } from '@/features/dance/components/SafeImage';
-import { ReportIssueLink } from '@/features/dance/components/ReportIssueLink';
-import { TitleRow } from '@/features/dance/components/TitleRow';
+import { cn } from '@/lib/utils';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
+import { ReportIssueLink } from '@/features/discipline/components/ReportIssueLink';
+import { TitleRow } from '@/features/discipline/components/TitleRow';
 
 /**
  * Structural shape shared by the singing, acting and theater dossier records.
@@ -106,7 +106,7 @@ export function PerformingArtsDossierCard({
       id={`${panelIdPrefix}-panel-${entity.id}`}
       role="tabpanel"
       aria-labelledby={`${panelIdPrefix}-tab-${entity.id}`}
-      className="group relative overflow-hidden rounded-[28px] border crew-bd bg-[var(--crew-bg-card)] shadow-[0_30px_80px_-48px_rgba(0,0,0,0.9)]"
+      className="group relative overflow-hidden rounded-[28px] border crew-bd bg-[var(--crew-bg-card)] "
     >
       <div
         className="h-px w-full bg-gradient-to-r from-transparent via-[var(--crew-accent-gold)]/70 to-transparent"
@@ -182,7 +182,7 @@ export function PerformingArtsDossierCard({
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--crew-accent-gold)]">
               {isTBD(entity.country) ? `Featured ${kindLabel.toLowerCase()}` : `${entity.flag} ${entity.country}`}
             </p>
-            <h3 className="max-w-xl font-serif text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-[2.9rem]">
+            <h3 className="max-w-xl font-sans text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-[2.9rem]">
               {entity.name}
             </h3>
 

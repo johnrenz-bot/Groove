@@ -26,7 +26,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { Search, ChevronLeft, X } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { AppHeaderConfig } from '@/components/header/appHeaderConfig';
 import type { NavRole } from '@/components/header/navConfig';
 import { translateIn, useLanguage, dashboardLanguage } from '@/lib/i18n/LanguageProvider';

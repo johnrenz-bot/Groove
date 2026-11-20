@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export type FeatureProgressTone = 'gold' | 'success' | 'neutral';
 
@@ -81,7 +81,7 @@ export function FeatureProgress({
       ? 'bg-success'
       : tone === 'neutral'
         ? onDark
-          ? 'bg-[#f7f0e1]'
+          ? 'bg-surface-2'
           : 'bg-foreground'
         : 'bg-[var(--brand-sunburst)]';
 
@@ -90,7 +90,7 @@ export function FeatureProgress({
       ? 'text-success'
       : tone === 'neutral'
         ? onDark
-          ? 'text-[#f7f0e1]'
+          ? 'text-foreground'
           : 'text-foreground'
         : 'text-[var(--brand-sunburst)]';
 
@@ -144,7 +144,7 @@ export function FeatureProgress({
           <span
             className={cn(
               'absolute inset-0 grid place-items-center text-[11px] font-semibold tabular-nums',
-              onDark ? 'text-[#f7f0e1]' : 'text-foreground'
+              onDark ? 'text-foreground' : 'text-foreground'
             )}
             aria-hidden="true"
           >
@@ -160,7 +160,7 @@ export function FeatureProgress({
                   <p
                     className={cn(
                       'text-sm font-semibold',
-                      onDark ? 'text-[#f7f0e1]' : 'text-foreground'
+                      onDark ? 'text-foreground' : 'text-foreground'
                     )}
                   >
                     {label}
@@ -210,7 +210,7 @@ export function FeatureProgress({
             <p
               className={cn(
                 'text-xs font-semibold',
-                onDark ? 'text-[#f7f0e1]' : 'text-foreground'
+                onDark ? 'text-foreground' : 'text-foreground'
               )}
             >
               {label}

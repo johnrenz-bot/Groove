@@ -120,7 +120,7 @@ export function AgreementSignature({
       {/* White ground regardless of theme: the stored PNG is near-black ink. */}
       <div className="mt-2 flex h-20 items-center justify-center rounded-md border border-border bg-white px-2">
         {loading ? (
-          <span className="text-[11px] text-slate-400">Loading…</span>
+          <span className="text-[11px] text-slate-500">Loading…</span>
         ) : url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -134,7 +134,7 @@ export function AgreementSignature({
             Image unavailable
           </span>
         ) : (
-          <span className="text-center text-[11px] italic text-slate-400">
+          <span className="text-center text-[11px] italic text-slate-500">
             {hasPath ? 'Awaiting signature image' : 'Not signed yet'}
           </span>
         )}

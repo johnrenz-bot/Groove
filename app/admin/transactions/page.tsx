@@ -16,7 +16,7 @@ import {
   MODAL_PANEL_CLASS,
   useModalDismiss,
 } from '@/components/ui/Modal';
-import { cn } from '@/components/shared/cn';
+import { cn, formatDate, formatDateTime, formatCurrency } from '@/lib/utils';
 import {
   AdminTable,
   AdminTabs,
@@ -39,7 +39,6 @@ import {
 } from '@/lib/admin/service';
 import { useAdminData } from '@/lib/admin/useAdminData';
 import { fullName } from '@/lib/admin/presentation';
-import { formatDate, formatDateTime, formatCurrency } from '@/lib/utils';
 import type { Agreement, Feedback } from '@/lib/types';
 
 type Tab = 'agreements' | 'reviews';

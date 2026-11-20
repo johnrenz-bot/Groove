@@ -3,7 +3,7 @@
 import React from 'react';
 import { Search, X } from 'lucide-react';
 import { CATEGORIES } from '@/lib/dance/constants';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 interface UpdatesFilterBarProps {
   region: string;

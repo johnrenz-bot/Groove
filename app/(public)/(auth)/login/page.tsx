@@ -15,10 +15,10 @@ import {
   AuthButton,
   Checkbox,
   Divider,
-  GoogleButton,
   PasswordField,
   TextField,
 } from '@/components/auth/ui/AuthUI';
+import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
 
 const REMEMBER_ME_KEY = 'groove-remember-me';
 const REMEMBERED_IDENTIFIER_KEY = 'groove-remembered-identifier';
@@ -242,12 +242,17 @@ function LoginPageContent() {
           </div>
         )}
 
-        <GoogleButton
-          disabled={loading}
-          onClick={() => {
-            console.log('Google sign-in clicked');
-          }}
-        />
+        {/*
+          Google sign-in: the honest disabled state from GoogleSignInButton.
+          The OAuth chain (signInWithOAuth → /auth/callback → /register/complete)
+          is implemented and tested, but the Google provider is not verified
+          configured in Supabase for this project, so the button renders
+          disabled ("Coming Soon") instead of logging to console. Flip
+          GOOGLE_OAUTH_ENABLED in components/shared/GoogleSignInButton.tsx
+          after configuring the provider and the button becomes live — no
+          other changes required.
+        */}
+        <GoogleSignInButton next={redirectTo ?? undefined} label="Continue with Google" />
 
         <Divider label="OR" variant="dotted" />
 
@@ -313,7 +318,7 @@ function LoginPageContent() {
             <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-text">
               Registration
             </span>
-            <span className="font-serif text-2xl font-medium tracking-[-0.02em] text-foreground">
+            <span className="font-sans text-2xl font-medium tracking-[-0.02em] text-foreground">
               Create your account
             </span>
           </span>
@@ -341,7 +346,7 @@ function LoginPageContent() {
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">
                 Coach / Choreographer
               </span>
-              <h3 className="font-serif text-xl font-medium leading-tight text-white opacity-100 translate-y-0 transition-all duration-[300ms] ease-out sm:text-2xl sm:opacity-0 sm:translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 sm:group-focus:opacity-100 sm:group-focus:translate-y-0">
+              <h3 className="font-sans text-xl font-medium leading-tight text-white opacity-100 translate-y-0 transition-all duration-[300ms] ease-out sm:text-2xl sm:opacity-0 sm:translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 sm:group-focus:opacity-100 sm:group-focus:translate-y-0">
                 Turn your craft into a studio.
               </h3>
               {/* revealed on hover (always visible on touch via group-focus / media query) */}
@@ -368,7 +373,7 @@ function LoginPageContent() {
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">
                 Client / Performer
               </span>
-              <h3 className="font-serif text-xl font-medium leading-tight text-white opacity-100 translate-y-0 transition-all duration-[300ms] ease-out sm:text-2xl sm:opacity-0 sm:translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 sm:group-focus:opacity-100 sm:group-focus:translate-y-0">
+              <h3 className="font-sans text-xl font-medium leading-tight text-white opacity-100 translate-y-0 transition-all duration-[300ms] ease-out sm:text-2xl sm:opacity-0 sm:translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 sm:group-focus:opacity-100 sm:group-focus:translate-y-0">
                 Find your next stage.
               </h3>
               <span className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-white opacity-100 translate-y-0 transition-all duration-[300ms] ease-out sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 sm:group-focus:opacity-100 sm:group-focus:translate-y-0">

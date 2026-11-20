@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { LogOut } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { Avatar } from './Avatar';
 import { PresenceDot } from '@/features/presence/components/StatusSelect';

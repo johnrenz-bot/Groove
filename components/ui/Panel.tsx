@@ -3,7 +3,7 @@
 import React, { useId, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { InfoTip } from '@/components/ui/InfoTip';
 import { IconBadge } from '@/components/ui/Card';
 
@@ -78,7 +78,7 @@ export function PanelHeader({
         {icon && <IconBadge icon={icon} size="sm" />}
         <div className="flex min-w-0 items-center gap-2">
           {typeof title === 'string' ? (
-            <h2 className="truncate text-sm font-bold tracking-[-0.01em] text-foreground sm:text-base">
+            <h2 className="truncate font-sans text-base font-semibold tracking-[-0.01em] text-foreground sm:text-lg">
               {title}
             </h2>
           ) : (

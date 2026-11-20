@@ -1,88 +1,15 @@
-'use client';
-
-import React, { useEffect } from 'react';
-import { StudioLocator } from '@/components/studio/StudioLocator';
+import React from 'react';
+import { notFound } from 'next/navigation';
+import { QaFrameClient } from './qa-frame-client';
 
 type MockMode = 'normal' | 'empty' | 'error' | 'slow';
 
 /**
- * Temporary QA harness: renders the locator alone and, for the mock modes,
- * replaces `/api/studios` with a canned response so the loading, empty, and
- * error presentations can be inspected without touching the real API.
+ * Server wrapper for the QA harness. In production builds this route does not
+ * exist: `notFound()` renders the root 404 and no QA markup or mock code ships
+ * to the client. In development the harness renders unchanged.
  */
-export function QaFrame({ mock = 'normal' }: { mock?: MockMode }) {
-  useEffect(() => {
-    if (typeof window === 'undefined' || mock === 'normal') return;
-
-    const holder = window as typeof window & {
-      __studioQaOriginalFetch?: typeof fetch;
-    };
-
-    if (!holder.__studioQaOriginalFetch) {
-      holder.__studioQaOriginalFetch = window.fetch.bind(window);
-    }
-    const original = holder.__studioQaOriginalFetch;
-
-    window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.toString()
-            : input.url;
-
-      if (!url.includes('/api/studios')) return original(input, init);
-
-      if (mock === 'error') {
-        return Promise.resolve(
-          new Response(
-            JSON.stringify({
-              error:
-                'The studio directory and Google Places are both unreachable right now. Check your connection and try again.',
-            }),
-            { status: 500, headers: { 'content-type': 'application/json' } }
-          )
-        );
-      }
-
-      if (mock === 'slow') {
-        return new Promise<Response>((resolve) => {
-          window.setTimeout(() => {
-            resolve(
-              new Response(
-                JSON.stringify({ places: [], googleStatus: 'ok' }),
-                { status: 200, headers: { 'content-type': 'application/json' } }
-              )
-            );
-          }, 8000);
-        });
-      }
-
-      return Promise.resolve(
-        new Response(
-          JSON.stringify({
-            places: [],
-            googleStatus: 'ok',
-            coverage: 'GroovePH directory · 0 studios',
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } }
-        )
-      );
-    };
-
-    return () => {
-      if (holder.__studioQaOriginalFetch) {
-        window.fetch = holder.__studioQaOriginalFetch;
-      }
-    };
-  }, [mock]);
-
-  return (
-    <div className="h-svh w-full overflow-hidden bg-background p-3">
-      <StudioLocator />
-    </div>
-  );
+export default function QaFrame({ mock = 'normal' }: { mock?: MockMode }) {
+  if (process.env.NODE_ENV === 'production') notFound();
+  return <QaFrameClient mock={mock} />;
 }
-
-export default QaFrame;
-

@@ -21,14 +21,14 @@ import {
 import { useMusicPlayer } from '@/features/music/context/MusicPlayerContext';
 import { GROOVEPH_HITS_2020S } from '@/features/music/data/seed';
 import { EqualizerBars } from '@/components/loading/GrooveSpinner';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { PlaylistPanel } from './PlaylistPanel';
 
 const MINIMIZED_KEY = 'groove:player:minimized';
 const VOLUME_KEY = 'groove:player:volume';
 
 const iconBtn =
-  'inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition hover:bg-white/5 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none';
+  'inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none';
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
@@ -202,7 +202,7 @@ export function MiniPlayer({ className }: { className?: string }) {
         )}
         style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
       >
-        <div className="mx-3 flex h-14 items-center gap-2 rounded-2xl border border-white/5 bg-[#161616]/95 pl-2 pr-1.5 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:mx-0 sm:w-[380px] sm:max-w-[92vw]">
+        <div className="mx-3 flex h-14 items-center gap-2 rounded-2xl border border-divider bg-card/95 pl-2 pr-1.5 shadow-[var(--shadow-lg)] backdrop-blur-xl sm:mx-0 sm:w-[380px] sm:max-w-[92vw]">
           <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl bg-muted">
             {thumbnail ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -217,7 +217,7 @@ export function MiniPlayer({ className }: { className?: string }) {
             onClick={() => setMinimized(false)}
             aria-label="Restore music player"
             title="Restore music player"
-            className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-[11px] font-semibold text-muted-foreground transition hover:bg-white/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <ChevronUp className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
             <span className="hidden sm:inline">Player</span>
@@ -262,7 +262,7 @@ export function MiniPlayer({ className }: { className?: string }) {
       )}
 
       {/* Main dock bar */}
-      <div className="mx-3 flex items-center gap-2 rounded-2xl border border-white/5 bg-[#161616]/95 p-2 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:mx-0">
+      <div className="mx-3 flex items-center gap-2 rounded-2xl border border-divider bg-card/95 p-2 shadow-[var(--shadow-lg)] backdrop-blur-xl sm:mx-0">
         {/* Cover */}
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-muted">
           {thumbnail ? (
@@ -392,13 +392,13 @@ export function MiniPlayer({ className }: { className?: string }) {
         <div
           role="dialog"
           aria-label="Volume"
-          className="absolute bottom-[calc(100%+0.5rem)] right-3 flex w-48 items-center gap-2 rounded-2xl border border-white/5 bg-[#161616]/95 p-3 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:right-0"
+          className="absolute bottom-[calc(100%+0.5rem)] right-3 flex w-48 items-center gap-2 rounded-2xl border border-divider bg-card/95 p-3 shadow-[var(--shadow-lg)] backdrop-blur-xl sm:right-0"
         >
           <button
             type="button"
             onClick={toggleMute}
             aria-label={isMuted ? 'Unmute' : 'Mute'}
-            className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition hover:bg-white/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
           </button>

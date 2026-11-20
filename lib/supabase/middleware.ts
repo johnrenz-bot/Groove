@@ -252,8 +252,18 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // If on an auth page, redirect to the role home
+    // If on an auth page, redirect to the role home.
+    //
+    // Exception: `/reset-password` must render for an authenticated visitor.
+    // The recovery flow sends the user through /auth/callback, which first
+    // ESTABLISHES A SESSION and then forwards to /reset-password — bouncing
+    // authenticated visitors off auth pages would strand them on their role
+    // home with a recovery link that can never be used. A signed-in member
+    // setting a new password is harmless (they can also do it from Settings).
     if (kind === 'auth') {
+      if (path === '/reset-password') {
+        return supabaseResponse;
+      }
       const url = request.nextUrl.clone();
       url.pathname = homeFor(role, isAdmin);
       url.search = '';

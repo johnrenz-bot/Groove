@@ -14,7 +14,7 @@ import { Circle } from 'lucide-react';
 import { PanelCard } from '@/components/dashboard/PanelCard';
 import { SELF_ASSIGNABLE, displayStatus, type Presence } from '@/features/presence/utils/presence';
 import { useSetPresence } from '@/features/presence/hooks/usePresence';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 const DOT: Record<Presence, string> = {
   online: 'bg-success',

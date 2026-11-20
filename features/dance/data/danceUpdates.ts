@@ -1,4 +1,4 @@
-import type { DanceUpdateRecord } from '../services/danceService';
+import type { DanceUpdateRecord } from '../services/danceService.ts';
 
 /**
  * ---------------------------------------------------------------------------

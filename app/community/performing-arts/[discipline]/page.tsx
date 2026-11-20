@@ -124,24 +124,24 @@ export default async function DisciplineRoute({
   }
 
   if (discipline === 'singing') {
-    const { SingingCommunityPageServer } = await import(
-      '@/features/singing/components/SingingCommunityPageServer'
+    const { DisciplineCommunityPageServer } = await import(
+      '@/features/discipline/components/DisciplineCommunityPageServer'
     );
-    return <SingingCommunityPageServer />;
+    return <DisciplineCommunityPageServer variant="singing" />;
   }
 
   if (discipline === 'acting') {
-    const { ActingCommunityPageServer } = await import(
-      '@/features/acting/components/ActingCommunityPageServer'
+    const { DisciplineCommunityPageServer } = await import(
+      '@/features/discipline/components/DisciplineCommunityPageServer'
     );
-    return <ActingCommunityPageServer />;
+    return <DisciplineCommunityPageServer variant="acting" />;
   }
 
   if (discipline === 'theater') {
-    const { TheaterCommunityPageServer } = await import(
-      '@/features/theater/components/TheaterCommunityPageServer'
+    const { DisciplineCommunityPageServer } = await import(
+      '@/features/discipline/components/DisciplineCommunityPageServer'
     );
-    return <TheaterCommunityPageServer />;
+    return <DisciplineCommunityPageServer variant="theater" />;
   }
 
   const record = DISCIPLINES.find((d) => d.id === discipline);

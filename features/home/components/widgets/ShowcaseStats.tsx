@@ -36,7 +36,7 @@ export function ShowcaseStats({
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-border bg-background/60 p-4 text-center">
             <Users className="mx-auto h-5 w-5 text-accent-text" aria-hidden="true" />
-            <p className="mt-2 font-serif text-4xl font-bold tabular-nums leading-none tracking-tight text-foreground">
+            <p className="mt-2 font-sans text-4xl font-bold tabular-nums leading-none tracking-tight text-foreground">
               {postCount ?? '—'}
             </p>
             <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -45,7 +45,7 @@ export function ShowcaseStats({
           </div>
           <div className="rounded-2xl border border-border bg-background/60 p-4 text-center">
             <Heart className="mx-auto h-5 w-5 text-danger" aria-hidden="true" />
-            <p className="mt-2 font-serif text-4xl font-bold tabular-nums leading-none tracking-tight text-foreground">
+            <p className="mt-2 font-sans text-4xl font-bold tabular-nums leading-none tracking-tight text-foreground">
               {reactsReceived ?? '—'}
             </p>
             <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">

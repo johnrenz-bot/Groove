@@ -62,7 +62,7 @@ export function HeroBanner({
           </span>
         )}
 
-        <h2 className="mt-3 max-w-xl font-serif text-2xl font-bold leading-[1.12] tracking-[-0.02em] text-white sm:text-3xl lg:text-[2rem]">
+        <h2 className="mt-3 max-w-xl font-sans text-2xl font-bold leading-[1.12] tracking-[-0.02em] text-white sm:text-3xl lg:text-[2rem]">
           {title}
         </h2>
 

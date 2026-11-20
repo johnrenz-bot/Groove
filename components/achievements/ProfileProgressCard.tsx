@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { AchievementRequirement } from '@/lib/achievements/types';
 import { FeatureProgress } from '@/components/notifications/FeatureProgress';
 

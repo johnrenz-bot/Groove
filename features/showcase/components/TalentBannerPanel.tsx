@@ -14,7 +14,7 @@
 import React from 'react';
 
 import { TALENT_BANNERS, talentBanners, type TalentKey } from '../config/talentBanners';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface TalentBannerPanelProps {
   /** Circle currently being browsed. */

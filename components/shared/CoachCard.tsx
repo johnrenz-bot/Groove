@@ -4,12 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import { Star, MapPin, Bot, Calendar, MessageSquare, User, ArrowUpRight } from 'lucide-react';
 import { FullCoach } from '@/lib/types';
-import { getInitials, parseGenres } from '@/lib/utils';
+import { getInitials, parseGenres, cn } from '@/lib/utils';
 import { VerifiedBadge, VerifiedIcon } from '@/features/verification/components/VerifiedBadge';
 import { coachBookingGate } from '@/features/verification/services/verification';
 import { statusMeta } from '@/features/presence/utils/presence';
 import { usePresence } from '@/features/presence/hooks/usePresence';
-import { cn } from '@/components/shared/cn';
 
 interface CoachCardProps {
   coach: FullCoach;

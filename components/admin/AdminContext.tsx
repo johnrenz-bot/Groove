@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/types';
+import { createNotificationsForUsers } from '@/features/notifications/services/notificationService';
 
 /**
  * Admin console cross-page state.
@@ -79,11 +79,7 @@ export function AdminProvider({
   const notifyUsers = useCallback(
     async (userIds: string[], title: string, message: string, ctaUrl?: string) => {
       if (userIds.length === 0) return;
-      const supabase = createClient();
-      const { error } = await supabase.from('notifications').insert(
-        userIds.map((user_id) => ({ user_id, title, message, cta_url: ctaUrl ?? null }))
-      );
-      if (error) throw error;
+      await createNotificationsForUsers(userIds, title, message, ctaUrl ?? null);
       notifyChange();
     },
     [notifyChange]

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
 import { DanceCommunityPageServer } from '@/features/dance/components/DanceCommunityPageServer';
-import { RouteSkeleton } from '@/components/loading/LoadingState';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
 
 export const metadata: Metadata = {
   title: 'Dance Community — Competitions, Events, Crews | GroovePH',

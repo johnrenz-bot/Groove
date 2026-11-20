@@ -2,9 +2,14 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { Notification } from '@/lib/types';
 import { formatTimeAgo } from '@/lib/utils';
+import {
+  listNotifications,
+  subscribeToNotificationInserts,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '@/features/notifications/services/notificationService';
 import { Bell, ChevronDown, ExternalLink, Inbox, CheckCheck, X } from 'lucide-react';
 
 interface NotificationDropdownProps {
@@ -110,17 +115,12 @@ export function NotificationDropdown({
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) return;
-    const supabase = createClient();
-    const { data } = await supabase
-      .from('notifications')
-      .select('id, user_id, title, message, cta_url, read_at, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (data) {
+    try {
+      const data = await listNotifications(userId, 10);
       setNotifications(data);
-      setUnreadCount(data.filter((n: any) => !n.read_at).length);
+      setUnreadCount(data.filter((n) => !n.read_at).length);
+    } catch {
+      // The bell degrades to an empty state; the member's data is unaffected.
     }
   }, [userId]);
 
@@ -130,35 +130,20 @@ export function NotificationDropdown({
       void fetchNotifications();
     }, 0);
 
-    const supabase = createClient();
-    const channelName = `user-notifications-${userId}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: any) => {
-          setNotifications((prev) => {
-            const newNotif = payload.new as Notification;
-            if (prev.some((n) => n.id === newNotif.id)) return prev;
-            return [newNotif, ...prev];
-          });
-          setUnreadCount((c) => c + 1);
-          setWiggle(true);
-          if (wiggleTimer.current) window.clearTimeout(wiggleTimer.current);
-          wiggleTimer.current = window.setTimeout(() => setWiggle(false), 900);
-        }
-      )
-      .subscribe();
+    const unsubscribe = subscribeToNotificationInserts(userId, (newNotif) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === newNotif.id)) return prev;
+        return [newNotif, ...prev];
+      });
+      setUnreadCount((c) => c + 1);
+      setWiggle(true);
+      if (wiggleTimer.current) window.clearTimeout(wiggleTimer.current);
+      wiggleTimer.current = window.setTimeout(() => setWiggle(false), 900);
+    });
 
     return () => {
       window.clearTimeout(timer);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [userId, fetchNotifications]);
 
@@ -197,8 +182,8 @@ export function NotificationDropdown({
   }, [setOpen]);
 
   const markAsRead = async (id: string) => {
-    const supabase = createClient();
-    await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id);
+    // Best-effort: the local state still updates so the click never feels broken.
+    void markNotificationRead(id);
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
     );
@@ -206,12 +191,8 @@ export function NotificationDropdown({
   };
 
   const markAllRead = async () => {
-    const supabase = createClient();
-    await supabase
-      .from('notifications')
-      .update({ read_at: new Date().toISOString() })
-      .eq('user_id', userId)
-      .is('read_at', null);
+    // Best-effort — see markAsRead.
+    void markAllNotificationsRead(userId);
 
     setNotifications((prev) =>
       prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
@@ -280,7 +261,7 @@ export function NotificationDropdown({
 
           <div
             id="hx-notifications-panel"
-            className="g-notif-panel"
+            className="rounded-[12px] border border-border-strong bg-surface p-1.5 shadow-[var(--shadow-md)]"
             data-state={closing ? 'closed' : 'open'}
             role="dialog"
             aria-label="Notifications"

@@ -15,6 +15,8 @@
 --    the "view your own rows" SELECT policy remains.
 -- ==============================================================================
 
+-- DROP first: CREATE OR REPLACE cannot change a function's return type.
+DROP FUNCTION IF EXISTS public.get_user_badge_status(UUID);
 CREATE OR REPLACE FUNCTION public.get_user_badge_status(p_user_id UUID)
 RETURNS TABLE (
     role public.user_role,

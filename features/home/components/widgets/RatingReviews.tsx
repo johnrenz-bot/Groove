@@ -40,7 +40,7 @@ export function RatingReviews({
         <>
           <div className="flex items-end justify-between gap-3 border-b border-divider pb-4">
             <div>
-              <p className="font-serif text-5xl font-bold tabular-nums leading-none tracking-tight text-foreground">
+              <p className="font-sans text-5xl font-bold tabular-nums leading-none tracking-tight text-foreground">
                 {rating.average.toFixed(1)}
               </p>
               <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">

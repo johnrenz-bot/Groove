@@ -2,7 +2,7 @@
 
 import React, { useId, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface SegmentedOption<T extends string | number> {
   value: T;
@@ -82,14 +82,14 @@ export function SegmentedControl<T extends string | number>({
             className={cn(
               'relative z-10 cursor-pointer rounded-full font-semibold transition-colors duration-150',
               size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm',
-              active ? 'text-accent-foreground' : 'text-muted-foreground hover:text-foreground'
+              active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {active && (
               <motion.span
                 layoutId={layoutId}
                 aria-hidden="true"
-                className="absolute inset-0 -z-10 rounded-full bg-accent shadow-[var(--shadow-sm)]"
+                className="absolute inset-0 -z-10 rounded-full bg-surface-2 border border-border"
                 transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }}
               />
             )}

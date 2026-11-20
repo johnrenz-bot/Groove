@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { errorResponse } from '@/lib/errors';
 import { getUpcomingTheaterEvents } from '@/features/theater/services/theaterService';
 
 export const dynamic = 'force-dynamic';
@@ -13,14 +14,7 @@ export async function GET() {
         'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
       },
     });
-  } catch (error: any) {
-    console.error('[API /api/theater/events/upcoming] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to retrieve upcoming theater events',
-        message: error?.message || 'Internal server error',
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return errorResponse(error, 'GET /api/theater/events/upcoming');
   }
 }

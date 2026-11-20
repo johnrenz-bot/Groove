@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { InfoTip } from '@/components/ui/InfoTip';
 import {
   Mail,

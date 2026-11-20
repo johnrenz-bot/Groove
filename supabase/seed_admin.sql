@@ -1,7 +1,17 @@
 -- ==============================================================================
--- GrooveSystem: Admin Account Seed Migration
--- Target Account: admin@gmail.com / Admin123!
+-- GrooveSystem: Admin Account Seed
+-- Target Account: admin@gmail.com  (the pinned platform admin)
 -- Role: admin
+--
+-- SECURITY: the admin password is NOT stored in this repository. Provide it at
+-- apply time:
+--
+--     SET app.seed_admin_password = 'a-strong-passphrase';  -- min 12 chars
+--     \i supabase/seed_admin.sql
+--
+-- or with plain SQL:  SET LOCAL app.seed_admin_password = '…'; then run this file.
+-- If the setting is absent or too short, the block raises and NOTHING changes.
+-- Any environment that ever used the old hardcoded credential must rotate it.
 -- ==============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -10,11 +20,19 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 DO $$
 DECLARE
     target_admin_id UUID := 'a0000000-0000-0000-0000-000000000001';
+    seed_pw TEXT := current_setting('app.seed_admin_password', true);
     admin_encrypted_pw TEXT;
     existing_user_id UUID;
 BEGIN
-    -- Hash Admin123! using bcrypt (standard Supabase GoTrue algorithm)
-    admin_encrypted_pw := crypt('Admin123!', gen_salt('bf', 10));
+    -- Fail closed: without an explicit, sufficiently strong setting there is
+    -- no default password to fall back on.
+    IF seed_pw IS NULL OR length(seed_pw) < 12 THEN
+        RAISE EXCEPTION
+            'Refusing to seed the admin account: set app.seed_admin_password (>= 12 chars) first. See the header of this file.';
+    END IF;
+
+    -- Hash the supplied passphrase using bcrypt (standard Supabase GoTrue algorithm)
+    admin_encrypted_pw := crypt(seed_pw, gen_salt('bf', 10));
 
     -- Check if admin@gmail.com already exists in auth.users
     SELECT id INTO existing_user_id FROM auth.users WHERE email = 'admin@gmail.com' LIMIT 1;

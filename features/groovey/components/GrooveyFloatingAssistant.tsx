@@ -19,7 +19,7 @@ import { useChat } from '../context/ChatContext';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { DisciplineType } from '../types';
 import { EqualizerBars } from '@/components/loading/GrooveSpinner';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 const STARTER_PROMPTS = [
   {
@@ -74,6 +74,9 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
 
   // Check if we're on the full-page route for this role
   const isFullPage = pathname === FULL_PAGE_ROUTES[resolvedRole];
+  // The tee customizer is a full-bleed editor: the launcher would cover the
+  // inspector and the mobile toolbar, so it stays out of the way there.
+  const isEditorRoute = Boolean(pathname?.startsWith('/builder'));
 
   const {
     currentConversation,
@@ -172,7 +175,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
     router.push(FULL_PAGE_ROUTES[resolvedRole]);
   };
 
-  if (isFullPage) {
+  if (isFullPage || isEditorRoute) {
     return null;
   }
 
@@ -196,8 +199,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
             aria-label={resolvedRole === 'client' ? 'Open Groovey AI coach' : 'Open Groovey AI assistant'}
             aria-expanded={isOpen}
             className={cn(
-              'group relative flex items-center gap-2.5 rounded-full border border-border bg-card px-4 py-2.5 text-foreground shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover: active:scale-95 cursor-pointer select-none',
-              isGenerating && '   '
+              'group relative flex items-center gap-2.5 rounded-full border border-border bg-card px-4 py-2.5 text-foreground shadow-xl transition-all duration-300 hover:scale-[1.03] hover:border-accent-border hover:shadow-2xl active:scale-95 cursor-pointer select-none'
             )}
           >
             {/* Mascot Avatar with Online indicator */}
@@ -222,7 +224,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                 />
                 <span
                   className={cn(
-                    'relative inline-flex h-2.5 w-2.5 rounded-full  -card',
+                    'relative inline-flex h-2.5 w-2.5 rounded-full border-2 border-card',
                     isGenerating ? 'bg-accent' : 'bg-success'
                   )}
                 />
@@ -233,9 +235,6 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
             <div className="flex flex-col text-left">
               <span className="text-xs font-bold tracking-tight text-foreground flex items-center gap-1.5">
                 Grooveyy AI
-                <span className="rounded bg-accent/15 px-1.5 py-0.2 text-[9px] font-bold text-accent-text tracking-wide uppercase  ">
-                  <Sparkles className="w-2 h-2 inline mr-0.5" /> Studio
-                </span>
               </span>
               <span className="text-[10px] text-muted-foreground font-medium">
                 {isGenerating ? 'Coaching live…' : launcherLabel}
@@ -252,7 +251,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
           aria-label="Grooveyy AI Floating Assistant"
           data-lenis-prevent
           className={cn(
-            'fixed z-[1150] flex flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-foreground shadow-2xl backdrop-blur-xl transition-all duration-300 ease-out font-sans animate-in fade-in zoom-in-95 slide-in-from-bottom-3',
+            'fixed z-[1150] flex flex-col overflow-hidden rounded-2xl border border-accent-border bg-card/95 text-foreground shadow-2xl backdrop-blur-xl gb-pop-in font-sans',
             // Mobile: dock to bottom with side margins
             'inset-x-3 bottom-3 max-h-[85vh] h-[440px]',
             // Desktop: anchored bottom-right
@@ -286,9 +285,6 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-xs font-bold text-foreground group-hover:text-accent-text transition-colors">
                       Grooveyy AI
-                    </span>
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-accent-soft text-accent-text text-[9px] font-semibold tracking-wide uppercase  ">
-                      <Sparkles className="w-2 h-2 inline" /> Studio
                     </span>
                   </div>
 

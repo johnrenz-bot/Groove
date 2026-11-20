@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SectionHeader } from '@/features/dance/components/SectionHeader';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
 import { PenTool, Compass, Sliders, Layers, CheckCircle2 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 interface TheaterCraftModule {
   id: string;
@@ -143,7 +143,7 @@ export function StageProductionCraftSection() {
         eyebrow="Playwriting, Direction &amp; Backstage Craft"
         title={
           <span id="stage-craft-title">
-            Stage Production, <span className="font-normal italic text-muted-foreground">Scripts &amp; Direction</span>
+            Stage Production, <span className="font-normal text-muted-foreground">Scripts &amp; Direction</span>
           </span>
         }
         description="Essential resources for playwrights, stage directors, stage managers, and technical theater artisans."
@@ -202,7 +202,7 @@ export function StageProductionCraftSection() {
                   <ul className="space-y-1.5 text-xs text-foreground/90">
                     {item.instructions.map((step, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
                         <span className="leading-relaxed">{step}</span>
                       </li>
                     ))}

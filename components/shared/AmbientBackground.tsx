@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export type AmbientVariant = 'landing' | 'auth';
 

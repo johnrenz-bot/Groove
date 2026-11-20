@@ -1,4 +1,4 @@
-import { RouteSkeleton } from '@/components/loading/LoadingState';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
 
 /**
  * Client portal loading boundary — streamed instantly on slow navigation.

@@ -59,7 +59,7 @@ import {
   SuccessModal,
   TermsModal,
 } from '@/components/auth/ui/Modal';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import {
   DOCUMENT_EXTENSIONS,

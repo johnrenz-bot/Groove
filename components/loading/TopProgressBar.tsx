@@ -2,12 +2,12 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * The ONE route-transition loader.
  *
- * A 2px Groove-orange hairline pinned to the top of the viewport. It
+ * A 2px Groove-gold hairline pinned to the top of the viewport. It
  * appears ONLY when a navigation is still pending after ~200ms (fast loads
  * show nothing), and once shown it stays for at least ~300ms so it never
  * flickers. It never covers the sidebar, the header, or the content —
@@ -139,7 +139,7 @@ export function TopProgressBar({ className }: { className?: string }) {
           visible && !reduceMotion && 'animate-tpb-sweep',
           'bg-gradient-to-r from-transparent via-accent to-accent-hover'
         )}
-        style={{ boxShadow: '0 0 8px 0 rgba(245,138,24,0.55)' }}
+        style={{ boxShadow: '0 0 8px 0 rgba(217, 180, 91,0.55)' }}
       />
     </div>
   );

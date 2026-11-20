@@ -1,4 +1,5 @@
 import React from 'react';
+import { notFound } from 'next/navigation';
 
 const frames = [
   { key: 'phone', label: 'Phone · 390 × 844', width: 390, height: 844, src: '/studio-qa/frame' },
@@ -8,6 +9,7 @@ const frames = [
 ];
 
 export default function Page() {
+  if (process.env.NODE_ENV === 'production') notFound();
   return (
     <main className="min-h-svh bg-neutral-950 p-6 text-neutral-200">
       <h1 className="mb-4 text-lg font-semibold">Studio Locator · responsive QA</h1>
@@ -32,4 +34,3 @@ export default function Page() {
     </main>
   );
 }
-

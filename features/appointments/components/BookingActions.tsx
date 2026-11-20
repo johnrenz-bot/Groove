@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { BookingDetail } from '../services/bookingService';
 import { availableActions, type BookingAction } from '../services/bookingStatus';
 import { hasPendingReschedule } from '../services/rescheduleRequest';

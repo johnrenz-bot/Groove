@@ -3,7 +3,7 @@ import {
   getGeminiApiKey,
   generateContentWithFallbackAndRetry,
   generateFreeFallbackProvider,
-} from '@/features/groovey/server/gemini';
+} from '@/lib/ai/providers/gemini';
 
 export interface CoachContext {
   id?: string;

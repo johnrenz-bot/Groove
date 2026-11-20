@@ -49,7 +49,7 @@ WITH live AS (
 )
 SELECT kind, object_name
   FROM live
- WHERE body ~* "COALESCE\\(\\s*[a-z_.]*status\\s*,\\s*''"
+ WHERE body ~* $$COALESCE\(\s*[a-z_.]*status\s*,\s*''$$
  ORDER BY kind, object_name;
 -- PASS = 0 rows
 
@@ -200,6 +200,7 @@ $$;
 -- verified-participant conditions, re-applied so this file repairs the database
 -- on its own. They TIGHTEN access; nothing here is looser than what is live.
 DROP POLICY IF EXISTS "Clients can book appointments" ON public.appointments;
+DROP POLICY IF EXISTS "Verified clients can book appointments" ON public.appointments;
 CREATE POLICY "Verified clients can book appointments" ON public.appointments FOR INSERT
     WITH CHECK (
         auth.uid() = client_id
@@ -259,7 +260,7 @@ WITH live AS (
       FROM pg_policies WHERE schemaname = 'public'
 )
 SELECT kind, object_name FROM live
- WHERE body ~* "COALESCE\\(\\s*[a-z_.]*status\\s*,\\s*''";
+ WHERE body ~* $$COALESCE\(\s*[a-z_.]*status\s*,\s*''$$;
 -- PASS = 0 rows
 
 -- 4c. The enum itself is untouched. Expect exactly 7 labels.

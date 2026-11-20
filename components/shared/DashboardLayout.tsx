@@ -11,7 +11,7 @@ import { ChatProvider, useOptionalChat, GrooveyFloatingAssistant } from '@/featu
  * The dashboard shell.
  *
  * Every role — client, coach AND admin — renders the same <DashboardChrome>:
- * a fixed carbon sidebar (brand, ⌘K search, grouped nav with an orange active
+ * a fixed carbon sidebar (brand, ⌘K search, grouped nav with an gold active
  * indicator + collapse-to-icon rail) and a slim sticky top bar (breadcrumbs,
  * palette trigger, notifications, account menu). The role only chooses DATA —
  * nav items and the footer badge come from navConfig.ts / roleMeta.ts.

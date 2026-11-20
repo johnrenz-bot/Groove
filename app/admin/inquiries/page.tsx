@@ -39,8 +39,7 @@ import {
 } from '@/lib/admin/service';
 import { useAdminData } from '@/lib/admin/useAdminData';
 import { statusBadge, TICKET_PRIORITIES, TICKET_STATUSES } from '@/lib/admin/presentation';
-import { formatDateTime, formatTimeAgo } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
+import { formatDateTime, formatTimeAgo, cn } from '@/lib/utils';
 
 const PAGE_SIZE = 12;
 

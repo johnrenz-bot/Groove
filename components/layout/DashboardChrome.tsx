@@ -7,10 +7,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ChevronRight, PanelLeftClose } from 'lucide-react';
 import { HeaderSearch } from '@/components/search/HeaderSearch';
 
-import { createClient } from '@/lib/supabase/client';
+import { signOutEverywhere } from '@/lib/auth/signOut';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
 import { SidebarProfileMenu } from '@/components/shared/SidebarProfileMenu';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 import { ROLE_META, type DashboardRole } from '@/components/header/roleMeta';
 import { LogIn, UserPlus } from 'lucide-react';
 import {
@@ -26,7 +27,7 @@ import { useHubBadge } from '@/features/hub/hooks/useHubBadge';
  * THE ONE DASHBOARD SHELL — client, coach and admin.
  *
  * A fixed carbon sidebar (brand lockup, inline search field, grouped navigation
- * with an orange active indicator, collapse-to-icon-rail) plus a slim sticky
+ * with an gold active indicator, collapse-to-icon-rail) plus a slim sticky
  * top bar (breadcrumbs, Cmd/Ctrl+K search field with inline results,
  * notifications, account menu). The role only chooses DATA: `sectionsForRole(role)`
  * from navConfig.ts, so all three portals are guaranteed to share geometry,
@@ -218,20 +219,7 @@ export function DashboardChrome({
   }, [drawerOpen]);
 
   const handleLogout = useCallback(async () => {
-    const supabase = createClient();
-    if (user) {
-      try {
-        await supabase.from('profiles').update({ status: 'offline' }).eq('id', user.id);
-      } catch {
-        // Best effort: presence must never strand a session.
-      }
-    }
-    try {
-      sessionStorage.removeItem('groove_welcome_pending');
-    } catch {
-      /* blocked storage */
-    }
-    await supabase.auth.signOut();
+    await signOutEverywhere(user?.id ?? null);
     router.push('/login');
     router.refresh();
   }, [user, router]);
@@ -245,6 +233,9 @@ export function DashboardChrome({
   const cleanPath = pathname.split('#')[0].split('?')[0] || '/';
   const isHubRoute =
     cleanPath.startsWith('/client/messages') || cleanPath.startsWith('/coach/messages');
+  // The tee customizer owns its own top bar, rail, inspector and canvas, so the
+  // dashboard chrome steps aside and the editor runs edge to edge.
+  const isFocusRoute = cleanPath === '/builder' || cleanPath.startsWith('/builder/');
   const hubBadge = useHubBadge(role === 'client' ? 'client' : role === 'coach' ? 'coach' : null);
   const [counterpartCrumb, setCounterpartCrumb] = useState<string | null>(null);
   useHubCounterpartCrumb(cleanPath, setCounterpartCrumb);
@@ -302,7 +293,7 @@ export function DashboardChrome({
   }
 
   return (
-    <div className="dash-shell" data-collapsed={collapsed || undefined}>
+    <div className="dash-shell" data-collapsed={collapsed || undefined} data-focus={isFocusRoute || undefined}>
       {drawerOpen && (
         <button
           type="button"
@@ -348,6 +339,18 @@ export function DashboardChrome({
             data-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <PanelLeftClose className="dash-rail-toggle-icon" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="dash-sidebar-search">
+          <button
+            type="button"
+            className="dash-sidebar-search-btn"
+            onClick={() => setActiveOverlay('search')}
+            aria-label="Search"
+          >
+            <span className="dash-sidebar-search-placeholder">Search…</span>
+            <span className="dash-keycap">Ctrl K</span>
           </button>
         </div>
 
@@ -451,21 +454,7 @@ export function DashboardChrome({
               <PanelLeftClose className="dash-burger-icon" aria-hidden="true" />
             </button>
 
-            <nav className="dash-crumbs" aria-label="Breadcrumb">
-              <Link href={brandHref}>GroovePH</Link>
-              {crumbs.map((crumb, index) => (
-                <React.Fragment key={`${crumb}-${index}`}>
-                  <ChevronRight aria-hidden="true" />
-                  {index === crumbs.length - 1 ? (
-                    <span className="dash-crumb-current" aria-current="page">
-                      {crumb}
-                    </span>
-                  ) : (
-                    <span>{crumb}</span>
-                  )}
-                </React.Fragment>
-              ))}
-            </nav>
+            <h1 className="dash-page-title">{crumbs[crumbs.length - 1] ?? 'Home'}</h1>
 
             <div className="dash-topbar-spacer" />
 
@@ -477,6 +466,8 @@ export function DashboardChrome({
               suspended={activeOverlay !== null && activeOverlay !== 'search'}
               onOpenChange={(next) => setActiveOverlay(next ? 'search' : null)}
             />
+
+            <ThemeToggle />
 
             {resolving ? (
               <span className="h-9 w-9 animate-pulse rounded-full bg-elevated" aria-hidden="true" />
@@ -503,7 +494,17 @@ export function DashboardChrome({
           </header>
         </div>
 
-        <main id="main-content" tabIndex={-1} className={isHubRoute ? 'dash-content dash-content--hub' : 'dash-content'}>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={
+            isFocusRoute
+              ? 'dash-content dash-content--focus'
+              : isHubRoute
+                ? 'dash-content dash-content--hub'
+                : 'dash-content'
+          }
+        >
           {children}
         </main>
       </div>

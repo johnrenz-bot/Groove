@@ -1,60 +1,31 @@
--- ==============================================================================
--- GrooveSystem: Column-level security for profiles table
--- Migration 29: Prevent ordinary users from updating security-sensitive columns
--- Apply AFTER schema.sql and admin_hardening.sql. Safe to re-run.
--- ==============================================================================
-
--- ------------------------------------------------------------------------------
--- Security-sensitive columns that ordinary users must not modify:
---   role              - authorization boundary
---   account_verified  - verification status
---   email_verified    - email confirmation status
---   email             - identity anchor
---   suspended_at      - admin-only status
---   suspended_reason  - admin-only status
---   approved_at       - admin-only
---   approved_by       - admin-only
---   verification_status - verification workflow
---   verification_rejection_reason - admin-only
---   verification_rejected_document - admin-only
---   verification_reviewed_at - admin-only
---   verification_reviewed_by - admin-only
--- ------------------------------------------------------------------------------
-
--- Helper function: true when caller is the pinned platform admin
--- (already defined in admin_hardening.sql as public.is_admin())
-
--- Drop the broad "Users can update own profile" policy
-DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-
--- Replace with a policy that only allows non-sensitive column updates
--- Users can update their own profile EXCEPT for security-sensitive columns
-CREATE POLICY "Users can update own profile (non-sensitive columns)"
-  ON public.profiles
-  FOR UPDATE
-  USING (auth.uid() = id)
-  WITH CHECK (
-    auth.uid() = id
-    -- Prevent modification of security-sensitive columns by comparing
-    -- the OLD and NEW values. Only the pinned admin (via the admin policy)
-    -- may change these columns.
-    AND (
-      (OLD.role IS NOT DISTINCT FROM NEW.role)
-      AND (OLD.account_verified IS NOT DISTINCT FROM NEW.account_verified)
-      AND (OLD.email_verified IS NOT DISTINCT FROM NEW.email_verified)
-      AND (OLD.email IS NOT DISTINCT FROM NEW.email)
-      AND (OLD.suspended_at IS NOT DISTINCT FROM NEW.suspended_at)
-      AND (OLD.suspended_reason IS NOT DISTINCT FROM NEW.suspended_reason)
-      AND (OLD.approved_at IS NOT DISTINCT FROM NEW.approved_at)
-      AND (OLD.approved_by IS NOT DISTINCT FROM NEW.approved_by)
-      AND (OLD.verification_status IS NOT DISTINCT FROM NEW.verification_status)
-      AND (OLD.verification_rejection_reason IS NOT DISTINCT FROM NEW.verification_rejection_reason)
-      AND (OLD.verification_rejected_document IS NOT DISTINCT FROM NEW.verification_rejected_document)
-      AND (OLD.verification_reviewed_at IS NOT DISTINCT FROM NEW.verification_reviewed_at)
-      AND (OLD.verification_reviewed_by IS NOT DISTINCT FROM NEW.verification_reviewed_by)
-    )
-  );
-
--- The existing admin policy already allows full access for the pinned admin:
--- CREATE POLICY "Admins have full access to profiles" ON public.profiles FOR ALL USING (public.is_admin());
--- This remains unchanged and covers admin modifications of sensitive columns.
+-- =============================================================================
+-- Migration 29 — SUPERSEDED, DO NOT APPLY
+-- =============================================================================
+-- This file is retained only for numbering continuity. It never worked:
+--
+--   * Row-security policies have no OLD/NEW records. The policy it tried to
+--     create ("Users can update own profile (non-sensitive columns)")
+--     references OLD.role inside a CREATE POLICY — PostgreSQL rejects it with
+--     "missing FROM-clause entry for table 'old'".
+--   * Step 1 of the file drops the ORIGINAL "Users can update own profile"
+--     policy BEFORE the failing CREATE. Applied statement-by-statement, that
+--     DROP commits and the CREATE does not — leaving members with no
+--     self-service profile UPDATE policy at all.
+--   * Run as one transaction, the whole file rolls back and accomplishes
+--     nothing at all.
+--
+-- The sensitive-column boundary it was meant to provide is delivered by:
+--   * supabase/verification_workflow.sql — guard_verification_fields() and
+--     guard_verification_approval() BEFORE UPDATE triggers on profiles
+--     (codified here by its presence in the manual-apply order:
+--     schema.sql -> admin_hardening.sql -> verification_workflow.sql),
+--   * migration 41 §B — caller-authority guards on the achievements RPCs, and
+--   * guard_role_assignment() from admin_hardening.sql (role changes pinned
+--     to the pinned admin email).
+--
+-- Applying this file is unnecessary and unsafe. It intentionally does nothing.
+-- =============================================================================
+DO $$
+BEGIN
+    RAISE NOTICE 'Migration 29 is a no-op — superseded by verification_workflow.sql guards and migration 41. See the header of this file.';
+END $$;

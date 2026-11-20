@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SectionHeader } from '@/features/dance/components/SectionHeader';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
 import { Drama, Video, BookOpen, CheckCircle2, UserCheck } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 interface ActingModule {
   id: string;
@@ -153,7 +153,7 @@ export function ActingCraftSection() {
         eyebrow="Stage Craft, Method &amp; Audition Mastery"
         title={
           <span id="acting-craft-title">
-            Acting Techniques, <span className="font-normal italic text-muted-foreground">Monologues &amp; Auditions</span>
+            Acting Techniques, <span className="font-normal text-muted-foreground">Monologues &amp; Auditions</span>
           </span>
         }
         description="Professional methods from Stanislavski and Meisner, character analysis frameworks, and audition preparation protocols."
@@ -212,7 +212,7 @@ export function ActingCraftSection() {
                   <ul className="space-y-1.5 text-xs text-foreground/90">
                     {item.instructions.map((step, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
                         <span className="leading-relaxed">{step}</span>
                       </li>
                     ))}

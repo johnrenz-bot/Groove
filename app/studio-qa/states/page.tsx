@@ -1,4 +1,5 @@
 import React from 'react';
+import { notFound } from 'next/navigation';
 
 const frames = [
   { key: 'empty', label: 'Empty results · 1180 × 780', src: '/studio-qa/empty' },
@@ -7,6 +8,7 @@ const frames = [
 ];
 
 export default function Page() {
+  if (process.env.NODE_ENV === 'production') notFound();
   return (
     <main className="min-h-svh bg-neutral-950 p-6 text-neutral-200">
       <h1 className="mb-4 text-lg font-semibold">Studio Locator · state QA</h1>
@@ -31,4 +33,3 @@ export default function Page() {
     </main>
   );
 }
-

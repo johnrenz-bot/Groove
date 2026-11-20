@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { GrooveSpinner } from '@/components/loading/GrooveSpinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'link';
@@ -39,15 +39,15 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
  * (12.25px / 13.1px), which the same root change re-based in `@theme`.
  */
 const SIZE_STYLES: Record<ButtonSize, string> = {
-  sm: 'h-[2.375rem] px-3 text-xs gap-1.5',
-  md: 'h-10 px-4 text-sm gap-2',
-  lg: 'h-11 px-5 text-sm gap-2',
+  sm: 'h-8 px-3 text-xs gap-1.5',
+  md: 'h-[40px] px-4 text-sm gap-2',
+  lg: 'h-[48px] px-5 text-sm gap-2',
   icon: 'h-10 w-10 p-0',
 };
 
 /**
  * Every variant is token-driven — swapping `light` on <html> restyles all of
- * them. `primary` is Groove Orange and nothing else in the set introduces a hue;`n * `danger` is the one exception and it carries the destructive red.
+ * them. `primary` is the champagne gold and nothing else in the set introduces a hue;`n * `danger` is the one exception and it carries the destructive red.
  *
  * Destructive buttons paint `--danger-solid`, NOT `--danger`. In dark mode
  * `--danger` is a lightened red chosen for AA *text* contrast, which would be
@@ -60,16 +60,16 @@ const SIZE_STYLES: Record<ButtonSize, string> = {
  */
 const VARIANT_STYLES: Record<ButtonVariant, string> = {
   primary:
-    'bg-accent text-accent-foreground shadow-[var(--shadow-sm)] hover:bg-accent-hover hover:shadow-[var(--shadow-accent)] hover:-translate-y-px active:translate-y-0',
+    'bg-[image:var(--accent-gradient)] text-accent-contrast border border-transparent hover:brightness-[1.06] hover:border-accent-border active:translate-y-0',
   secondary:
-    'btn-glass text-foreground hover:-translate-y-px active:translate-y-0',
+    'bg-surface-2 text-foreground border border-border hover:border-accent-border active:translate-y-0',
   outline:
-    'bg-transparent text-foreground border border-border hover:bg-muted hover:border-border-strong hover:-translate-y-px active:translate-y-0',
+    'bg-transparent text-foreground border border-border hover:bg-surface-2 hover:border-accent-border active:translate-y-0',
   ghost:
-    'bg-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:-translate-y-px active:translate-y-0',
+    'bg-transparent text-muted-foreground hover:bg-hover hover:text-accent active:translate-y-0',
   danger:
-    'bg-[var(--danger-solid)] text-[var(--danger-foreground)] shadow-[var(--shadow-sm)] hover:brightness-110 hover:-translate-y-px active:translate-y-0',
-  link: 'bg-transparent text-accent-text hover:underline underline-offset-4 px-0 h-auto',
+    'bg-[var(--danger-solid)] text-[var(--danger-foreground)] border border-transparent hover:brightness-110 active:translate-y-0',
+  link: 'bg-transparent text-accent hover:underline underline-offset-4 px-0 h-auto',
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -98,7 +98,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       aria-busy={loading || undefined}
       className={cn(
         'group g-gold-border inline-flex select-none items-center justify-center font-semibold tracking-[-0.01em] whitespace-nowrap cursor-pointer transition-all duration-200',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
         variant === 'link' ? '' : radius,
         variant === 'link' ? '' : SIZE_STYLES[size],

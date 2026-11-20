@@ -90,12 +90,12 @@ export function DisciplinePageHeader({
             <span aria-hidden="true" className="h-px w-4 bg-[var(--crew-accent-gold)]/60" />
             {eyebrow}
           </p>
-          <h1 className="mt-1.5 font-serif text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="mt-1.5 font-sans text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {title}
             {accent && (
               <>
                 {' '}
-                <span className="font-normal italic text-muted-foreground">{accent}</span>
+                <span className="font-normal text-muted-foreground">{accent}</span>
               </>
             )}
           </h1>

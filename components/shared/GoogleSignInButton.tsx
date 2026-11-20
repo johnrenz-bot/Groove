@@ -93,7 +93,7 @@ export function GoogleSignInButton({
         className={`group relative flex h-12 w-full items-center justify-center gap-3 rounded-xl border px-5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
           !GOOGLE_OAUTH_ENABLED
             ? 'cursor-not-allowed border-border bg-muted text-subtle-foreground opacity-60 select-none'
-            : 'cursor-pointer border-border bg-elevated text-foreground hover:border-border-strong hover:bg-[#2B2B2B] hover:shadow-[0_8px_24px_-12px_rgba(245,138,24,0.35)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
+            : 'cursor-pointer border-border bg-elevated text-foreground hover:border-border-strong hover:bg-[#2B2B2B] hover: active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'
         } ${className}`}
       >
         {busy ? (

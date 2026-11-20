@@ -5,9 +5,8 @@ import { CheckCircle2, FileText, Loader2, ShieldCheck, Upload, X } from 'lucide-
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { resubmitVerification } from '@/lib/admin/service';
-import { VERIFICATION_BUCKET } from '@/lib/utils';
+import { VERIFICATION_BUCKET, cn } from '@/lib/utils';
 import { requiredDocuments, type RequiredDocument } from '../services/verification';
-import { cn } from '@/components/shared/cn';
 import { InfoTip } from '@/components/ui/InfoTip';
 
 /**

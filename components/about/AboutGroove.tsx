@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   Bot,
@@ -205,8 +206,25 @@ const GLANCE = [
 export function AboutGroove() {
   return (
     <>
-      {/* ---- Hero ---- */}
-      <section className="relative overflow-hidden   bg-card/40">
+      {/* ---- Hero — cinematic stage photography under an editorial scrim ---- */}
+      <section className="dark relative overflow-hidden bg-background">
+        <Image
+          src="/image/bg/hero-theater.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[center_20%] opacity-45"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-[#080808]/95 via-[#080808]/78 to-[#080808]/30"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-[#080808] via-[#080808]/15 to-transparent"
+          aria-hidden="true"
+        />
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -right-24 -top-32 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
           <div className="absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-accent-soft/40 blur-3xl" />
@@ -229,15 +247,15 @@ export function AboutGroove() {
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-2.5 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-white/80 backdrop-blur-sm">
                 <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                 San Jose del Monte, Bulacan
               </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-white/80 backdrop-blur-sm">
                 <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 Verified coach directory
               </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-white/80 backdrop-blur-sm">
                 <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 Bookings &amp; agreements
               </span>

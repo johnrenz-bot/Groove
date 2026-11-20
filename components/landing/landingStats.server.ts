@@ -1,3 +1,5 @@
+import { createClient as createCookielessClient } from '@supabase/supabase-js';
+import { unstable_cache } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import type { LandingStats } from './landingStats';
 
@@ -40,8 +42,24 @@ export async function getCommunityMembers(limit = 12): Promise<CommunityMember[]
   }
 }
 
-export async function getLandingStats(): Promise<LandingStats> {
-  const supabase = await createClient();
+/**
+ * Cookieless reader for the public aggregate counts. The cached function below
+ * runs inside `unstable_cache`, where request-scoped APIs (cookies()) are not
+ * available — so the counts MUST come from a client that needs no session.
+ * These rows are already world-readable by the anon key by product decision.
+ */
+function createPublicReader() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createCookielessClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+async function readLandingStats(): Promise<LandingStats> {
+  const supabase = createPublicReader();
+  if (!supabase) return { coaches: 0, studios: 0, disciplines: 0 };
 
   try {
     // Count coaches that are actually bookable: role 'coach' and active.
@@ -70,13 +88,33 @@ export async function getLandingStats(): Promise<LandingStats> {
       .select('*', { count: 'exact', head: true })
       .eq('status', 'active');
 
+    // Hide a stat the database cannot answer instead of inventing one.
+    // The four known disciplines are a product constant, not a measured
+    // metric — printing "4" next to a live coach count would read as one.
     return {
       coaches: coachCount ?? 0,
       studios: studioCount ?? 0,
-      // Known disciplines: dance, singing, acting, theater.
-      disciplines: disciplineError || !disciplineCount ? 4 : disciplineCount,
+      disciplines: disciplineError ? 0 : disciplineCount ?? 0,
     };
   } catch {
-    return { coaches: 0, studios: 0, disciplines: 4 };
+    return { coaches: 0, studios: 0, disciplines: 0 };
+  }
+}
+
+/**
+ * Aggregate, non-personalized counts — safe to cache for 5 minutes. This
+ * removes three count queries from every landing-page visit; no per-user data
+ * is involved, and nothing RLS-scoped is cached.
+ */
+const getLandingStatsCached = unstable_cache(readLandingStats, ['landing-stats'], {
+  revalidate: 300,
+  tags: ['landing-stats'],
+});
+
+export async function getLandingStats(): Promise<LandingStats> {
+  try {
+    return await getLandingStatsCached();
+  } catch {
+    return { coaches: 0, studios: 0, disciplines: 0 };
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { VocalEnsemble } from '../data/vocalists';
+import type { VocalEnsemble } from '../data/vocalists.ts';
 import { PerformingArtsDossierCard } from '@/features/performing-arts/components/PerformingArtsDossierCard';
 
 interface VocalistDossierCardProps {

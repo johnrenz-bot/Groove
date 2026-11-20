@@ -13,7 +13,7 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { Accordion, AccordionItem } from './Accordion';
 import { DISCIPLINE_PAGES, type DisciplinePageId } from '../data/disciplineMeta';
 

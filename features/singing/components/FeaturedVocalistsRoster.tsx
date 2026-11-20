@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { SectionHeader } from '@/features/dance/components/SectionHeader';
+import { SectionHeader } from '@/features/discipline/components/SectionHeader';
 import { FeaturedRosterSelector } from '@/features/performing-arts/components/FeaturedRosterSelector';
-import { FEATURED_VOCAL_ENSEMBLES, type VocalEnsemble } from '../data/vocalists';
-import { VocalistDossierCard } from './VocalistDossierCard';
+import { FEATURED_VOCAL_ENSEMBLES, type VocalEnsemble } from '../data/vocalists.ts';
+import { VocalistDossierCard } from './VocalistDossierCard.tsx';
 
 function findEnsembleFromUrl(): VocalEnsemble | null {
   if (typeof window === 'undefined') return null;
@@ -63,7 +63,7 @@ export function FeaturedVocalistsRoster() {
           title={
             <span id="featured-ensembles-title">
               Featured{' '}
-              <span className="font-normal italic text-[var(--crew-text-muted)]">
+              <span className="font-normal text-[var(--crew-text-muted)]">
                 Singers, Choirs &amp; Vocal Groups
               </span>
             </span>

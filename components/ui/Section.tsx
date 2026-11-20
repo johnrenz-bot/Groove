@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { InfoTip } from '@/components/ui/InfoTip';
 
 export interface SectionProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {

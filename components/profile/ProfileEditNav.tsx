@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface ProfileEditSection {
   id: string;
@@ -44,7 +44,7 @@ export function ProfileEditNav({ sections }: { sections: ProfileEditSection[] })
   return (
     <nav
       aria-label="Edit sections"
-      className="sticky top-2 z-20 -mx-1 overflow-x-auto rounded-2xl border border-border/70 bg-[rgba(18,18,18,0.85)] p-1.5 backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0"
+      className="sticky top-2 z-20 -mx-1 overflow-x-auto rounded-2xl border border-border/70 bg-card/85 p-1.5 backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0"
     >
       <div className="flex gap-1">
         {sections.map((section) => {

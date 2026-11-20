@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface ProfileTab {
   id: string;
@@ -69,7 +69,7 @@ export function ProfileTabsNav({
               className={cn(
                 'inline-flex flex-none cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-inset',
                 active
-                  ? 'border-accent-text text-accent-text'
+                  ? 'border-accent-text text-accent-text '
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >

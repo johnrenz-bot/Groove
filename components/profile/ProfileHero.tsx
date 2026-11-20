@@ -9,10 +9,10 @@ import {
   Star,
   UserRound,
 } from 'lucide-react';
-import { PhilippineSunMark } from '@/features/dance/components/PhilippineSunMark';
+import { PhilippineSunMark } from '@/features/discipline/components/PhilippineSunMark';
 import { VerifiedBadge } from '@/features/verification/components/VerifiedBadge';
 import { PhilippineFlag } from '@/components/ui/PhilippineFlag';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /* ==========================================================================
    PROFILE HERO — the identity header for every profile surface
@@ -212,7 +212,7 @@ export function ProfileHero({
           {/* Identity */}
           <div className="min-w-0 flex-1 pt-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <h1 className="m-0 text-[1.55rem] font-bold leading-none tracking-[-0.02em] text-foreground sm:text-3xl">
+              <h1 className="m-0 font-sans text-[1.65rem] font-semibold leading-[1.08] tracking-[-0.015em] text-foreground sm:text-[2rem]">
                 {name}
               </h1>
               <VerifiedBadge verified={verified} size="md" className="translate-y-[1px]" />
@@ -279,7 +279,7 @@ export function ProfileHero({
             {stats.map((stat, index) => {
               const content = (
                 <>
-                  <b className="block text-[1.05rem] font-bold leading-tight tracking-[-0.02em] text-foreground tabular-nums">
+                  <b className="block font-sans text-[1.3rem] font-semibold leading-none tracking-[-0.02em] text-foreground tabular-nums">
                     {stat.value}
                   </b>
                   <span className="mt-0.5 block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">

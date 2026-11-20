@@ -3,7 +3,7 @@
 import React from 'react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
 import { ArrowLeft, Check, Sparkles } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { AuthButton } from './AuthUI';
 
 /* ==========================================================================

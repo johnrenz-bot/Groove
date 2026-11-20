@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { InfoTip } from '@/components/ui/InfoTip';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {

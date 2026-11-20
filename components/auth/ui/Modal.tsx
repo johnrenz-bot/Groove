@@ -13,7 +13,13 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
+import {
+  FOCUSABLE_SELECTOR,
+  lockBodyScroll,
+  unlockBodyScroll,
+  useDialogStack,
+} from '@/components/ui/Modal';
 import { AuthButton } from './AuthUI';
 import { SuccessCheck } from './AuthWizard';
 
@@ -23,10 +29,13 @@ import { SuccessCheck } from './AuthWizard';
    One accessible modal primitive (portal, focus trap, Esc, overlay click,
    focus restore, body scroll lock) plus the flows the registration pages
    need: Terms/Privacy, image preview, leave confirmation and submit success.
-   ========================================================================== */
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+   The *visual* layer (rw-* classes, entrance spring, header and close button)
+   is the auth-wizard dialect and stays here. All *behaviour* — dialog stack,
+   scroll lock, focusable selector — comes from @/components/ui/Modal so the
+   two modal systems can never disagree about which dialog is on top, Escape
+   ordering, or how the page unlocks.
+   ========================================================================== */
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -58,33 +67,34 @@ export function Modal({
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
+  const isTop = useDialogStack(open);
 
   useEffect(() => {
     if (!open) return;
 
     restoreRef.current = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
 
     const focusFirst = window.requestAnimationFrame(() => {
       const panel = panelRef.current;
       if (!panel) return;
       const preferred = panel.querySelector<HTMLElement>('[data-autofocus]');
-      const target = preferred ?? panel.querySelector<HTMLElement>(FOCUSABLE);
+      const target = preferred ?? panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
       target?.focus({ preventScroll: true });
     });
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (!isTop()) return;
         event.stopPropagation();
         onClose();
         return;
       }
-      if (event.key !== 'Tab') return;
+      if (event.key !== 'Tab' || !isTop()) return;
 
       const panel = panelRef.current;
       if (!panel) return;
-      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
         (item) => item.offsetParent !== null || item === document.activeElement
       );
       if (items.length === 0) return;
@@ -107,10 +117,10 @@ export function Modal({
     return () => {
       window.cancelAnimationFrame(focusFirst);
       document.removeEventListener('keydown', onKeyDown, true);
-      document.body.style.overflow = previousOverflow;
+      unlockBodyScroll();
       restoreRef.current?.focus?.({ preventScroll: true });
     };
-  }, [open, onClose]);
+  }, [open, onClose, isTop]);
 
   if (typeof document === 'undefined') return null;
 

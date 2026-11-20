@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { ActingCompany } from '../data/actors';
+import type { ActingCompany } from '../data/actors.ts';
 import { PerformingArtsDossierCard } from '@/features/performing-arts/components/PerformingArtsDossierCard';
 
 interface ActorDossierCardProps {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RouteSkeleton } from '@/components/loading/LoadingState';
+import { RouteSkeleton } from '@/components/ui/LoadingState';
 
 /**
  * /about-project loading boundary — hero + article skeleton while the

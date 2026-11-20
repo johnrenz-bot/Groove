@@ -1,4 +1,4 @@
-import { DanceCommunityView } from './DanceCommunityView';
+import { DanceCommunityView } from './DanceCommunityView.tsx';
 
 /**
  * Server boundary for the dance community page.

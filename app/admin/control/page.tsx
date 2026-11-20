@@ -43,8 +43,7 @@ import {
 } from '@/lib/admin/service';
 import { useAdminData } from '@/lib/admin/useAdminData';
 import { ACCENTS, useTheme } from '@/components/theme/ThemeProvider';
-import { formatDateTime, formatTimeAgo } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
+import { formatDateTime, formatTimeAgo, cn } from '@/lib/utils';
 import type { Announcement, MaintenanceNotice } from '@/lib/types';
 
 /**

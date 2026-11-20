@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
-import { GrooveSpinner } from '@/components/loading/GrooveSpinner';
+import { cn } from '@/lib/utils';
 
 /** Base shimmer block. Use the `*Skeleton` helpers for common shapes. */
 export function Skeleton({ className = '' }: { className?: string }) {
@@ -95,16 +94,6 @@ export function DashboardSkeleton({ className = '' }: { className?: string }) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-/** Named loading state with an accessible label. */
-export function LoadingState({ label = 'Loading…', className = '' }: { label?: string; className?: string }) {
-  return (
-    <div role="status" aria-live="polite" className={cn('flex flex-col items-center gap-3 py-16', className)}>
-      <GrooveSpinner variant="orbit" size="lg" label={label} />
-      <p className="text-sm text-muted-foreground">{label}</p>
     </div>
   );
 }

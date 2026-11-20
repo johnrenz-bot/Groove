@@ -1,4 +1,4 @@
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * PhilippineFlag — the national flag of the Philippines drawn entirely inline

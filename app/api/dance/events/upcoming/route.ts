@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { errorResponse } from '@/lib/errors';
 import { isKnownLeagueId } from '@/features/dance/data/leagues';
 import { getUpcomingDanceEvents } from '@/features/dance/services/danceService';
 
@@ -23,14 +24,7 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
       },
     });
-  } catch (error: any) {
-    console.error('[API /api/dance/events/upcoming] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to retrieve upcoming dance events',
-        message: error?.message || 'Internal server error',
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return errorResponse(error, 'GET /api/dance/events/upcoming');
   }
 }

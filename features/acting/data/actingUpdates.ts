@@ -17,7 +17,7 @@ export const VERIFIED_ACTING_UPDATES: DanceUpdateRecord[] = [
     region: 'philippines',
     location: 'Tanghalang Ignacio Gimenez (CCP Black Box), Pasay, Metro Manila',
     event_date: '2026-11-15T09:00:00+08:00',
-    source_url: 'http://tanghalangpilipino.com/',
+    source_url: 'https://tanghalangpilipino.com/',
     image_url: '/acting-updates/tp-auditions-season-39.jpg',
     image_source_url: 'https://culturalcenter.gov.ph/wp-content/uploads/2021/09/tp.jpeg',
     image_credit: 'Tanghalang Pilipino / CCP',

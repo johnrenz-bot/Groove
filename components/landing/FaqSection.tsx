@@ -96,21 +96,21 @@ export function FaqSection() {
               transition={{ duration: 0.4, delay: idx * 0.05 }}
               className={`w-full rounded-[20px] border transition-all duration-200 overflow-hidden ${
                 isOpen
-                  ? 'border-[#FF9B2F]/40 bg-[#121212]/90 shadow-[0_8px_30px_rgba(255,155,47,0.08)]'
-                  : 'border-white/5 bg-[#121212]/60 hover:border-white/15 hover:bg-[#121212]/80'
+                  ? 'border-border bg-surface/90 '
+                  : 'border-white/5 bg-surface/60 hover:border-white/15 hover:bg-surface/80'
               }`}
             >
               <button
                 type="button"
                 onClick={() => toggle(idx)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center justify-between gap-4 p-5 sm:p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF9B2F]"
+                className="flex w-full items-center justify-between gap-4 p-5 sm:p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6CB8A]"
               >
                 <span className="flex items-center gap-3.5">
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
                       isOpen
-                        ? 'bg-[#FF9B2F] text-black shadow-[0_0_12px_rgba(255,155,47,0.4)]'
+                        ? 'bg-accent text-accent-contrast '
                         : 'bg-white/5 text-white/50'
                     }`}
                   >
@@ -122,7 +122,7 @@ export function FaqSection() {
                 </span>
                 <ChevronDown
                   className={`h-4 w-4 shrink-0 transition-transform duration-300 ${
-                    isOpen ? 'rotate-180 text-[#FF9B2F]' : 'text-white/40'
+                    isOpen ? 'rotate-180 text-muted-foreground' : 'text-white/40'
                   }`}
                 />
               </button>
@@ -152,10 +152,10 @@ export function FaqSection() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-10 mx-auto flex w-full max-w-[840px] flex-col sm:flex-row items-center justify-between gap-4 rounded-[20px] border border-white/5 bg-[#121212]/60 p-6 backdrop-blur-md"
+        className="mt-10 mx-auto flex w-full max-w-[840px] flex-col sm:flex-row items-center justify-between gap-4 rounded-[20px] border border-white/5 bg-surface/60 p-6 backdrop-blur-md"
       >
         <div className="flex items-center gap-3.5 text-center sm:text-left">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-[#FF9B2F]/20 bg-[#FF9B2F]/10 text-[#FF9B2F]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-border bg-surface-2 text-muted-foreground">
             <HelpCircle className="h-5 w-5" />
           </div>
           <div>
@@ -174,7 +174,7 @@ export function FaqSection() {
           </Link>
           <Link
             href="/about-project"
-            className="inline-flex items-center gap-1.5 rounded-[10px] bg-[#FF9B2F]/15 border border-[#FF9B2F]/30 px-4 py-2 text-xs font-semibold text-[#FF9B2F] hover:bg-[#FF9B2F]/25 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-[10px] bg-surface-2 border border-border px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-surface-2 transition-colors"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             Contact Support

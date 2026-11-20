@@ -22,8 +22,7 @@ import {
   toggleMaintenanceNotice,
 } from '@/lib/admin/service';
 import { useAdminData } from '@/lib/admin/useAdminData';
-import { formatDateTime } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
+import { formatDateTime, cn } from '@/lib/utils';
 
 /**
  * System maintenance banners.

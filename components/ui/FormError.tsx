@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * Server-error banner. Rendered above a form's submit button with

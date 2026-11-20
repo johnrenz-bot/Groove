@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Clock, MapPin, Video, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { CalendarEntry } from '../lib/entries';
 import { statusBarClass, statusVariant } from '../lib/entries';
 

@@ -5,7 +5,7 @@ import '../src/styles/theme.css';
 import { MusicPlayerProvider } from '@/features/music';
 import { PlayerGate } from '@/components/player/PlayerGate';
 import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
-import { SessionProvider } from '@/components/header/SessionProvider';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { PagePatterns } from '@/components/layout/PagePatterns';
 import { PlatformThemeSync } from '@/components/theme/PlatformThemeSync';
@@ -60,6 +60,7 @@ const FONT_PRELOADS = [
 ];
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title: 'Groove — Performing Arts Platform',
   description:
     'Book verified coaches, collaborate on performing arts, and sign digital session agreements seamlessly.',

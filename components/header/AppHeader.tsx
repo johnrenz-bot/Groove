@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogIn, UserPlus } from 'lucide-react';
 
-import { createClient } from '@/lib/supabase/client';
+import { signOutEverywhere } from '@/lib/auth/signOut';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
 import { AnimatedLogo } from '@/components/header/AnimatedLogo';
 import { NavDropdown } from '@/components/header/NavDropdown';
@@ -14,7 +15,7 @@ import { MobileDrawer } from '@/components/header/MobileDrawer';
 import { HeaderSearch } from '@/components/search/HeaderSearch';
 import { useSlidingIndicator } from '@/components/header/useSlidingIndicator';
 import { useHeaderScroll } from '@/components/header/useHeaderScroll';
-import { useSession } from '@/components/header/SessionProvider';
+import { useSession } from '@/components/providers/SessionProvider';
 import { dashboardLanguage, translateIn, useLanguage } from '@/lib/i18n/LanguageProvider';
 import { translateSectionLabel } from '@/components/header/headerText';
 import {
@@ -120,19 +121,7 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
   }
 
   const handleLogout = useCallback(async () => {
-    const supabase = createClient();
-    if (user) {
-      try {
-        await supabase.from('profiles').update({ status: 'offline' }).eq('id', user.id);
-      } catch {
-        // Best effort: presence must never strand a session.
-      }
-    }
-    // Clear the welcome-modal flag so the next login always shows a fresh
-    // welcome, and a stale flag from an unvisited /home never leaks into the
-    // following session.
-    try { sessionStorage.removeItem('groove_welcome_pending'); } catch { /* blocked storage */ }
-    await supabase.auth.signOut();
+    await signOutEverywhere(user?.id ?? null);
     router.push('/login');
     router.refresh();
   }, [user, router]);
@@ -238,6 +227,7 @@ export function AppHeader({ homeHref }: AppHeaderProps = {}) {
               </>
             ) : (
               <div className="hx-auth">
+                <ThemeToggle />
                 <Link href="/login" className="hx-auth-link">
                   <LogIn className="h-4 w-4" aria-hidden="true" />
                   <span>{tr('header.signIn', 'Sign In')}</span>

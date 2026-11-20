@@ -8,13 +8,13 @@ import {
   ArrowUpRight,
   Calendar,
 } from 'lucide-react';
-import type { DanceUpdateRecord } from '../services/danceService';
-import { isUpcomingEvent } from '../services/danceService';
-import { getOrgLogo } from '../data/danceOrgs';
+import type { DanceUpdateRecord } from '../services/danceService.ts';
+import { isUpcomingEvent } from '../services/danceService.ts';
+import { getOrgLogo } from '../data/danceOrgs.ts';
 import { formatEventDate } from '@/lib/dance/types';
-import { ReportIssueLink } from './ReportIssueLink';
-import { getCountdownLabel } from '../utils/countdown';
-import { SafeImage } from './SafeImage';
+import { ReportIssueLink } from '@/features/discipline/components/ReportIssueLink';
+import { getCountdownLabel } from '@/features/discipline/components/countdown';
+import { SafeImage } from '@/features/discipline/components/SafeImage';
 
 interface UpdateCardProps {
   update: DanceUpdateRecord;
@@ -115,7 +115,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
       ref={cardRef}
       className={`group relative flex flex-col overflow-hidden rounded-[22px] border transition-all duration-700 ease-out-expo ${
         isPastEvent
-          ? 'border-neutral-700 bg-[#111] group-hover:border-neutral-500 group-focus-within:border-neutral-500 data-[expanded]:border-neutral-500'
+          ? 'border-border bg-muted group-hover:border-border-strong group-focus-within:border-border-strong data-[expanded]:border-border-strong'
           : 'crew-bd bg-[var(--crew-bg-panel)] group-hover:crew-bd-gold group-focus-within:crew-bd-gold data-[expanded]:crew-bd-gold'
       } ${reducedMotion ? 'transition-none' : ''} ${
         isTouchDevice && isExpanded ? 'ring-1 ring-[#E6C77A]' : ''
@@ -219,8 +219,8 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${
                 isPastEvent
                   ? 'bg-neutral-400 text-neutral-900'
-                  : 'bg-[#F7F0E1] text-[#111]'
-              } backdrop-blur-sm shadow-sm shrink-0`}
+                  : 'bg-surface-2 text-foreground'
+              } backdrop-blur-sm shrink-0`}
             >
               {orgLogoInfo.isVerified && orgLogoInfo.logoUrl && (
                 <SafeImage
@@ -251,7 +251,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
           {/* Right: Countdown or Concluded pill */}
           {countdownLabel && !isPastEvent && (
             <span
-              className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold text-[#111] bg-[#E6C77A] shadow-sm shrink-0"
+              className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold text-foreground bg-surface-2 shrink-0"
               aria-label={countdownLabel}
             >
               {countdownLabel}
@@ -323,7 +323,7 @@ export function UpdateCard({ update, language }: UpdateCardProps) {
               className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 min-h-[44px] text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6C77A] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--crew-bg-panel)] ${
                 isPastEvent
                   ? 'bg-neutral-700 text-neutral-200 border border-neutral-600 hover:bg-neutral-600'
-                  : 'bg-[#E6C77A] text-[#111] hover:bg-[#F4BE4D] shadow-lg shadow-[#E6C77A]/30'
+                  : 'bg-surface-2 text-foreground hover:bg-surface-2 '
               }`}
               aria-label={isPastEvent ? `View results for ${update.title}` : `Register or view event details for ${update.title}`}
             >

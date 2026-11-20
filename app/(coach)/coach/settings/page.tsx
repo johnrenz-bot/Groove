@@ -15,6 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/shared/SectionHeader';
 import { FormError } from '@/components/ui/FormError';
 import { useProfile } from '@/hooks/useProfile';
+import { signOutEverywhere } from '@/lib/auth/signOut';
 import {
   AccountSettings,
   AppearanceSettings,
@@ -78,10 +79,7 @@ export default function CoachSettingsPage() {
         <AppearanceSettings />
 
         <DangerZone
-          onSignOutAll={async () => {
-            const supabase = createClient();
-            await supabase.auth.signOut();
-          }}
+          onSignOutAll={() => signOutEverywhere(profile.id)}
           onDeleteAccount={async () => {
             // The platform's existing support channel is `tickets`; there is no
             // account-deletion endpoint, so this raises an admin-reviewable

@@ -7,7 +7,7 @@
  * component never re-derives machine state.
  *
  *   done          check chip on green, solid connector
- *   current       orange ring pulse (safe-area motion respected), aria-current="step"
+ *   current       gold ring pulse (safe-area motion respected), aria-current="step"
  *   upcoming      muted dashed circle
  *   skipped       dimmed, "Skipped" chip
  *   terminal      the ONLY red step; the line stops there
@@ -18,7 +18,7 @@
  */
 import React from 'react';
 import { Check, Clock3, Minus, X } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import type { StepperStep } from '../services/stepper';
 
 const STATE_LABEL: Record<StepperStep['state'], string> = {

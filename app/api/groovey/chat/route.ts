@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import {
+  checkGrooveyChatRate,
+  validateChatBody,
+  MAX_BODY_BYTES,
+} from '@/lib/grooveyValidation';
+import {
   getGeminiClient,
   getGeminiApiKey,
   GROOVEYY_SYSTEM_INSTRUCTION,
@@ -28,12 +33,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Validate request body
-    const body = await req.json().catch(() => null);
-    const { messages, discipline, level } = body || {};
+    // 2. Rate limit: shared 30/5min bucket with /api/groovey/chat/stream.
+    const rate = checkGrooveyChatRate(user.id);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment and try again.' },
+        { status: 429, headers: { 'Retry-After': String(rate.retryAfter) } }
+      );
+    }
 
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'Valid messages array is required' }, { status: 400 });
+    // 3. Reject oversized payloads before buffering the body.
+    const contentLength = Number(req.headers.get('content-length') ?? '0');
+    if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request payload is too large.' }, { status: 413 });
+    }
+
+    // 4. Validate request body
+    const body = await req.json().catch(() => null);
+    const validation = validateChatBody(body);
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status });
+    }
+
+    const { discipline, level } = (body ?? {}) as { discipline?: unknown; level?: unknown };
+    if (discipline !== undefined && (typeof discipline !== 'string' || discipline.length > 100)) {
+      return NextResponse.json({ error: 'discipline must be a string of at most 100 characters.' }, { status: 400 });
+    }
+    if (level !== undefined && (typeof level !== 'string' || level.length > 100)) {
+      return NextResponse.json({ error: 'level must be a string of at most 100 characters.' }, { status: 400 });
     }
 
     // 3. Verify server API configuration
@@ -48,17 +75,21 @@ export async function POST(req: NextRequest) {
     const ai = getGeminiClient();
 
     let contextualSystemInstruction = GROOVEYY_SYSTEM_INSTRUCTION;
-    if (discipline && discipline !== 'General') {
-      contextualSystemInstruction += `\nCURRENT SESSION DISCIPLINE: ${discipline}.`;
+    // Narrow the validated optionals for the template strings below.
+    const safeDiscipline = discipline as string | undefined;
+    const safeLevel = level as string | undefined;
+
+    if (safeDiscipline && safeDiscipline !== 'General') {
+      contextualSystemInstruction += `\nCURRENT SESSION DISCIPLINE: ${safeDiscipline}.`;
     }
-    if (level && level !== 'All') {
-      contextualSystemInstruction += `\nARTIST PROFICIENCY LEVEL: ${level}.`;
+    if (safeLevel && safeLevel !== 'All') {
+      contextualSystemInstruction += `\nARTIST PROFICIENCY LEVEL: ${safeLevel}.`;
     }
 
     // Check if the last user message is asking about the platform
-    const lastUserMessage = [...messages].reverse().find((m: { role: string; content?: string }) => m.role === 'user');
-    const isPlatformQuery = lastUserMessage ? isAboutPlatformMessage(lastUserMessage.content || '') : false;
-    const isGrooveyyQuery = lastUserMessage ? isAboutGrooveyyMessage(lastUserMessage.content || '') : false;
+    const lastUserMessage = [...validation.messages].reverse().find((m) => m.role === 'user');
+    const isPlatformQuery = lastUserMessage ? isAboutPlatformMessage(lastUserMessage.text) : false;
+    const isGrooveyyQuery = lastUserMessage ? isAboutGrooveyyMessage(lastUserMessage.text) : false;
 
     // PLATFORM QUESTION MODE: High-priority block prepended for platform questions
     if (isPlatformQuery) {
@@ -69,10 +100,10 @@ export async function POST(req: NextRequest) {
     // Append GroovePH platform knowledge block (single source from lib/config/projectInfo.ts)
     contextualSystemInstruction += `\n\n${getGroovePhKnowledge()}`;
 
-    const contextWindow = messages.slice(-16);
-    const contents = contextWindow.map((msg: { role: string; content?: string; text?: string }) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content || msg.text || '' }],
+    const contextWindow = validation.messages;
+    const contents = contextWindow.map((msg) => ({
+      role: msg.role,
+      parts: [{ text: msg.text }],
     }));
 
     const response = await generateContentWithFallbackAndRetry(ai, {

@@ -10,8 +10,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { SIGNED_URL_TTL_SECONDS, VERIFICATION_BUCKET } from '@/lib/utils';
-import { cn } from '@/components/shared/cn';
+import { SIGNED_URL_TTL_SECONDS, VERIFICATION_BUCKET, cn } from '@/lib/utils';
 import {
   ModalCloseButton,
   MODAL_FOOTER_CLASS,
@@ -295,7 +294,7 @@ export function DocumentLightbox({
           <ModalCloseButton onClose={onClose} label="Close document viewer" />
         </div>
 
-        <div className="g-scroll flex min-h-0 flex-1 items-center justify-center overflow-auto bg-black/20">
+        <div className="g-scroll flex min-h-0 flex-1 items-center justify-center overflow-auto bg-muted/50">
           {kind === 'image' ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

@@ -16,11 +16,10 @@ import { FullCoach, Profile } from '@/lib/types';
 import { bookingGate } from '@/features/verification/services/verification';
 import { VerificationRequiredNotice } from '@/features/verification/components/VerificationRequiredNotice';
 import { createClient } from '@/lib/supabase/client';
-import { PageHeader } from '@/components/shared/SectionHeader';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { DirectoryTabs, type DirectoryTabValue } from '@/components/directory/DirectoryTabs';
 import { DirectoryFilters } from '@/components/directory/DirectoryFilters';
 import { MobileFiltersSheet } from '@/components/directory/MobileFiltersSheet';
@@ -163,31 +162,31 @@ export default function ClientTalentPage() {
 
   return (
     <>
-      <PageHeader
-        className="mb-5"
-        eyebrow="Talents & Community Directory · San Jose del Monte"
-        title={
-          <>
-            Discover &amp; Connect With Top <span className="text-accent-text">Coaches</span>
-          </>
-        }
-        description="Find verified performing arts instructors for dance choreography, vocal training, stage acting, and theater in Bulacan."
-        action={
-          <div className="flex w-full flex-col items-stretch gap-2.5 sm:w-auto sm:flex-row sm:items-center">
-            <DirectoryTabs value={activeTab} onChange={setTab} />
+      {/* Editorial discovery masthead — bespoke, not a shared page header */}
+      <div className="mb-6 flex flex-col gap-6 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-2xl">
+          <h1 className="mt-3 font-sans text-[2rem] font-semibold leading-[1.06] tracking-[-0.02em] text-foreground sm:text-5xl">
+            Find the coach who <span className="ed-accent">finds your art.</span>
+          </h1>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
+            Verified performing-arts instructors for dance choreography, vocal training, stage acting
+            and theater across Bulacan — compare rates, specialties and real-time availability.
+          </p>
+        </div>
+        <div className="flex w-full flex-col items-stretch gap-2.5 sm:w-auto sm:flex-row sm:items-center">
+          <DirectoryTabs value={activeTab} onChange={setTab} />
 
-            <button
-              type="button"
-              onClick={openPreviewGallery}
-              aria-haspopup="dialog"
-              className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-2xl border border-white/5 bg-[#161616] px-4 text-xs font-semibold text-foreground transition-all hover:-translate-y-px hover:border-white/10 hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              <ImageIcon className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
-              Preview Gallery
-            </button>
-          </div>
-        }
-      />
+          <button
+            type="button"
+            onClick={openPreviewGallery}
+            aria-haspopup="dialog"
+            className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full border border-accent-border bg-accent-soft px-5 text-xs font-bold uppercase tracking-[0.14em] text-accent-text transition-all hover:-translate-y-px hover:bg-accent-soft hover: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <ImageIcon className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
+            Preview Gallery
+          </button>
+        </div>
+      </div>
 
       {activeTab === 'coaches' ? (
         <div
@@ -312,7 +311,7 @@ export default function ClientTalentPage() {
         }
       >
         <figure className="overflow-hidden rounded-2xl border border-border bg-muted/30">
-          <div className="relative h-[clamp(240px,58vh,620px)] w-full overflow-hidden bg-[radial-gradient(circle_at_top,_var(--accent-soft),transparent_65%)]">
+          <div className="relative h-[clamp(240px,58vh,620px)] w-full overflow-hidden bg-background">
             {previewImageStatus !== 'error' && (
               <Image
                 src={PREVIEW_GALLERY_SRC}

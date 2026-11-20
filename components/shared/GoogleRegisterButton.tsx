@@ -87,7 +87,7 @@ export function GoogleRegisterButton({ role, label, className = '', badge }: Goo
             : buttonText
         }
         title={!GOOGLE_OAUTH_ENABLED ? 'Google sign-up is coming soon' : undefined}
-        className={`group relative flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-border px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-[#DDAA55] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ring-2 focus-visible:ring-(--background)] ${
+        className={`group relative flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-border px-5 text-sm font-semibold shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
           !GOOGLE_OAUTH_ENABLED
             ? 'cursor-not-allowed  bg-muted text-subtle-foreground opacity-75 select-none'
             : 'cursor-pointer  bg-card text-foreground hover:border-border-strong hover:bg-muted active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60'

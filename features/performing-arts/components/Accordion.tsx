@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { ChevronDown, type LucideIcon } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * A small, dependency-free accordion used by the performing-arts information

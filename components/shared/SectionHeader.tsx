@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from './cn';
+import { cn } from '@/lib/utils';
 import { InfoTip } from '@/components/ui/InfoTip';
 
 /**
@@ -45,11 +45,9 @@ export function SectionHeader({
 }
 
 /**
- * Compact page header for dashboards: eyebrow + title + description + action.
- *
- * The eyebrow used to be hand-rolled here AND `.g-eyebrow` existed one screen
- * away, so the app shipped two pill styles for the same idea. It now uses
- * `.g-eyebrow`, and the title uses the serif display face at the smaller scale.
+ * The editorial page masthead for every portal (client, coach, admin).
+ * One composition everywhere: gold eyebrow over a hairline, Source Serif 4
+ * title, muted one-line description, optional action cluster and info tip.
  */
 export function PageHeader({
   title,
@@ -77,22 +75,24 @@ export function PageHeader({
   const heading = infoTitle ?? (typeof title === 'string' ? title : 'Page details');
 
   return (
-    <header
-      className={cn(
-        'mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between',
-        className
-      )}
-    >
-      <div className="min-w-0">
-        {eyebrow && <span className="g-eyebrow mb-3">{eyebrow}</span>}
-        <div className="flex items-center gap-2.5">
-          <h1 className="g-title">{title}</h1>
-          {details ? (
-            <InfoTip title={heading} short={short} details={details} className="mt-1" />
+    <header className={cn('mb-7 border-b border-border pb-6', className)}>
+
+      <div className="mt-2.5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5">
+            <h1 className="font-sans text-3xl font-semibold leading-[1.1] tracking-[-0.015em] text-foreground sm:text-4xl">
+              {title}
+            </h1>
+            {details ? (
+              <InfoTip title={heading} short={short} details={details} className="mt-1" />
+            ) : null}
+          </div>
+          {description ? (
+            <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">{description}</p>
           ) : null}
         </div>
+        {action && <div className="flex shrink-0 items-center gap-3">{action}</div>}
       </div>
-      {action && <div className="flex shrink-0 items-center gap-3">{action}</div>}
     </header>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 
 export interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   as?: 'div' | 'section' | 'article' | 'aside';
@@ -32,7 +32,7 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
           'relative overflow-hidden border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur)] shadow-[var(--glass-shadow)] transition-all duration-200',
           radiusClass,
           hover && 'hover:border-[var(--glass-border-hover)] hover:-translate-y-px',
-          glow && 'shadow-[0_0_44px_rgba(245,138,24,0.22)]',
+          glow && '',
           className
         )}
         {...props}

@@ -6,7 +6,7 @@
  */
 import React, { useMemo, useCallback, useState } from 'react';
 import { GripVertical, MoreHorizontal, X } from 'lucide-react';
-import { cn } from '@/components/shared/cn';
+import { cn } from '@/lib/utils';
 import { formatBookingDate, formatClock } from '@/features/appointments/services/bookingTime';
 import { Badge } from '@/components/ui/Badge';
 import { statusMeta } from '@/features/appointments/services/bookingStatus';

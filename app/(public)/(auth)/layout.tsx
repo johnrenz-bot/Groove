@@ -14,8 +14,11 @@ import React from 'react';
  * resolve exactly as before.
  */
 export default function AuthGroupLayout({ children }: { children: React.ReactNode }) {
+  /* No forced-dark wrapper: the auth layer (.au-shell / --av-* tokens in
+     globals.css) has light values, so login/register/reset honour the
+     visitor's saved Light/Dark/System choice like every other route. */
   return (
-    <div className="dark tsp-auth min-h-screen bg-black text-white antialiased selection:bg-[var(--accent)]/30 selection:text-[var(--accent-foreground)]">
+    <div className="min-h-screen bg-background text-foreground antialiased selection:bg-[var(--accent)]/30 selection:text-[var(--accent-foreground)]">
       {children}
     </div>
   );

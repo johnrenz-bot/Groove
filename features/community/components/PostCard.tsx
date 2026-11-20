@@ -33,9 +33,8 @@ import {
 } from 'lucide-react';
 
 import type { Comment, CommunityPost } from '@/lib/types';
-import { getInitials } from '@/lib/utils';
+import { getInitials, cn } from '@/lib/utils';
 import { isVideoPath } from '../utils/communityMedia';
-import { cn } from '@/components/shared/cn';
 import { Button } from '@/components/ui/Button';
 import {
   ModalCloseButton,
