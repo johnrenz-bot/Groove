@@ -22,6 +22,7 @@ import {
   DangerZone,
   ProfileSettingsLink,
 } from '@/components/profile/SettingsSections';
+import { SettingsNav } from '@/components/profile/SettingsNav';
 
 export default function CoachSettingsPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function CoachSettingsPage() {
   }
 
   return (
-    <div className="pb-16">
+    <div className="app-page pb-16">
       <PageHeader
         eyebrow="Coach"
         title="Settings"
@@ -62,7 +63,9 @@ export default function CoachSettingsPage() {
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="settings-shell">
+        <SettingsNav />
+        <div className="app-section">
         <AccountSettings
           userId={profile.id}
           email={profile.email}
@@ -79,6 +82,7 @@ export default function CoachSettingsPage() {
         <AppearanceSettings />
 
         <DangerZone
+          id="danger"
           onSignOutAll={() => signOutEverywhere(profile.id)}
           onDeleteAccount={async () => {
             // The platform's existing support channel is `tickets`; there is no
@@ -97,6 +101,7 @@ export default function CoachSettingsPage() {
             });
           }}
         />
+        </div>
       </div>
     </div>
   );

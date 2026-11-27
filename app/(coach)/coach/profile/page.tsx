@@ -784,7 +784,7 @@ export default function CoachProfilePage() {
     completionDone.length < COMPLETION_ITEMS.length && !completionDismissed;
 
   const publicHref = `/userprofile/${coach.id}`;
-  const fullName = `${coach.firstname ?? ''} ${coach.lastname ?? ''}`.trim() || 'Geoove coach';
+  const fullName = `${coach.firstname ?? ''} ${coach.lastname ?? ''}`.trim() || 'Coach profile';
 
   const TABS = [
     { id: 'overview', label: 'Overview & Rates' },
@@ -800,7 +800,7 @@ export default function CoachProfilePage() {
   ];
 
   return (
-    <div className="pb-16">
+    <div className="app-page pb-16">
       {failure && (
         <div className="mb-4">
           <FormError message={failure} onDismiss={() => setFailure(null)} />
@@ -896,7 +896,7 @@ export default function CoachProfilePage() {
 
       {/* ── Overview: view mode ── */}
       {activeTab === 'overview' && !editing && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="app-profile-grid">
           <div className="min-w-0 space-y-6">
             <ProfileSummary
               title="Personal Information"
@@ -1092,7 +1092,7 @@ export default function CoachProfilePage() {
             <ContactSection values={contact} errors={errors} onChange={markDirty(setContact)} />
           </section>
 
-          <section id="profile-edit-coaching" className="scroll-mt-24 spacr-y-5 g-card p-5 sm:p-6">
+          <section id="profile-edit-coaching" className="scroll-mt-24 space-y-5 g-card p-5 sm:p-6">
             <CoachBioSection bio={bio} errors={errors} onChange={markDirty(setBio)} />
             <div className="border-t border-border/60 pt-5">
               <CoachSkillsSection values={coachForm} errors={errors} onChange={markDirty(setCoachForm)} />
@@ -1108,7 +1108,7 @@ export default function CoachProfilePage() {
           </section>
 
           {/* Sticky action bar — always within reach while editing. */}
-          <div className="sticky bottom-4 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/90 px-4 py-3 backdeop-blue-md">
+          <div className="sticky bottom-4 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/90 px-4 py-3 backdrop-blur-md">
             <p className="flex min-w-0 items-center gap-2 text-[11px] font-medium text-muted-foreground">
               <span
                 aria-hidden="true"
@@ -1153,7 +1153,7 @@ export default function CoachProfilePage() {
               actionHref="/coach/talents"
             />
           )}
-          <div className="overflow-hidden rounded-2xl border border border-border bg-card">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
             {/* Same private-bucket resolver and owner re-order/lightbox as the
                 previous gallery tile — media_path is never rendered raw. */}
             <ProfileGallery
@@ -1179,7 +1179,7 @@ export default function CoachProfilePage() {
       <GrooveConfirmDialog
         open={discardOpen}
         onClose={() => setDiscardOpen(false)}
-        title="Discard youe changes?"
+        title="Discard your changes?"
         description="Your edits haven't been saved yet. Leaving now means Everything you typed will be lost."
         confirmLabel="Discard changes"
         cancelLabel="Keep editing"

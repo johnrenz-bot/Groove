@@ -118,6 +118,25 @@
   --radius-card: 16px;
   --radius-panel: 16px;
 
+  /* Tailwind's radius steps are re-based on the GroovePH shape scale. This is
+     what carries the new geometry to every `rounded-*` call site in the app
+     without editing hundreds of components. Small steps stay usable; large
+     steps carry the sculpted card language. */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+
+  /* Explicit inverted-radius utilities (`rounded-inv-*`) for new work. */
+  --radius-inv-xs: 8px;
+  --radius-inv-sm: 12px;
+  --radius-inv-md: 18px;
+  --radius-inv-lg: 24px;
+  --radius-inv-xl: 32px;
+
   /* --- TYPE SCALE -----------------------------------------------------------
      Re-based against the 14px root declared above.
 
@@ -145,10 +164,17 @@
 
      Line heights are NOT restated: Tailwind defines each as a unitless ratio
      (`calc(2 / 1.5)`), which stays correct when the size underneath it changes. */
-  --text-xs: 0.875rem;
-  --text-sm: 0.9375rem;
-  --text-3xl: 1.75rem;
-  --text-5xl: 2.75rem;
+  /* 2026 scale: the 14px root stays (it protects every fixed-px layout), but
+     every step is re-based so type actually reads at a premium-SaaS density. */
+  --text-xs: 1rem;        /* 14px  — metadata, table heads, badges */
+  --text-sm: 1.0625rem;   /* 14.9px — secondary body, labels, buttons */
+  --text-base: 1.125rem;  /* 15.8px — body */
+  --text-lg: 1.25rem;     /* 17.5px — lead-in, card titles */
+  --text-xl: 1.5rem;      /* 21px   — H3 */
+  --text-2xl: 1.75rem;    /* 24.5px — H2 */
+  --text-3xl: 2rem;       /* 28px   — modal / section heading */
+  --text-4xl: 2.5rem;     /* 35px   — H1 */
+  --text-5xl: 3rem;       /* 42px   — hero */
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -398,6 +424,45 @@ html.g-custom-cursor :is(
 
 :root {
   color-scheme: dark;
+
+  /* ── Inverted border-radius design system ─────────────────────────────────
+     One shape language for every route and role. `groove-*` aliases resolve to
+     the existing accent tokens — the brand palette stays the single source of
+     truth. `--inverted-*` values are concave corner depths; the mask-based
+     utilities carve them out of the surface itself, so cutouts reveal whatever
+     is behind the element in BOTH themes. */
+  --groove-accent: var(--accent);
+  --groove-accent-soft: var(--accent-hover);
+  /* Keep the :root copy of the Tailwind steps identical to the @theme block. */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --inverted-radius-sm: 12px;
+  --inverted-radius-md: 20px;
+  --inverted-radius-lg: 28px;
+  --inverted-radius-xl: 36px;
+  --surface-gap: 16px;
+  --surface-padding: 24px;
+  --motion-standard: 250ms;
+  --motion-smooth: 400ms;
+  --inverted-ring: color-mix(in srgb, var(--accent) 14%, transparent);
+  --inverted-highlight: color-mix(in srgb, var(--accent) 8%, transparent);
+
+  /* ── Universal layout composition ──────────────────────────────────────────
+     One spacing rhythm for every portal. Values mirror the existing shell
+     geometry (256/64px sidebar, 4rem header) so nothing shifts on adoption. */
+  --layout-page-padding: 24px;
+  --layout-section-gap: 28px;
+  --layout-widget-gap: 18px;
+  --layout-card-padding: 22px;
+  --layout-header-height: 4rem;
+  --layout-sidebar-expanded: 256px;
+  --layout-sidebar-collapsed: 64px;
+  --layout-content-max: 1600px;
 
   /* Design tokens — dark mode (default). Gold brand accent. */
   --bg-app: #0A0A0B;
@@ -7143,13 +7208,13 @@ html:not(.light):not(.classic) .dark.flex.min-h-screen.flex-col {
    should stay fixed while the type inside it shrinks. */
 .ld-wrap {
   width: 100%;
-  max-width: 1080px;
+  max-width: 1240px;
   margin-inline: auto;
-  padding-inline: 1.5rem;
+  padding-inline: 1.25rem;
 }
-@media (max-width: 640px) {
+@media (min-width: 640px) {
   .ld-wrap {
-    padding-inline: 1.25rem;
+    padding-inline: 2rem;
   }
 }
 
@@ -13772,6 +13837,96 @@ html.dash-drawer-open body {
   padding-inline: 16px;
 }
 
+/* ── Fixed viewport shell for the registration wizards ─────────────────────
+   /register/client and /register/coach behave like a fixed desktop layout:
+   the document never scrolls, the texture/lockup never move, and the whole
+   registration stack (heading, progress, card, footer) scrolls together in
+   ONE dedicated container. The card itself keeps its natural height — it is
+   never a scroller and never clips its fields. Scoped to the
+   `au-shell--scroll-locked` class set by AuthLayout, so /login and the other
+   auth pages keep their normal page flow. */
+
+/* Belt-and-braces document lock. A class (not an inline style) keeps Lenis'
+   body-overflow observer out of the picture and is removed on unmount. */
+html.au-scroll-locked,
+body.au-scroll-locked {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.au-shell--scroll-locked {
+  /* Height of the pinned brand bar, including the notch inset on phones. */
+  --au-reg-topbar-h: calc(82px + env(safe-area-inset-top, 0px));
+  height: 100dvh;
+  min-height: 0;
+  /* Overrides .au-shell--registration's `overflow: visible` (which only
+     existed so window-scrolling could keep the rail sticky). */
+  overflow: hidden;
+}
+@media (max-width: 639px) {
+  .au-shell--scroll-locked {
+    --au-reg-topbar-h: calc(68px + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* Dedicated stationary background layers. AmbientBackground is already
+   fixed; PixelBackground is absolutely positioned by default, so pin it to
+   the viewport here too. Neither layer creates a scrollbar. */
+.au-shell--scroll-locked .au-ambient,
+.au-shell--scroll-locked .au-pixel-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Reuse the existing topbar/lockup markup — just lift it out of flow. */
+.au-shell--scroll-locked .au-topbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 30;
+  padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 639px) {
+  .au-shell--scroll-locked .au-topbar {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* THE ONE SCROLLER: the entire registration content moves as a single unit.
+   The pinned logo's space is reserved by padding; once scrolling starts the
+   content passes beneath the fixed lockup, as in the reference layout. */
+.au-shell--scroll-locked .au-wizard-main {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  min-height: 0;
+  padding-top: calc(var(--au-reg-topbar-h) + 14px);
+  padding-bottom: calc(42px + env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 768px) {
+  .au-shell--scroll-locked .au-wizard-main {
+    scrollbar-gutter: stable;
+  }
+}
+
+/* Everything inside the scroller is in normal flow: no inner scrollbars,
+   no sticky chrome, no fixed-height card. The mobile wizard footer is
+   normally pinned to the bottom of the viewport; here it travels with the
+   rest of the form so the whole registration content moves as one unit. */
+.au-shell--scroll-locked .rw-rail-inner,
+.au-shell--scroll-locked .reg-progress,
+.au-shell--scroll-locked .rw-footer {
+  position: static;
+}
+
 /* ── Two-column composition: rail + form ─────────────────────────────────── */
 
 .rw {
@@ -16658,5 +16813,2125 @@ html.dash-drawer-open body {
   .gb-pop-in {
     animation: none;
   }
+}
+
+/* ==============================================================================
+   INVERTED RADIUS — GROOVEPH UNIVERSAL DESIGN SYSTEM
+   ------------------------------------------------------------------------------
+   A single shape language for every route and role. The signature move is a
+   CONCAVE corner: a quarter-circle of the element is carved away, revealing
+   whatever sits behind it. That is implemented with a real CSS mask rather
+   than a same-colour pseudo-element, so it cannot leak the wrong background
+   when the theme changes (dark / light / classic / halloween / christmas).
+
+   Utilities are deliberately shape-only: they never set a colour or a
+   background. Components keep their existing theme tokens, so both palettes
+   remain intentionally designed rather than inverses of each other.
+   ============================================================================== */
+
+.inverted-surface,
+.inverted-card,
+.inverted-card-sm,
+.inverted-card-lg,
+.inverted-panel,
+.inverted-modal,
+.inverted-section {
+  --inv-depth: var(--inverted-radius-md);
+  --inv-outer: var(--radius-lg);
+  /* A quiet inner line survives the mask (outer box-shadow does not). Using
+     outline keeps each component's own box-shadow intact. */
+  outline: 1px solid var(--inverted-ring);
+  outline-offset: -1px;
+}
+
+.inverted-card-sm {
+  --inv-depth: var(--inverted-radius-sm);
+  --inv-outer: var(--radius-md);
+}
+.inverted-card-lg,
+.inverted-panel,
+.inverted-modal,
+.inverted-section {
+  --inv-depth: var(--inverted-radius-lg);
+  --inv-outer: var(--radius-xl);
+}
+
+/* The concave cut. Each full-size gradient punches one corner; intersecting
+   all four leaves the centre opaque and the four quarter-circles transparent. */
+.inverted-surface,
+.inverted-card,
+.inverted-card-sm,
+.inverted-card-lg,
+.inverted-panel,
+.inverted-modal,
+.inverted-section {
+  -webkit-mask:
+    radial-gradient(circle var(--inv-depth) at 0 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inv-depth) at 100% 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inv-depth) at 0 100%, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inv-depth) at 100% 100%, transparent 99%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle var(--inv-depth) at 0 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inv-depth) at 100% 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inv-depth) at 0 100%, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inv-depth) at 100% 100%, transparent 99%, #000 100%);
+  mask-composite: intersect;
+}
+
+/* Controls keep their native outline/focus ring (a mask would clip it), so
+   they use alternating radii — sculpted edges without clipping anything. */
+.inverted-button {
+  --inv-outer: var(--radius-inv-md);
+  border-radius: var(--inv-outer) calc(var(--inv-outer) / 2) var(--inv-outer)
+    calc(var(--inv-outer) / 2);
+  outline: 1px solid var(--inverted-ring);
+  outline-offset: -1px;
+  transition:
+    border-radius var(--motion-standard) var(--ease-out-expo),
+    outline-color var(--motion-standard) var(--ease-out-expo),
+    transform var(--motion-standard) var(--ease-out-expo);
+}
+.inverted-button:hover {
+  outline-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.inverted-button:active {
+  border-radius: calc(var(--inv-outer) / 2) var(--inv-outer) calc(var(--inv-outer) / 2)
+    var(--inv-outer);
+}
+
+.inverted-input {
+  --inv-outer: var(--radius-control);
+  border-radius: var(--inv-outer) var(--radius-inv-xs) var(--inv-outer) var(--radius-inv-xs);
+  outline: 1px solid var(--inverted-highlight);
+  outline-offset: -1px;
+  transition:
+    border-radius var(--motion-standard) var(--ease-out-expo),
+    outline-color var(--motion-standard) var(--ease-out-expo);
+}
+.inverted-input:focus,
+.inverted-input:focus-within {
+  outline-color: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+.inverted-navigation {
+  border-radius: var(--radius-inv-md) var(--radius-inv-xs) var(--radius-inv-md)
+    var(--radius-inv-xs);
+  transition:
+    border-radius var(--motion-standard) var(--ease-out-expo),
+    background-color var(--motion-standard) var(--ease-out-expo);
+}
+
+.inverted-floating-element {
+  border-radius: 50% 50% 50% var(--radius-inv-sm);
+  box-shadow: var(--shadow-lg);
+  transition:
+    border-radius var(--motion-smooth) var(--ease-out-expo),
+    box-shadow var(--motion-standard) var(--ease-out-expo);
+}
+.inverted-floating-element:hover {
+  border-radius: 50% 50% var(--radius-inv-sm) 50%;
+}
+
+.inverted-section {
+  border-radius: var(--radius-3xl) var(--radius-xl) var(--radius-3xl) var(--radius-xl);
+}
+
+/* Shape-only variant for containers that intentionally paint decorations or
+   popovers outside their box (wizard card, dropdown hosts, app chrome). */
+.inverted-shell {
+  --inv-outer: var(--radius-2xl);
+  border-radius: var(--inv-outer) calc(var(--inv-outer) / 2) var(--inv-outer)
+    calc(var(--inv-outer) / 2);
+  outline: 1px solid var(--inverted-ring);
+  outline-offset: -1px;
+}
+
+/* Smaller viewports simplify the cut depth so content is never clipped. */
+@media (max-width: 640px) {
+  :root {
+    --inverted-radius-sm: 10px;
+    --inverted-radius-md: 14px;
+    --inverted-radius-lg: 20px;
+    --inverted-radius-xl: 26px;
+    --surface-padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inverted-button,
+  .inverted-input,
+  .inverted-navigation,
+  .inverted-floating-element,
+  .inverted-surface,
+  .inverted-card,
+  .inverted-panel {
+    transition: none;
+  }
+}
+
+/* ==============================================================================
+   UNIVERSAL LAYOUT COMPOSITION
+   ------------------------------------------------------------------------------
+   Clean, spacious page geometry shared by every portal. The values above are
+   tokens, so the shell, page headings and widget grids all move together.
+   The inverted-radius system is untouched — this layer only handles rhythm,
+   alignment and proportion.
+   ============================================================================== */
+
+:root {
+  --layout-sidebar-gap: 12px;
+}
+
+/* ── Application shell ─────────────────────────────────────────────────────── */
+.dash-shell {
+  gap: var(--layout-sidebar-gap);
+}
+.dash-sidebar {
+  width: var(--layout-sidebar-expanded);
+}
+.dash-shell[data-collapsed='true'] .dash-sidebar {
+  width: var(--layout-sidebar-collapsed);
+}
+.dash-topbar {
+  height: var(--layout-header-height);
+  padding-inline: var(--layout-page-padding);
+}
+.dash-content {
+  max-width: var(--layout-content-max);
+  padding: clamp(var(--layout-page-padding), 2.4vw, calc(var(--layout-page-padding) * 1.5));
+  gap: var(--layout-section-gap);
+}
+.dash-content--hub,
+.dash-shell[data-focus='true'] .dash-content {
+  padding: 0;
+  gap: 0;
+}
+@media (max-width: 1023.5px) {
+  .dash-shell {
+    gap: 0;
+  }
+  .dash-topbar {
+    padding-inline: 16px;
+  }
+}
+
+/* A clear gold signal for the active destination. */
+.dash-nav-item[data-active='true']::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* The toggle's data-label was unused — give it the same tooltip as nav items. */
+.dash-shell[data-collapsed='true'] .dash-rail-toggle::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 0.875rem);
+  top: 50%;
+  z-index: 80;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--elevated);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+.dash-shell[data-collapsed='true'] .dash-rail-toggle:hover::after,
+.dash-shell[data-collapsed='true'] .dash-rail-toggle:focus-visible::after {
+  opacity: 1;
+}
+
+/* Icon-only search in the collapsed rail. */
+.dash-sidebar-search-icon {
+  display: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+}
+.dash-shell[data-collapsed='true'] .dash-sidebar-search-btn {
+  justify-content: center;
+  padding-inline: 0;
+}
+.dash-shell[data-collapsed='true'] .dash-sidebar-search-placeholder,
+.dash-shell[data-collapsed='true'] .dash-keycap {
+  display: none;
+}
+.dash-shell[data-collapsed='true'] .dash-sidebar-search-icon {
+  display: block;
+}
+
+/* ── Breadcrumbs ───────────────────────────────────────────────────────────── */
+.dash-crumbs {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.4rem;
+}
+.dash-crumb-label {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-crumb-sep {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: 0 0 auto;
+  color: var(--subtle-foreground);
+}
+@media (max-width: 640px) {
+  .dash-crumb-label,
+  .dash-crumb-sep {
+    display: none;
+  }
+}
+
+/* ── Reusable page composition ─────────────────────────────────────────────── */
+.app-page {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+}
+.app-page > * + * {
+  margin-top: var(--layout-section-gap);
+}
+.app-page-head {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px var(--layout-section-gap);
+}
+.app-page-head--stack {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.app-page-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.app-page-subtitle {
+  max-width: 62ch;
+  margin: 6px 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.app-page-actions,
+.app-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.app-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 6px;
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.app-section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--layout-widget-gap);
+}
+.app-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.app-section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.app-widget-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--layout-widget-gap);
+}
+.app-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--layout-widget-gap);
+}
+.app-widget {
+  min-width: 0;
+  height: 100%;
+}
+.app-profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--layout-section-gap);
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .app-profile-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  }
+}
+
+/* Existing dashboard grids adopt the same widget rhythm without a rewrite. */
+:is([aria-label='Dashboard widgets'], .g-stagger) {
+  gap: var(--layout-widget-gap);
+}
+.app-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--layout-widget-gap);
+}
+@media (min-width: 640px) {
+  .app-quick-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ── Settings composition ──────────────────────────────────────────────────── */
+.settings-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--layout-section-gap);
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .settings-shell {
+    grid-template-columns: 208px minmax(0, 1fr);
+  }
+}
+.settings-nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  scrollbar-width: none;
+}
+.settings-nav::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .settings-nav {
+    position: sticky;
+    top: calc(var(--layout-header-height) + 16px);
+    flex-direction: column;
+    overflow: visible;
+  }
+}
+.settings-nav-link {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color var(--motion-standard) var(--ease-out-expo),
+    color var(--motion-standard) var(--ease-out-expo),
+    border-color var(--motion-standard) var(--ease-out-expo);
+}
+.settings-nav-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.settings-nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.settings-nav-link[data-active='true'] {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/* ── Search + notifications polish ────────────────────────────────────────── */
+.gs-input,
+.hx-drawer-search-input,
+.faq-search-input {
+  border-radius: var(--radius-control) var(--radius-inv-xs) var(--radius-control)
+    var(--radius-inv-xs);
+  transition:
+    border-color var(--motion-standard) var(--ease-out-expo),
+    box-shadow var(--motion-standard) var(--ease-out-expo);
+}
+.gs-input:focus,
+.hx-drawer-search-input:focus,
+.faq-search-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* The header progress element existed in markup but had no styles. */
+.hx-progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-crumb-sep,
+  .gs-input,
+  .hx-drawer-search-input,
+  .faq-search-input,
+  .settings-nav-link {
+    transition: none;
+  }
+}
+
+/* ── Universal application ───────────────────────────────────────────────────
+   Every existing surface family adopts the same sculpted geometry. This is
+   done in CSS, not by editing hundreds of call sites: the class families below
+   are the actual roots used by the landing page, auth, all three portals,
+   community, admin data surfaces, modals and the shared chrome. Alternating
+   radii (large / small) are the non-clipping cousin of the concave mask — used
+   wherever a container hosts popovers, sticky children or overflowing art. */
+:is(
+    .g-card,
+    .g-panel,
+    .g-panel-wide,
+    .ph-card,
+    .ld-card,
+    .gl-card-dark,
+    .bento-wrap,
+    .faq-item,
+    .faq-directory,
+    .av-card,
+    .au-card,
+    .reg-section,
+    .reg-upload-card,
+    .reg-choice-card,
+    .reg-terms-card,
+    .rw-block,
+    .rw-option,
+    .rw-filecard,
+    .gs-panel,
+    .hx-panel,
+    .g-notif-panel,
+    .dash-spm-panel,
+    .g-panel-account,
+    .dash-sidebar,
+    .dash-content > .g-card
+  ) {
+  border-radius: var(--radius-xl) var(--radius-md) var(--radius-xl) var(--radius-md);
+}
+
+:is(.tile, .bento-tile, .ed-panel, .profile-hero, .g-imagecard, .g-kpi-card) {
+  border-radius: var(--radius-2xl) var(--radius-xl) var(--radius-2xl) var(--radius-xl);
+}
+
+/* Leaf surfaces with no popovers can take the real concave cut. */
+:is(.g-kpi-card, .tile--stat, .ld-stat, .ph-card, .ed-panel, .rw-modal) {
+  -webkit-mask:
+    radial-gradient(circle var(--inverted-radius-md) at 0 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inverted-radius-md) at 100% 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inverted-radius-md) at 0 100%, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inverted-radius-md) at 100% 100%, transparent 99%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle var(--inverted-radius-md) at 0 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inverted-radius-md) at 100% 0, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inverted-radius-md) at 0 100%, transparent 99%, #000 100%),
+    radial-gradient(circle var(--inverted-radius-md) at 100% 100%, transparent 99%, #000 100%);
+  mask-composite: intersect;
+}
+
+/* Controls and navigation across every role. Focus rings stay intact because
+   these are radius changes, not masks. */
+:is(
+    .g-input,
+    .av-input,
+    .gs-input,
+    .faq-searchbar,
+    .dash-sidebar-search-btn,
+    .g-search-input,
+    .ld-input,
+    .av-card--wizard .g-input,
+    .av-card--wizard .av-input
+  ) {
+  border-radius: var(--radius-control) var(--radius-inv-xs) var(--radius-control)
+    var(--radius-inv-xs);
+}
+/* `.g-input` also has element-qualified rules elsewhere; match that weight. */
+:is(input.g-input, textarea.g-input, select.g-input) {
+  border-radius: var(--radius-control) var(--radius-inv-xs) var(--radius-control)
+    var(--radius-inv-xs);
+}
+
+:is(
+    .av-btn,
+    .g-btn,
+    .ph-btn-primary,
+    .ph-btn-secondary,
+    .ld-btn,
+    .ld-btn2,
+    .gl-btn-gold,
+    .faq-btn,
+    .hx-auth-link,
+    .dash-nav-item,
+    .dash-profile,
+    .g-menu-item,
+    .hx-menu-item,
+    .gs-row,
+    .reg-chip,
+    .rw-chip,
+    .rw-footer .av-btn,
+    .av-card .av-btn
+  ) {
+  border-radius: var(--radius-inv-md) var(--radius-inv-xs) var(--radius-inv-md)
+    var(--radius-inv-xs);
+  transition:
+    border-radius var(--motion-standard) var(--ease-out-expo),
+    background-color var(--motion-standard) var(--ease-out-expo),
+    box-shadow var(--motion-standard) var(--ease-out-expo);
+}
+
+/* Pills (badges, avatars, toggle tracks) are intentionally left circular. */
+:is(.g-pill, .g-badge, .badge, .rw-selection-pill, .av-optional) {
+  border-radius: 9999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+      .av-btn,
+      .g-btn,
+      .ph-btn-primary,
+      .ph-btn-secondary,
+      .ld-btn,
+      .ld-btn2,
+      .gl-btn-gold,
+      .faq-btn,
+      .hx-auth-link,
+      .dash-nav-item,
+      .dash-profile,
+      .g-menu-item,
+      .hx-menu-item,
+      .gs-row
+    ) {
+    transition: none;
+  }
+}
+
+/* ==============================================================================
+   PREMIUM SAAS SYSTEM - 2026
+   ------------------------------------------------------------------------------
+   One visual language on top of the existing token palette. Nothing here
+   changes data, routing, auth or permissions: these are presentation rules
+   consumed by the shared shell, the widget primitives and every page.
+   ============================================================================== */
+
+/* --- Numeric display ------------------------------------------------------- */
+.g-num,
+.g-widget-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  letter-spacing: -0.035em;
+}
+
+.g-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* --- Layered surfaces ------------------------------------------------------ */
+.g-card,
+.g-widget,
+.inverted-shell {
+  background-image: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--foreground) 3%, transparent),
+    transparent 42%
+  );
+}
+
+.g-card {
+  border-radius: 18px;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--foreground) 4%, transparent) inset,
+    var(--shadow-sm);
+  transition:
+    border-color 200ms var(--ease-out-expo),
+    box-shadow 200ms var(--ease-out-expo);
+}
+
+.g-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+}
+
+/* --- Widget system: purpose-specific compositions -------------------------- */
+.g-widget {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+  padding: 1.375rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background-color: var(--card);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--foreground) 4%, transparent) inset,
+    var(--shadow-sm);
+  transition:
+    border-color 220ms var(--ease-out-expo),
+    box-shadow 220ms var(--ease-out-expo),
+    transform 220ms var(--ease-out-expo);
+}
+.g-widget::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 32%, transparent),
+    transparent
+  );
+  opacity: 0.65;
+  pointer-events: none;
+}
+.g-widget:hover {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--foreground) 5%, transparent) inset,
+    0 18px 38px -26px color-mix(in srgb, var(--accent) 42%, transparent),
+    var(--shadow-md);
+  transform: translateY(-2px);
+}
+.g-widget--flush { padding: 0; }
+.g-widget--quiet { transform: none; }
+.g-widget--quiet:hover { transform: none; box-shadow: var(--shadow-sm); }
+.g-widget--stat {
+  display: flex;
+  min-height: 10.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  background-image:
+    radial-gradient(110% 90% at 100% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 58%),
+    linear-gradient(155deg, color-mix(in srgb, var(--foreground) 3%, transparent), transparent 42%);
+}
+.g-widget--feature {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background-image:
+    radial-gradient(130% 110% at 0% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    var(--accent-gradient);
+  background-blend-mode: normal, soft-light;
+}
+.g-widget--status {
+  border-color: color-mix(in srgb, var(--warning) 28%, var(--border));
+  background-image: radial-gradient(
+    120% 100% at 100% 100%,
+    color-mix(in srgb, var(--warning) 10%, transparent),
+    transparent 62%
+  );
+}
+
+.g-widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  margin-bottom: 1.125rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--divider);
+}
+.g-widget--flush .g-widget-head {
+  margin-bottom: 0;
+  padding: 1rem 1.25rem;
+}
+.g-widget-title {
+  min-width: 0;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  line-height: 1.25;
+}
+.g-widget-value {
+  display: block;
+  color: var(--foreground);
+  font-size: clamp(2.125rem, 3.2vw, 2.75rem);
+  font-weight: 650;
+  line-height: 1;
+}
+.g-widget-label {
+  margin: 0.375rem 0 0;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 550;
+  line-height: 1.3;
+}
+.g-widget-meta {
+  margin: 0.25rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.g-widget-icon {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.g-widget-icon svg { width: 1.125rem; height: 1.125rem; stroke-width: 1.8; }
+.g-widget-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.g-widget-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--accent-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: gap 180ms var(--ease-out-expo);
+}
+.g-widget-link:hover { gap: 0.5rem; text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- Progress & charts ------------------------------------------------------ */
+.g-meter {
+  position: relative;
+  width: 100%;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+.g-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-gradient);
+  transition: width 600ms var(--ease-out-expo);
+}
+.g-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+.g-chart-legend > span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.g-chart-legend i {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+.g-chart-label {
+  fill: var(--subtle-foreground);
+  font-size: 11px;
+  font-family: var(--font-sans);
+}
+.g-chart-grid line { stroke: var(--border); stroke-width: 1; }
+.g-donut { flex: 0 0 auto; }
+.g-donut-value {
+  fill: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 1.75rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.g-donut-label {
+  fill: var(--subtle-foreground);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* --- Auth, settings and editorial pages ------------------------------------ */
+.av-title {
+  font-size: clamp(1.625rem, 3vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.av-subtitle { font-size: 0.9375rem; }
+.av-card {
+  border-radius: 20px;
+  box-shadow: 0 32px 80px -40px rgba(0, 0, 0, 0.85);
+}
+.settings-nav-link { font-size: 0.9375rem; }
+.settings-nav-link[data-active='true'] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.ed-serif { letter-spacing: -0.035em; }
+
+/* --- Shell: icon-first navigation ------------------------------------------ */
+@media (min-width: 1024px) {
+  .dash-shell[data-collapsed='true'] .dash-sidebar {
+    z-index: 60;
+    width: 4.75rem;
+    overflow: visible;
+  }
+  .dash-shell[data-collapsed='true'] .dash-top { padding-inline: 0.5rem; }
+  .dash-shell[data-collapsed='true'] .dash-brand { justify-content: center; }
+  .dash-shell[data-collapsed='true'] .dash-rail-toggle {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-color: var(--border);
+    border-radius: 12px;
+    background: var(--bg-surface-2);
+  }
+  .dash-shell[data-collapsed='true'] .dash-sidebar-search { padding: 0.5rem; border-bottom: 0; }
+  .dash-shell[data-collapsed='true'] .dash-sidebar-search-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    justify-content: center;
+    padding: 0;
+    border-radius: 12px;
+  }
+  .dash-shell[data-collapsed='true'] .dash-nav { padding-inline: 0.5rem; overflow: visible; }
+  .dash-shell[data-collapsed='true'] .dash-nav-item {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 12px;
+  }
+  .dash-shell[data-collapsed='true'] .dash-nav-group + .dash-nav-group {
+    margin-inline: 0.375rem;
+    margin-top: 0.875rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--divider);
+  }
+  .dash-shell[data-collapsed='true'] .dash-sidebar-foot { padding-inline: 0.5rem; }
+  .dash-shell[data-collapsed='true'] :is(
+      .dash-sidebar-search-btn,
+      .dash-rail-toggle,
+      .dash-profile
+    ) { position: relative; }
+}
+
+.dash-nav-item {
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+}
+.dash-nav-item svg,
+.dash-rail-toggle svg,
+.dash-burger svg { stroke-width: 1.75; }
+
+.dash-nav-item[data-active='true'] {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.dash-nav-item[data-active='true'] svg { color: var(--accent-text); }
+.dash-nav-item[data-active='true']::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  width: 3px;
+  height: 1.25rem;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.dash-shell[data-collapsed='true'] .dash-nav-item[data-active='true']::before {
+  left: -0.5rem;
+  height: 1rem;
+}
+
+/* Floating labels: fade + slide, always above the main column, never clipped. */
+.dash-shell[data-collapsed='true'] :is(
+  .dash-nav-item,
+  .dash-profile,
+  .dash-rail-toggle,
+  .dash-sidebar-search-btn
+)::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 0.75rem);
+  top: 50%;
+  z-index: 90;
+  padding: 0.4rem 0.625rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--elevated);
+  box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.85);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(-6px) scale(0.97);
+  transform-origin: left center;
+  transition:
+    opacity 160ms var(--ease-out-expo),
+    transform 160ms var(--ease-out-expo);
+}
+.dash-shell[data-collapsed='true'] :is(
+  .dash-nav-item,
+  .dash-profile,
+  .dash-rail-toggle,
+  .dash-sidebar-search-btn
+):is(:hover, :focus-visible)::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0) scale(1);
+  transition-delay: 80ms;
+}
+.dash-shell[data-collapsed='true'] .dash-sidebar-search-btn::after {
+  content: 'Search';
+}
+.dash-shell[data-collapsed='true'] .dash-profile[aria-expanded='true']::after,
+.dash-shell[data-collapsed='true'] .dash-profile.is-open::after {
+  display: none;
+}
+
+/* --- Header: calm, aligned, centred search --------------------------------- */
+.dash-topbar {
+  background: color-mix(in srgb, var(--bg-app) 78%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+.dash-page-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.dash-crumb-label { font-size: 0.8125rem; }
+.dash-topbar-spacer { flex: 1 1 0; }
+.gs-wrapper--dash {
+  flex: 0 1 20rem;
+  max-width: 24rem;
+  margin-inline: auto;
+}
+.gs-pill {
+  border-radius: 12px;
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--bg-surface-2) 92%, transparent);
+}
+.gs-pill:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.gs-input { font-size: 0.875rem; }
+.gs-row-label { font-size: 0.875rem; }
+.gs-row-desc { font-size: 0.8125rem; }
+.gs-group { font-size: 0.6875rem; }
+
+/* --- Page composition ------------------------------------------------------- */
+.app-page-title {
+  font-size: clamp(1.625rem, 2.6vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+.app-page-subtitle { font-size: 0.9375rem; line-height: 1.65; }
+.app-section-title { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.02em; }
+.app-stat-grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.dash-nav-label { font-size: 0.6875rem; }
+
+/* --- Dialogs & menus -------------------------------------------------------- */
+.g-modal-panel {
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  box-shadow: 0 32px 80px -28px rgba(0, 0, 0, 0.8);
+}
+.g-modal-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.g-notif-panel,
+.g-hsearch-results,
+.gs-panel {
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.85);
+}
+
+/* --- Interaction polish (all motion settings respect reduced-motion above) -- */
+.g-card-hover:hover,
+.g-widget:hover { will-change: transform; }
+button:active:not(:disabled) { transform: translateY(0); }
+
+/* --- Top-bar account cluster ------------------------------------------------ */
+.hdr-account {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+.hdr-account-btn {
+  display: inline-flex;
+  height: 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.625rem 0.25rem 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--bg-surface-2);
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-out-expo),
+    background-color 180ms var(--ease-out-expo);
+}
+.hdr-account-btn:hover {
+  border-color: var(--accent-border);
+  background: var(--bg-hover);
+}
+.hdr-account-name {
+  max-width: 7rem;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hdr-account-chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--subtle-foreground);
+  transition: transform 180ms var(--ease-out-expo);
+}
+.hdr-account-btn[aria-expanded='true'] .hdr-account-chevron { transform: rotate(180deg); }
+.hdr-account-panel {
+  position: absolute;
+  top: calc(100% + 0.625rem);
+  right: 0;
+  z-index: 70;
+  width: 20rem;
+  max-width: calc(100vw - 1.5rem);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: 0 24px 64px -28px rgba(0, 0, 0, 0.85);
+  animation: g-notif-in 170ms var(--ease-out-expo) both;
+}
+@media (max-width: 1279px) {
+  .hdr-account-name { display: none; }
+  .hdr-account-btn { padding: 0.25rem; }
+}
+@media (max-width: 639px) {
+  .hdr-account { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hdr-account-panel { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-widget:hover,
+  .g-card-hover:hover { transform: none; }
+  .g-meter > span { transition: none; }
+}
+
+/* --- Brand gold pair (dark themes only) ------------------------------------
+   The brief's exact gold pair: #F5C451 highlight / #E8B84B interactive gold.
+   Scoped with :not() so the cream, classic and seasonal palettes keep their
+   own accessible values. Every component reads these tokens, so one block
+   recolours accents, gradients, charts, focus rings and inverted corners. */
+:root:not(.light):not(.classic):not(.halloween):not(.christmas) {
+  --gold-300: #E8B84B;
+  --gold-500: #F5C451;
+  --accent: #E8B84B;
+  --accent-hover: #F5C451;
+  --accent-text: #F5C451;
+  --accent-soft: rgba(245, 196, 81, 0.12);
+  --accent-border: rgba(245, 196, 81, 0.42);
+  --accent-gradient: linear-gradient(135deg, #F5C451 0%, #E8B84B 62%, #C99B2C 100%);
+  --accent-text-gradient: linear-gradient(135deg, #F5C451 0%, #E8B84B 62%, #C99B2C 100%);
+  --ring: #F5C451;
+  --brand-sunburst: #F5C451;
+  --brand-sunburst-fg: #0A0A0B;
+  --brand-sunburst-soft: rgba(245, 196, 81, 0.14);
+  --brand-sunburst-border: rgba(245, 196, 81, 0.32);
+  --pattern-color: #F5C451;
+  --inverted-ring: color-mix(in srgb, var(--accent) 14%, transparent);
+  --inverted-highlight: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+/* ==============================================================================
+   NAVIGATION ARCHITECTURE - TRANSPARENT HEADER / ON-DEMAND DRAWER
+   ------------------------------------------------------------------------------
+   These classes replace the old in-flow sidebar and solid top bar. They are
+   appended so they win over the legacy `.dash-*`, `.hx-*` and `.gs-*` rules
+   without deleting those families (other routes still reference a few of them).
+   ============================================================================== */
+
+.nav-shell {
+  display: flex;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+}
+/* Focus routes (/builder) own the whole viewport. Keeping the shell in flex
+   mode made the editor a shrink-to-fit flex item and left a dead empty column
+   on the right. Block layout lets it fill the available width. */
+.nav-shell[data-focus='true'] {
+  display: block;
+  width: 100%;
+  background: var(--background);
+}
+.nav-shell[data-focus='true'] > * {
+  width: 100%;
+}
+.nav-main {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* --- The header: only controls, no container -------------------------------- */
+.nav-header {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.5rem;
+  padding: 0.5rem clamp(0.875rem, 2.6vw, 2.25rem);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.nav-header--public {
+  min-height: 3.75rem;
+}
+.nav-header-left,
+.nav-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 0;
+}
+.nav-header-left { gap: 0.25rem; }
+.nav-header-actions { gap: 0.125rem; }
+.nav-header-spacer { flex: 1 1 auto; min-width: 0.5rem; }
+
+.nav-brand-mark {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  text-decoration: none;
+  transition: opacity 160ms ease;
+}
+.nav-brand-mark:hover { opacity: 0.82; }
+.nav-brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.nav-toggle,
+.nav-header-actions .g-topbar-action {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  box-shadow: none;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.nav-toggle:hover,
+.nav-header-actions .g-topbar-action:hover {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  color: var(--foreground);
+}
+.nav-toggle svg { width: 1.125rem; height: 1.125rem; }
+
+.nav-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  padding-left: 0.25rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+.nav-crumb-label { color: var(--subtle-foreground); }
+.nav-crumb-current {
+  overflow: hidden;
+  color: var(--foreground);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+}
+.nav-crumb-sep { width: 0.875rem; height: 0.875rem; color: var(--subtle-foreground); }
+.nav-skeleton {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: var(--elevated);
+  animation: gs-pulse 1.2s ease-in-out infinite;
+}
+
+.nav-auth-link {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline: 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+.nav-auth-link:hover { color: var(--foreground); background: var(--bg-hover); }
+.nav-auth-link svg { width: 0.9375rem; height: 0.9375rem; }
+.nav-auth-link--primary { color: var(--accent-text); }
+.nav-auth-link--primary:hover { background: var(--accent-soft); }
+
+/* --- Content: full width with balanced gutters -------------------------------- */
+.nav-content {
+  padding-top: 0.25rem;
+  padding-bottom: 4rem;
+}
+.nav-shell .dash-content--hub { padding-top: 0; padding-bottom: 0; }
+
+/* --- On-demand navigation drawer -------------------------------------------- */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  border: 0;
+  background: var(--overlay);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: default;
+  animation: nav-fade 180ms ease both;
+}
+.nav-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  display: flex;
+  width: min(19.5rem, calc(100vw - 2rem));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius-inv-lg) var(--radius-inv-lg) 0;
+  background: var(--bg-sidebar);
+  box-shadow: 24px 0 60px -30px rgba(0, 0, 0, 0.9);
+  animation: nav-slide 260ms var(--ease-out-expo) both;
+}
+.nav-drawer-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  border-bottom: 1px solid var(--divider);
+}
+.nav-drawer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--foreground);
+  text-decoration: none;
+}
+.nav-drawer-logo { width: 1.875rem; height: 1.875rem; object-fit: contain; }
+.nav-drawer-brand-name {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.nav-drawer-close,
+.gs-dialog-close {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.nav-drawer-close:hover,
+.gs-dialog-close:hover {
+  background: var(--bg-hover);
+  color: var(--foreground);
+}
+.nav-drawer-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem 0.75rem 1.5rem;
+}
+.nav-group + .nav-group {
+  margin-top: 1.125rem;
+  padding-top: 1.125rem;
+  border-top: 1px solid var(--divider);
+}
+.nav-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  padding-inline: 0.625rem;
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.nav-group-label::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent-border), transparent);
+}
+.nav-drawer-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.625rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+.nav-drawer-item svg {
+  width: 1.0625rem;
+  height: 1.0625rem;
+  flex: 0 0 auto;
+  stroke-width: 1.75;
+}
+.nav-drawer-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-drawer-item:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  color: var(--foreground);
+}
+.nav-drawer-item[data-active='true'] {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.nav-drawer-item[data-active='true']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 1.125rem;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background: var(--accent);
+}
+.nav-drawer-badge {
+  flex: 0 0 auto;
+  padding: 0.0625rem 0.375rem;
+  border: 1px solid var(--accent-border);
+  border-radius: 9999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes nav-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes nav-slide {
+  from { opacity: 0; transform: translateX(-14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- The single search command palette -------------------------------------- */
+.gs-trigger {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.gs-trigger:hover {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  color: var(--foreground);
+}
+.gs-trigger svg { width: 1rem; height: 1rem; }
+.gs-trigger-kbd {
+  padding: 0.0625rem 0.3125rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--subtle-foreground);
+  font-size: 0.6875rem;
+  font-family: var(--font-sans);
+}
+.gs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: min(11vh, 6rem) 1rem 1rem;
+  background: color-mix(in srgb, var(--overlay) 78%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: nav-fade 160ms ease both;
+}
+.gs-dialog {
+  display: flex;
+  width: min(40rem, 100%);
+  max-height: min(72vh, 34rem);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: 0 36px 90px -32px rgba(0, 0, 0, 0.9);
+  animation: gs-pop 200ms var(--ease-out-expo) both;
+}
+@keyframes gs-pop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.gs-dialog-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--divider);
+}
+.gs-dialog-icon { width: 1.125rem; height: 1.125rem; color: var(--accent-text); }
+.gs-dialog-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+}
+.gs-dialog-input::placeholder { color: var(--subtle-foreground); }
+.gs-dialog-results {
+  flex: 1 1 auto;
+  min-height: 8rem;
+  padding: 0.5rem;
+}
+.gs-dialog-foot {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 1rem;
+  padding: 0.5rem 0.875rem;
+  border-top: 1px solid var(--divider);
+  color: var(--subtle-foreground);
+  font-size: 0.6875rem;
+}
+
+/* --- Account: avatar + name, nothing else by default ------------------------ */
+.nav-account { position: relative; display: flex; flex: 0 0 auto; }
+.nav-account-trigger {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.125rem 0.375rem 0.125rem 0.125rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.nav-account-trigger:hover {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+.nav-account-name {
+  max-width: 9rem;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-account-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 110;
+  width: min(18rem, calc(100vw - 1.5rem));
+  padding: 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.85);
+  animation: gs-pop 170ms var(--ease-out-expo) both;
+}
+.nav-account-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 2.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-account-item svg { width: 1rem; height: 1rem; }
+.nav-account-item:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/* --- Responsive behaviour ---------------------------------------------------- */
+@media (max-width: 767px) {
+  .nav-header { padding-inline: 0.875rem; }
+  .nav-crumbs { display: none; }
+  .gs-trigger-label,
+  .gs-trigger-kbd,
+  .nav-account-name,
+  .nav-auth-link span { display: none; }
+  .gs-trigger { width: 2.25rem; justify-content: center; padding: 0; }
+  .nav-auth-link { width: 2.25rem; justify-content: center; padding: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-backdrop,
+  .nav-drawer,
+  .gs-overlay,
+  .gs-dialog,
+  .nav-account-panel,
+  .nav-skeleton { animation: none; }
+}
+
+/* ==============================================================================
+   HEADER / NAVIGATION POLISH - floating rail, inline search, profile menu
+   ============================================================================== */
+
+/* --- More breathing room, still no container -------------------------------- */
+.nav-header {
+  min-height: 4rem;
+  gap: 0.75rem;
+  padding: 0.75rem clamp(1.125rem, 3vw, 2.5rem);
+}
+.nav-header-left { gap: 0.5rem; }
+.nav-header-actions { gap: 0.25rem; }
+.nav-brand-mark { width: 2.125rem; height: 2.125rem; }
+.nav-toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 11px;
+}
+.nav-toggle svg { width: 1.125rem; height: 1.125rem; transition: transform 220ms var(--ease-out-expo); }
+.nav-toggle:hover svg { transform: translateX(-1px); }
+.nav-header-actions .g-topbar-action { width: 2.5rem; height: 2.5rem; border-radius: 11px; }
+.nav-crumbs { padding-left: 0.375rem; font-size: 0.875rem; }
+
+/* --- Collapsible rail on desktop -------------------------------------------- */
+.nav-shell { flex-direction: row; }
+.nav-drawer {
+  position: relative;
+  inset: auto;
+  z-index: 30;
+  flex: 0 0 auto;
+  width: 4.75rem;
+  height: 100%;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-sidebar);
+  box-shadow: none;
+  overflow: visible;
+  transform: none;
+  animation: none;
+  transition:
+    width 280ms var(--ease-out-expo),
+    background-color 200ms ease;
+}
+.nav-drawer[data-collapsed='false'] { width: 16rem; }
+.nav-drawer-head {
+  padding: 0.875rem 1rem;
+  min-height: 4rem;
+}
+.nav-drawer-title {
+  color: var(--subtle-foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.nav-drawer-close { display: none; }
+.nav-drawer-body { padding: 1rem 0.625rem 1.5rem; }
+.nav-drawer[data-collapsed='true'] .nav-drawer-title,
+.nav-drawer[data-collapsed='true'] .nav-group-label,
+.nav-drawer[data-collapsed='true'] .nav-drawer-item-label,
+.nav-drawer[data-collapsed='true'] .nav-drawer-badge { display: none; }
+.nav-drawer[data-collapsed='true'] .nav-drawer-head { justify-content: center; padding-inline: 0; }
+.nav-drawer[data-collapsed='true'] .nav-group + .nav-group {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  margin-inline: 0.375rem;
+}
+.nav-drawer[data-collapsed='true'] .nav-drawer-item {
+  width: 2.75rem;
+  height: 2.75rem;
+  justify-content: center;
+  margin-inline: auto;
+  padding: 0;
+  overflow: visible;
+}
+.nav-drawer[data-collapsed='true'] .nav-drawer-item svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform 180ms var(--ease-out-expo);
+}
+.nav-drawer[data-collapsed='true'] .nav-drawer-item:hover svg { transform: scale(1.08); }
+.nav-drawer-item {
+  transition:
+    background-color 180ms var(--ease-out-expo),
+    border-color 180ms var(--ease-out-expo),
+    color 180ms var(--ease-out-expo),
+    box-shadow 180ms var(--ease-out-expo);
+}
+.nav-drawer-item[data-active='true'] {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Elegant floating labels for the icon-only rail. The tooltip is a sibling of
+   the scroll container, so it can never be clipped by the nav's own overflow. */
+.nav-tooltip {
+  position: fixed;
+  z-index: 95;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--elevated);
+  box-shadow: 0 12px 28px -16px rgba(0, 0, 0, 0.9);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(-6px);
+  animation: tooltip-in 160ms var(--ease-out-expo) both;
+}
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
+  to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-tooltip { animation: none; transform: translateY(-50%); }
+}
+
+/* Overlay mode (public header) and mobile drawer. */
+.nav-drawer[data-mode='overlay'] {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  width: min(19.5rem, calc(100vw - 2rem));
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius-inv-lg) var(--radius-inv-lg) 0;
+  box-shadow: 24px 0 60px -30px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-105%);
+  transition:
+    transform 260ms var(--ease-out-expo),
+    visibility 0s linear 260ms;
+}
+.nav-drawer[data-mode='overlay'][data-open='true'] {
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0);
+  transition-delay: 0s;
+  animation: nav-slide 260ms var(--ease-out-expo) both;
+}
+.nav-drawer[data-mode='overlay'] .nav-drawer-title,
+.nav-drawer[data-mode='overlay'] .nav-drawer-close { display: inline-flex; }
+.nav-drawer[data-mode='overlay'] .nav-drawer-head { justify-content: space-between; }
+.nav-drawer[data-mode='overlay'] .nav-drawer-body { padding: 1rem 0.75rem 1.5rem; }
+
+@media (max-width: 1023.5px) {
+  .nav-drawer:not([data-mode='overlay']) {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 100;
+    width: min(19.5rem, calc(100vw - 2rem));
+    border: 1px solid var(--border);
+    border-radius: 0 var(--radius-inv-lg) var(--radius-inv-lg) 0;
+    box-shadow: 24px 0 60px -30px rgba(0, 0, 0, 0.9);
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-105%);
+    transition:
+      transform 260ms var(--ease-out-expo),
+      visibility 0s linear 260ms;
+  }
+  .nav-drawer:not([data-mode='overlay'])[data-open='true'] {
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+    transition-delay: 0s;
+    animation: nav-slide 260ms var(--ease-out-expo) both;
+  }
+  .nav-drawer:not([data-mode='overlay']) .nav-drawer-close { display: inline-flex; }
+  .nav-drawer:not([data-mode='overlay']) .nav-drawer-title { display: inline-flex; }
+  .nav-drawer:not([data-mode='overlay']) .nav-drawer-head { justify-content: space-between; }
+  .nav-drawer:not([data-mode='overlay']) .nav-group-label,
+  .nav-drawer:not([data-mode='overlay']) .nav-drawer-item-label { display: block; }
+  .nav-drawer:not([data-mode='overlay']) .nav-drawer-item { width: 100%; justify-content: flex-start; padding: 0.5rem 0.75rem; margin-inline: 0; }
+}
+@media (min-width: 1024px) {
+  .nav-backdrop { display: none; }
+}
+
+/* --- Integrated navbar search ------------------------------------------------ */
+.gs-inline {
+  position: relative;
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  width: clamp(13rem, 21vw, 21rem);
+  height: 2.5rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--muted-foreground);
+  transition:
+    width 220ms var(--ease-out-expo),
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.gs-inline:hover {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+.gs-inline:focus-within,
+.gs-inline[data-open='true'] {
+  border-color: var(--accent-border);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 8px 26px -18px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.gs-inline-field {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+.gs-inline-icon { width: 1rem; height: 1rem; flex: 0 0 auto; }
+.gs-inline-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+}
+.gs-inline-input::placeholder { color: var(--subtle-foreground); }
+.gs-inline-kbd {
+  flex: 0 0 auto;
+  padding: 0.0625rem 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--subtle-foreground);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+.gs-inline-clear {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--subtle-foreground);
+  cursor: pointer;
+}
+.gs-inline-clear:hover { color: var(--foreground); background: var(--bg-hover); }
+.gs-inline-toggle {
+  display: inline-flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.gs-suggestions {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 70;
+  width: min(30rem, calc(100vw - 2rem));
+  max-height: min(22rem, 60vh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 24px 56px -28px rgba(0, 0, 0, 0.85);
+  animation: gs-pop 180ms var(--ease-out-expo) both;
+}
+.gs-suggestions .gs-list { max-height: 19rem; }
+.gs-suggestions-foot {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 1rem;
+  padding: 0.4375rem 0.75rem;
+  border-top: 1px solid var(--divider);
+  color: var(--subtle-foreground);
+  font-size: 0.6875rem;
+}
+
+/* --- Premium profile menu ---------------------------------------------------- */
+.nav-account-trigger {
+  height: 2.5rem;
+  gap: 0.625rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+}
+.nav-account-avatar {
+  display: inline-flex;
+  border-radius: 9999px;
+  transition: transform 200ms var(--ease-out-expo), box-shadow 200ms ease;
+}
+.nav-account-trigger:hover .nav-account-avatar {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 2px var(--accent-border);
+}
+.nav-account-name { max-width: 9rem; font-size: 0.875rem; }
+.nav-account-chevron {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: var(--subtle-foreground);
+  transition: transform 220ms var(--ease-out-expo);
+}
+.nav-account-trigger[aria-expanded='true'] .nav-account-chevron { transform: rotate(180deg); }
+.nav-account-panel {
+  width: min(19rem, calc(100vw - 1.5rem));
+  padding: 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 28px 70px -30px rgba(0, 0, 0, 0.9);
+  /* Entrance/exit is owned by Framer Motion so the close can animate too. */
+  animation: none;
+}
+.nav-account-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--divider);
+}
+.nav-account-identity { min-width: 0; }
+.nav-account-fullname {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-account-role {
+  margin: 0.125rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+.nav-account-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.375rem 0 0;
+  color: var(--warning);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+.nav-account-status.is-verified { color: var(--success); }
+.nav-account-status svg { width: 0.8125rem; height: 0.8125rem; }
+.nav-account-list { padding-top: 0.375rem; }
+.nav-account-item svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--subtle-foreground);
+  transition: color 160ms ease, transform 160ms var(--ease-out-expo);
+}
+.nav-account-item:hover svg { color: var(--accent-text); transform: translateX(2px); }
+.nav-account-item:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.nav-account-divider { height: 1px; margin: 0.375rem 0; background: var(--divider); }
+.nav-account-item--signout { color: var(--danger); }
+.nav-account-item--signout:hover { background: var(--danger-soft); color: var(--danger); }
+.nav-account-item--signout:hover svg { color: var(--danger); }
+
+/* --- Responsive -------------------------------------------------------------- */
+@media (max-width: 639px) {
+  .nav-header { padding-inline: 0.875rem; }
+  .gs-inline { width: 2.5rem; }
+  .gs-inline[data-expanded='true'] {
+    position: absolute;
+    left: 0.875rem;
+    right: 0.875rem;
+    width: auto;
+    z-index: 60;
+    background: var(--card);
+  }
+  .nav-account-name,
+  .nav-account-chevron { display: none; }
+  .nav-account-trigger { padding: 0.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-drawer,
+  .nav-drawer-item,
+  .nav-toggle svg,
+  .nav-account-avatar,
+  .nav-account-chevron,
+  .nav-account-panel,
+  .gs-inline,
+  .gs-suggestions { animation: none !important; transition: none !important; }
 }
 

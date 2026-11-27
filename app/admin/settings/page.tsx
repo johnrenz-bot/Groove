@@ -103,14 +103,14 @@ export default function AdminSettingsPage() {
     : [];
 
   return (
-    <div className="g-fade-up space-y-6">
+    <div className="app-page g-fade-up">
       <PageHeader
         eyebrow="Platform"
         title="System Settings"
         description="Platform configuration, direct notifications, and the administrative activity log."
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="app-widget-grid">
         {/* Settings store */}
         <Card className="lg:col-span-5" padding="lg">
           <CardHeader

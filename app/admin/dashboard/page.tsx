@@ -18,6 +18,7 @@ import {
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { StatCard } from '@/components/ui/StatCard';
+import { DonutChart } from '@/components/dashboard/DonutChart';
 import { InfoTip } from '@/components/ui/InfoTip';
 import { Badge } from '@/components/ui/Badge';
 import { AdminErrorState } from '@/components/admin/AdminStates';
@@ -147,15 +148,15 @@ export default function AdminDashboardPage() {
     : [];
 
   return (
-    <div className="g-fade-up space-y-6">
+    <div className="app-page g-fade-up">
       {/* Bespoke admin command masthead — replaces the generic page header */}
       <header className="dash-greet">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
-            <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em] text-foreground sm:text-[32px]">
+            <h1 className="app-page-title text-[28px] font-bold leading-tight tracking-[-0.02em] text-foreground sm:text-[32px]">
               Admin Control Center
             </h1>
-            <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
               Live platform metrics across accounts, bookings, support and system health —
               every tile launches the page where you act on it.
             </p>
@@ -197,14 +198,12 @@ export default function AdminDashboardPage() {
       </header>
 
       <section aria-labelledby="metrics-heading" className="space-y-4">
-        <h2
-          id="metrics-heading"
-        >
-          Key metrics (live)
+        <h2 id="metrics-heading" className="app-section-title">
+          Key metrics <span className="g-eyebrow ml-1 align-middle">live</span>
         </h2>
 
         {overview.loading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="app-stat-grid">
             {Array.from({ length: 8 }).map((_, i) => (
               <AdminSkeletonStat key={i} />
             ))}
@@ -242,9 +241,9 @@ export default function AdminDashboardPage() {
         )}
       </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="app-widget-grid">
         {/* Talent distribution */}
-        <Card className="lg:col-span-5" padding="lg">
+        <Card className="g-widget lg:col-span-5" padding="lg">
           <CardHeader
             icon={<Sparkles className="h-4 w-4" />}
             title="Coach Talent Mix"
@@ -276,14 +275,11 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <div
-                      className="h-2 overflow-hidden rounded-full bg-muted"
+                      className="g-meter"
                       role="img"
                       aria-label={`${bucket.label}: ${value} coaches, ${pct} percent`}
                     >
-                      <div
-                        className="ed-bar"
-                        style={{ width: `${pct}%` }}
-                      />
+                      <span style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
@@ -293,7 +289,7 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Booking pipeline */}
-        <Card className="lg:col-span-7" padding="lg">
+        <Card className="g-widget lg:col-span-7" padding="lg">
           <CardHeader
             icon={<Calendar className="h-4 w-4" />}
             title="Booking Pipeline"
@@ -313,22 +309,45 @@ export default function AdminDashboardPage() {
             </p>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {bookingMix.map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-2xl border border-border bg-muted p-4"
-                  >
-                    <p className="text-2xl font-bold tabular-nums tracking-[-0.03em] text-foreground">
-                      {item.value}
-                    </p>
-                    <div className="mt-2">
-                      <Badge variant={item.variant} dot>
-                        {item.label}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex flex-col items-center gap-7 lg:flex-row lg:items-center">
+                <DonutChart
+                  className="shrink-0"
+                  size={176}
+                  thickness={18}
+                  centerValue={<>{o.bookingsTotal}</>}
+                  centerLabel="Bookings"
+                  data={bookingMix.map((item) => ({
+                    label: item.label,
+                    value: item.value,
+                    color:
+                      item.label === 'Pending'
+                        ? 'var(--warning)'
+                        : item.label === 'Confirmed'
+                          ? 'var(--accent)'
+                          : item.label === 'Completed'
+                            ? 'var(--success)'
+                            : 'var(--danger)',
+                  }))}
+                />
+                <ul className="w-full min-w-0 space-y-2.5">
+                  {bookingMix.map((item) => {
+                    const pct = Math.round((item.value / o.bookingsTotal) * 100);
+                    return (
+                      <li
+                        key={item.label}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-3.5 py-2.5"
+                      >
+                        <Badge variant={item.variant} dot>
+                          {item.label}
+                        </Badge>
+                        <span className="g-num flex items-baseline gap-2">
+                          <span className="text-base font-semibold text-foreground">{item.value}</span>
+                          <span className="text-xs text-muted-foreground">{pct}%</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-2   pt-4 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
@@ -343,7 +362,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Recent activity */}
-      <Card padding="lg">
+      <Card className="g-widget" padding="lg">
         <CardHeader
           icon={<Clock className="h-4 w-4" />}
           title="Recent Booking Activity"
@@ -407,9 +426,7 @@ export default function AdminDashboardPage() {
       {/* Attention row */}
       {o && (o.pendingVerification > 0 || o.openTickets > 0 || o.suspended > 0) && (
         <section aria-labelledby="attention-heading" className="space-y-4">
-          <h2
-            id="attention-heading"
-          >
+          <h2 id="attention-heading" className="app-section-title">
             Needs attention
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

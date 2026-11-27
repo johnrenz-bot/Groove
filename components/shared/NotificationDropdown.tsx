@@ -261,7 +261,7 @@ export function NotificationDropdown({
 
           <div
             id="hx-notifications-panel"
-            className="rounded-[12px] border border-border-strong bg-surface p-1.5 shadow-[var(--shadow-md)]"
+            className="g-notif-panel rounded-[12px] border border-border-strong bg-surface p-1.5 shadow-[var(--shadow-md)]"
             data-state={closing ? 'closed' : 'open'}
             role="dialog"
             aria-label="Notifications"

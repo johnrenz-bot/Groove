@@ -57,7 +57,7 @@ export function HeroBanner({
 
       <div className="relative z-10 flex min-h-[16rem] flex-col justify-center px-5 py-8 sm:min-h-[17rem] sm:px-8 sm:py-9 lg:min-h-[15rem] lg:px-10 lg:py-8">
         {eyebrow && (
-          <span className="inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+          <span className="inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
             {eyebrow}
           </span>
         )}
@@ -66,7 +66,7 @@ export function HeroBanner({
           {title}
         </h2>
 
-        <p className="mt-2.5 max-w-lg text-xs leading-relaxed text-white/80 sm:text-sm">
+        <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-white/80 sm:text-base">
           {description}
         </p>
 

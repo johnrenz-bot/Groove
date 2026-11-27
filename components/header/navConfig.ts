@@ -454,8 +454,8 @@ export const NAV: NavSection[] = [
 export const LANDING_ANCHORS: Array<{ id: string; label: string; icon: LucideIcon }> = [
   { id: 'disciplines', label: 'Disciplines', icon: Sparkles },
   { id: 'studios', label: 'Studios', icon: MapPin },
-  { id: 'coaches', label: 'Coaches', icon: Users },
-  { id: 'how', label: 'How It Works', icon: HelpCircle },
+  { id: 'for-artists', label: 'For Artists', icon: Users },
+  { id: 'how-it-works', label: 'How It Works', icon: HelpCircle },
 ];
 
 /** Per-role override with a fallback to the base value. */
@@ -492,16 +492,105 @@ export function sectionsForRole(
   options: { hideOnLanding?: boolean } = {}
 ): NavSection[] {
   const { hideOnLanding = false } = options;
+  // DUPLICATE GUARD. The drawer, the header and the search index all render
+  // from this one filtered list. Ids and destinations are de-duplicated here,
+  // at the data boundary, so a second copy can never reach a screen through a
+  // different consumer. This is a data fix, not a CSS hiding rule.
+  const seenSections = new Set<string>();
+  const seenHrefs = new Set<string>();
+  const normalizedPath = (href: string) => href.split('#')[0].split('?')[0] || '/';
+
   return NAV.map((section) => {
     if (!section.roles.includes(role)) return null;
     if (hideOnLanding && section.hideOnLanding) return null;
-    if (!section.items) return section;
-    const items = section.items.filter((leaf) => leaf.roles.includes(role));
+    if (seenSections.has(section.id)) return null;
+    seenSections.add(section.id);
+
+    if (!section.items) {
+      const href = section.href ?? '#';
+      if (seenHrefs.has(normalizedPath(href))) return null;
+      seenHrefs.add(normalizedPath(href));
+      return section;
+    }
+
+    const seenLeaves = new Set<string>();
+    const items = section.items.filter((leaf) => {
+      if (!leaf.roles.includes(role)) return false;
+      if (seenLeaves.has(leaf.id)) return false;
+      const key = normalizedPath(hrefFor(leaf, role));
+      if (seenHrefs.has(key)) return false;
+      seenLeaves.add(leaf.id);
+      seenHrefs.add(key);
+      return true;
+    });
     // A section left with nothing in it is dropped rather than rendered as an
-    // empty dropdown. This is what makes `roles` safe to edit casually.
+    // empty group. This is what makes `roles` safe to edit casually.
     if (items.length === 0) return null;
     return { ...section, items };
   }).filter((section): section is NavSection => section !== null);
+}
+
+/** Stable key for a section or leaf, used for active state and aria-current. */
+export function navKeyFor(section: NavSection, leaf?: NavLeaf): string {
+  return leaf ? `leaf:${leaf.id}` : `section:${section.id}`;
+}
+
+function matchesNavPath(pathname: string, href: string): boolean {
+  const cleanPath = pathname.split('#')[0].split('?')[0] || '/';
+  const target = href.split('#')[0].split('?')[0] || '/';
+  if (target === cleanPath) return true;
+  return target !== '/' && cleanPath.startsWith(`${target}/`);
+}
+
+/**
+ * The one active-destination resolver. Both shells use it so the drawer and
+ * the breadcrumb can never disagree about which item is current.
+ */
+export function activeNavKey(
+  pathname: string,
+  sections: NavSection[],
+  role: NavRole
+): string | null {
+  const cleanPath = pathname.split('#')[0].split('?')[0] || '/';
+  for (const section of sections) {
+    if (section.items) {
+      for (const leaf of section.items) {
+        const booked =
+          leaf.id === 'bookings' &&
+          (cleanPath === '/client/appointments' || cleanPath === '/coach/appointments');
+        if (matchesNavPath(pathname, hrefFor(leaf, role)) || booked) {
+          return navKeyFor(section, leaf);
+        }
+      }
+    } else if (section.href && matchesNavPath(pathname, section.href)) {
+      return navKeyFor(section);
+    }
+  }
+  return null;
+}
+
+/** Breadcrumb labels for the current path, derived from the same nav model. */
+export function navCrumbsFor(
+  pathname: string,
+  sections: NavSection[],
+  role: NavRole
+): string[] {
+  for (const section of sections) {
+    if (section.items) {
+      for (const leaf of section.items) {
+        const booked =
+          leaf.id === 'bookings' &&
+          (pathname === '/client/appointments' || pathname === '/coach/appointments');
+        if (matchesNavPath(pathname, hrefFor(leaf, role)) || booked) {
+          return [section.label, labelFor(leaf, role)];
+        }
+      }
+    } else if (section.href && matchesNavPath(pathname, section.href)) {
+      return [section.label];
+    }
+  }
+  const last = pathname.split('#')[0].split('?')[0].split('/').filter(Boolean).pop();
+  return last ? [last.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())] : ['Home'];
 }
 
 /** One flat list of every destination — the command palette's index. */

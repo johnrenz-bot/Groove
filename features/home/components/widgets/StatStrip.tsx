@@ -19,7 +19,7 @@ export interface StatTileInput {
 
 export function StatStrip({ tiles }: { tiles: StatTileInput[] }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+    <div className="app-stat-grid">
       {tiles.map((tile, index) => (
         <StatCard
           key={`${tile.label}-${index}`}

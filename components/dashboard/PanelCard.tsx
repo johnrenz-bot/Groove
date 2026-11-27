@@ -33,7 +33,7 @@ export function PanelCard({
   children,
 }: PanelCardProps) {
   return (
-    <Panel>
+    <Panel className="g-widget g-widget--flush">
       <PanelHeader
         icon={icon}
         title={title}

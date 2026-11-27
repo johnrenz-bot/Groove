@@ -3,7 +3,6 @@ import {
   BookOpen,
   Bot,
   CalendarDays,
-  CreditCard,
   Drama,
   FileCheck,
   HelpCircle,
@@ -15,7 +14,6 @@ import {
   MessageSquare,
   Mic,
   Settings2,
-  SlidersHorizontal,
   Sparkles,
   Theater,
   User,
@@ -213,46 +211,49 @@ function aboutItems(role: HeaderRole): HeaderDropdownItem[] {
 }
 
 function avatarItems(role: HeaderRole): HeaderAvatarItem[] {
-  const common = (id: string, label: string, href: string, description: string, icon: LucideIcon) => ({
+  /**
+   * The account menu is intentionally short and DUPLICATE-FREE. Every other
+   * destination above is reachable from the single navigation model; entries
+   * here are only account actions that are not already a nav item. The old
+   * "Preferences", "Admin profile" and "Billing" rows pointed back at routes
+   * that were already in the drawer, so they were removed at the source.
+   */
+  const item = (id: string, label: string, href: string, description: string, icon: LucideIcon) => ({
     id,
     label,
     href,
     description,
     icon,
   });
+  const signout: HeaderAvatarItem = { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' };
 
   if (role === 'coach') {
     return [
-      common('profile', 'Profile', '/coach/profile', 'Your public coaching page', User),
-      common('settings', 'Settings', '/coach/settings', 'Sign-in details and account safety', Settings2),
-      common('preferences', 'Preferences', '/coach/settings#appearance', 'Appearance, language and sound', SlidersHorizontal),
-      common('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
-      common('support', 'Contact support', '/support', 'Reach the GroovePH admin team', LifeBuoy),
-      common('about', 'About Groove', '/about', 'Our story, mission, how it works & contact', Info),
-      { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' },
+      item('profile', 'Profile', '/coach/profile', 'Your public coaching page', User),
+      item('settings', 'Settings', '/coach/settings', 'Sign-in details and account safety', Settings2),
+      item('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
+      item('support', 'Contact support', '/support', 'Reach the GroovePH admin team', LifeBuoy),
+      signout,
     ];
   }
 
   if (role === 'admin') {
+    // There is no separate admin profile route; linking this to the dashboard
+    // duplicated the Overview item in the drawer, so it is omitted here.
     return [
-      common('profile', 'Admin profile', '/admin/dashboard', 'Console overview and activity', User),
-      common('settings', 'Settings', '/admin/settings', 'Platform parameters and audit log', Settings2),
-      common('preferences', 'Preferences', '/admin/theme', 'Themes, palettes and accents', SlidersHorizontal),
-      common('billing', 'Billing & contracts', '/admin/transactions', 'Agreements and transaction records', CreditCard),
-      common('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
-      { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' },
+      item('settings', 'Settings', '/admin/settings', 'Platform parameters and audit log', Settings2),
+      item('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
+      signout,
     ];
   }
 
   if (role === 'client') {
     return [
-      common('profile', 'Profile', '/client/profile', 'Your public performer page', User),
-      common('settings', 'Settings', '/client/settings', 'Sign-in details and account safety', Settings2),
-      common('preferences', 'Preferences', '/client/settings#appearance', 'Appearance, language and sound', SlidersHorizontal),
-      common('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
-      common('support', 'Contact support', '/support', 'Reach the GroovePH admin team', LifeBuoy),
-      common('about', 'About Groove', '/about', 'Our story, mission, how it works & contact', Info),
-      { id: 'signout', label: 'Sign out', icon: LogOut, action: 'signout' },
+      item('profile', 'Profile', '/client/profile', 'Your public performer page', User),
+      item('settings', 'Settings', '/client/settings', 'Sign-in details and account safety', Settings2),
+      item('help', 'Help & FAQ', '/faq', 'Guides, answers and support', HelpCircle),
+      item('support', 'Contact support', '/support', 'Reach the GroovePH admin team', LifeBuoy),
+      signout,
     ];
   }
 

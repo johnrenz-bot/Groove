@@ -99,9 +99,7 @@ export function Footer({
   const companyLinks = [
     { label: 'About Groove', href: '/about' },
     { label: 'Capstone Project', href: '/about-project' },
-    { label: 'Help & FAQ', href: '/faq' },
     { label: 'Member Directory', href: '/users' },
-    { label: 'Performing Arts PH', href: '/performing-arts-philippines' },
     { label: 'Sign In', href: '/login' },
   ];
 
@@ -169,7 +167,7 @@ export function Footer({
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:(--)] hover:text-foreground"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent-border hover:text-foreground"
                   >
                     <Icon className="h-4 w-4" />
                   </a>

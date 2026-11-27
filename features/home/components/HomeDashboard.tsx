@@ -290,7 +290,7 @@ export function HomeDashboard({ role }: { role: Role }) {
 
   return (
     <div className="relative min-h-screen">
-      <div className="relative z-10 space-y-6">
+      <div className="app-page relative z-10">
         {cfg.showMaintenanceBanner && <MaintenanceBanner />}
 
         <Greeting

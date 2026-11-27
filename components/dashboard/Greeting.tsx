@@ -44,12 +44,12 @@ export function Greeting({
   const name = [role, firstName].filter(Boolean).join(' ');
 
   return (
-    <header className="flex flex-col gap-1">
-      <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em] text-foreground sm:text-[32px]">
+    <header className="app-page-head app-page-head--stack gap-1">
+      <h1 className="app-page-title">
         {greeting}, {name}
       </h1>
       <div className="flex items-center gap-2">
-        <p className="text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
+        <p className="app-page-subtitle">{subtitle}</p>
         <InfoTip title="What you can do here" short={subtitle} details={subtitle} className="shrink-0" />
       </div>
     </header>

@@ -9,25 +9,25 @@ export interface QuickAction {
 }
 
 /**
- * Quick-access lane: outlined cards. Transparent bg, 1px border, radius 16px,
- * icon top-left, label below. No gold fill, no glows.
+ * Quick-access lane: compact premium tiles from the shared `.dash-qa`
+ * surface, with a gold icon well, hairline border and a quiet hover lift.
  */
 export function QuickActions({ actions }: { actions: QuickAction[] }) {
   return (
     <nav
-      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+      className="app-quick-actions"
       aria-label="Quick actions"
     >
       {actions.map((a) => (
         <Link
           key={a.href}
           href={a.href}
-          className="group flex h-[72px] flex-col justify-between rounded-[16px] border border-border bg-transparent p-4 transition-colors hover:border-border-strong hover:bg-surface"
+          className={`dash-qa ${a.variant === 'primary' ? 'dash-qa--primary' : ''}`}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-[10px] text-muted-foreground transition-colors group-hover:text-foreground">
+          <span className="dash-qa-icon" aria-hidden="true">
             {a.icon}
           </span>
-          <span className="truncate text-sm font-semibold leading-tight text-foreground">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium leading-tight text-foreground">
             {a.label}
           </span>
         </Link>

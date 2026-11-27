@@ -179,7 +179,7 @@ export default function AdminThemePage() {
   }
 
   return (
-    <div className="g-fade-up space-y-8 pb-12">
+    <div className="app-page g-fade-up pb-12">
       {/* Floating Preview Alert Banner */}
       {previewTheme && (
         <div className="sticky top-4 z-40 flex items-center justify-between gap-4 rounded-2xl border border-border bg-accent-soft p-4 shadow-lg backdrop-blur-md">

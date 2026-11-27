@@ -149,6 +149,7 @@ export function AccountSettings({
 
   return (
     <SettingsSection
+      id="account"
       icon={<Mail className="h-4 w-4" />}
       title="Account"
       description="Your sign-in email and username. These are the same fields collected at registration."
@@ -299,6 +300,7 @@ export function ProfileSettingsLink({
 }) {
   return (
     <SettingsSection
+      id="profile"
       icon={<UserCog className="h-4 w-4" />}
       title="Profile"
       description={description}
@@ -379,9 +381,11 @@ export function NotificationsSettings({ children }: { children: React.ReactNode 
 export function DangerZone({
   onSignOutAll,
   onDeleteAccount,
+  id,
 }: {
   onSignOutAll: () => Promise<void>;
   onDeleteAccount?: () => void;
+  id?: string;
 }) {
   const router = useRouter();
   const [confirmOpen, setConfirmOpen] = useState<'signout' | 'delete' | null>(null);
@@ -400,7 +404,10 @@ export function DangerZone({
   };
 
   return (
-    <section className="rounded-[20px] border border-border bg-danger-soft/40 p-6">
+    <section
+      id={id}
+      className="scroll-mt-28 rounded-[20px] border border-border bg-danger-soft/40 p-6"
+    >
       <header className="mb-5 flex items-start gap-3   pb-4">
         <span
           aria-hidden="true"

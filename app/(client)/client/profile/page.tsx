@@ -695,7 +695,7 @@ export default function ClientProfilePage() {
   ];
 
   return (
-    <div className="pb-16">
+    <div className="app-page pb-16">
       {failure && (
         <div className="mb-4">
           <FormError message={failure} onDismiss={() => setFailure(null)} />
@@ -790,7 +790,7 @@ export default function ClientProfilePage() {
 
       {/* ── About: view mode ── */}
       {activeTab === 'about' && !editing && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="app-profile-grid">
           <div className="min-w-0 space-y-6">
             <ProfileSummary
               title="Personal Information"

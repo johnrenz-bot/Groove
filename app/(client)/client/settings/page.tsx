@@ -21,6 +21,7 @@ import {
   DangerZone,
   ProfileSettingsLink,
 } from '@/components/profile/SettingsSections';
+import { SettingsNav } from '@/components/profile/SettingsNav';
 
 export default function ClientSettingsPage() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function ClientSettingsPage() {
   }
 
   return (
-    <div className="pb-16">
+    <div className="app-page pb-16">
       <PageHeader
         eyebrow="Client / Performer"
         title="Settings"
@@ -71,7 +72,9 @@ export default function ClientSettingsPage() {
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="settings-shell">
+        <SettingsNav />
+        <div className="app-section">
         <AccountSettings
           userId={profile.id}
           email={profile.email}
@@ -88,6 +91,7 @@ export default function ClientSettingsPage() {
         <AppearanceSettings />
 
         <DangerZone
+          id="danger"
           onSignOutAll={() => signOutEverywhere(profile.id)}
           onDeleteAccount={async () => {
             // No account-deletion endpoint exists, so this raises a request in
@@ -105,6 +109,7 @@ export default function ClientSettingsPage() {
             });
           }}
         />
+        </div>
       </div>
     </div>
   );

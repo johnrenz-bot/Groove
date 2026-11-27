@@ -199,7 +199,7 @@ export const GrooveyFloatingAssistant: React.FC<{ role?: 'client' | 'coach' }> =
             aria-label={resolvedRole === 'client' ? 'Open Groovey AI coach' : 'Open Groovey AI assistant'}
             aria-expanded={isOpen}
             className={cn(
-              'group relative flex items-center gap-2.5 rounded-full border border-border bg-card px-4 py-2.5 text-foreground shadow-xl transition-all duration-300 hover:scale-[1.03] hover:border-accent-border hover:shadow-2xl active:scale-95 cursor-pointer select-none'
+              'inverted-floating-element group relative flex items-center gap-2.5 rounded-full border border-border bg-card px-4 py-2.5 text-foreground shadow-xl transition-all duration-300 hover:scale-[1.03] hover:border-accent-border hover:shadow-2xl active:scale-95 cursor-pointer select-none'
             )}
           >
             {/* Mascot Avatar with Online indicator */}

@@ -183,7 +183,14 @@ export default function CoachRegistrationPage() {
   const goTo = (next: 1 | 2 | 3 | 4, dir: number) => {
     setDirection(dir);
     setStep(next);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Step changes used to reset the window scroll; the registration content
+    // wrapper is the scroller now, so reset that instead.
+    const scroller = document.querySelector<HTMLElement>('[data-registration-scroll]');
+    if (scroller) {
+      scroller.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   /** "Back to login" — confirms before discarding a partially-filled form. */

@@ -90,7 +90,7 @@ export const MODAL_OVERLAY_CLASS =
 
 /** The dialog surface: rounded, hairline, subtle border, bounded height. */
 export const MODAL_PANEL_CLASS =
-  'g-modal-panel relative flex max-h-[90dvh] w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-border bg-surface text-foreground p-6';
+  'g-modal-panel inverted-modal relative flex max-h-[90dvh] w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-border bg-surface text-foreground p-6';
 
 /** Header band with the Welcome Modal's quiet diagonal accent wash. */
 export const MODAL_HEADER_CLASS =

@@ -78,7 +78,7 @@ export function PanelHeader({
         {icon && <IconBadge icon={icon} size="sm" />}
         <div className="flex min-w-0 items-center gap-2">
           {typeof title === 'string' ? (
-            <h2 className="truncate font-sans text-base font-semibold tracking-[-0.01em] text-foreground sm:text-lg">
+            <h2 className="g-widget-title truncate">
               {title}
             </h2>
           ) : (

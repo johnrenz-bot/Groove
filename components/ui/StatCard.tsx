@@ -8,13 +8,15 @@ import { cn } from '@/lib/utils';
 
 export type StatTone = 'yellow' | 'blue' | 'red' | 'green' | 'neutral';
 
-const TONE = {
-  yellow: { icon: 'text-muted-foreground' },
-  blue: { icon: 'text-muted-foreground' },
-  red: { icon: 'text-muted-foreground' },
-  green: { icon: 'text-muted-foreground' },
-  neutral: { icon: 'text-muted-foreground' },
-} as const;
+/* Each tone keeps one quiet accent well. The number itself stays foreground
+   white/ink so the metric reads first and the colour never carries the value. */
+const TONE: Record<StatTone, { icon: string }> = {
+  yellow: { icon: 'text-accent-text border-accent-border bg-accent-soft' },
+  blue: { icon: 'text-info border-info/30 bg-info-soft' },
+  red: { icon: 'text-danger border-danger/30 bg-danger-soft' },
+  green: { icon: 'text-success border-success/30 bg-success-soft' },
+  neutral: { icon: 'text-accent-text border-accent-border bg-accent-soft' },
+};
 
 function FormattedNumber({ value }: { value: number }) {
   return <>{value.toLocaleString()}</>;
@@ -71,8 +73,9 @@ export interface StatCardProps {
 }
 
 /**
- * Neutral metric tile: no colored left bar, no colored icon tile. Plain muted
- * line icon, big number, label, meta in muted text. 1px border only.
+ * The premium KPI tile: a layered, gold-tinted surface with a large tabular
+ * number, a quiet status well and supporting metadata. Used by every role's
+ * dashboard so the metric hierarchy is identical across the platform.
  */
 export function StatCard({
   icon,
@@ -89,32 +92,32 @@ export function StatCard({
   const content = (
     <>
       <div className="flex items-start justify-between gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-muted-foreground" aria-hidden="true">
+        <span
+          className={cn('g-widget-icon', tone.icon)}
+          aria-hidden="true"
+        >
           {icon}
         </span>
         {href && (
           <ArrowUpRight
-            className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+            className="h-4 w-4 shrink-0 text-subtle-foreground transition-colors group-hover:text-accent-text"
             aria-hidden="true"
           />
         )}
       </div>
 
-      <div className="mt-4 min-w-0">
-        <p className="break-words text-[24px] font-bold leading-none tracking-[-0.02em] tabular-nums text-foreground sm:text-[28px]">
+      <div className="min-w-0">
+        <p className="g-widget-value break-words">
           {isNumber ? <CountUp value={value} /> : value}
         </p>
-        <p className="mt-1.5 text-sm font-medium leading-snug text-foreground">{label}</p>
-        {sub && (
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{sub}</p>
-        )}
+        <p className="g-widget-label">{label}</p>
+        {sub && <p className="g-widget-meta line-clamp-2">{sub}</p>}
       </div>
     </>
   );
 
   const classes = cn(
-    'group flex min-h-[9.25rem] flex-col justify-between rounded-[16px] border border-border bg-surface p-5',
-    'transition-colors hover:border-border-strong',
+    'g-widget g-widget--stat group',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
     className
   );

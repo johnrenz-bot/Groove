@@ -382,6 +382,22 @@ function DrawerBody({
             onNavigate={onClose}
           />
         )}
+        {!user && (
+          <div className="hx-drawer-auth">
+            <Link href="/login" className="hx-drawer-auth-link" onClick={onClose}>
+              <LogIn className="h-4 w-4" aria-hidden="true" />
+              {t('drawer.signIn', 'Sign in')}
+            </Link>
+            <Link
+              href="/register/client"
+              className="hx-drawer-auth-link hx-drawer-auth-link--primary"
+              onClick={onClose}
+            >
+              <UserPlus className="h-4 w-4" aria-hidden="true" />
+              {t('drawer.getStarted', 'Get started')}
+            </Link>
+          </div>
+        )}
       </div>
     </>
   );

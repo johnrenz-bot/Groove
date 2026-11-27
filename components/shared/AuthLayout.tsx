@@ -63,6 +63,22 @@ export function AuthLayout({
   /** Optional: custom image for the image panel (split mode) */
   imagePanelImage?: string;
 }) {
+  // Wizard registration routes are the only auth pages that get the fixed,
+  // app-style shell: a stationary background/logo and one internal scroller.
+  const scrollLocked = registration && wizard;
+
+  React.useEffect(() => {
+    if (!scrollLocked) return;
+    const root = document.documentElement;
+    const body = document.body;
+    root.classList.add('au-scroll-locked');
+    body.classList.add('au-scroll-locked');
+    return () => {
+      root.classList.remove('au-scroll-locked');
+      body.classList.remove('au-scroll-locked');
+    };
+  }, [scrollLocked]);
+
   const logoNode = logo ?? (
     <Image
       src="/image/Logo/GroovePH-Logo.png"
@@ -99,7 +115,7 @@ export function AuthLayout({
         </Link>
       ) : null)}
 
-      <section className={cn('av-card', wizard && 'av-card--wizard')}>
+      <section className={cn('av-card inverted-shell', wizard && 'av-card--wizard')}>
         {wizard ? null : (
           <header className="av-head">
             {eyebrow ? <div className="av-eyebrow">{eyebrow}</div> : null}
@@ -155,9 +171,15 @@ export function AuthLayout({
       "Discover verified coaches, book rehearsal studios, and grow your craft in Bulacan's premier performing arts hub.";
 
     return (
-      <div className={cn('au-shell au-shell--split', registration && 'au-shell--registration')}>
+      <div
+        className={cn(
+          'au-shell au-shell--split',
+          registration && 'au-shell--registration',
+          scrollLocked && 'au-shell--scroll-locked'
+        )}
+      >
         <AmbientBackground variant="auth" className="au-ambient" />
-        <PixelBackground intensity="medium" className="opacity-60" />
+        <PixelBackground intensity="medium" className="au-pixel-bg opacity-60" />
 
         {brandBar}
 
@@ -195,13 +217,21 @@ export function AuthLayout({
 
   // Non-split mode: centered column with ambient background
   return (
-    <div className={cn('au-shell', registration && 'au-shell--registration')}>
+    <div
+      className={cn(
+        'au-shell',
+        registration && 'au-shell--registration',
+        scrollLocked && 'au-shell--scroll-locked'
+      )}
+    >
       <AmbientBackground variant="auth" className="au-ambient" />
-      <PixelBackground intensity="medium" className="opacity-60" />
+      <PixelBackground intensity="medium" className="au-pixel-bg opacity-60" />
 
       {brandBar}
 
       <main
+        data-lenis-prevent={scrollLocked ? '' : undefined}
+        data-registration-scroll={scrollLocked ? '' : undefined}
         className={cn(
           'relative z-10 flex w-full flex-1 flex-col items-center px-[16px] sm:px-6',
           // A long form must not be vertically centred — centring pushes its

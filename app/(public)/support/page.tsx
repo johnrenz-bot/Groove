@@ -15,8 +15,10 @@ export const metadata: Metadata = {
 export default async function SupportPage() {
   const role = await resolveChromeRole();
 
+  // The shell (PublicLayout or DashboardLayout) already owns <main>, so this
+  // page body is a div — a nested <main> broke the shared sidebar layout.
   const body = (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-12 sm:px-6 sm:py-16">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-12 sm:px-6 sm:py-16">
       <header className="space-y-3">
         <span className="inline-flex items-center gap-2 rounded-full border border-border bg-accent-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-accent-text">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
@@ -78,7 +80,7 @@ export default async function SupportPage() {
           many issues (sign-in loop, hidden booking rows, expired requests) are solved there.
         </p>
       </section>
-    </main>
+    </div>
   );
 
   if (role === 'guest') {

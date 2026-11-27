@@ -31,7 +31,7 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-[16px] border border-border bg-card shadow-[var(--shadow-sm)]',
+        'inverted-shell rounded-[16px] border border-border bg-card shadow-[var(--shadow-sm)]',
         hoverable && 'transition-all duration-200 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5',
         PADDING[padding],
         className
@@ -127,9 +127,9 @@ export function IconBadge({
   className?: string;
 }) {
   const dims = {
-    sm: 'h-8 w-8 rounded-full',
-    md: 'h-10 w-10 rounded-full',
-    lg: 'h-12 w-12 rounded-full',
+    sm: 'h-9 w-9 rounded-[11px]',
+    md: 'h-10 w-10 rounded-[12px]',
+    lg: 'h-12 w-12 rounded-[14px]',
   }[size];
 
   return (

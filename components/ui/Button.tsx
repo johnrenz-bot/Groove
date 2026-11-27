@@ -101,6 +101,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
         variant === 'link' ? '' : radius,
+        !pill && variant !== 'link' ? 'inverted-button' : '',
         variant === 'link' ? '' : SIZE_STYLES[size],
         VARIANT_STYLES[variant],
         className

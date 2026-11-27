@@ -18,7 +18,7 @@ import {
   Cake,
   UserRound,
 } from 'lucide-react';
-import { AppHeader } from '@/components/header/AppHeader';
+import { StandaloneChrome } from '@/components/layout/StandaloneChrome';
 import BookingModal from '@/features/appointments/components/BookingModal';
 import CoachAIAssistantModal from '@/components/shared/CoachAIAssistantModal';
 import { FullCoach, Profile, Feedback, CommunityPost } from '@/lib/types';
@@ -346,7 +346,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
             )}
             <Link
               href="/users"
-              className="inline-flex h-10 items-center rounded-full   px-5 text-sm font-semibold text-muted-foreground transition-colors hover: hover:text-foreground"
+              className="inline-flex h-10 items-center rounded-full   px-5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
               Browse members
             </Link>
@@ -400,10 +400,9 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
   const genreList = parseGenres(cp?.genres);
 
   return (
-    <div className="min-h-screen bg-background pb-16 text-foreground">
-      <AppHeader />
-
-      <main id="main-content" tabIndex={-1} className="mx-auto max-w-5xl space-y-6 px-4 pt-8 md:px-8 md:pt-10">
+    <StandaloneChrome>
+      <div className="app-page pb-16 text-foreground">
+        <div className="mx-auto max-w-5xl space-y-6 px-4 pt-8 md:px-8 md:pt-10">
         <button
           onClick={() => router.back()}
           className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -602,7 +601,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
               {!isOwnProfile && (
                 <Link
                   href="/messages"
-                  className="inline-flex items-center gap-1.5 rounded-full   px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover: hover:text-foreground"
+                  className="inline-flex items-center gap-1.5 rounded-full   px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
                   Message
@@ -648,7 +647,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
         )}
 
         {/* Content Breakdown */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="app-profile-grid md:grid-cols-3">
           <div className="space-y-6 md:col-span-2">
             {/* Bio + the public facts about this account.
                 The bio is NOT defaulted to a sentence the member never wrote:
@@ -866,7 +865,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
             )}
           </aside>
         </div>
-      </main>
+        </div>
 
       {/* Follow list modal — opens from the header stat buttons with the
           matching tab, and is the same component the dashboards use. */}
@@ -906,6 +905,7 @@ export default function UserProfileViewerPage({ params }: { params: Promise<{ id
           }}
         />
       )}
-    </div>
+      </div>
+    </StandaloneChrome>
   );
 }

@@ -211,7 +211,7 @@ function NotificationCard({
       role="status"
       aria-live="polite"
       className={cn(
-        'pointer-events-auto flex w-full max-w-[27rem] items-start gap-3 rounded-2xl border border-border px-3.5 py-3',
+        'inverted-card-sm pointer-events-auto flex w-full max-w-[27rem] items-start gap-3 rounded-2xl border border-border px-3.5 py-3',
         'bg-card/95 text-card-foreground shadow-[var(--shadow-lg)]',
         'backdrop-blur-md supports-[backdrop-filter]:bg-card/88',
         isDanger ? '' : 'border-accent-border'
